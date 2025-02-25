@@ -13,10 +13,12 @@ function createWindow() {
     },
   });
 
+  // 开发环境下加载Vite开发服务器
   if (process.env.NODE_ENV === 'development') {
-    mainWindow.loadURL('http://localhost:3000');
-    mainWindow.webContents.openDevTools();
+    mainWindow.loadURL('http://localhost:5173');
+    mainWindow.webContents.openDevTools(); // 打开开发者工具
   } else {
+    // 生产环境下加载打包后的文件
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
 
@@ -34,7 +36,7 @@ app.on('window-all-closed', () => {
 });
 
 app.on('activate', () => {
-  if (mainWindow === null) {
+  if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
   }
 });

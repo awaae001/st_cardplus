@@ -3,21 +3,40 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
+    "build": "vite build",
+    "preview": "vite preview",
+    "electron": "electron .",
+    "start": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && electron .\""
   },
   "dependencies": {
+    "@tailwindcss/vite": "^4.0.8",
+    "tailwindcss": "^4.0.8",
     "vue": "^3.5.13"
   },
   "devDependencies": {
+    "@types/node": "^22.13.5",
     "@vitejs/plugin-vue": "^5.2.1",
     "@vue/tsconfig": "^0.7.0",
+    "concurrently": "^9.1.2",
     "electron": "^34.2.0",
     "electron-builder": "^25.1.8",
-    "typescript": "~5.7.2",
+    "ts-node": "^10.9.2",
+    "typescript": "~5.7.3",
     "vite": "^6.2.0",
-    "vue-tsc": "^2.2.4"
+    "vite-plugin-electron": "^0.29.0",
+    "vue-tsc": "^2.2.4",
+    "wait-on": "^8.0.2"
+  },
+  "pnpm": {
+    "ignoredBuiltDependencies": [
+      "electron",
+      "esbuild"
+    ],
+    "onlyBuiltDependencies": [
+      "electron"
+    ]
   }
 }
