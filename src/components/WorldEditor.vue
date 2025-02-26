@@ -161,6 +161,10 @@ const loadWorld = async () => {
     ElMessage.error('加载失败')
   }
 }
+defineExpose({
+  saveWorld,
+  loadWorld
+})
 </script>
 
 <style scoped>

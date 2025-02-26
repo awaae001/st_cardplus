@@ -1,7 +1,7 @@
 <template>
   <div class="main-container">
-    <WorldEditor v-if="currentPage === 'world'" />
-    <CharacterCardEditor v-if="currentPage === 'character'" />
+    <WorldEditor v-if="currentPage === 'world'" ref="worldEditorRef" />
+    <CharacterCardEditor v-if="currentPage === 'character'" ref="characterEditorRef" />
   </div>
 </template>
 
@@ -11,13 +11,36 @@ import WorldEditor from './WorldEditor.vue'
 import CharacterCardEditor from './CharacterCardEditor.vue'
 
 const currentPage = ref<'world' | 'character'>('character')
+const characterEditorRef = ref<InstanceType<typeof CharacterCardEditor>>()
+const worldEditorRef = ref<InstanceType<typeof WorldEditor>>()
 
 function showPage(page: 'world' | 'character') {
   currentPage.value = page
 }
 
+async function saveCharacterCard() {
+  await characterEditorRef.value?.saveCharacterCard()
+}
+
+async function loadCharacterCard() {
+  await characterEditorRef.value?.loadCharacterCard()
+}
+
+async function saveWorld() {
+  await worldEditorRef.value?.saveWorld()
+}
+
+async function loadWorld() {
+  await worldEditorRef.value?.loadWorld()
+}
+
 defineExpose({
-  showPage
+  showPage,
+  currentPage,
+  saveCharacterCard,
+  loadCharacterCard,
+  saveWorld,
+  loadWorld
 })
 </script>
 

@@ -416,6 +416,10 @@ const loadCharacterCard = async () => {
     ElMessage.error(`加载失败：${error instanceof Error ? error.message : '未知错误'}`);
   }
 };
+defineExpose({
+  saveCharacterCard,
+  loadCharacterCard
+})
 </script>
 
 <style scoped>
