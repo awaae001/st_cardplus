@@ -83,10 +83,10 @@
     </el-card>
 
     <!-- 操作按钮 -->
-    <div class="flex gap-4">
+    <!-- <div class="flex gap-4">
       <el-button type="primary" @click="saveWorld">保存世界书</el-button>
       <el-button type="success" @click="loadWorld">加载世界书</el-button>
-    </div>
+    </div> -->
   </div>
 </template>
 

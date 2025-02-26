@@ -180,10 +180,10 @@
     </el-card>
 
     <!-- 操作按钮 -->
-    <div class="flex gap-4">
+    <!-- <div class="flex gap-4">
       <el-button type="primary" @click="saveCharacterCard">保存角色卡</el-button>
       <el-button type="success" @click="loadCharacterCard">加载角色卡</el-button>
-    </div>
+    </div> -->
   </div>
 </template>
 

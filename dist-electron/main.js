@@ -5,6 +5,10 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
+    // resizable: false,
+    fullscreenable: false,
+    // frame: false,
+    useContentSize: true,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
