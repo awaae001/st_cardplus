@@ -9,7 +9,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "electron": "electron .",
-    "start": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && electron .\""
+    "start": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+    "build:electron": "cross-env NODE_ENV=production vite build && tsc -p electron/tsconfig.json && electron-builder",
+    "electron:serve": "cross-env NODE_ENV=development vite build && tsc -p electron/tsconfig.json && electron ."
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
@@ -26,6 +28,7 @@
     "@vitejs/plugin-vue": "^5.2.1",
     "@vue/tsconfig": "^0.7.0",
     "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
     "electron": "^34.2.0",
     "electron-builder": "^25.1.8",
     "ts-node": "^10.9.2",

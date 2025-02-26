@@ -1,0 +1,15 @@
+{
+  "productName": "ElectronTSViteProject",
+  "appId": "com.example.electrontsvite",
+  "directories": {
+    "output": "dist"
+  },
+  "files": [
+    "dist/**/*",
+    "dist-electron/**/*"
+  ],
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true
+  }
+}

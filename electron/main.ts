@@ -1,5 +1,7 @@
 import { app, BrowserWindow } from 'electron';
+import { fileURLToPath } from 'url';
 import path from 'path';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -7,22 +9,31 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
-    // resizable: false,
     fullscreenable: false,
-    // frame: false,
     useContentSize: true,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
+      allowRunningInsecureContent: false
     },
+    show: false,
+    backgroundColor: '#ffffff',
+    // titleBarStyle: 'hidden',
+    trafficLightPosition: { x: 12, y: 12 }
   });
 
-  // 开发环境下加载Vite开发服务器
+  mainWindow.once('ready-to-show', () => {
+    mainWindow?.show();
+  });
+
+  mainWindow.webContents.on('did-fail-load', () => {
+    mainWindow?.loadFile(path.join(__dirname, '../dist/error.html'));
+  });
+
   if (process.env.NODE_ENV === 'development') {
     mainWindow.loadURL('http://localhost:5173');
-    mainWindow.webContents.openDevTools(); // 打开开发者工具
+    mainWindow.webContents.openDevTools();
   } else {
-    // 生产环境下加载打包后的文件
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
 

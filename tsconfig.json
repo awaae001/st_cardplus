@@ -1,7 +1,7 @@
 {
   "files": [],
   "compilerOptions": {
-      "typeRoots": ["./node_modules/@types", "./node_modules/element-plus/types"],
+      "typeRoots": ["./node_modules/@types", "./node_modules/element-plus/types", "./node_modules"],
       "types": ["element-plus"]
     },
   "references": [
