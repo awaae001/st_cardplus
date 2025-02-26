@@ -52,33 +52,41 @@
 
     <!-- 势力 -->
     <el-card class="mb-4">
-      <h2 class="text-xl font-semibold mb-2">势力</h2>
-      <div v-for="(force, index) in form.forces" :key="index" class="mb-4">
-        <el-input v-model="force.name" placeholder="势力名称" class="mb-2" />
-        <el-input
-          v-model="force.members"
-          type="textarea"
-          :rows="2"
-          placeholder="成员（每行一个）"
-          class="mb-2"
-        />
-        <el-input
-          v-model="force.description"
-          type="textarea"
-          :rows="2"
-          placeholder="势力描述"
-          class="mb-2"
-        />
-        <el-button type="danger" @click="removeForce(index)">删除势力</el-button>
-      </div>
-      <el-button type="primary" @click="addForce">+ 添加势力</el-button>
+      <h2 class="text-xl font-semibold mb-4">势力</h2>
+      <el-row :gutter="16">
+        <el-col v-for="(force, index) in form.forces" :key="index" :xs="24" :sm="12" :md="8" :lg="6">
+          <el-card class="mb-4 force-card">
+            <el-input v-model="force.name" placeholder="势力名称" class="mb-2" />
+            <el-input
+              v-model="force.members"
+              type="textarea"
+              :rows="2"
+              placeholder="成员（每行一个）"
+              class="mb-2"
+            />
+            <el-input
+              v-model="force.description"
+              type="textarea"
+              :rows="2"
+              placeholder="势力描述"
+              class="mb-2"
+            />
+            <el-button type="danger" @click="removeForce(index)" class="w-full">
+              删除势力
+            </el-button>
+          </el-card>
+        </el-col>
+      </el-row>
+      <el-button type="primary" @click="addForce" class="w-full">
+        + 添加势力
+      </el-button>
     </el-card>
 
     <!-- 操作按钮 -->
-    <div class="flex gap-4">
+    <!-- <div class="flex gap-4">
       <el-button type="primary" @click="saveWorld">保存世界书</el-button>
       <el-button type="success" @click="loadWorld">加载世界书</el-button>
-    </div>
+    </div> -->
   </div>
 </template>
 
