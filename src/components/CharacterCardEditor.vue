@@ -21,7 +21,7 @@
             </el-select>
           </el-form-item>
           <el-form-item label="年龄">
-            <el-input-number v-model="form.age" :min="0" :max="9999" />
+            <el-input-number v-model="form.age" :min="0" :max="100" />
           </el-form-item>
           <el-form-item label="身份">
             <el-input v-model="form.identity" placeholder="请输入身份" />
@@ -180,10 +180,10 @@
     </el-card>
 
     <!-- 操作按钮 -->
-    <div class="flex gap-4">
+    <!-- <div class="flex gap-4">
       <el-button type="primary" @click="saveCharacterCard">保存角色卡</el-button>
       <el-button type="success" @click="loadCharacterCard">加载角色卡</el-button>
-    </div>
+    </div> -->
   </div>
 </template>
 

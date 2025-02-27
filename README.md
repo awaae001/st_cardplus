@@ -2,8 +2,6 @@
 
 这是一个基于 Electron + Vue 3 + TypeScript + Vite 构建的桌面应用程序，用于快速创建和管理 SillyTavern 角色卡。
 
-额外辅助插件： `tailwindcss` `element-plus`
-
 ## 主要功能
 
 - **角色卡编辑器**
@@ -57,11 +55,11 @@ electron-ts-vite-project/
 │   ├── assets/          # 静态资源
 │   ├── components/      # 组件
 │   │   ├── CharacterCardEditor.vue  # 角色卡编辑器
-│   │   ├── Home.vue                 # 主页     
+│   │   ├── MainPage.vue             # 主页面
+│   │   ├── WelcomePage.vue          # 欢迎页面
 │   │   └── WorldEditor.vue          # 世界书编辑器
 │   ├── router/          # 路由配置
-│   ├── main.ts          # 入口文件
-|   └── App.vue          # 应用根组件 （主页面） 
+│   └── main.ts          # 入口文件
 ├── package.json         # 项目配置
 └── vite.config.ts       # Vite 配置
 ```

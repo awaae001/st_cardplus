@@ -1,7 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
-import Home from '../components/Home.vue'
-import CharacterCardEditor from '../components/CharacterCardEditor.vue'
-import WorldEditor from '../components/WorldEditor.vue'
+import HomePage from '../pages/HomePage.vue'
+import CardPage from '../pages/CardPage.vue'
+import WorldPage from '../pages/WorldPage.vue'
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -9,17 +9,17 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: Home
+      component: HomePage
     },
     {
       path: '/card',
       name: 'card',
-      component: CharacterCardEditor
+      component: CardPage
     },
     {
       path: '/world',
       name: 'world',
-      component: WorldEditor
+      component: WorldPage
     }
   ]
 })
