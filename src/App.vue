@@ -1,16 +1,22 @@
-<script setup lang="ts">
-import { RouterView } from 'vue-router'
-</script>
-
 <template>
-  <div class="app-container">
-    <RouterView />
-  </div>
+  <router-view />
 </template>
 
-<style scoped>
-.app-container {
-  width: 100vw;
-  height: 100vh;
+<script lang="ts">
+import { defineComponent } from 'vue'
+
+export default defineComponent({
+  name: 'App'
+})
+</script>
+
+<style>
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+  margin-top: 60px;
 }
 </style>
