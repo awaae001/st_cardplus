@@ -4,12 +4,13 @@ on:
   push:
     branches:
       - main
-  tags:
-    - 'v*'  # 仅在 tag 版本发布时触发
+  create:
+    tags:
+      - 'v*'  # 仅在创建 tag 时触发
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # 你可以改为 macos-latest 或 windows-latest
+    runs-on: ubuntu-latest  # 可以改成 macos-latest 或 windows-latest
 
     steps:
       - name: 🛎️ Checkout Repository
@@ -40,7 +41,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: release-artifacts
-          path: dist/  # 确保这里是构建产物的路径
+          path: dist/
 
   release:
     needs: build
