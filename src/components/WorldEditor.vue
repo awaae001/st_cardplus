@@ -9,29 +9,30 @@
     </div>
 
     <!-- 基本信息 -->
-    <el-card class="mb-4">
-      <h2 class="text-xl font-semibold mb-2">基本信息</h2>
-      <el-form :model="form" label-width="120px">
-        <el-form-item label="名称">
-          <el-input v-model="form.name" placeholder="请输入世界名称" />
-        </el-form-item>
-        <el-form-item label="所属空间">
-          <el-input v-model="form.space" placeholder="请输入所属空间" />
-        </el-form-item>
-      </el-form>
-    </el-card>
+    <div class="section-container">
+      <el-card class="mb-4">
+        <el-card>
+          <h2 class="text-xl font-semibold mb-2">基本信息</h2>
+          <el-form :model="form" label-width="80px">
+            <el-form-item label="名称">
+              <el-input v-model="form.name" placeholder="请输入世界名称" />
+            </el-form-item>
+            <el-form-item label="所属空间">
+              <el-input v-model="form.space" placeholder="请输入所属空间" />
+            </el-form-item>
+          </el-form>
+        </el-card>
+        <el-card style="margin-top: 10px;">
+          <h2 class="text-xl font-semibold mb-2">关键词（每行一条）</h2>
+          <el-input v-model="form.keywords" type="textarea" :rows="3" placeholder="请输入关键词" />
+        </el-card>
+      </el-card>
+      <el-card class="mb-4" style="width: 75%;">
+        <h2 class="text-xl font-semibold mb-2">介绍（每行一段）</h2>
+        <el-input v-model="form.info" type="textarea" :rows="12" placeholder="请输入介绍" />
+      </el-card>
+    </div>
 
-    <!-- 关键词 -->
-    <el-card class="mb-4">
-      <h2 class="text-xl font-semibold mb-2">关键词（每行一条）</h2>
-      <el-input v-model="form.keywords" type="textarea" :rows="3" placeholder="请输入关键词" />
-    </el-card>
-
-    <!-- 介绍 -->
-    <el-card class="mb-4">
-      <h2 class="text-xl font-semibold mb-2">介绍（每行一段）</h2>
-      <el-input v-model="form.info" type="textarea" :rows="4" placeholder="请输入介绍" />
-    </el-card>
 
     <!-- 地标 -->
     <el-card class="mb-4">
@@ -152,6 +153,12 @@ defineExpose({
 
 <style scoped>
 /* 使用 Tailwind CSS 进行样式控制 */
+
+.section-container {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
 
 #tiltleMain {
   display: flex;
