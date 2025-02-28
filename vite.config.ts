@@ -4,6 +4,9 @@ import electron from 'vite-plugin-electron';
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
+  server: {
+    port: 5174
+  },
   plugins: [
     vue(),
     tailwindcss(),

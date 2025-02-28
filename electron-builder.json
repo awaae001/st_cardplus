@@ -1,6 +1,6 @@
 {
-  "productName": "ElectronTSViteProject",
-  "appId": "com.example.electrontsvite",
+  "productName": "sillytavern-char_cardplus",
+  "appId": "com.awaae001.cardplus",
   "directories": {
     "output": "dist"
   },

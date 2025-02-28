@@ -1,6 +1,12 @@
 <template>
   <div class="p-4 bg-gray-100 min-h-screen">
-    <h1 class="text-2xl font-bold mb-4">世界书编辑器</h1>
+    <div id="tiltleMain">
+      <h1 class="text-2xl font-bold mb-4">世界书编辑器</h1>
+      <div class="btnSL">
+        <el-button type="primary" @click="saveWorld">保存世界书</el-button>
+        <el-button type="success" @click="loadWorld">加载世界书</el-button>
+      </div>
+    </div>
 
     <!-- 基本信息 -->
     <el-card class="mb-4">
@@ -18,34 +24,21 @@
     <!-- 关键词 -->
     <el-card class="mb-4">
       <h2 class="text-xl font-semibold mb-2">关键词（每行一条）</h2>
-      <el-input
-        v-model="form.keywords"
-        type="textarea"
-        :rows="3"
-        placeholder="请输入关键词"
-      />
+      <el-input v-model="form.keywords" type="textarea" :rows="3" placeholder="请输入关键词" />
     </el-card>
 
     <!-- 介绍 -->
     <el-card class="mb-4">
       <h2 class="text-xl font-semibold mb-2">介绍（每行一段）</h2>
-      <el-input
-        v-model="form.info"
-        type="textarea"
-        :rows="4"
-        placeholder="请输入介绍"
-      />
+      <el-input v-model="form.info" type="textarea" :rows="4" placeholder="请输入介绍" />
     </el-card>
 
     <!-- 地标 -->
     <el-card class="mb-4">
       <h2 class="text-xl font-semibold mb-2">地标</h2>
       <div v-for="(landmark, index) in form.landmarks" :key="index" class="mb-2">
-        <el-input 
-          v-model="form.landmarks[index]" 
-          :placeholder="`地标 #${index + 1}`" 
-          @change="ElMessage.success(`已更新地标: ${landmark}`)"
-        />
+        <el-input v-model="form.landmarks[index]" :placeholder="`地标 #${index + 1}`"
+          @change="ElMessage.success(`已更新地标: ${landmark}`)" />
       </div>
       <el-button type="primary" @click="addLandmark">+ 添加地标</el-button>
     </el-card>
@@ -57,20 +50,8 @@
         <el-col v-for="(force, index) in form.forces" :key="index" :xs="24" :sm="12" :md="8" :lg="6">
           <el-card class="mb-4 force-card">
             <el-input v-model="force.name" placeholder="势力名称" class="mb-2" />
-            <el-input
-              v-model="force.members"
-              type="textarea"
-              :rows="2"
-              placeholder="成员（每行一个）"
-              class="mb-2"
-            />
-            <el-input
-              v-model="force.description"
-              type="textarea"
-              :rows="2"
-              placeholder="势力描述"
-              class="mb-2"
-            />
+            <el-input v-model="force.members" type="textarea" :rows="2" placeholder="成员（每行一个）" class="mb-2" />
+            <el-input v-model="force.description" type="textarea" :rows="2" placeholder="势力描述" class="mb-2" />
             <el-button type="danger" @click="removeForce(index)" class="w-full">
               删除势力
             </el-button>
@@ -81,12 +62,6 @@
         + 添加势力
       </el-button>
     </el-card>
-
-    <!-- 操作按钮 -->
-    <!-- <div class="flex gap-4">
-      <el-button type="primary" @click="saveWorld">保存世界书</el-button>
-      <el-button type="success" @click="loadWorld">加载世界书</el-button>
-    </div> -->
   </div>
 </template>
 
@@ -177,4 +152,15 @@ defineExpose({
 
 <style scoped>
 /* 使用 Tailwind CSS 进行样式控制 */
+
+#tiltleMain {
+  display: flex;
+  justify-content: space-between;
+}
+
+.btnSL {
+  display: flex;
+  align-items: center;
+  margin-right: 48px;
+}
 </style>

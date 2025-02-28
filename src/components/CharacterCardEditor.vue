@@ -1,6 +1,12 @@
 <template>
   <div class="p-4 bg-gray-100 min-h-screen">
-    <h1 class="text-2xl font-bold mb-4">角色卡编辑器</h1>
+    <div id="tiltleMain">
+      <h1 class="text-2xl font-bold mb-4">角色卡编辑器</h1>
+      <div class="btnSL">
+        <el-button type="primary" @click="saveCharacterCard">保存角色卡</el-button>
+        <el-button type="success" @click="loadCharacterCard">加载角色卡</el-button>
+      </div>
+    </div>
 
     <div class="section-container">
       <!-- 基础信息 -->
@@ -180,10 +186,6 @@
     </el-card>
 
     <!-- 操作按钮 -->
-    <!-- <div class="flex gap-4">
-      <el-button type="primary" @click="saveCharacterCard">保存角色卡</el-button>
-      <el-button type="success" @click="loadCharacterCard">加载角色卡</el-button>
-    </div> -->
   </div>
 </template>
 
@@ -432,5 +434,16 @@ defineExpose({
 
 .section-container>* {
   flex: 1;
+}
+
+#tiltleMain {
+  display: flex;
+  justify-content: space-between;
+}
+
+.btnSL {
+  display: flex;
+  align-items: center;
+  margin-right: 48px;
 }
 </style>
