@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # 可以改成 macos-latest 或 windows-latest
+    runs-on: ubuntu-latest  # 可改为 macos-latest 或 windows-latest
 
     steps:
       - name: 🛎️ Checkout Repository
@@ -19,11 +19,13 @@ jobs:
       - name: 🔧 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: 'pnpm'
 
-      - name: 📦 Install pnpm
-        run: npm install -g pnpm
+      - name: 📦 Setup pnpm  # 修复 pnpm 缺失问题
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10
 
       - name: 📥 Install Dependencies
         run: pnpm install
