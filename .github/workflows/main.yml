@@ -36,7 +36,7 @@ jobs:
         run: |
           pnpm exec electron-builder --linux AppImage --win nsis --mac dmg
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: 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
 
       - name: 🚀 Upload Artifacts
         uses: actions/upload-artifact@v4
@@ -63,4 +63,4 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: dist/*
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: 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
