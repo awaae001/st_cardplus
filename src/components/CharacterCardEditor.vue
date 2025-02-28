@@ -29,8 +29,17 @@
             <el-select v-model="form.gender" placeholder="请选择性别">
               <el-option label="女性" value="female" />
               <el-option label="男性" value="male" />
-              <el-option label="其他" value="other" />
+              <el-option label="武装直升机" value="helicopter" />
+              <el-option label="永雏塔菲" value="tiffany" />
+              <el-option label="沃尔玛购物袋" value="walmart" />
+              <el-option label="其他(自定义)" value="other" />
             </el-select>
+            <el-input 
+              v-if="form.gender === 'other'"
+              v-model="form.customGender"
+              placeholder="请输入您的性别"
+              style="margin-top: 10px;"
+            />
           </el-form-item>
           <el-form-item label="年龄">
             <el-input-number v-model="form.age" :min="0" :max="9999" />
@@ -127,7 +136,7 @@
         <el-button type="primary" @click="addTrait" class="w-full" style="margin-left: 16px;">
           <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
             style="margin-right: 4px;" />
-          添加特质
+          添加特质（卡片）
         </el-button>
       </div>
       <el-row :gutter="16">
@@ -137,7 +146,9 @@
             <el-input v-model="trait.description" type="textarea" :rows="2" placeholder="描述" class="mb-2" />
             <el-input v-model="trait.dialogueExamples" type="textarea" :rows="2" placeholder="对话示例" class="mb-2" />
             <el-input v-model="trait.behaviorExamples" type="textarea" :rows="2" placeholder="行为示例" class="mb-2" />
+            <div style="margin: 4px;"></div>
             <el-button type="danger" @click="removeTrait(index)" class="w-full">
+              <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
               删除特质
             </el-button>
           </el-card>
@@ -154,7 +165,7 @@
         <el-button type="primary" @click="addRelationship" class="w-full" style="margin-left: 16px;">
           <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
             style="margin-right: 4px;" />
-          添加关系
+          添加关系（卡片）
         </el-button>
       </div>
       <el-row :gutter="16">
@@ -163,7 +174,9 @@
             <el-input v-model="relationship.name" placeholder="角色名称" class="mb-2" />
             <el-input v-model="relationship.description" type="textarea" :rows="2" placeholder="关系描述" class="mb-2" />
             <el-input v-model="relationship.features" type="textarea" :rows="2" placeholder="人物特征" class="mb-2" />
+            <div style="margin: 4px;"></div>
             <el-button type="danger" @click="removeRelationship(index)" class="w-full">
+              <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
               删除关系
             </el-button>
           </el-card>
@@ -172,14 +185,15 @@
     </el-card>
 
     <div style="margin: 4px;"></div>
-    
+
     <!-- 喜好系统 -->
     <div style="display: flex;">
       <el-card class="mb-4">
         <h2 class="text-xl font-semibold mb-2">喜好系统</h2>
-        <el-input v-model="form.likes" type="textarea" :rows="3" placeholder="请输入喜好（每行一条）" class="mb-2" />
-        <el-input v-model="form.dislikes" type="textarea" :rows="3" placeholder="请输入厌恶（每行一条）" />
+        <el-input v-model="form.likes" type="textarea" :rows="5" placeholder="请输入喜好（每行一条）" class="mb-2" />
+        <el-input v-model="form.dislikes" type="textarea" :rows="5" placeholder="请输入厌恶（每行一条）" />
       </el-card>
+      <div style="margin: 4px;"></div>
       <el-card class="mb-4" style="width: 75%;">
         <h2 class="text-xl font-semibold mb-2">日常作息</h2>
         <el-form :model="form.dailyRoutine" label-width="120px">
@@ -233,6 +247,7 @@ interface CharacterCard {
   chineseName: string;
   japaneseName: string;
   gender: string;
+  customGender: string;
   age: number;
   identity: string;
   background: string;
@@ -282,6 +297,7 @@ const form = ref<CharacterCard>({
   chineseName: '',
   japaneseName: '',
   gender: '',
+  customGender: '',
   age: 0,
   identity: '',
   background: '',
@@ -349,7 +365,7 @@ const removeRelationship = (index: number) => {
 
 // 验证MBTI格式
 const isValidMBTI = (mbti: string) => {
-  return mbti.toLowerCase() === 'none' || /^[EI][SN][TF][JP]$/i.test(mbti);
+  return mbti.toLowerCase() === 'none' || 'AWAAE' || /^[EI][SN][TF][JP]$/i.test(mbti);
 };
 
 // MBTI类型描述
@@ -374,6 +390,7 @@ const mbtiDescriptions: MBTIDescriptions = {
   ISFP: '探险家',
   ESTP: '企业家',
   ESFP: '表演者',
+  AWAAE:'啊？作者？',
   none: '未指定'
 };
 
@@ -429,6 +446,7 @@ const loadCharacterCard = async () => {
           chineseName: parsedData.Chinese_name || '',
           japaneseName: parsedData.japaneseName || '',
           gender: parsedData.gender || '',
+          customGender: parsedData.customGender || '',
           age: Number(parsedData.age) || 0,
           identity: parsedData.identity || '',
           background: Array.isArray(parsedData.background) ? parsedData.background.join('\n') : '',

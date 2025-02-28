@@ -16,7 +16,7 @@
 
     <!-- 基本信息 -->
     <div class="section-container">
-      <el-card class="mb-4">
+      <div>
         <el-card>
           <h2 class="text-xl font-semibold mb-2">基本信息</h2>
           <el-form :model="form" label-width="80px">
@@ -32,7 +32,7 @@
           <h2 class="text-xl font-semibold mb-2">关键词（每行一条）</h2>
           <el-input v-model="form.keywords" type="textarea" :rows="3" placeholder="请输入关键词" />
         </el-card>
-      </el-card>
+      </div>
       <el-card class="mb-4" style="width: 75%;">
         <h2 class="text-xl font-semibold mb-2">介绍（每行一段）</h2>
         <el-input v-model="form.info" type="textarea" :rows="12" placeholder="请输入介绍" />
@@ -43,41 +43,54 @@
 
     <!-- 地标 -->
     <el-card class="mb-4">
-      <h2 class="text-xl font-semibold mb-4">地标</h2>
+      <div class="title-Btn-add">
+        <h2 class="text-xl font-semibold mb-4">地标</h2>
+        <el-button type="primary" @click="addLandmark" class="w-full" style="margin-left: 16px;">
+          <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
+            style="margin-right: 4px;" />
+          添加地标（卡片）
+        </el-button>
+      </div>
       <el-row :gutter="16">
         <el-col v-for="(landmark, index) in form.landmarks" :key="index" :xs="24" :sm="12" :md="8" :lg="6">
           <el-card class="mb-4 landmark-card">
             <el-input v-model="landmark.name" placeholder="地标名称" class="mb-2" />
             <el-input v-model="landmark.description" type="textarea" :rows="3" placeholder="地标介绍" class="mb-2" />
+            <div style="margin: 4px;"></div>
             <el-button type="danger" @click="removeLandmark(index)" class="w-full">
-              - 删除地标
+              <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
+              删除地标
             </el-button>
           </el-card>
         </el-col>
       </el-row>
-      <el-button type="primary" @click="addLandmark" class="w-full">
-        + 添加地标
-      </el-button>
     </el-card>
 
+    <div style="margin: 4px;"></div>
     <!-- 势力 -->
     <el-card class="mb-4">
-      <h2 class="text-xl font-semibold mb-4">势力</h2>
+      <div class="title-Btn-add">
+        <h2 class="text-xl font-semibold mb-4">势力</h2>
+        <el-button type="primary" @click="addForce" class="w-full" style="margin-left: 16px;">
+          <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
+            style="margin-right: 4px;" />
+          添加势力（卡片）
+        </el-button>
+      </div>
       <el-row :gutter="16">
         <el-col v-for="(force, index) in form.forces" :key="index" :xs="24" :sm="12" :md="8" :lg="6">
           <el-card class="mb-4 force-card">
             <el-input v-model="force.name" placeholder="势力名称" class="mb-2" />
             <el-input v-model="force.members" type="textarea" :rows="2" placeholder="成员（每行一个）" class="mb-2" />
             <el-input v-model="force.description" type="textarea" :rows="2" placeholder="势力描述" class="mb-2" />
+            <div style="margin: 4px;"></div>
             <el-button type="danger" @click="removeForce(index)" class="w-full">
+              <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
               删除势力
             </el-button>
           </el-card>
         </el-col>
       </el-row>
-      <el-button type="primary" @click="addForce" class="w-full">
-        + 添加势力
-      </el-button>
     </el-card>
   </div>
 </template>
@@ -199,5 +212,11 @@ defineExpose({
   display: flex;
   align-items: center;
   margin-right: 48px;
+}
+
+.title-Btn-add {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
 }
 </style>
