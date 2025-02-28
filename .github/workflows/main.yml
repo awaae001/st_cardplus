@@ -56,7 +56,7 @@ jobs:
       - name: 📥 Download Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: release-artifacts
+          name: awaae001
           path: dist/
 
       - name: 🚀 Create GitHub Release
