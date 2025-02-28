@@ -3,8 +3,14 @@
     <div id="tiltleMain">
       <h1 class="text-2xl font-bold mb-4">世界书编辑器</h1>
       <div class="btnSL">
-        <el-button type="primary" @click="saveWorld">保存世界书</el-button>
-        <el-button type="success" @click="loadWorld">加载世界书</el-button>
+        <el-button type="success" @click="loadWorld">
+          <Icon icon="material-symbols:folder-open-outline-sharp" width="18" height="18" style="margin-right: 4px;" />
+          加载世界书
+        </el-button>
+        <el-button type="primary" @click="saveWorld">
+          <Icon icon="material-symbols:file-save-outline-sharp" width="18" height="18" style="margin-right: 4px;" />
+          保存世界书
+        </el-button>
       </div>
     </div>
 
@@ -33,15 +39,25 @@
       </el-card>
     </div>
 
+    <div style="margin: 4px;"></div>
 
     <!-- 地标 -->
     <el-card class="mb-4">
-      <h2 class="text-xl font-semibold mb-2">地标</h2>
-      <div v-for="(landmark, index) in form.landmarks" :key="index" class="mb-2">
-        <el-input v-model="form.landmarks[index]" :placeholder="`地标 #${index + 1}`"
-          @change="ElMessage.success(`已更新地标: ${landmark}`)" />
-      </div>
-      <el-button type="primary" @click="addLandmark">+ 添加地标</el-button>
+      <h2 class="text-xl font-semibold mb-4">地标</h2>
+      <el-row :gutter="16">
+        <el-col v-for="(landmark, index) in form.landmarks" :key="index" :xs="24" :sm="12" :md="8" :lg="6">
+          <el-card class="mb-4 landmark-card">
+            <el-input v-model="landmark.name" placeholder="地标名称" class="mb-2" />
+            <el-input v-model="landmark.description" type="textarea" :rows="3" placeholder="地标介绍" class="mb-2" />
+            <el-button type="danger" @click="removeLandmark(index)" class="w-full">
+              - 删除地标
+            </el-button>
+          </el-card>
+        </el-col>
+      </el-row>
+      <el-button type="primary" @click="addLandmark" class="w-full">
+        + 添加地标
+      </el-button>
     </el-card>
 
     <!-- 势力 -->
@@ -70,6 +86,12 @@
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { saveAs } from 'file-saver'
+import { Icon } from "@iconify/vue";
+
+interface Landmark {
+  name: string
+  description: string
+}
 
 interface Force {
   name: string
@@ -82,7 +104,7 @@ interface WorldForm {
   space: string
   keywords: string
   info: string
-  landmarks: string[]
+  landmarks: Landmark[]
   forces: Force[]
 }
 
@@ -96,7 +118,10 @@ const form = ref<WorldForm>({
 })
 
 const addLandmark = () => {
-  form.value.landmarks.push('')
+  form.value.landmarks.push({
+    name: '',
+    description: ''
+  })
   ElMessage.success('已添加新地标')
 }
 
@@ -110,6 +135,11 @@ const addForce = () => {
 
 const removeForce = (index: number) => {
   form.value.forces.splice(index, 1)
+}
+
+const removeLandmark = (index: number) => {
+  form.value.landmarks.splice(index, 1)
+  ElMessage.warning('已删除地标')
 }
 
 const saveWorld = async () => {

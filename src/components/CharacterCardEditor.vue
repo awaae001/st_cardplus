@@ -3,8 +3,14 @@
     <div id="tiltleMain">
       <h1 class="text-2xl font-bold mb-4">角色卡编辑器</h1>
       <div class="btnSL">
-        <el-button type="primary" @click="saveCharacterCard">保存角色卡</el-button>
-        <el-button type="success" @click="loadCharacterCard">加载角色卡</el-button>
+        <el-button type="success" @click="loadCharacterCard">
+          <Icon icon="material-symbols:folder-open-outline-sharp" width="18" height="18" style="margin-right: 4px;" />
+          加载角色卡
+        </el-button>
+        <el-button type="primary" @click="saveCharacterCard">
+          <Icon icon="material-symbols:file-save-outline" width="18" height="18" style="margin-right: 4px;" />
+          保存角色卡
+        </el-button>
       </div>
     </div>
 
@@ -27,7 +33,8 @@
             </el-select>
           </el-form-item>
           <el-form-item label="年龄">
-            <el-input-number v-model="form.age" :min="0" :max="100" />
+            <el-input-number v-model="form.age" :min="0" :max="9999" />
+            <span class="ps-text" style="margin-left: 16px;">有效值为 0~9999</span>
           </el-form-item>
           <el-form-item label="身份">
             <el-input v-model="form.identity" placeholder="请输入身份" />
@@ -36,10 +43,23 @@
       </el-card>
 
       <!-- 背景故事 -->
-      <el-card class="mb-4">
-        <h2 class="text-xl font-semibold mb-2">背景故事</h2>
-        <el-input v-model="form.background" type="textarea" :rows="4" placeholder="请输入背景故事（每行一条）" />
-      </el-card>
+      <div>
+        <el-card class="mb-4">
+          <h2 class="text-xl font-semibold mb-2">背景故事</h2>
+          <el-input v-model="form.background" type="textarea" :rows="6" placeholder="请输入背景故事（每行一条）" />
+        </el-card>
+        <div style="margin: 4px;"></div>
+        <el-card class="mb-4">
+          <div class="title-Btn">
+            <h2 class="text-xl font-semibold mb-2">MBTI性格</h2>
+            <el-button type="primary" @click="validateMBTI" style="margin-right: 26px;">
+              <Icon icon="material-symbols:question-exchange" width="18" height="18" style="margin-right: 4px;" />验证
+            </el-button>
+          </div>
+          <P class="ps-text" style="  margin-top: -8px;">必须是有效的MBTI数值或者是 none </P>
+          <el-input v-model="form.mbti" placeholder="请输入MBTI性格" />
+        </el-card>
+      </div>
     </div>
 
     <div class="section-container">
@@ -100,21 +120,16 @@
       </el-card>
     </div>
 
-    <!-- MBTI性格 -->
-    <el-card class="mb-4">
-      <h2 class="text-xl font-semibold mb-2">MBTI性格</h2>
-      <el-select v-model="form.mbti" placeholder="请选择MBTI性格">
-        <el-option label="INFP" value="INFP" />
-        <el-option label="INTJ" value="INTJ" />
-        <el-option label="ENFJ" value="ENFJ" />
-        <el-option label="ISTP" value="ISTP" />
-        <el-option label="其他类型" value="other" />
-      </el-select>
-    </el-card>
-
     <!-- 性格特质 -->
     <el-card class="mb-4">
-      <h2 class="text-xl font-semibold mb-4">性格特质</h2>
+      <div class="title-Btn-add">
+        <h2 class="text-xl font-semibold mb-4">性格特质</h2>
+        <el-button type="primary" @click="addTrait" class="w-full" style="margin-left: 16px;">
+          <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
+            style="margin-right: 4px;" />
+          添加特质
+        </el-button>
+      </div>
       <el-row :gutter="16">
         <el-col v-for="(trait, index) in form.traits" :key="index" :xs="24" :sm="12" :md="8" :lg="6">
           <el-card class="mb-4 trait-card">
@@ -128,14 +143,20 @@
           </el-card>
         </el-col>
       </el-row>
-      <el-button type="primary" @click="addTrait" class="w-full">
-        + 添加特质
-      </el-button>
     </el-card>
+
+    <div style="margin: 4px;"></div>
 
     <!-- 人际关系 -->
     <el-card class="mb-4">
-      <h2 class="text-xl font-semibold mb-4">人际关系</h2>
+      <div class="title-Btn-add">
+        <h2 class="text-xl font-semibold mb-4">人际关系</h2>
+        <el-button type="primary" @click="addRelationship" class="w-full" style="margin-left: 16px;">
+          <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
+            style="margin-right: 4px;" />
+          添加关系
+        </el-button>
+      </div>
       <el-row :gutter="16">
         <el-col v-for="(relationship, index) in form.relationships" :key="index" :xs="24" :sm="12" :md="8" :lg="6">
           <el-card class="mb-4 relationship-card">
@@ -148,42 +169,41 @@
           </el-card>
         </el-col>
       </el-row>
-      <el-button type="primary" @click="addRelationship" class="w-full">
-        + 添加关系
-      </el-button>
     </el-card>
 
+    <div style="margin: 4px;"></div>
+    
     <!-- 喜好系统 -->
-    <el-card class="mb-4">
-      <h2 class="text-xl font-semibold mb-2">喜好系统</h2>
-      <el-input v-model="form.likes" type="textarea" :rows="3" placeholder="请输入喜好（每行一条）" class="mb-2" />
-      <el-input v-model="form.dislikes" type="textarea" :rows="3" placeholder="请输入厌恶（每行一条）" />
-    </el-card>
-
-    <!-- 日常作息 -->
-    <el-card class="mb-4">
-      <h2 class="text-xl font-semibold mb-2">日常作息</h2>
-      <el-form :model="form.dailyRoutine" label-width="120px">
-        <el-form-item label="清晨">
-          <el-input v-model="form.dailyRoutine.earlyMorning" placeholder="请输入清晨作息" />
-        </el-form-item>
-        <el-form-item label="上午">
-          <el-input v-model="form.dailyRoutine.morning" placeholder="请输入上午作息" />
-        </el-form-item>
-        <el-form-item label="下午">
-          <el-input v-model="form.dailyRoutine.afternoon" placeholder="请输入下午作息" />
-        </el-form-item>
-        <el-form-item label="傍晚">
-          <el-input v-model="form.dailyRoutine.evening" placeholder="请输入傍晚作息" />
-        </el-form-item>
-        <el-form-item label="夜间">
-          <el-input v-model="form.dailyRoutine.night" placeholder="请输入夜间作息" />
-        </el-form-item>
-        <el-form-item label="深夜">
-          <el-input v-model="form.dailyRoutine.lateNight" placeholder="请输入深夜作息" />
-        </el-form-item>
-      </el-form>
-    </el-card>
+    <div style="display: flex;">
+      <el-card class="mb-4">
+        <h2 class="text-xl font-semibold mb-2">喜好系统</h2>
+        <el-input v-model="form.likes" type="textarea" :rows="3" placeholder="请输入喜好（每行一条）" class="mb-2" />
+        <el-input v-model="form.dislikes" type="textarea" :rows="3" placeholder="请输入厌恶（每行一条）" />
+      </el-card>
+      <el-card class="mb-4" style="width: 75%;">
+        <h2 class="text-xl font-semibold mb-2">日常作息</h2>
+        <el-form :model="form.dailyRoutine" label-width="120px">
+          <el-form-item label="清晨">
+            <el-input v-model="form.dailyRoutine.earlyMorning" placeholder="请输入清晨作息" />
+          </el-form-item>
+          <el-form-item label="上午">
+            <el-input v-model="form.dailyRoutine.morning" placeholder="请输入上午作息" />
+          </el-form-item>
+          <el-form-item label="下午">
+            <el-input v-model="form.dailyRoutine.afternoon" placeholder="请输入下午作息" />
+          </el-form-item>
+          <el-form-item label="傍晚">
+            <el-input v-model="form.dailyRoutine.evening" placeholder="请输入傍晚作息" />
+          </el-form-item>
+          <el-form-item label="夜间">
+            <el-input v-model="form.dailyRoutine.night" placeholder="请输入夜间作息" />
+          </el-form-item>
+          <el-form-item label="深夜">
+            <el-input v-model="form.dailyRoutine.lateNight" placeholder="请输入深夜作息" />
+          </el-form-item>
+        </el-form>
+      </el-card>
+    </div>
 
     <!-- 操作按钮 -->
   </div>
@@ -191,8 +211,9 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { saveAs } from 'file-saver';
+import { Icon } from "@iconify/vue";
 
 // 性格特质接口
 interface Trait {
@@ -326,9 +347,60 @@ const removeRelationship = (index: number) => {
   form.value.relationships.splice(index, 1);
 };
 
+// 验证MBTI格式
+const isValidMBTI = (mbti: string) => {
+  return mbti.toLowerCase() === 'none' || /^[EI][SN][TF][JP]$/i.test(mbti);
+};
+
+// MBTI类型描述
+interface MBTIDescriptions {
+  [key: string]: string;
+}
+
+const mbtiDescriptions: MBTIDescriptions = {
+  INTP: '逻辑学家',
+  INTJ: '建筑师',
+  ENTP: '辩论家',
+  ENTJ: '指挥官',
+  INFP: '调停者',
+  INFJ: '提倡者',
+  ENFJ: '主人公',
+  ENFP: '竞选者',
+  ISTJ: '物流师',
+  ISFJ: '守卫者',
+  ESTJ: '总经理',
+  ESFJ: '执政官',
+  ISTP: '鉴赏家',
+  ISFP: '探险家',
+  ESTP: '企业家',
+  ESFP: '表演者',
+  none: '未指定'
+};
+
+// MBTI验证处理
+const validateMBTI = () => {
+  if (!form.value.mbti) {
+    ElMessageBox.alert('请输入MBTI类型', '警告');
+    return;
+  }
+
+  if (isValidMBTI(form.value.mbti)) {
+    const type = form.value.mbti.toUpperCase();
+    const description = mbtiDescriptions[type] || mbtiDescriptions['none'];
+    ElMessageBox.alert(`MBTI格式正确，类型：${type} - ${description}`, '正确');
+  } else {
+    ElMessageBox.alert('MBTI格式无效，请输入4个字母的组合或"none"', '错误');
+  }
+};
+
 // 保存角色卡
 const saveCharacterCard = async () => {
   try {
+    if (form.value.mbti && !isValidMBTI(form.value.mbti)) {
+      ElMessage.error('MBTI格式无效，请输入4个字母的组合');
+      return;
+    }
+
     const jsonData = JSON.stringify(form.value, null, 2);
     const blob = new Blob([jsonData], { type: 'application/json' });
     saveAs(blob, 'character_card.json');
@@ -445,5 +517,24 @@ defineExpose({
   display: flex;
   align-items: center;
   margin-right: 48px;
+}
+
+.ps-text {
+  font-style: italic;
+  color: #373737;
+  font-weight: 300;
+}
+
+.title-Btn {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title-Btn-add {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
 }
 </style>
