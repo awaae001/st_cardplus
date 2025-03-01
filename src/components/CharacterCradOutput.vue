@@ -4,110 +4,134 @@
     <div id="tiltleMain">
       <h1 class="text-2xl font-bold">角色卡本地编辑</h1>
       <div class="btnSL">
-        <el-button @click="loadData" type="primary">载入数据</el-button>
-        <el-button @click="saveData" type="success">保存数据</el-button>
-        <el-button @click="resetData" plain>重置数据</el-button>
+        <el-button @click="loadData" type="primary">
+          <Icon icon="material-symbols:folder-open-outline-sharp" width="18" height="18" style="margin-right: 4px;" />
+          载入数据
+        </el-button>
+        <el-button @click="saveData" type="success">
+          <Icon icon="material-symbols:file-save-outline" width="18" height="18" style="margin-right: 4px;" />
+          保存数据
+        </el-button>
+        <el-button @click="resetData" plain>
+          <Icon icon="material-symbols:cycle" width="18" height="18" style="margin-right: 4px;" />
+          重置数据
+        </el-button>
       </div>
     </div>
 
     <!-- Individual Cards -->
     <div style="display: flex;">
       <el-card style="width: 45%;">
-        <template #header>
-          <span>基本信息</span>
-        </template>
-        <span>角色名称
+        <h2 class="text-xl font-semibold mb-4">基本信息</h2>
+        <span style="margin:8px;">角色名称
           <el-input v-model="characterData.name" placeholder="请输入角色名称" /></span>
-        <span>头像
+        <span style="margin:8px;">头像
           <el-input v-model="characterData.avatar" placeholder="请输入头像地址" /></span>
-        <span>第一条消息</span>
+        <span style="margin:8px;">第一条消息</span>
         <el-input type="textarea" v-model="characterData.first_mes" :rows="6" placeholder="请输入第一条消息" />
       </el-card>
 
+      <div style="margin: 8px;"></div>
+
       <el-card style="width: 55%;">
-        <template #header>
-          <span>角色描述</span>
-        </template>
+        <h2 class="text-xl font-semibold mb-4">角色描述</h2>
         <el-input type="textarea" v-model="characterData.description" :rows="12" placeholder="请输入角色描述" />
       </el-card>
     </div>
 
-    <el-card class="mb-4">
-      <template #header>
-        <span>备用问候语</span>
-      </template>
-      <div v-for="(greeting, index) in characterData.data.alternate_greetings" :key="index" class="mb-2">
-        <el-input type="textarea" v-model="characterData.data.alternate_greetings[index]" :rows="3"
-          placeholder="请输入备用问候语（支持换行）">
-          <template #append>
-            <el-button @click="removeGreeting(index)" type="danger" :icon="Delete" />
-          </template>
-        </el-input>
-      </div>
-      <el-button @click="addGreeting" type="primary" plain>添加问候语</el-button>
-    </el-card>
+    <div style="margin: 8px;"></div>
+
+    <div style="display: flex;">
+      <el-card class="mb-4" style="width: 45%;">
+        <div class="title-Btn-add">
+          <h2 class="text-xl font-semibold mb-4">备用问候语</h2>
+          <el-button @click="addGreeting" type="primary" style="margin-left: 16px;">
+            <Icon icon="material-symbols:add-comment-outline" width="18" height="18" style="margin-right: 4px;" />
+            添加问候语
+          </el-button>
+        </div>
+        <div v-for="(greeting, index) in characterData.data.alternate_greetings" :key="index" class="mb-2">
+          <el-input type="textarea" v-model="characterData.data.alternate_greetings[index]" :rows="4"
+            placeholder="请输入备用问候语（支持换行）">
+            <template #append>
+              <el-button @click="removeGreeting(index)" type="danger" :icon="Delete" />
+            </template>
+          </el-input>
+        </div>
+      </el-card>
+
+      <div style="margin: 8px;"></div>
+
+      <el-card class="mb-4" style="width: 55%;">
+        <h2 class="text-xl font-semibold mb-4">角色备注</h2>
+        <div style="margin-bottom: 8px;">
+          <span>备注深度</span>
+          <el-input-number v-model="characterData.data.extensions.depth_prompt.depth" :min="0"
+            style="margin-left: 8px;" />
+        </div>
+        <el-input type="textarea" v-model="characterData.data.extensions.depth_prompt.prompt" :rows="5"
+          placeholder="请输入角色备注" />
+        <div class="flex items-center gap-4">
+          <div>
+            <span style="
+          display: flex;
+          align-items: center;
+          margin-top: 8px;
+          ">角色
+              <el-select v-model="characterData.data.extensions.depth_prompt.role" placeholder="请选择角色" style="
+              width: 50%;
+              margin-left: 8px;
+              ">
+                <el-option label="系统 | System" value="system" />
+                <el-option label="用户 | User" value="user" />
+                <el-option label="角色 | Assistant" value="assistant" />
+              </el-select>
+            </span>
+          </div>
+        </div>
+      </el-card>
+    </div>
 
     <div style="margin: 8px;"></div>
 
     <el-card class="mb-4">
-      <template #header>
-        <span>角色备注</span>
-      </template>
-      <el-input type="textarea" v-model="characterData.data.extensions.depth_prompt.prompt" :rows="2"
-        placeholder="请输入角色备注" />
-      <span>备注深度</span>
-      <el-input-number v-model="characterData.data.extensions.depth_prompt.depth" :min="0" />
-    </el-card>
-
-    <div style="margin: 8px;"></div>
-
-    <el-card class="mb-4">
-      <template #header>
-        <span>角色设定摘要</span>
-      </template>
+      <h2 class="text-xl font-semibold mb-4">个性设定</h2>
       <el-input type="textarea" v-model="characterData.personality" :rows="3" placeholder="请输入个性设定" />
     </el-card>
 
     <div style="margin: 8px;"></div>
 
     <el-card class="mb-4">
-      <template #header>
-        <span>情景设定</span>
-      </template>
+      <h2 class="text-xl font-semibold mb-4">情景设定</h2>
       <el-input type="textarea" v-model="characterData.scenario" :rows="3" placeholder="请输入情景设定（可选）" />
     </el-card>
 
     <div style="margin: 8px;"></div>
 
     <el-card class="mb-4">
-      <template #header>
-        <span>对话示例</span>
-      </template>
+      <h2 class="text-xl font-semibold mb-4"> 对话示例</h2>
       <el-input type="textarea" v-model="characterData.mes_example" :rows="3" placeholder="请输入对话示例" />
     </el-card>
 
     <div style="margin: 8px;"></div>
 
     <div style="display: flex;">
-    <el-card class="mb-4" style="width: 50%;">
-      <template #header>
-        <span>其他设置</span>
-      </template>
+      <el-card class="mb-4" style="width: 50%;">
+        <h2 class="text-xl font-semibold mb-4">其他设置</h2>
         <span>发言频率</span>
-      <el-slider v-model="characterData.talkativeness" :min="0" :max="1" :step="0.1" show-input />
-      <span>是否收藏</span>
-      <el-switch v-model="characterData.fav" />
-    </el-card>
+        <el-slider v-model="characterData.talkativeness" :min="0" :max="1" :step="0.1" show-input />
+        <span>是否收藏</span>
+        <el-switch v-model="characterData.fav" />
+      </el-card>
 
-    <div style="margin: 8px;"></div>
+      <div style="margin: 8px;"></div>
 
-    <el-card class="mb-4" style="width: 50%;">
-      <template #header>
-        <span>标签</span>
-      </template>
-      <el-select v-model="characterData.tags" multiple allow-create filterable placeholder="请选择或输入标签" class="w-full" />
-    </el-card>
-  </div>
+      <el-card class="mb-4" style="width: 50%;">
+        <h2 class="text-xl font-semibold mb-4">标签设置</h2>
+        <el-select v-model="characterData.tags" multiple allow-create disabled filterable placeholder="未完成逻辑"
+          class="w-full" />
+      </el-card>
+    </div>
 
   </div>
 </template>
@@ -115,7 +139,8 @@
 <script setup>
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Delete } from '@element-plus/icons-vue'
+// import { Delete } from '@element-plus/icons-vue'
+import { Icon } from "@iconify/vue";
 
 // Initial data structure
 const initialData = {
@@ -254,5 +279,11 @@ const loadData = () => {
   display: flex;
   align-items: center;
   margin-right: 48px;
+}
+
+.title-Btn-add {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
 }
 </style>
