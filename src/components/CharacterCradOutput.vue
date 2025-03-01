@@ -46,13 +46,29 @@
       </div>
       <el-button @click="addGreeting" type="primary" plain>添加问候语</el-button>
     </el-card>
-    
+
+    <div style="margin: 8px;"></div>
+
     <el-card class="mb-4">
       <template #header>
-        <span>个性设定</span>
+        <span>角色备注</span>
+      </template>
+      <el-input type="textarea" v-model="characterData.data.extensions.depth_prompt.prompt" :rows="2"
+        placeholder="请输入角色备注" />
+      <span>备注深度</span>
+      <el-input-number v-model="characterData.data.extensions.depth_prompt.depth" :min="0" />
+    </el-card>
+
+    <div style="margin: 8px;"></div>
+
+    <el-card class="mb-4">
+      <template #header>
+        <span>角色设定摘要</span>
       </template>
       <el-input type="textarea" v-model="characterData.personality" :rows="3" placeholder="请输入个性设定" />
     </el-card>
+
+    <div style="margin: 8px;"></div>
 
     <el-card class="mb-4">
       <template #header>
@@ -61,6 +77,8 @@
       <el-input type="textarea" v-model="characterData.scenario" :rows="3" placeholder="请输入情景设定（可选）" />
     </el-card>
 
+    <div style="margin: 8px;"></div>
+
     <el-card class="mb-4">
       <template #header>
         <span>对话示例</span>
@@ -68,34 +86,29 @@
       <el-input type="textarea" v-model="characterData.mes_example" :rows="3" placeholder="请输入对话示例" />
     </el-card>
 
-    <el-card class="mb-4">
-      <template #header>
-        <span>发言频率</span>
-      </template>
-      <el-slider v-model="characterData.talkativeness" :min="0" :max="1" :step="0.1" show-input />
-    </el-card>
+    <div style="margin: 8px;"></div>
 
-    <el-card class="mb-4">
+    <div style="display: flex;">
+    <el-card class="mb-4" style="width: 50%;">
       <template #header>
-        <span>是否收藏</span>
+        <span>其他设置</span>
       </template>
+        <span>发言频率</span>
+      <el-slider v-model="characterData.talkativeness" :min="0" :max="1" :step="0.1" show-input />
+      <span>是否收藏</span>
       <el-switch v-model="characterData.fav" />
     </el-card>
 
-    <el-card class="mb-4">
+    <div style="margin: 8px;"></div>
+
+    <el-card class="mb-4" style="width: 50%;">
       <template #header>
         <span>标签</span>
       </template>
       <el-select v-model="characterData.tags" multiple allow-create filterable placeholder="请选择或输入标签" class="w-full" />
     </el-card>
+  </div>
 
-    <el-card class="mb-4">
-      <span>角色备注</span>
-      <el-input type="textarea" v-model="characterData.data.extensions.depth_prompt.prompt" :rows="2"
-        placeholder="请输入角色备注" />
-      <span>备注深度</span>
-      <el-input-number v-model="characterData.data.extensions.depth_prompt.depth" :min="0" />
-    </el-card>
   </div>
 </template>
 
