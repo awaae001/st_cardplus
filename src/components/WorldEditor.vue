@@ -1,15 +1,15 @@
 <template>
   <div class="p-4 bg-gray-100 min-h-screen">
     <div id="tiltleMain">
-      <h1 class="text-2xl font-bold mb-4">世界书编辑器</h1>
+      <h1 class="text-2xl font-bold mb-4">地标编辑器</h1>
       <div class="btnSL">
         <el-button type="success" @click="loadWorld">
           <Icon icon="material-symbols:folder-open-outline-sharp" width="18" height="18" style="margin-right: 4px;" />
-          加载世界书
+          加载 json
         </el-button>
         <el-button type="primary" @click="saveWorld">
           <Icon icon="material-symbols:file-save-outline-sharp" width="18" height="18" style="margin-right: 4px;" />
-          保存世界书
+          保存 json
         </el-button>
       </div>
     </div>

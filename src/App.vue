@@ -6,8 +6,9 @@ import { RouterView } from 'vue-router'
     <div class="layout-container">
     <div class="menu-bar">
       <div class="menu-item" @click="$router.push('/')">主页</div>
-      <div class="menu-item" @click="$router.push('/card')">角色卡编辑器</div>
-      <div class="menu-item" @click="$router.push('/world')">世界书编辑器</div>
+      <div class="menu-item" @click="$router.push('/card')">角色信息编辑器</div>
+      <div class="menu-item" @click="$router.push('/world')">地标编辑器</div>
+      <div class="menu-item" @click="$router.push('/cardoutput')">角色卡快搭</div>
       <!-- <div class="menu-item" @click="handleSave">保存</div>
       <div class="menu-item" @click="handleLoad">加载</div> -->
     </div>
