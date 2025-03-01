@@ -26,7 +26,7 @@
         <span style="margin:8px;">角色名称
           <el-input v-model="characterData.name" placeholder="请输入角色名称" /></span>
         <span style="margin:8px;">头像
-          <el-input v-model="characterData.avatar" placeholder="请输入头像地址" /></span>
+          <el-input v-model="characterData.avatar" disabled placeholder="请输入头像地址" /></span>
         <span style="margin:8px;">第一条消息</span>
         <el-input type="textarea" v-model="characterData.first_mes" :rows="6" placeholder="请输入第一条消息" />
       </el-card>
@@ -34,7 +34,13 @@
       <div style="margin: 8px;"></div>
 
       <el-card style="width: 55%;">
-        <h2 class="text-xl font-semibold mb-4">角色描述</h2>
+        <div class="title-Btn-add">
+          <h2 class="text-xl font-semibold mb-4">角色描述</h2>
+          <el-button @click="OpenCharacterDescription" type="primary" style="margin-left: 16px;">
+            <Icon icon="material-symbols:file-open-outline" width="18" height="18" style="margin-right: 4px;" />
+            打开导入
+          </el-button>
+        </div>
         <el-input type="textarea" v-model="characterData.description" :rows="12" placeholder="请输入角色描述" />
       </el-card>
     </div>
@@ -63,7 +69,13 @@
       <div style="margin: 8px;"></div>
 
       <el-card class="mb-4" style="width: 55%;">
-        <h2 class="text-xl font-semibold mb-4">角色备注</h2>
+        <div class="title-Btn-add">
+          <h2 class="text-xl font-semibold mb-4">角色备注</h2>
+          <el-button @click="handleFileUpload" type="primary" style="margin-left: 16px;">
+            <Icon icon="material-symbols:file-open-outline" width="18" height="18" style="margin-right: 4px;" />
+            打开导入
+          </el-button>
+        </div>
         <div style="margin-bottom: 8px;">
           <span>备注深度</span>
           <el-input-number v-model="characterData.data.extensions.depth_prompt.depth" :min="0"
@@ -238,8 +250,51 @@ const saveData = () => {
   URL.revokeObjectURL(url)
   ElMessage.success('数据已保存为JSON文件')
 }
+// 处理文件上传
+const handleFileUpload = () => {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = '.txt,.md,.json'
+  input.onchange = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
 
-// Load data from a JSON file
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      try {
+        characterData.value.data.extensions.depth_prompt.prompt = e.target.result
+        ElMessage.success('备注文件已上传并自动填充')
+      } catch (error) {
+        ElMessage.error('文件读取失败，请选择有效的文本文件')
+      }
+    }
+    reader.readAsText(file)
+  }
+  input.click()
+}
+
+const OpenCharacterDescription = () => {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = '.txt,.md,.json'
+  input.onchange = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      try {
+        characterData.value.description = e.target.result
+        ElMessage.success('角色描述文件已上传并自动填充')
+      } catch (error) {
+        ElMessage.error('文件读取失败，请选择有效的文本文件')
+      }
+    }
+    reader.readAsText(file)
+  }
+  input.click()
+}
+
 const loadData = () => {
   const input = document.createElement('input')
   input.type = 'file'
