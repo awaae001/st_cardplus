@@ -29,16 +29,17 @@
             <el-select v-model="form.gender" placeholder="请选择性别">
               <el-option label="女性" value="female" />
               <el-option label="男性" value="male" />
+              <el-option label="秀吉（伪娘、正太）" value="秀吉（伪娘、正太）" />
               <el-option label="武装直升机" value="helicopter" />
               <el-option label="永雏塔菲" value="tiffany" />
               <el-option label="赛马娘" value="horse" />
-              <el-option label="沃尔玛购物袋" value="walmart" />
+              <el-option label="沃尔玛购物袋" value="walmartShopingBag" />
               <el-option label="其他(自定义)" value="other" />
             </el-select>
             <el-input 
               v-if="form.gender === 'other'"
               v-model="form.customGender"
-              placeholder="请输入您的性别"
+              placeholder="请输入角色的性别（other）"
               style="margin-top: 10px;"
             />
           </el-form-item>
@@ -421,6 +422,7 @@ const saveCharacterCard = async () => {
 
     const dataToSave = {
       ...form.value,
+      gender: form.value.gender === 'other' ? form.value.customGender : form.value.gender,
       background: form.value.background.split('\n').filter(line => line.trim() !== ''),
       likes: form.value.likes.split('\n').filter(line => line.trim() !== ''),
       dislikes: form.value.dislikes.split('\n').filter(line => line.trim() !== '')
@@ -451,7 +453,7 @@ const loadCharacterCard = async () => {
         // 转换字段格式
         const convertedData = {
           chineseName: parsedData.Chinese_name || '',
-          japaneseName: parsedData.japaneseName || '',
+          japaneseName: parsedData.japaneseName || 'none',
           gender: parsedData.gender || '',
           customGender: parsedData.customGender || '',
           age: Number(parsedData.age) || 0,
