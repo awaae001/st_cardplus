@@ -23,7 +23,7 @@
             <el-input v-model="form.chineseName" placeholder="请输入中文名" />
           </el-form-item>
           <el-form-item label="日文名">
-            <el-input v-model="form.japaneseName" placeholder="请输入日文名" />
+            <el-input v-model="form.japaneseName" disabled placeholder="逻辑未处理" />
           </el-form-item>
           <el-form-item label="性别">
             <el-select v-model="form.gender" placeholder="请选择性别">
@@ -31,6 +31,7 @@
               <el-option label="男性" value="male" />
               <el-option label="武装直升机" value="helicopter" />
               <el-option label="永雏塔菲" value="tiffany" />
+              <el-option label="赛马娘" value="horse" />
               <el-option label="沃尔玛购物袋" value="walmart" />
               <el-option label="其他(自定义)" value="other" />
             </el-select>
@@ -42,8 +43,8 @@
             />
           </el-form-item>
           <el-form-item label="年龄">
-            <el-input-number v-model="form.age" :min="0" :max="9999" />
-            <span class="ps-text" style="margin-left: 16px;">有效值为 0~9999</span>
+            <el-input-number v-model="form.age" :min="0" :max="99999" />
+            <span class="ps-text" style="margin-left: 16px;">有效值为 0~99999</span>
           </el-form-item>
           <el-form-item label="身份">
             <el-input v-model="form.identity" placeholder="请输入身份" />
@@ -418,7 +419,13 @@ const saveCharacterCard = async () => {
       return;
     }
 
-    const jsonData = JSON.stringify(form.value, null, 2);
+    const dataToSave = {
+      ...form.value,
+      background: form.value.background.split('\n').filter(line => line.trim() !== ''),
+      likes: form.value.likes.split('\n').filter(line => line.trim() !== ''),
+      dislikes: form.value.dislikes.split('\n').filter(line => line.trim() !== '')
+    };
+    const jsonData = JSON.stringify(dataToSave, null, 2);
     const blob = new Blob([jsonData], { type: 'application/json' });
     saveAs(blob, 'character_card.json');
     ElMessage.success('角色卡保存成功！');

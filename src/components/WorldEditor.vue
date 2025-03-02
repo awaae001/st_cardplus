@@ -157,7 +157,16 @@ const removeLandmark = (index: number) => {
 
 const saveWorld = async () => {
   try {
-    const jsonData = JSON.stringify(form.value, null, 2)
+    const dataToSave = {
+      ...form.value,
+      keywords: form.value.keywords.split('\n').filter(line => line.trim() !== ''),
+      info: form.value.info.split('\n').filter(line => line.trim() !== ''),
+      forces: form.value.forces.map(force => ({
+        ...force,
+        members: force.members.split('\n').filter(line => line.trim() !== '')
+      }))
+    };
+    const jsonData = JSON.stringify(dataToSave, null, 2)
     const blob = new Blob([jsonData], { type: 'application/json' })
     saveAs(blob, 'world.json')
     ElMessage.success('世界书保存成功！')

@@ -31,4 +31,14 @@ const router = createRouter({
   ]
 })
 
+// router.beforeEach((to, from, next) => {
+//   if (from.name) { // 如果不是首次加载
+//     const confirmLeave = window.confirm('确定离开？离开后数据清空')
+//     if (!confirmLeave) {
+//       return false
+//     }
+//   }
+//   next()
+// })
+
 export default router
