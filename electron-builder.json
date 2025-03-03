@@ -5,11 +5,12 @@
     "output": "dist"
   },
   "files": [
-    "dist/**/*",
+    "dist/**/*", 
     "dist-electron/**/*"
   ],
   "nsis": {
     "oneClick": false,
     "allowToChangeInstallationDirectory": true
-  }
+  },
+  "icon": "src/image/logo.png"
 }

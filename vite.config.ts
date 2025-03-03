@@ -17,4 +17,5 @@ export default defineConfig({
   build: {
     outDir: 'dist', // 打包输出目录
   },
+  assetsInclude: ['src/image/**/*']
 });

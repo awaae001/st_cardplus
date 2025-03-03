@@ -1,7 +1,9 @@
 {
   "name": "sillytavern-char_cardplus",
+  "author": "awaae001",
+  "description":"快速卡片格式化工具",
   "private": true,
-  "version": "0.0.2",
+  "version": "0.1.2",
   "type": "module",
   "main": "dist-electron/main.js",
   "scripts": {

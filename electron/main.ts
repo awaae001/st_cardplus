@@ -19,7 +19,8 @@ function createWindow() {
     show: false,
     backgroundColor: '#ffffff',
     // titleBarStyle: 'hidden',
-    trafficLightPosition: { x: 12, y: 12 }
+    trafficLightPosition: { x: 12, y: 12 },
+    icon: path.join(__dirname, '../src/image/logo.png')
   });
 
   mainWindow.once('ready-to-show', () => {
