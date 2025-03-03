@@ -1,7 +1,7 @@
 {
   "name": "sillytavern-char_cardplus",
   "author": "awaae001",
-  "description":"快速卡片格式化工具",
+  "description": "快速卡片格式化工具",
   "private": true,
   "version": "0.1.2",
   "type": "module",
@@ -34,6 +34,7 @@
     "cross-env": "^7.0.3",
     "electron": "^34.2.0",
     "electron-builder": "^25.1.8",
+    "terser": "^5.39.0",
     "ts-node": "^10.9.2",
     "typescript": "~5.7.3",
     "vite": "^6.2.0",
