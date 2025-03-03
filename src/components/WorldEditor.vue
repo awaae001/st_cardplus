@@ -21,7 +21,7 @@
           <h2 class="text-xl font-semibold mb-2">基本信息</h2>
           <el-form :model="form" label-width="80px">
             <el-form-item label="名称">
-              <el-input v-model="form.name" placeholder="请输入世界名称" />
+              <el-input v-model="form.name" placeholder="请输入地标名称" />
             </el-form-item>
             <el-form-item label="所属空间">
               <el-input v-model="form.space" placeholder="请输入所属空间" />
@@ -168,7 +168,7 @@ const saveWorld = async () => {
     };
     const jsonData = JSON.stringify(dataToSave, null, 2)
     const blob = new Blob([jsonData], { type: 'application/json' })
-    saveAs(blob, 'world.json')
+    saveAs(blob, `${form.value.name || 'world'}.json`)
     ElMessage.success('世界书保存成功！')
   } catch (error) {
     ElMessage.error('保存失败')
@@ -185,9 +185,31 @@ const loadWorld = async () => {
       if (file) {
         const reader = new FileReader()
         reader.onload = (e) => {
-          const content = e.target?.result as string
-          form.value = JSON.parse(content)
-          ElMessage.success('世界书加载成功！')
+          try {
+            const content = e.target?.result as string
+            const data = JSON.parse(content)
+            
+            // 验证并转换数据格式
+            form.value = {
+              name: data.name || '',
+              space: data.space || '',
+              keywords: data.keywords?.join('\n') || '',
+              info: data.info?.join('\n') || '',
+              landmarks: data.landmarks?.map((l: any) => ({
+                name: l.name || '',
+                description: l.description || ''
+              })) || [],
+              forces: data.forces?.map((f: any) => ({
+                name: f.name || '',
+                members: f.members?.join('\n') || '',
+                description: f.description || ''
+              })) || []
+            }
+            
+            ElMessage.success('世界书加载成功！')
+          } catch (error) {
+            ElMessage.error('文件格式错误，请检查文件内容')
+          }
         }
         reader.readAsText(file)
       }
