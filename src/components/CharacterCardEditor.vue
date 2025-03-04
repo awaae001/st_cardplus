@@ -231,19 +231,6 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { saveAs } from 'file-saver';
 import { Icon } from "@iconify/vue";
 
-// 性格特质接口
-interface Trait {
-  description: string;
-  dialogue_examples?: string[];
-  behavior_examples?: string[];
-}
-
-// 人际关系接口
-interface Relationship {
-  description: string[];
-  features: string[];
-}
-
 // 表单数据结构
 interface CharacterCard {
   chineseName: string;
@@ -456,8 +443,8 @@ const loadCharacterCard = async () => {
 
         // 转换字段格式
         const convertedData = {
-          chineseName: parsedData.Chinese_name || '',
-          japaneseName: parsedData.japaneseName || 'none',
+          chineseName: parsedData.chineseName || '',
+          japaneseName: parsedData.japaneseName || '',
           gender: parsedData.gender || '',
           customGender: parsedData.customGender || '',
           age: Number(parsedData.age) || 0,
@@ -465,7 +452,7 @@ const loadCharacterCard = async () => {
           background: Array.isArray(parsedData.background) ? parsedData.background.join('\n') : '',
           appearance: {
             height: parsedData.appearance?.height || '',
-            hairColor: parsedData.appearance?.hair_color || '',
+            hairColor: parsedData.appearance?.hairColor || '',
             hairstyle: parsedData.appearance?.hairstyle || '',
             eyes: parsedData.appearance?.eyes || '',
             nose: parsedData.appearance?.nose || '',
@@ -474,34 +461,43 @@ const loadCharacterCard = async () => {
             body: parsedData.appearance?.body || ''
           },
           attire: {
-            tops: parsedData.attire?.服装?.tops || '',
-            bottoms: parsedData.attire?.服装?.bottoms || '',
-            shoes: parsedData.attire?.服装?.shoes || '',
-            socks: parsedData.attire?.服装?.socks || '',
-            underwears: parsedData.attire?.服装?.underwears || '',
-            accessories: parsedData.attire?.服装?.accessories || ''
+            tops: parsedData.attire?.tops || '',
+            bottoms: parsedData.attire?.bottoms || '',
+            shoes: parsedData.attire?.shoes || '',
+            socks: parsedData.attire?.socks || '',
+            underwears: parsedData.attire?.underwears || '',
+            accessories: parsedData.attire?.accessories || ''
           },
-          mbti: parsedData.MBTI_personality || '',
-          traits: parsedData.personal_traits ? Object.entries<Trait>(parsedData.personal_traits).map(([name, trait]) => ({
-            name,
+          mbti: parsedData.mbti || '',
+          traits: Array.isArray(parsedData.traits) ? parsedData.traits.map((trait: {
+            name: string;
+            description: string;
+            dialogueExamples: string;
+            behaviorExamples: string;
+          }) => ({
+            name: trait.name || '',
             description: trait.description || '',
-            dialogueExamples: Array.isArray(trait.dialogue_examples) ? trait.dialogue_examples.join('\n') : '',
-            behaviorExamples: Array.isArray(trait.behavior_examples) ? trait.behavior_examples.join('\n') : ''
+            dialogueExamples: trait.dialogueExamples || '',
+            behaviorExamples: trait.behaviorExamples || ''
           })) : [],
-          relationships: parsedData.relationship ? Object.entries<Relationship>(parsedData.relationship).map(([name, rel]) => ({
-            name,
-            description: Array.isArray(rel.description) ? rel.description.join('\n') : '',
-            features: Array.isArray(rel.features) ? rel.features.join('\n') : ''
+          relationships: Array.isArray(parsedData.relationships) ? parsedData.relationships.map((rel: {
+            name: string;
+            description: string;
+            features: string;
+          }) => ({
+            name: rel.name || '',
+            description: rel.description || '',
+            features: rel.features || ''
           })) : [],
           likes: Array.isArray(parsedData.likes) ? parsedData.likes.join('\n') : '',
           dislikes: Array.isArray(parsedData.dislikes) ? parsedData.dislikes.join('\n') : '',
           dailyRoutine: {
-            earlyMorning: parsedData.daily_routine?.early_morning || '',
-            morning: parsedData.daily_routine?.morning || '',
-            afternoon: parsedData.daily_routine?.afternoon || '',
-            evening: parsedData.daily_routine?.evening || '',
-            night: parsedData.daily_routine?.night || '',
-            lateNight: parsedData.daily_routine?.late_night || ''
+            earlyMorning: parsedData.dailyRoutine?.earlyMorning || '',
+            morning: parsedData.dailyRoutine?.morning || '',
+            afternoon: parsedData.dailyRoutine?.afternoon || '',
+            evening: parsedData.dailyRoutine?.evening || '',
+            night: parsedData.dailyRoutine?.night || '',
+            lateNight: parsedData.dailyRoutine?.lateNight || ''
           }
         };
 
