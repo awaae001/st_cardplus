@@ -367,7 +367,7 @@ const removeRelationship = (index: number) => {
 
 // 验证MBTI格式
 const isValidMBTI = (mbti: string) => {
-  return mbti.toLowerCase() === 'none' || 'AWAAE' || /^[EI][SN][TF][JP]$/i.test(mbti);
+  return mbti.toLowerCase() === 'none' || /^[EI][SN][TF][JP]$/i.test(mbti);
 };
 
 // MBTI类型描述
@@ -392,7 +392,6 @@ const mbtiDescriptions: MBTIDescriptions = {
   ISFP: '探险家',
   ESTP: '企业家',
   ESFP: '表演者',
-  AWAAE:'啊？作者？',
   none: '未指定'
 };
 
@@ -403,12 +402,17 @@ const validateMBTI = () => {
     return;
   }
 
+  if (!form.value.mbti) {
+    ElMessageBox.alert('请输入MBTI类型', '警告');
+    return;
+  }
+
+  const type = form.value.mbti.toUpperCase();
   if (isValidMBTI(form.value.mbti)) {
-    const type = form.value.mbti.toUpperCase();
     const description = mbtiDescriptions[type] || mbtiDescriptions['none'];
     ElMessageBox.alert(`MBTI格式正确，类型：${type} - ${description}`, '正确');
   } else {
-    ElMessageBox.alert('MBTI格式无效，请输入4个字母的组合或"none"', '错误');
+    ElMessageBox.alert(`MBTI格式无效：${type}，请输入4个字母的组合或"none"`, '不合规');
   }
 };
 

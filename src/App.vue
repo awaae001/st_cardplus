@@ -3,19 +3,22 @@ import { RouterView } from 'vue-router'
 </script>
 
 <template>
-    <div class="layout-container">
+  <div class="layout-container">
     <div class="menu-bar">
-      <div class="menu-item" @click="$router.push('/')">主页</div>
-      <div class="menu-item" @click="$router.push('/card')">角色信息编辑器</div>
-      <div class="menu-item" @click="$router.push('/world')">地标编辑器</div>
-      <div class="menu-item" @click="$router.push('/cardoutput')">角色卡快搭</div>
+      <div style="display: flex;">
+        <div class="menu-item" @click="$router.push('/')">主页</div>
+        <div class="menu-item" @click="$router.push('/card')">角色信息编辑器</div>
+        <div class="menu-item" @click="$router.push('/world')">地标编辑器</div>
+        <div class="menu-item" @click="$router.push('/cardoutput')">角色卡快搭</div>
+      </div>
+      <p class="whatYouwant">dev_0.1.2</p>
       <!-- <div class="menu-item" @click="handleSave">保存</div>
       <div class="menu-item" @click="handleLoad">加载</div> -->
     </div>
     <slot />
   </div>
   <div class="app-container">
-      <RouterView />
+    <RouterView />
   </div>
 </template>
 
@@ -37,6 +40,7 @@ import { RouterView } from 'vue-router'
   background-color: #f0f0f0;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 0 16px;
   border-bottom: 1px solid #ddd;
 }
