@@ -11,6 +11,10 @@
           <Icon icon="material-symbols:file-save-outline-sharp" width="18" height="18" style="margin-right: 4px;" />
           保存 json
         </el-button>
+        <el-button plain @click="resetForm">
+          <Icon icon="material-symbols:refresh" width="18" height="18" style="margin-right: 4px;" />
+          重置数据
+        </el-button>
       </div>
     </div>
 
@@ -97,7 +101,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { saveAs } from 'file-saver'
 import { Icon } from "@iconify/vue";
 
@@ -219,9 +223,31 @@ const loadWorld = async () => {
     ElMessage.error('加载失败')
   }
 }
+// 重置表单数据
+const resetForm = () => {
+  ElMessageBox.confirm('确定要重置所有数据吗？', '警告', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning',
+  }).then(() => {
+    form.value = {
+      name: '',
+      space: '',
+      keywords: '',
+      info: '',
+      landmarks: [],
+      forces: []
+    };
+    ElMessage.success('数据已重置');
+  }).catch(() => {
+    ElMessage.info('取消重置');
+  });
+};
+
 defineExpose({
   saveWorld,
-  loadWorld
+  loadWorld,
+  resetForm
 })
 </script>
 
