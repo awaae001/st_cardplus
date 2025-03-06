@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
+import { Icon } from '@iconify/vue'
+
+const openGithub = () => {
+  window.open('https://github.com/awaae001/st_cardplus', '_blank')
+}
 </script>
 
 <template>
@@ -11,9 +16,14 @@ import { RouterView } from 'vue-router'
         <div class="menu-item" @click="$router.push('/world')">地标编辑器</div>
         <div class="menu-item" @click="$router.push('/cardoutput')">角色卡快搭</div>
       </div>
-      <p class="whatYouwant">dev_0.1.2</p>
-      <!-- <div class="menu-item" @click="handleSave">保存</div>
+      <div style="display: flex; align-items: center;">
+        <el-button type="primary" circle @click="openGithub" style="margin-right: 6px;">
+          <Icon icon="devicon:github" width="16" height="16" />
+        </el-button>
+        <p class="whatYouwant">dev_0.1.3</p>
+        <!-- <div class="menu-item" @click="handleSave">保存</div>
       <div class="menu-item" @click="handleLoad">加载</div> -->
+      </div>
     </div>
     <slot />
   </div>
