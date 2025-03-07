@@ -142,11 +142,16 @@
     <el-card class="mb-4">
       <div class="title-Btn-add">
         <h2 class="text-xl font-semibold mb-4">性格特质</h2>
-        <el-button type="primary" @click="addTrait" class="w-full" style="margin-left: 16px;">
-          <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
-            style="margin-right: 4px;" />
-          添加特质（卡片）
-        </el-button>
+        <div style="display: flex; gap: 8px;">
+          <el-button type="primary" @click="addTrait" class="w-full" style="margin-left: 16px;">
+            <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
+              style="margin-right: 4px;" />
+            添加特质（卡片）
+          </el-button>
+          <el-button type="success" @click="exportTraits" title="导出性格特质">
+            <Icon icon="material-symbols:content-copy-outline" width="18" height="18" />
+          </el-button>
+        </div>
       </div>
       <el-row :gutter="16">
         <el-col v-for="(trait, index) in form.traits" :key="index" :xs="24" :sm="12" :md="8" :lg="6">
@@ -171,11 +176,16 @@
     <el-card class="mb-4">
       <div class="title-Btn-add">
         <h2 class="text-xl font-semibold mb-4">人际关系</h2>
-        <el-button type="primary" @click="addRelationship" class="w-full" style="margin-left: 16px;">
-          <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
-            style="margin-right: 4px;" />
-          添加关系（卡片）
-        </el-button>
+        <div style="display: flex; gap: 8px;">
+          <el-button type="primary" @click="addRelationship" class="w-full" style="margin-left: 16px;">
+            <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
+              style="margin-right: 4px;" />
+            添加关系（卡片）
+          </el-button>
+          <el-button type="success" @click="exportRelationships" title="导出人际关系">
+            <Icon icon="material-symbols:content-copy-outline" width="18" height="18" />
+          </el-button>
+        </div>
       </div>
       <el-row :gutter="16">
         <el-col v-for="(relationship, index) in form.relationships" :key="index" :xs="24" :sm="12" :md="8" :lg="6">
@@ -411,6 +421,34 @@ const validateMBTI = () => {
 };
 
 // 保存角色卡
+const exportTraits = async () => {
+  try {
+    const traitsData = form.value.traits;
+    if (traitsData.length === 0) {
+      ElMessage.warning('没有可导出的性格特质');
+      return;
+    }
+    await navigator.clipboard.writeText(JSON.stringify(traitsData, null, 2));
+    ElMessage.success('性格特质已复制到剪贴板！');
+  } catch (error) {
+    ElMessage.error("导出失败");
+  }
+};
+
+const exportRelationships = async () => {
+  try {
+    const relationshipsData = form.value.relationships;
+    if (relationshipsData.length === 0) {
+      ElMessage.warning('没有可导出的人际关系');
+      return;
+    }
+    await navigator.clipboard.writeText(JSON.stringify(relationshipsData, null, 2));
+    ElMessage.success('人际关系已复制到剪贴板！');
+  } catch (error) {
+    ElMessage.error("导出失败");
+  }
+};
+
 const copyToClipboard = async () => {
   try {
     const dataToSave = {

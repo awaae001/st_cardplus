@@ -52,11 +52,16 @@
     <el-card class="mb-4">
       <div class="title-Btn-add">
         <h2 class="text-xl font-semibold mb-4">地标</h2>
-        <el-button type="primary" @click="addLandmark" class="w-full" style="margin-left: 16px;">
-          <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
-            style="margin-right: 4px;" />
-          添加地标（卡片）
-        </el-button>
+        <div style="display: flex; gap: 8px;">
+          <el-button type="primary" @click="addLandmark" class="w-full" style="margin-left: 16px;">
+            <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
+              style="margin-right: 4px;" />
+            添加地标（卡片）
+          </el-button>
+          <el-button type="success" @click="exportLandmarks" title="导出地标">
+            <Icon icon="material-symbols:content-copy-outline" width="18" height="18" />
+          </el-button>
+        </div>
       </div>
       <el-row :gutter="16">
         <el-col v-for="(landmark, index) in form.landmarks" :key="index" :xs="24" :sm="12" :md="8" :lg="6">
@@ -78,11 +83,16 @@
     <el-card class="mb-4">
       <div class="title-Btn-add">
         <h2 class="text-xl font-semibold mb-4">势力</h2>
-        <el-button type="primary" @click="addForce" class="w-full" style="margin-left: 16px;">
-          <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
-            style="margin-right: 4px;" />
-          添加势力（卡片）
-        </el-button>
+        <div style="display: flex; gap: 8px;">
+          <el-button type="primary" @click="addForce" class="w-full" style="margin-left: 16px;">
+            <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
+              style="margin-right: 4px;" />
+            添加势力（卡片）
+          </el-button>
+          <el-button type="success" @click="exportForces" title="导出势力">
+            <Icon icon="material-symbols:content-copy-outline" width="18" height="18" />
+          </el-button>
+        </div>
       </div>
       <el-row :gutter="16">
         <el-col v-for="(force, index) in form.forces" :key="index" :xs="24" :sm="12" :md="8" :lg="6">
@@ -161,6 +171,34 @@ const removeLandmark = (index: number) => {
   form.value.landmarks.splice(index, 1)
   ElMessage.warning('已删除地标')
 }
+
+const exportLandmarks = async () => {
+  try {
+    const landmarksData = form.value.landmarks;
+    if (landmarksData.length === 0) {
+      ElMessage.warning('没有可导出的地标');
+      return;
+    }
+    await navigator.clipboard.writeText(JSON.stringify(landmarksData, null, 2));
+    ElMessage.success('地标已复制到剪贴板！');
+  } catch (error) {
+    ElMessage.error("导出失败");
+  }
+};
+
+const exportForces = async () => {
+  try {
+    const forcesData = form.value.forces;
+    if (forcesData.length === 0) {
+      ElMessage.warning('没有可导出的势力');
+      return;
+    }
+    await navigator.clipboard.writeText(JSON.stringify(forcesData, null, 2));
+    ElMessage.success('势力已复制到剪贴板！');
+  } catch (error) {
+    ElMessage.error("导出失败");
+  }
+};
 
 const copyToClipboard = async () => {
   try {
