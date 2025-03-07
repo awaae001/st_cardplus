@@ -170,9 +170,10 @@ const saveWorld = async () => {
         members: force.members.split('\n').filter(line => line.trim() !== '')
       }))
     };
+    const generateRandomNumber = () => Math.floor(10000000 + Math.random() * 90000000);
     const jsonData = JSON.stringify(dataToSave, null, 2)
     const blob = new Blob([jsonData], { type: 'application/json' })
-    saveAs(blob, `${form.value.name || 'world'}.json`)
+    saveAs(blob, `${form.value.name || 'world'}_${generateRandomNumber()}.json`)
     ElMessage.success('世界书保存成功！')
   } catch (error) {
     ElMessage.error('保存失败')

@@ -5,6 +5,8 @@ import { Icon } from '@iconify/vue'
 const openGithub = () => {
   window.open('https://github.com/awaae001/st_cardplus', '_blank')
 }
+
+const randomNumber = Math.floor(100 + Math.random() * 900)
 </script>
 
 <template>
@@ -20,9 +22,7 @@ const openGithub = () => {
         <el-button type="primary" circle @click="openGithub" style="margin-right: 6px;">
           <Icon icon="devicon:github" width="16" height="16" />
         </el-button>
-        <p class="whatYouwant">dev_0.1.3</p>
-        <!-- <div class="menu-item" @click="handleSave">保存</div>
-      <div class="menu-item" @click="handleLoad">加载</div> -->
+        <p class="whatYouwant">dev_0.1.3-{{ randomNumber }}</p>
       </div>
     </div>
     <slot />
