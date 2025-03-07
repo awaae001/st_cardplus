@@ -15,6 +15,9 @@
           <Icon icon="material-symbols:refresh" width="18" height="18" style="margin-right: 4px;" />
           重置数据
         </el-button>
+        <el-button type="info" @click="copyToClipboard" title="复制到剪贴板">
+          <Icon icon="material-symbols:content-copy-outline" width="18" height="18" />
+        </el-button>
       </div>
     </div>
 
@@ -158,6 +161,25 @@ const removeLandmark = (index: number) => {
   form.value.landmarks.splice(index, 1)
   ElMessage.warning('已删除地标')
 }
+
+const copyToClipboard = async () => {
+  try {
+    const dataToSave = {
+      ...form.value,
+      keywords: form.value.keywords.split('\n').filter(line => line.trim() !== ''),
+      info: form.value.info.split('\n').filter(line => line.trim() !== ''),
+      forces: form.value.forces.map(force => ({
+        ...force,
+        members: force.members.split('\n').filter(line => line.trim() !== '')
+      }))
+    };
+    const jsonData = JSON.stringify(dataToSave, null, 2);
+    await navigator.clipboard.writeText(jsonData);
+    ElMessage.success('已复制到剪贴板！');
+  } catch (error) {
+    ElMessage.error("复制失败");
+  }
+};
 
 const saveWorld = async () => {
   try {

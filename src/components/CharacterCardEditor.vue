@@ -15,6 +15,9 @@
           <Icon icon="material-symbols:refresh" width="18" height="18" style="margin-right: 4px;" />
           重置数据
         </el-button>
+        <el-button type="info" @click="copyToClipboard" title="复制到剪贴板">
+          <Icon icon="material-symbols:content-copy-outline" width="18" height="18" />
+        </el-button>
       </div>
     </div>
 
@@ -408,6 +411,23 @@ const validateMBTI = () => {
 };
 
 // 保存角色卡
+const copyToClipboard = async () => {
+  try {
+    const dataToSave = {
+      ...form.value,
+      gender: form.value.gender === 'other' ? form.value.customGender : form.value.gender,
+      background: form.value.background.split('\n').filter(line => line.trim() !== ''),
+      likes: form.value.likes.split('\n').filter(line => line.trim() !== ''),
+      dislikes: form.value.dislikes.split('\n').filter(line => line.trim() !== '')
+    };
+    const jsonData = JSON.stringify(dataToSave, null, 2);
+    await navigator.clipboard.writeText(jsonData);
+    ElMessage.success('已复制到剪贴板！');
+  } catch (error) {
+    ElMessage.error("复制失败");
+  }
+};
+
 const saveCharacterCard = async () => {
   try {
     if (form.value.mbti && !isValidMBTI(form.value.mbti)) {
