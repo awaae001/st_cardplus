@@ -6,7 +6,7 @@ const openGithub = () => {
   window.open('https://github.com/awaae001/st_cardplus', '_blank')
 }
 
-const randomNumber = Math.floor(100 + Math.random() * 900)
+const randomNumber = 724
 </script>
 
 <template>

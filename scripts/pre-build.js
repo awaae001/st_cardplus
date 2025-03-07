@@ -1,9 +1,12 @@
-const fs = require('fs')
-const path = require('path')
+import { readFileSync, writeFileSync } from 'fs'
+import { join, dirname } from 'path'
+import { fileURLToPath } from 'url'
 
-const appVuePath = path.join(__dirname, '../src/App.vue')
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const appVuePath = join(__dirname, '../src/App.vue')
 const randomNumber = Math.floor(100 + Math.random() * 900)
+console.log(`randomNumber: ${randomNumber}`)
 
-let content = fs.readFileSync(appVuePath, 'utf8')
-content = content.replace(/dev_0\.1\.3-\d{3}/, `dev_0.1.3-${randomNumber}`)
-fs.writeFileSync(appVuePath, content)
+let content = readFileSync(appVuePath, 'utf8')
+content = content.replace(/const randomNumber = \d+ \/\/ This will be replaced during build/, `const randomNumber = ${randomNumber}`)
+writeFileSync(appVuePath, content)

@@ -1,49 +1,36 @@
-import { app, BrowserWindow } from "electron";
-import { fileURLToPath } from "url";
-import path from "path";
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-let mainWindow = null;
-function createWindow() {
-  mainWindow = new BrowserWindow({
+import { app as t, BrowserWindow as l } from "electron";
+import { fileURLToPath as r } from "url";
+import o from "path";
+const n = o.dirname(r(import.meta.url));
+let e = null;
+function i() {
+  e = new l({
     width: 1200,
     height: 620,
-    fullscreenable: false,
-    useContentSize: true,
+    fullscreenable: !1,
+    useContentSize: !0,
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
-      allowRunningInsecureContent: false
+      nodeIntegration: !0,
+      contextIsolation: !1,
+      allowRunningInsecureContent: !1
     },
-    show: false,
+    show: !1,
     backgroundColor: "#ffffff",
     // titleBarStyle: 'hidden',
     trafficLightPosition: { x: 12, y: 12 },
-    icon: path.join(__dirname, "../src/image/logo.png")
-  });
-  mainWindow.once("ready-to-show", () => {
-    mainWindow == null ? void 0 : mainWindow.show();
-  });
-  mainWindow.webContents.on("did-fail-load", () => {
-    mainWindow == null ? void 0 : mainWindow.loadFile(path.join(__dirname, "../dist/error.html"));
-  });
-  if (process.env.NODE_ENV === "development") {
-    mainWindow.loadURL("http://localhost:5174");
-    mainWindow.webContents.openDevTools();
-  } else {
-    mainWindow.loadFile(path.join(__dirname, "../dist/index.html"));
-  }
-  mainWindow.on("closed", () => {
-    mainWindow = null;
+    icon: o.join(n, "../src/image/logo.png")
+  }), e.once("ready-to-show", () => {
+    e == null || e.show();
+  }), e.webContents.on("did-fail-load", () => {
+    e == null || e.loadFile(o.join(n, "../dist/error.html"));
+  }), process.env.NODE_ENV === "development" ? (e.loadURL("http://localhost:5174"), e.webContents.openDevTools()) : e.loadFile(o.join(n, "../dist/index.html")), e.on("closed", () => {
+    e = null;
   });
 }
-app.on("ready", createWindow);
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
+t.on("ready", i);
+t.on("window-all-closed", () => {
+  process.platform !== "darwin" && t.quit();
 });
-app.on("activate", () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
+t.on("activate", () => {
+  l.getAllWindows().length === 0 && i();
 });
