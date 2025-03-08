@@ -26,12 +26,33 @@
       <el-form-item label="身材">
         <el-input v-model="form.appearance.body" placeholder="请输入身材特征" />
       </el-form-item>
+
+      <el-button type="text" @click="showNSFW = !showNSFW">
+        {{ showNSFW ? '收起18+描述' : '展开18+描述' }}
+      </el-button>
+
+      <template v-if="showNSFW">
+        <el-form-item label="胸部">
+          <el-input v-model="form.appearance.breasts" placeholder="请输入胸部特征" />
+        </el-form-item>
+        <el-form-item label="生殖器">
+          <el-input v-model="form.appearance.genitals" placeholder="请输入生殖器特征" />
+        </el-form-item>
+        <el-form-item label="屁眼">
+          <el-input v-model="form.appearance.anus" placeholder="请输入屁眼特征" />
+        </el-form-item>
+        <el-form-item label="阴唇">
+          <el-input v-model="form.appearance.labia" placeholder="请输入阴唇特征" />
+        </el-form-item>
+      </template>
     </el-form>
   </el-card>
 </template>
 
 <script setup lang="ts">
 import { ref, defineProps, watch } from 'vue';
+
+const showNSFW = ref(false);
 
 interface Props {
   form: {
@@ -44,6 +65,10 @@ interface Props {
       lips: string;
       skin: string;
       body: string;
+      breasts: string;
+      genitals: string;
+      anus: string;
+      labia: string;
     };
   };
 }

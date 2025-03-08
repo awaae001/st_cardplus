@@ -12,10 +12,11 @@
       <BackgroundStory :form="form" />
     </div>
 
-    <div class="section-container">
       <AppearanceFeatures :form="form" />
+
+    <div style="margin-top: 4px;"></div>
+
       <AttireSettings :form="form" />
-    </div>
 
     <PersonalityTraits
       :form="form"
@@ -83,6 +84,10 @@ interface CharacterCard {
     lips: string;
     skin: string;
     body: string;
+    breasts: string;
+    genitals: string;
+    anus: string;
+    labia: string;
   };
   attire: {
     tops: string;
@@ -139,6 +144,10 @@ const form = ref<CharacterCard>({
     lips: '',
     skin: '',
     body: '',
+    breasts: '',
+    genitals: '',
+    anus: '',
+    labia: '',
   },
   attire: {
     tops: '',
@@ -319,7 +328,11 @@ const loadCharacterCard = async () => {
             nose: parsedData.appearance?.nose || '',
             lips: parsedData.appearance?.lips || '',
             skin: parsedData.appearance?.skin || '',
-            body: parsedData.appearance?.body || ''
+            body: parsedData.appearance?.body || '',
+            breasts: parsedData.appearance?.breasts || '',
+            genitals: parsedData.appearance?.genitals || '',
+            anus: parsedData.appearance?.anus || '',
+            labia: parsedData.appearance?.labia || ''
           },
           attire: {
             tops: parsedData.attire?.tops || '',
@@ -414,6 +427,10 @@ const resetForm = () => {
         lips: '',
         skin: '',
         body: '',
+        breasts: '',
+        genitals: '',
+        anus: '',
+        labia: '',
       },
       attire: {
         tops: '',
