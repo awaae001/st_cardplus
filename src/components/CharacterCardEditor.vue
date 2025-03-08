@@ -34,8 +34,18 @@
     />
 
     <div style="margin: 4px;"></div>
+    
+    <SkillsEditor 
+      :form="form"
+      :addSkill="addSkill"
+      :removeSkill="removeSkill"
+      :exportSkills="exportSkills"
+    />
+
+    <div style="margin: 4px;"></div>
 
     <LikesDislikesRoutine :form="form" />
+    
   </div>
 </template>
 
@@ -53,6 +63,7 @@ import AttireSettings from './charcard/AttireSettings.vue';
 import PersonalityTraits from './charcard/PersonalityTraits.vue';
 import Relationships from './charcard/Relationships.vue';
 import LikesDislikesRoutine from './charcard/LikesDislikesRoutine.vue';
+import SkillsEditor from './charcard/SkillsEditor.vue';
 
 // 表单数据结构
 interface CharacterCard {
@@ -103,6 +114,12 @@ interface CharacterCard {
     night: string;
     lateNight: string;
   };
+  skills: {
+    name: string;
+    description: string;
+    dialogExample: string;
+    behaviorExample: string;
+  }[];
 }
 
 const form = ref<CharacterCard>({
@@ -142,11 +159,22 @@ const form = ref<CharacterCard>({
     afternoon: '',
     evening: '',
     night: '',
-    lateNight: '',
-  },
+      lateNight: '',
+    },
+    skills: [],
 });
 
 // 添加性格特质
+// 添加技能
+const addSkill = () => {
+  form.value.skills.push({
+    name: '',
+    description: '',
+    dialogExample: '',
+    behaviorExample: ''
+  });
+};
+
 const addTrait = () => {
   form.value.traits.push({
     name: '',
@@ -157,6 +185,11 @@ const addTrait = () => {
 };
 
 // 删除性格特质
+// 删除技能
+const removeSkill = (index: number) => {
+  form.value.skills.splice(index, 1);
+};
+
 const removeTrait = (index: number) => {
   form.value.traits.splice(index, 1);
 };
@@ -176,6 +209,21 @@ const removeRelationship = (index: number) => {
 };
 
 // 保存角色卡
+// 导出技能
+const exportSkills = async () => {
+  try {
+    const skillsData = form.value.skills;
+    if (skillsData.length === 0) {
+      ElMessage.warning('没有可导出的技能');
+      return;
+    }
+    await navigator.clipboard.writeText(JSON.stringify(skillsData, null, 2));
+    ElMessage.success('技能已复制到剪贴板！');
+  } catch (error) {
+    ElMessage.error("导出失败");
+  }
+};
+
 const exportTraits = async () => {
   try {
     const traitsData = form.value.traits;
@@ -310,8 +358,19 @@ const loadCharacterCard = async () => {
             afternoon: parsedData.dailyRoutine?.afternoon || '',
             evening: parsedData.dailyRoutine?.evening || '',
             night: parsedData.dailyRoutine?.night || '',
-            lateNight: parsedData.dailyRoutine?.lateNight || ''
-          }
+          lateNight: parsedData.dailyRoutine?.lateNight || ''
+          },
+          skills: Array.isArray(parsedData.skills) ? parsedData.skills.map((skill: {
+            name: string;
+            description: string;
+            dialogExample: string;
+            behaviorExample: string;
+          }) => ({
+            name: skill.name || '',
+            description: skill.description || '',
+            dialogExample: skill.dialogExample || '',
+            behaviorExample: skill.behaviorExample || ''
+          })) : []
         };
 
         // 验证基本结构
@@ -375,8 +434,9 @@ const resetForm = () => {
         afternoon: '',
         evening: '',
         night: '',
-        lateNight: '',
-      },
+      lateNight: '',
+    },
+    skills: []
     };
     ElMessage.success('数据已重置');
   }).catch(() => {
