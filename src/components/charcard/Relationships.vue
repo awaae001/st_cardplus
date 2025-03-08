@@ -19,6 +19,18 @@
           <el-input v-model="relationship.name" placeholder="角色名称" class="mb-2" />
           <el-input v-model="relationship.description" type="textarea" :rows="2" placeholder="关系描述" class="mb-2" />
           <el-input v-model="relationship.features" type="textarea" :rows="2" placeholder="人物特征" class="mb-2" />
+          <el-input 
+            v-for="(_, i) in relationship.dialogueExamples"
+            :key="i"
+            v-model="relationship.dialogueExamples[i]"
+            type="textarea"
+            :rows="2"
+            :placeholder="`对话示例 ${i + 1}`"
+            class="mb-2"
+          />
+          <el-button type="primary" @click="relationship.dialogueExamples.push('')" class="w-full mb-2">
+            添加对话示例
+          </el-button>
           <div style="margin: 4px;"></div>
           <el-button type="danger" @click="removeRelationship(index)" class="w-full">
             <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
@@ -35,16 +47,17 @@ import { ref, defineProps, watch } from 'vue';
 import { Icon } from "@iconify/vue";
 
 interface Props {
-  form: {
-    relationships: {
+  readonly form: {
+    readonly relationships: {
       name: string;
       description: string;
       features: string;
+      dialogueExamples: string[];
     }[];
   };
-  addRelationship: () => void;
-  removeRelationship: (index: number) => void;
-  exportRelationships: () => Promise<void>;
+  readonly addRelationship: () => void;
+  readonly removeRelationship: (index: number) => void;
+  readonly exportRelationships: () => Promise<void>;
 }
 
 const props = defineProps<Props>();

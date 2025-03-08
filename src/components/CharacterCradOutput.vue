@@ -94,9 +94,9 @@
               width: 50%;
               margin-left: 8px;
               ">
-                <el-option label="系统 | System" value="system" />
-                <el-option label="用户 | User" value="user" />
-                <el-option label="角色 | Assistant" value="assistant" />
+                <el-option label="系统 ⚙️ | System" value="system" />
+                <el-option label="用户 👤 | User" value="user" />
+                <el-option label="助手 🤖 | Assistant" value="assistant" />
               </el-select>
             </span>
           </div>

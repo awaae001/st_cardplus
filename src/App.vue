@@ -21,7 +21,7 @@ const openGithub = () => {
         <el-button type="primary" circle @click="openGithub" style="margin-right: 6px;">
           <Icon icon="devicon:github" width="16" height="16" />
         </el-button>
-        <p class="whatYouwant">dev_0.1.3</p>
+        <p class="whatYouwant">dev_0.1.3-950</p>
       </div>
     </div>
     <slot />

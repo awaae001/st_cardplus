@@ -1,57 +1,36 @@
 <template>
   <div class="p-4 bg-gray-100 min-h-screen">
-    <CharacterCardButtons
-      @saveCharacterCard="saveCharacterCard"
-      @loadCharacterCard="loadCharacterCard"
-      @resetForm="resetForm"
-      @copyToClipboard="copyToClipboard"
-    />
+    <CharacterCardButtons @saveCharacterCard="saveCharacterCard" @loadCharacterCard="loadCharacterCard"
+      @resetForm="resetForm" @copyToClipboard="copyToClipboard" />
 
     <div class="section-container">
       <BasicInfo :form="form" />
       <BackgroundStory :form="form" />
     </div>
 
-      <AppearanceFeatures :form="form" />
+    <AppearanceFeatures :form="form" />
 
     <div style="margin-top: 4px;"></div>
 
-      <AttireSettings 
-        :form="form"
-        :addAttire="addAttire"
-        :removeAttire="removeAttire" 
-        :exportAttires="exportAttires"
-      />
+    <AttireSettings :form="form" :addAttire="addAttire" :removeAttire="removeAttire" :exportAttires="exportAttires" />
 
-    <PersonalityTraits
-      :form="form"
-      :addTrait="addTrait"
-      :removeTrait="removeTrait"
-      :exportTraits="exportTraits"
-    />
+    <div style="margin-top: 4px;"></div>
+
+    <PersonalityTraits :form="form" :addTrait="addTrait" :removeTrait="removeTrait" :exportTraits="exportTraits" />
 
     <div style="margin: 4px;"></div>
 
-    <Relationships
-      :form="form"
-      :addRelationship="addRelationship"
-      :removeRelationship="removeRelationship"
-      :exportRelationships="exportRelationships"
-    />
+    <Relationships :form="form" :addRelationship="addRelationship" :removeRelationship="removeRelationship"
+      :exportRelationships="exportRelationships" />
 
     <div style="margin: 4px;"></div>
-    
-    <SkillsEditor 
-      :form="form"
-      :addSkill="addSkill"
-      :removeSkill="removeSkill"
-      :exportSkills="exportSkills"
-    />
+
+    <SkillsEditor :form="form" :addSkill="addSkill" :removeSkill="removeSkill" :exportSkills="exportSkills" />
 
     <div style="margin: 4px;"></div>
 
     <LikesDislikesRoutine :form="form" />
-    
+
   </div>
 </template>
 
@@ -115,6 +94,7 @@ interface CharacterCard {
     name: string;
     description: string;
     features: string;
+    dialogueExamples: string[];
   }[];
   likes: string;
   dislikes: string;
@@ -156,7 +136,7 @@ const form = ref<CharacterCard>({
     anus: '',
     labia: '',
   },
-      attires: [],
+  attires: [],
   mbti: '',
   traits: [],
   relationships: [],
@@ -168,9 +148,9 @@ const form = ref<CharacterCard>({
     afternoon: '',
     evening: '',
     night: '',
-      lateNight: '',
-    },
-    skills: [],
+    lateNight: '',
+  },
+  skills: [],
 });
 
 // 添加性格特质
@@ -209,6 +189,7 @@ const addRelationship = () => {
     name: '',
     description: '',
     features: '',
+    dialogueExamples: ['']
   });
 };
 
@@ -268,7 +249,7 @@ const filterEmptyValues = (obj: any): any => {
       .map(item => filterEmptyValues(item))
       .filter(item => item !== null && item !== undefined && item !== '');
   }
-  
+
   if (typeof obj === 'object' && obj !== null) {
     const result: any = {};
     for (const key in obj) {
@@ -279,7 +260,7 @@ const filterEmptyValues = (obj: any): any => {
     }
     return Object.keys(result).length > 0 ? result : null;
   }
-  
+
   return obj !== '' ? obj : null;
 };
 
@@ -393,10 +374,12 @@ const loadCharacterCard = async () => {
             name: string;
             description: string;
             features: string;
+            dialogueExamples: string[];
           }) => ({
             name: rel.name || '',
             description: rel.description || '',
-            features: rel.features || ''
+            features: rel.features || '',
+            dialogueExamples: rel.dialogueExamples || ['']
           })) : [],
           likes: Array.isArray(parsedData.likes) ? parsedData.likes.join('\n') : '',
           dislikes: Array.isArray(parsedData.dislikes) ? parsedData.dislikes.join('\n') : '',
@@ -406,7 +389,7 @@ const loadCharacterCard = async () => {
             afternoon: parsedData.dailyRoutine?.afternoon || '',
             evening: parsedData.dailyRoutine?.evening || '',
             night: parsedData.dailyRoutine?.night || '',
-          lateNight: parsedData.dailyRoutine?.lateNight || ''
+            lateNight: parsedData.dailyRoutine?.lateNight || ''
           },
           skills: Array.isArray(parsedData.skills) ? parsedData.skills.map((skill: {
             name: string;
@@ -479,9 +462,9 @@ const resetForm = () => {
         afternoon: '',
         evening: '',
         night: '',
-      lateNight: '',
-    },
-    skills: []
+        lateNight: '',
+      },
+      skills: []
     };
     ElMessage.success('数据已重置');
   }).catch(() => {
