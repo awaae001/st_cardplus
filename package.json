@@ -8,7 +8,7 @@
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/pre-build.js && echo 'Pre-build script executed' && vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "electron": "electron .",
     "start": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && electron .\"",

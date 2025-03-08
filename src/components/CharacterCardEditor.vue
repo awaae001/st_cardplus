@@ -1,244 +1,41 @@
 <template>
   <div class="p-4 bg-gray-100 min-h-screen">
-    <div id="tiltleMain">
-      <h1 class="text-2xl font-bold mb-4">角色信息编辑器</h1>
-      <div class="btnSL">
-        <el-button type="success" @click="loadCharacterCard">
-          <Icon icon="material-symbols:folder-open-outline-sharp" width="18" height="18" style="margin-right: 4px;" />
-          加载 json
-        </el-button>
-        <el-button type="primary" @click="saveCharacterCard">
-          <Icon icon="material-symbols:file-save-outline" width="18" height="18" style="margin-right: 4px;" />
-          保存 json
-        </el-button>
-        <el-button plain @click="resetForm">
-          <Icon icon="material-symbols:refresh" width="18" height="18" style="margin-right: 4px;" />
-          重置数据
-        </el-button>
-        <el-button type="info" @click="copyToClipboard" title="复制到剪贴板">
-          <Icon icon="material-symbols:content-copy-outline" width="18" height="18" />
-        </el-button>
-      </div>
+    <CharacterCardButtons
+      @saveCharacterCard="saveCharacterCard"
+      @loadCharacterCard="loadCharacterCard"
+      @resetForm="resetForm"
+      @copyToClipboard="copyToClipboard"
+    />
+
+    <div class="section-container">
+      <BasicInfo :form="form" />
+      <BackgroundStory :form="form" />
     </div>
 
     <div class="section-container">
-      <!-- 基础信息 -->
-      <el-card class="mb-4">
-        <h2 class="text-xl font-semibold mb-2">基础信息</h2>
-        <el-form :model="form" label-width="120px">
-          <el-form-item label="中文名">
-            <el-input v-model="form.chineseName" placeholder="请输入中文名" />
-          </el-form-item>
-          <el-form-item label="日文名">
-            <el-input v-model="form.japaneseName" disabled placeholder="逻辑未处理" />
-          </el-form-item>
-          <el-form-item label="性别">
-            <el-select v-model="form.gender" placeholder="请选择性别">
-              <el-option label="女性" value="female" />
-              <el-option label="男性" value="male" />
-              <el-option label="秀吉（伪娘、正太）" value="秀吉（伪娘、正太）" />
-              <el-option label="武装直升机" value="helicopter" />
-              <el-option label="永雏塔菲" value="tiffany" />
-              <el-option label="赛马娘" value="horse" />
-              <el-option label="沃尔玛购物袋" value="walmartShopingBag" />
-              <el-option label="其他(自定义)" value="other" />
-            </el-select>
-            <el-input 
-              v-if="form.gender === 'other'"
-              v-model="form.customGender"
-              placeholder="请输入角色的性别（other）"
-              style="margin-top: 10px;"
-            />
-          </el-form-item>
-          <el-form-item label="年龄">
-            <el-input-number v-model="form.age" :min="0" :max="99999" />
-            <span class="ps-text" style="margin-left: 16px;">有效值为 0~99999</span>
-          </el-form-item>
-          <el-form-item label="身份">
-            <el-input v-model="form.identity" placeholder="请输入身份" />
-          </el-form-item>
-        </el-form>
-      </el-card>
-
-      <!-- 背景故事 -->
-      <div>
-        <el-card class="mb-4">
-          <h2 class="text-xl font-semibold mb-2">背景故事</h2>
-          <el-input v-model="form.background" type="textarea" :rows="6" placeholder="请输入背景故事（每行一条）" />
-        </el-card>
-        <div style="margin: 4px;"></div>
-        <el-card class="mb-4">
-          <div class="title-Btn">
-            <h2 class="text-xl font-semibold mb-2">MBTI性格</h2>
-            <el-button type="primary" @click="validateMBTI" style="margin-right: 26px;">
-              <Icon icon="material-symbols:question-exchange" width="18" height="18" style="margin-right: 4px;" />验证
-            </el-button>
-          </div>
-          <P class="ps-text" style="  margin-top: -8px;">必须是有效的MBTI数值或者是 none </P>
-          <el-input v-model="form.mbti" placeholder="请输入MBTI性格" />
-        </el-card>
-      </div>
+      <AppearanceFeatures :form="form" />
+      <AttireSettings :form="form" />
     </div>
 
-    <div class="section-container">
-      <!-- 外貌特征 -->
-      <el-card class="mb-4">
-        <h2 class="text-xl font-semibold mb-2">外貌特征</h2>
-        <el-form :model="form.appearance" label-width="120px">
-          <el-form-item label="身高">
-            <el-input v-model="form.appearance.height" placeholder="请输入身高" />
-          </el-form-item>
-          <el-form-item label="发色">
-            <el-input v-model="form.appearance.hairColor" placeholder="请输入发色" />
-          </el-form-item>
-          <el-form-item label="发型">
-            <el-input v-model="form.appearance.hairstyle" placeholder="请输入发型" />
-          </el-form-item>
-          <el-form-item label="眼睛">
-            <el-input v-model="form.appearance.eyes" placeholder="请输入眼睛特征" />
-          </el-form-item>
-          <el-form-item label="鼻子">
-            <el-input v-model="form.appearance.nose" placeholder="请输入鼻子特征" />
-          </el-form-item>
-          <el-form-item label="嘴唇">
-            <el-input v-model="form.appearance.lips" placeholder="请输入嘴唇特征" />
-          </el-form-item>
-          <el-form-item label="皮肤">
-            <el-input v-model="form.appearance.skin" placeholder="请输入皮肤特征" />
-          </el-form-item>
-          <el-form-item label="身材">
-            <el-input v-model="form.appearance.body" placeholder="请输入身材特征" />
-          </el-form-item>
-        </el-form>
-      </el-card>
-
-      <!-- 服装设定 -->
-      <el-card class="mb-4">
-        <h2 class="text-xl font-semibold mb-2">服装设定</h2>
-        <el-form :model="form.attire" label-width="120px">
-          <el-form-item label="上衣">
-            <el-input v-model="form.attire.tops" placeholder="请输入上衣" />
-          </el-form-item>
-          <el-form-item label="下装">
-            <el-input v-model="form.attire.bottoms" placeholder="请输入下装" />
-          </el-form-item>
-          <el-form-item label="鞋子">
-            <el-input v-model="form.attire.shoes" placeholder="请输入鞋子" />
-          </el-form-item>
-          <el-form-item label="袜子">
-            <el-input v-model="form.attire.socks" placeholder="请输入袜子" />
-          </el-form-item>
-          <el-form-item label="内衣">
-            <el-input v-model="form.attire.underwears" placeholder="请输入内衣" />
-          </el-form-item>
-          <el-form-item label="配饰">
-            <el-input v-model="form.attire.accessories" placeholder="请输入配饰" />
-          </el-form-item>
-        </el-form>
-      </el-card>
-    </div>
-
-    <!-- 性格特质 -->
-    <el-card class="mb-4">
-      <div class="title-Btn-add">
-        <h2 class="text-xl font-semibold mb-4">性格特质</h2>
-        <div style="display: flex; gap: 8px;">
-          <el-button type="primary" @click="addTrait" class="w-full" style="margin-left: 16px;">
-            <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
-              style="margin-right: 4px;" />
-            添加特质（卡片）
-          </el-button>
-          <el-button type="success" @click="exportTraits" title="导出性格特质">
-            <Icon icon="material-symbols:content-copy-outline" width="18" height="18" />
-          </el-button>
-        </div>
-      </div>
-      <el-row :gutter="16">
-        <el-col v-for="(trait, index) in form.traits" :key="index" :xs="24" :sm="12" :md="8" :lg="6">
-          <el-card class="mb-4 trait-card">
-            <el-input v-model="trait.name" placeholder="特质名称" class="mb-2" />
-            <el-input v-model="trait.description" type="textarea" :rows="2" placeholder="描述" class="mb-2" />
-            <el-input v-model="trait.dialogueExamples" type="textarea" :rows="2" placeholder="对话示例" class="mb-2" />
-            <el-input v-model="trait.behaviorExamples" type="textarea" :rows="2" placeholder="行为示例" class="mb-2" />
-            <div style="margin: 4px;"></div>
-            <el-button type="danger" @click="removeTrait(index)" class="w-full">
-              <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
-              删除特质
-            </el-button>
-          </el-card>
-        </el-col>
-      </el-row>
-    </el-card>
+    <PersonalityTraits
+      :form="form"
+      :addTrait="addTrait"
+      :removeTrait="removeTrait"
+      :exportTraits="exportTraits"
+    />
 
     <div style="margin: 4px;"></div>
 
-    <!-- 人际关系 -->
-    <el-card class="mb-4">
-      <div class="title-Btn-add">
-        <h2 class="text-xl font-semibold mb-4">人际关系</h2>
-        <div style="display: flex; gap: 8px;">
-          <el-button type="primary" @click="addRelationship" class="w-full" style="margin-left: 16px;">
-            <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
-              style="margin-right: 4px;" />
-            添加关系（卡片）
-          </el-button>
-          <el-button type="success" @click="exportRelationships" title="导出人际关系">
-            <Icon icon="material-symbols:content-copy-outline" width="18" height="18" />
-          </el-button>
-        </div>
-      </div>
-      <el-row :gutter="16">
-        <el-col v-for="(relationship, index) in form.relationships" :key="index" :xs="24" :sm="12" :md="8" :lg="6">
-          <el-card class="mb-4 relationship-card">
-            <el-input v-model="relationship.name" placeholder="角色名称" class="mb-2" />
-            <el-input v-model="relationship.description" type="textarea" :rows="2" placeholder="关系描述" class="mb-2" />
-            <el-input v-model="relationship.features" type="textarea" :rows="2" placeholder="人物特征" class="mb-2" />
-            <div style="margin: 4px;"></div>
-            <el-button type="danger" @click="removeRelationship(index)" class="w-full">
-              <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
-              删除关系
-            </el-button>
-          </el-card>
-        </el-col>
-      </el-row>
-    </el-card>
+    <Relationships
+      :form="form"
+      :addRelationship="addRelationship"
+      :removeRelationship="removeRelationship"
+      :exportRelationships="exportRelationships"
+    />
 
     <div style="margin: 4px;"></div>
 
-    <!-- 喜好系统 -->
-    <div style="display: flex;">
-      <el-card class="mb-4">
-        <h2 class="text-xl font-semibold mb-2">喜好系统</h2>
-        <el-input v-model="form.likes" type="textarea" :rows="5" placeholder="请输入喜好（每行一条）" class="mb-2" />
-        <el-input v-model="form.dislikes" type="textarea" :rows="5" placeholder="请输入厌恶（每行一条）" />
-      </el-card>
-      <div style="margin: 4px;"></div>
-      <el-card class="mb-4" style="width: 75%;">
-        <h2 class="text-xl font-semibold mb-2">日常作息</h2>
-        <el-form :model="form.dailyRoutine" label-width="120px">
-          <el-form-item label="清晨">
-            <el-input v-model="form.dailyRoutine.earlyMorning" placeholder="请输入清晨作息" />
-          </el-form-item>
-          <el-form-item label="上午">
-            <el-input v-model="form.dailyRoutine.morning" placeholder="请输入上午作息" />
-          </el-form-item>
-          <el-form-item label="下午">
-            <el-input v-model="form.dailyRoutine.afternoon" placeholder="请输入下午作息" />
-          </el-form-item>
-          <el-form-item label="傍晚">
-            <el-input v-model="form.dailyRoutine.evening" placeholder="请输入傍晚作息" />
-          </el-form-item>
-          <el-form-item label="夜间">
-            <el-input v-model="form.dailyRoutine.night" placeholder="请输入夜间作息" />
-          </el-form-item>
-          <el-form-item label="深夜">
-            <el-input v-model="form.dailyRoutine.lateNight" placeholder="请输入深夜作息" />
-          </el-form-item>
-        </el-form>
-      </el-card>
-    </div>
-
-    <!-- 操作按钮 -->
+    <LikesDislikesRoutine :form="form" />
   </div>
 </template>
 
@@ -246,7 +43,16 @@
 import { ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { saveAs } from 'file-saver';
-import { Icon } from "@iconify/vue";
+
+// Import components
+import CharacterCardButtons from './charcard/CharacterCardButtons.vue';
+import BasicInfo from './charcard/BasicInfo.vue';
+import BackgroundStory from './charcard/BackgroundStory.vue';
+import AppearanceFeatures from './charcard/AppearanceFeatures.vue';
+import AttireSettings from './charcard/AttireSettings.vue';
+import PersonalityTraits from './charcard/PersonalityTraits.vue';
+import Relationships from './charcard/Relationships.vue';
+import LikesDislikesRoutine from './charcard/LikesDislikesRoutine.vue';
 
 // 表单数据结构
 interface CharacterCard {
@@ -369,57 +175,6 @@ const removeRelationship = (index: number) => {
   form.value.relationships.splice(index, 1);
 };
 
-// 验证MBTI格式
-const isValidMBTI = (mbti: string) => {
-  return mbti.toLowerCase() === 'none' || /^[EI][SN][TF][JP]$/i.test(mbti);
-};
-
-// MBTI类型描述
-interface MBTIDescriptions {
-  [key: string]: string;
-}
-
-const mbtiDescriptions: MBTIDescriptions = {
-  INTP: '逻辑学家',
-  INTJ: '建筑师',
-  ENTP: '辩论家',
-  ENTJ: '指挥官',
-  INFP: '调停者',
-  INFJ: '提倡者',
-  ENFJ: '主人公',
-  ENFP: '竞选者',
-  ISTJ: '物流师',
-  ISFJ: '守卫者',
-  ESTJ: '总经理',
-  ESFJ: '执政官',
-  ISTP: '鉴赏家',
-  ISFP: '探险家',
-  ESTP: '企业家',
-  ESFP: '表演者',
-  none: '未指定'
-};
-
-// MBTI验证处理
-const validateMBTI = () => {
-  if (!form.value.mbti) {
-    ElMessageBox.alert('请输入MBTI类型', '警告');
-    return;
-  }
-
-  if (!form.value.mbti) {
-    ElMessageBox.alert('请输入MBTI类型', '警告');
-    return;
-  }
-
-  const type = form.value.mbti.toUpperCase();
-  if (isValidMBTI(form.value.mbti)) {
-    const description = mbtiDescriptions[type] || mbtiDescriptions['none'];
-    ElMessageBox.alert(`MBTI格式正确，类型：${type} - ${description}`, '正确');
-  } else {
-    ElMessageBox.alert(`MBTI格式无效：${type}，请输入4个字母的组合或"none"`, '不合规');
-  }
-};
-
 // 保存角色卡
 const exportTraits = async () => {
   try {
@@ -468,11 +223,6 @@ const copyToClipboard = async () => {
 
 const saveCharacterCard = async () => {
   try {
-    if (form.value.mbti && !isValidMBTI(form.value.mbti)) {
-      ElMessage.error('MBTI格式无效，请输入4个字母的组合');
-      return;
-    }
-
     const dataToSave = {
       ...form.value,
       gender: form.value.gender === 'other' ? form.value.customGender : form.value.gender,
@@ -580,6 +330,7 @@ const loadCharacterCard = async () => {
     ElMessage.error(`加载失败：${error instanceof Error ? error.message : '未知错误'}`);
   }
 };
+
 // 重置表单数据
 const resetForm = () => {
   ElMessageBox.confirm('确定要重置所有数据吗？', '警告', {
@@ -650,17 +401,6 @@ defineExpose({
 
 .section-container>* {
   flex: 1;
-}
-
-#tiltleMain {
-  display: flex;
-  justify-content: space-between;
-}
-
-.btnSL {
-  display: flex;
-  align-items: center;
-  margin-right: 48px;
 }
 
 .ps-text {

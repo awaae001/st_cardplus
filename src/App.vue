@@ -6,7 +6,6 @@ const openGithub = () => {
   window.open('https://github.com/awaae001/st_cardplus', '_blank')
 }
 
-const randomNumber = 724
 </script>
 
 <template>
@@ -22,7 +21,7 @@ const randomNumber = 724
         <el-button type="primary" circle @click="openGithub" style="margin-right: 6px;">
           <Icon icon="devicon:github" width="16" height="16" />
         </el-button>
-        <p class="whatYouwant">dev_0.1.3-{{ randomNumber }}</p>
+        <p class="whatYouwant">dev_0.1.3</p>
       </div>
     </div>
     <slot />
