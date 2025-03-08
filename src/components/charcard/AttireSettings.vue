@@ -6,15 +6,15 @@
         <el-button type="primary" @click="addAttire" class="w-full" style="margin-left: 16px;">
           <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
             style="margin-right: 4px;" />
-          添加套装
+          添加套装（卡片）
         </el-button>
-        <el-button type="success" @click="exportAttire" title="导出服装设定">
+        <el-button type="success" @click="exportAttires" title="导出服装设定">
           <Icon icon="material-symbols:content-copy-outline" width="18" height="18" />
         </el-button>
       </div>
     </div>
     <el-row :gutter="16">
-      <el-col v-for="(attire, index) in form.attire" :key="index" :xs="24" :sm="12" :md="8" :lg="6">
+      <el-col v-for="(attire, index) in form.attires" :key="index" :xs="24" :sm="12" :md="8" :lg="6">
         <el-card class="mb-4 attire-card">
           <el-input v-model="attire.name" placeholder="套装名称" class="mb-2" />
           <el-input v-model="attire.description" type="textarea" :rows="2" placeholder="套装描述" class="mb-2" />
@@ -41,7 +41,7 @@ import { Icon } from "@iconify/vue";
 
 interface Props {
   form: {
-    attire: {
+    attires: {
       name: string;
       description: string;
       tops: string;
@@ -54,7 +54,7 @@ interface Props {
   };
   addAttire: () => void;
   removeAttire: (index: number) => void;
-  exportAttire: () => Promise<void>;
+  exportAttires: () => Promise<void>;
 }
 
 const props = defineProps<Props>();

@@ -16,7 +16,12 @@
 
     <div style="margin-top: 4px;"></div>
 
-      <AttireSettings :form="form" />
+      <AttireSettings 
+        :form="form"
+        :addAttire="addAttire"
+        :removeAttire="removeAttire" 
+        :exportAttires="exportAttires"
+      />
 
     <PersonalityTraits
       :form="form"
@@ -89,14 +94,16 @@ interface CharacterCard {
     anus: string;
     labia: string;
   };
-  attire: {
+  attires: {
+    name: string;
+    description: string;
     tops: string;
     bottoms: string;
     shoes: string;
     socks: string;
     underwears: string;
     accessories: string;
-  };
+  }[];
   mbti: string;
   traits: {
     name: string;
@@ -149,14 +156,7 @@ const form = ref<CharacterCard>({
     anus: '',
     labia: '',
   },
-  attire: {
-    tops: '',
-    bottoms: '',
-    shoes: '',
-    socks: '',
-    underwears: '',
-    accessories: '',
-  },
+      attires: [],
   mbti: '',
   traits: [],
   relationships: [],
@@ -261,15 +261,38 @@ const exportRelationships = async () => {
   }
 };
 
+// 递归过滤空值
+const filterEmptyValues = (obj: any): any => {
+  if (Array.isArray(obj)) {
+    return obj
+      .map(item => filterEmptyValues(item))
+      .filter(item => item !== null && item !== undefined && item !== '');
+  }
+  
+  if (typeof obj === 'object' && obj !== null) {
+    const result: any = {};
+    for (const key in obj) {
+      const filtered = filterEmptyValues(obj[key]);
+      if (filtered !== null && filtered !== undefined && filtered !== '') {
+        result[key] = filtered;
+      }
+    }
+    return Object.keys(result).length > 0 ? result : null;
+  }
+  
+  return obj !== '' ? obj : null;
+};
+
 const copyToClipboard = async () => {
   try {
-    const dataToSave = {
+    const rawData = {
       ...form.value,
       gender: form.value.gender === 'other' ? form.value.customGender : form.value.gender,
       background: form.value.background.split('\n').filter(line => line.trim() !== ''),
       likes: form.value.likes.split('\n').filter(line => line.trim() !== ''),
       dislikes: form.value.dislikes.split('\n').filter(line => line.trim() !== '')
     };
+    const dataToSave = filterEmptyValues(rawData);
     const jsonData = JSON.stringify(dataToSave, null, 2);
     await navigator.clipboard.writeText(jsonData);
     ElMessage.success('已复制到剪贴板！');
@@ -280,13 +303,14 @@ const copyToClipboard = async () => {
 
 const saveCharacterCard = async () => {
   try {
-    const dataToSave = {
+    const rawData = {
       ...form.value,
       gender: form.value.gender === 'other' ? form.value.customGender : form.value.gender,
       background: form.value.background.split('\n').filter(line => line.trim() !== ''),
       likes: form.value.likes.split('\n').filter(line => line.trim() !== ''),
       dislikes: form.value.dislikes.split('\n').filter(line => line.trim() !== '')
     };
+    const dataToSave = filterEmptyValues(rawData);
     const generateRandomNumber = () => Math.floor(10000000 + Math.random() * 90000000);
     const jsonData = JSON.stringify(dataToSave, null, 2);
     const blob = new Blob([jsonData], { type: 'application/json' });
@@ -334,14 +358,25 @@ const loadCharacterCard = async () => {
             anus: parsedData.appearance?.anus || '',
             labia: parsedData.appearance?.labia || ''
           },
-          attire: {
-            tops: parsedData.attire?.tops || '',
-            bottoms: parsedData.attire?.bottoms || '',
-            shoes: parsedData.attire?.shoes || '',
-            socks: parsedData.attire?.socks || '',
-            underwears: parsedData.attire?.underwears || '',
-            accessories: parsedData.attire?.accessories || ''
-          },
+          attires: Array.isArray(parsedData.attires) ? parsedData.attires.map((attire: {
+            name: string;
+            description: string;
+            tops: string;
+            bottoms: string;
+            shoes: string;
+            socks: string;
+            underwears: string;
+            accessories: string;
+          }) => ({
+            name: attire.name || '',
+            description: attire.description || '',
+            tops: attire.tops || '',
+            bottoms: attire.bottoms || '',
+            shoes: attire.shoes || '',
+            socks: attire.socks || '',
+            underwears: attire.underwears || '',
+            accessories: attire.accessories || ''
+          })) : [],
           mbti: parsedData.mbti || '',
           traits: Array.isArray(parsedData.traits) ? parsedData.traits.map((trait: {
             name: string;
@@ -432,14 +467,7 @@ const resetForm = () => {
         anus: '',
         labia: '',
       },
-      attire: {
-        tops: '',
-        bottoms: '',
-        shoes: '',
-        socks: '',
-        underwears: '',
-        accessories: '',
-      },
+      attires: [],
       mbti: '',
       traits: [],
       relationships: [],
@@ -461,10 +489,47 @@ const resetForm = () => {
   });
 };
 
+// 添加服装套装
+const addAttire = () => {
+  form.value.attires.push({
+    name: '',
+    description: '',
+    tops: '',
+    bottoms: '',
+    shoes: '',
+    socks: '',
+    underwears: '',
+    accessories: ''
+  });
+};
+
+// 删除服装套装
+const removeAttire = (index: number) => {
+  form.value.attires.splice(index, 1);
+};
+
+// 导出服装套装
+const exportAttires = async () => {
+  try {
+    const attiresData = form.value.attires;
+    if (attiresData.length === 0) {
+      ElMessage.warning('没有可导出的服装套装');
+      return;
+    }
+    await navigator.clipboard.writeText(JSON.stringify(attiresData, null, 2));
+    ElMessage.success('服装套装已复制到剪贴板！');
+  } catch (error) {
+    ElMessage.error("导出失败");
+  }
+};
+
 defineExpose({
   saveCharacterCard,
   loadCharacterCard,
-  resetForm
+  resetForm,
+  addAttire,
+  removeAttire,
+  exportAttires
 })
 </script>
 
