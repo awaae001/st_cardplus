@@ -19,23 +19,27 @@
           <el-input v-model="relationship.name" placeholder="角色名称" class="mb-2" />
           <el-input v-model="relationship.description" type="textarea" :rows="2" placeholder="关系描述" class="mb-2" />
           <el-input v-model="relationship.features" type="textarea" :rows="2" placeholder="人物特征" class="mb-2" />
-          <el-input 
-            v-for="(_, i) in relationship.dialogueExamples"
-            :key="i"
-            v-model="relationship.dialogueExamples[i]"
-            type="textarea"
-            :rows="2"
-            :placeholder="`对话示例 ${i + 1}`"
-            class="mb-2"
-          />
-          <el-button type="primary" @click="relationship.dialogueExamples.push('')" class="w-full mb-2">
-            添加对话示例
-          </el-button>
-          <div style="margin: 4px;"></div>
-          <el-button type="danger" @click="removeRelationship(index)" class="w-full">
-            <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
-            删除关系
-          </el-button>
+          <div style="margin-top: 6px;"></div>
+          <div v-for="(_, i) in relationship.dialogueExamples" :key="i" class="mb-2">
+            <div class="flex gap-2">
+              <el-input v-model="relationship.dialogueExamples[i]" type="textarea" :rows="3"
+                :placeholder="`对话示例 ${i + 1}`" class="flex-1" />
+              <el-button @click="relationship.dialogueExamples.splice(i, 1)" title="删除此对话示例"
+              style="margin-bottom: 4px; width: 100%;"
+              >
+                <Icon icon="material-symbols:delete-outline" width="18" height="18" />
+              </el-button>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-top: 4px;">
+            <el-button type="danger" @click="removeRelationship(index)" class="w-full">
+              <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
+              删除关系
+            </el-button>
+            <el-button @click="relationship.dialogueExamples.push('')" class="w-full mb-2">
+              <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18" />
+            </el-button>
+          </div>
         </el-card>
       </el-col>
     </el-row>

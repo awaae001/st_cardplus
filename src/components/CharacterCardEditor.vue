@@ -14,8 +14,6 @@
 
     <AttireSettings :form="form" :addAttire="addAttire" :removeAttire="removeAttire" :exportAttires="exportAttires" />
 
-    <div style="margin-top: 4px;"></div>
-
     <PersonalityTraits :form="form" :addTrait="addTrait" :removeTrait="removeTrait" :exportTraits="exportTraits" />
 
     <div style="margin: 4px;"></div>
