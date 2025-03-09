@@ -24,6 +24,7 @@
             <div class="flex gap-2">
               <el-input v-model="relationship.dialogueExamples[i]" type="textarea" :rows="3"
                 :placeholder="`对话示例 ${i + 1}`" class="flex-1" />
+                <div style="margin-top: 4px;"></div>
               <el-button @click="relationship.dialogueExamples.splice(i, 1)" title="删除此对话示例"
               style="margin-bottom: 4px; width: 100%;"
               >

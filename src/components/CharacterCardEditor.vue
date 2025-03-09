@@ -57,20 +57,23 @@ interface CharacterCard {
   age: number;
   identity: string;
   background: string;
-  appearance: {
-    height: string;
-    hairColor: string;
-    hairstyle: string;
-    eyes: string;
-    nose: string;
-    lips: string;
-    skin: string;
-    body: string;
-    breasts: string;
-    genitals: string;
-    anus: string;
-    labia: string;
-  };
+    appearance: {
+      height: string;
+      hairColor: string;
+      hairstyle: string;
+      eyes: string;
+      nose: string;
+      lips: string;
+      skin: string;
+      body: string;
+      bust: string;
+      waist: string;
+      hips: string;
+      breasts: string;
+      genitals: string;
+      anus: string;
+      labia: string;
+    };
   attires: {
     name: string;
     description: string;
@@ -120,20 +123,23 @@ const form = ref<CharacterCard>({
   age: 0,
   identity: '',
   background: '',
-  appearance: {
-    height: '',
-    hairColor: '',
-    hairstyle: '',
-    eyes: '',
-    nose: '',
-    lips: '',
-    skin: '',
-    body: '',
-    breasts: '',
-    genitals: '',
-    anus: '',
-    labia: '',
-  },
+      appearance: {
+        height: '',
+        hairColor: '',
+        hairstyle: '',
+        eyes: '',
+        nose: '',
+        lips: '',
+        skin: '',
+        body: '',
+        bust: '',
+        waist: '',
+        hips: '',
+        breasts: '',
+        genitals: '',
+        anus: '',
+        labia: '',
+      },
   attires: [],
   mbti: '',
   traits: [],
@@ -332,6 +338,9 @@ const loadCharacterCard = async () => {
             lips: parsedData.appearance?.lips || '',
             skin: parsedData.appearance?.skin || '',
             body: parsedData.appearance?.body || '',
+            bust: parsedData.appearance?.bust || '',
+            waist: parsedData.appearance?.waist || '',
+            hips: parsedData.appearance?.hips || '',
             breasts: parsedData.appearance?.breasts || '',
             genitals: parsedData.appearance?.genitals || '',
             anus: parsedData.appearance?.anus || '',
@@ -443,6 +452,9 @@ const resetForm = () => {
         lips: '',
         skin: '',
         body: '',
+        bust: '',
+        waist: '',
+        hips: '',
         breasts: '',
         genitals: '',
         anus: '',

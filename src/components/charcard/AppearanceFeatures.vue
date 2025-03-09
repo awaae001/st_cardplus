@@ -44,6 +44,15 @@
         <el-form-item label="阴唇">
           <el-input v-model="form.appearance.labia" placeholder="请输入阴唇特征" />
         </el-form-item>
+        <el-form-item label="胸围">
+        <el-input v-model="form.appearance.bust" placeholder="请输入胸围" />
+      </el-form-item>
+      <el-form-item label="腰围">
+        <el-input v-model="form.appearance.waist" placeholder="请输入腰围" />
+      </el-form-item>
+      <el-form-item label="臀围">
+        <el-input v-model="form.appearance.hips" placeholder="请输入臀围" />
+      </el-form-item>
       </template>
     </el-form>
   </el-card>
@@ -65,6 +74,9 @@ interface Props {
       lips: string;
       skin: string;
       body: string;
+      bust: string;
+      waist: string;
+      hips: string;
       breasts: string;
       genitals: string;
       anus: string;
