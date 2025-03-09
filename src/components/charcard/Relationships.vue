@@ -22,21 +22,30 @@
           <div style="margin-top: 6px;"></div>
           <div v-for="(_, i) in relationship.dialogueExamples" :key="i" class="mb-2">
             <div class="flex gap-2">
+              <el-divider border-style="dashed" />
               <el-input v-model="relationship.dialogueExamples[i]" type="textarea" :rows="3"
                 :placeholder="`对话示例 ${i + 1}`" class="flex-1" />
-                <div style="margin-top: 4px;"></div>
-              <el-button @click="relationship.dialogueExamples.splice(i, 1)" title="删除此对话示例"
-              style="margin-bottom: 4px; width: 100%;"
-              >
-                <Icon icon="material-symbols:delete-outline" width="18" height="18" />
-              </el-button>
+              <div style="margin-top: 4px;"></div>
+              <el-popconfirm title="删除此示例？" confirm-button-text="确定" cancel-button-text="取消" icon-color="red"
+                @confirm="relationship.dialogueExamples.splice(i, 1)">
+                <template #reference>
+                  <el-button title="删除此对话示例" style="margin-bottom: 4px; width: 100%;">
+                    <Icon icon="material-symbols:delete-outline" width="18" height="18" />
+                  </el-button>
+                </template>
+              </el-popconfirm>
             </div>
           </div>
           <div style="display: flex; justify-content: space-between; margin-top: 4px;">
-            <el-button type="danger" @click="removeRelationship(index)" class="w-full">
-              <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
-              删除关系
-            </el-button>
+            <el-popconfirm title="删除此关系？" confirm-button-text="确定" cancel-button-text="取消"
+              icon-color="red" @confirm="removeRelationship(index)">
+              <template #reference>
+                <el-button type="danger" class="w-full">
+                  <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
+                  删除关系
+                </el-button>
+              </template>
+            </el-popconfirm>
             <el-button @click="relationship.dialogueExamples.push('')" class="w-full mb-2">
               <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18" />
             </el-button>
