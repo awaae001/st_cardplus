@@ -13,27 +13,35 @@
         </el-button>
       </div>
     </div>
-    <el-row :gutter="16">
-      <el-col v-for="(skill, index) in form.skills" :key="index" :xs="24" :sm="12" :md="8" :lg="6">
-        <el-card class="mb-4 skill-card">
-          <el-input v-model="skill.name" placeholder="技能名称" class="mb-2" />
-          <el-input v-model="skill.description" type="textarea" :rows="2" placeholder="描述" class="mb-2" />
-          <el-input v-model="skill.dialogExample" type="textarea" :rows="2" placeholder="对话示例" class="mb-2" />
-          <el-input v-model="skill.behaviorExample" type="textarea" :rows="2" placeholder="行为示例" class="mb-2" />
-          <div style="margin: 4px;"></div>
-          <el-button type="danger" @click="removeSkill(index)" class="w-full">
-            <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
-            删除技能
-          </el-button>
-        </el-card>
-      </el-col>
-    </el-row>
+
+    <draggable v-model="form.skills" handle=".drag-handle" item-key="index" style="display: flex;flex-wrap: wrap;">
+      <template #item="{ element: skill, index }">
+        <el-col :xs="24" :sm="12" :md="8" :lg="6">
+          <div class="drag-handle" style="cursor: move; margin-bottom: 8px;">
+            <Icon icon="material-symbols:drag-handle" width="20" height="20" />
+          </div>
+          <el-card class="mb-4 skill-card">
+            <el-input v-model="skill.name" placeholder="技能名称" class="mb-2" />
+            <el-input v-model="skill.description" type="textarea" :rows="2" placeholder="描述" class="mb极2" />
+            <el-input v-model="skill.dialogExample" type="textarea" :rows="2" placeholder="对话示例" class="mb-2" />
+            <el-input v-model="skill.behaviorExample" type="textarea" :rows="2" placeholder="行为示例" class="mb-2" />
+            <div style="margin: 4px;"></div>
+            <el-button type="danger" @click="removeSkill(index)" class="w-full">
+              <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
+              删除技能
+            </el-button>
+          </el-card>
+        </el-col>
+      </template>
+    </draggable>
+
   </el-card>
 </template>
 
 <script setup lang="ts">
 import { ref, defineProps, watch } from 'vue';
 import { Icon } from "@iconify/vue";
+import draggable from 'vuedraggable';
 
 interface Props {
   form: {

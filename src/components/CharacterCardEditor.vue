@@ -72,7 +72,7 @@ interface CharacterCard {
     breasts: string;
     genitals: string;
     anus: string;
-    labia: string;
+    pubes: string;
     thighs: string;
     butt: string;
     feet: string;
@@ -91,8 +91,8 @@ interface CharacterCard {
   traits: {
     name: string;
     description: string;
-    dialogueExamples: string;
-    behaviorExamples: string;
+    dialogueExamples: string[];
+    behaviorExamples: string[];
   }[];
   relationships: {
     name: string;
@@ -141,7 +141,7 @@ const form = ref<CharacterCard>({
     breasts: '',
     genitals: '',
     anus: '',
-    labia: '',
+    pubes: '',
     thighs: '',
     butt: '',
     feet: '',
@@ -164,6 +164,20 @@ const form = ref<CharacterCard>({
 });
 
 // 添加性格特质
+const addTrait = () => {
+  form.value.traits.push({
+    name: '',
+    description: '',
+    dialogueExamples: [''],
+    behaviorExamples: ['']
+  });
+};
+
+// 删除性格特质
+const removeTrait = (index: number) => {
+  form.value.traits.splice(index, 1);
+};
+
 // 添加技能
 const addSkill = () => {
   form.value.skills.push({
@@ -174,23 +188,9 @@ const addSkill = () => {
   });
 };
 
-const addTrait = () => {
-  form.value.traits.push({
-    name: '',
-    description: '',
-    dialogueExamples: '',
-    behaviorExamples: '',
-  });
-};
-
-// 删除性格特质
 // 删除技能
 const removeSkill = (index: number) => {
   form.value.skills.splice(index, 1);
-};
-
-const removeTrait = (index: number) => {
-  form.value.traits.splice(index, 1);
 };
 
 // 添加人际关系
@@ -209,89 +209,6 @@ const removeRelationship = (index: number) => {
 };
 
 // 保存角色卡
-// 导出技能
-const exportSkills = async () => {
-  try {
-    const skillsData = form.value.skills;
-    if (skillsData.length === 0) {
-      ElMessage.warning('没有可导出的技能');
-      return;
-    }
-    await navigator.clipboard.writeText(JSON.stringify(skillsData, null, 2));
-    ElMessage.success('技能已复制到剪贴板！');
-  } catch (error) {
-    ElMessage.error("导出失败");
-  }
-};
-
-const exportTraits = async () => {
-  try {
-    const traitsData = form.value.traits;
-    if (traitsData.length === 0) {
-      ElMessage.warning('没有可导出的性格特质');
-      return;
-    }
-    await navigator.clipboard.writeText(JSON.stringify(traitsData, null, 2));
-    ElMessage.success('性格特质已复制到剪贴板！');
-  } catch (error) {
-    ElMessage.error("导出失败");
-  }
-};
-
-const exportRelationships = async () => {
-  try {
-    const relationshipsData = form.value.relationships;
-    if (relationshipsData.length === 0) {
-      ElMessage.warning('没有可导出的人际关系');
-      return;
-    }
-    await navigator.clipboard.writeText(JSON.stringify(relationshipsData, null, 2));
-    ElMessage.success('人际关系已复制到剪贴板！');
-  } catch (error) {
-    ElMessage.error("导出失败");
-  }
-};
-
-// 递归过滤空值
-const filterEmptyValues = (obj: any): any => {
-  if (Array.isArray(obj)) {
-    return obj
-      .map(item => filterEmptyValues(item))
-      .filter(item => item !== null && item !== undefined && item !== '');
-  }
-
-  if (typeof obj === 'object' && obj !== null) {
-    const result: any = {};
-    for (const key in obj) {
-      const filtered = filterEmptyValues(obj[key]);
-      if (filtered !== null && filtered !== undefined && filtered !== '') {
-        result[key] = filtered;
-      }
-    }
-    return Object.keys(result).length > 0 ? result : null;
-  }
-
-  return obj !== '' ? obj : null;
-};
-
-const copyToClipboard = async () => {
-  try {
-    const rawData = {
-      ...form.value,
-      gender: form.value.gender === 'other' ? form.value.customGender : form.value.gender,
-      background: form.value.background.split('\n').filter(line => line.trim() !== ''),
-      likes: form.value.likes.split('\n').filter(line => line.trim() !== ''),
-      dislikes: form.value.dislikes.split('\n').filter(line => line.trim() !== '')
-    };
-    const dataToSave = filterEmptyValues(rawData);
-    const jsonData = JSON.stringify(dataToSave, null, 2);
-    await navigator.clipboard.writeText(jsonData);
-    ElMessage.success('已复制到剪贴板！');
-  } catch (error) {
-    ElMessage.error("复制失败");
-  }
-};
-
 const saveCharacterCard = async () => {
   try {
     const rawData = {
@@ -350,7 +267,7 @@ const loadCharacterCard = async () => {
             breasts: parsedData.appearance?.breasts || '',
             genitals: parsedData.appearance?.genitals || '',
             anus: parsedData.appearance?.anus || '',
-            labia: parsedData.appearance?.labia || '',
+            pubes: parsedData.appearance?.pubes || '',
             thighs: parsedData.appearance?.thihes || '',
             butt:parsedData.appearance?.butt || '',
             feet: parsedData.appearance?.feet || '',
@@ -378,13 +295,13 @@ const loadCharacterCard = async () => {
           traits: Array.isArray(parsedData.traits) ? parsedData.traits.map((trait: {
             name: string;
             description: string;
-            dialogueExamples: string;
-            behaviorExamples: string;
+            dialogueExamples: string[];
+            behaviorExamples: string[];
           }) => ({
             name: trait.name || '',
             description: trait.description || '',
-            dialogueExamples: trait.dialogueExamples || '',
-            behaviorExamples: trait.behaviorExamples || ''
+            dialogueExamples: Array.isArray(trait.dialogueExamples) ? trait.dialogueExamples : [''],
+            behaviorExamples: Array.isArray(trait.behaviorExamples) ? trait.behaviorExamples : ['']
           })) : [],
           relationships: Array.isArray(parsedData.relationships) ? parsedData.relationships.map((rel: {
             name: string;
@@ -467,7 +384,7 @@ const resetForm = () => {
         breasts: '',
         genitals: '',
         anus: '',
-        labia: '',
+        pubes: '',
         thighs: '',
         butt: '',
         feet: '',
@@ -523,6 +440,92 @@ const exportAttires = async () => {
     }
     await navigator.clipboard.writeText(JSON.stringify(attiresData, null, 2));
     ElMessage.success('服装套装已复制到剪贴板！');
+  } catch (error) {
+    ElMessage.error("导出失败");
+  }
+};
+
+// 递归过滤空值
+const filterEmptyValues = (obj: any): any => {
+  if (Array.isArray(obj)) {
+    return obj
+      .map(item => filterEmptyValues(item))
+      .filter(item => item !== null && item !== undefined && item !== '');
+  }
+
+  if (typeof obj === 'object' && obj !== null) {
+    const result: any = {};
+    for (const key in obj) {
+      const filtered = filterEmptyValues(obj[key]);
+      if (filtered !== null && filtered !== undefined && filtered !== '') {
+        result[key] = filtered;
+      }
+    }
+    return Object.keys(result).length > 0 ? result : null;
+  }
+
+  return obj !== '' ? obj : null;
+};
+
+// 复制到剪贴板
+const copyToClipboard = async () => {
+  try {
+    const rawData = {
+      ...form.value,
+      gender: form.value.gender === 'other' ? form.value.customGender : form.value.gender,
+      background: form.value.background.split('\n').filter(line => line.trim() !== ''),
+      likes: form.value.likes.split('\n').filter(line => line.trim() !== ''),
+      dislikes: form.value.dislikes.split('\n').filter(line => line.trim() !== '')
+    };
+    const dataToSave = filterEmptyValues(rawData);
+    const jsonData = JSON.stringify(dataToSave, null, 2);
+    await navigator.clipboard.writeText(jsonData);
+    ElMessage.success('已复制到剪贴板！');
+  } catch (error) {
+    ElMessage.error("复制失败");
+  }
+};
+
+// 导出技能
+const exportSkills = async () => {
+  try {
+    const skillsData = form.value.skills;
+    if (skillsData.length === 0) {
+      ElMessage.warning('没有可导出的技能');
+      return;
+    }
+    await navigator.clipboard.writeText(JSON.stringify(skillsData, null, 2));
+    ElMessage.success('技能已复制到剪贴板！');
+  } catch (error) {
+    ElMessage.error("导出失败");
+  }
+};
+
+// 导出性格特质
+const exportTraits = async () => {
+  try {
+    const traitsData = form.value.traits;
+    if (traitsData.length === 0) {
+      ElMessage.warning('没有可导出的性格特质');
+      return;
+    }
+    await navigator.clipboard.writeText(JSON.stringify(traitsData, null, 2));
+    ElMessage.success('性格特质已复制到剪贴板！');
+  } catch (error) {
+    ElMessage.error("导出失败");
+  }
+};
+
+// 导出人际关系
+const exportRelationships = async () => {
+  try {
+    const relationshipsData = form.value.relationships;
+    if (relationshipsData.length === 0) {
+      ElMessage.warning('没有可导出的人际关系');
+      return;
+    }
+    await navigator.clipboard.writeText(JSON.stringify(relationshipsData, null, 2));
+    ElMessage.success('人际关系已复制到剪贴板！');
   } catch (error) {
     ElMessage.error("导出失败");
   }

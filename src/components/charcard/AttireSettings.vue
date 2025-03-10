@@ -13,31 +13,39 @@
         </el-button>
       </div>
     </div>
-    <el-row :gutter="16">
-      <el-col v-for="(attire, index) in form.attires" :key="index" :xs="24" :sm="12" :md="8" :lg="6">
-        <el-card class="mb-4 attire-card">
-          <el-input v-model="attire.name" placeholder="套装名称" class="mb-2" />
-          <el-input v-model="attire.description" type="textarea" :rows="2" placeholder="套装描述" class="mb-2" />
-          <el-input v-model="attire.tops" placeholder="上衣" class="mb-2" />
-          <el-input v-model="attire.bottoms" placeholder="下装" class="mb-2" />
-          <el-input v-model="attire.shoes" placeholder="鞋子" class="mb-2" />
-          <el-input v-model="attire.socks" placeholder="袜子" class="mb-2" />
-          <el-input v-model="attire.underwears" placeholder="内衣" class="mb-2" />
-          <el-input v-model="attire.accessories" placeholder="配饰" class="mb-2" />
-          <div style="margin: 4px;"></div>
-          <el-button type="danger" @click="removeAttire(index)" class="w-full">
-            <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
-            删除套装
-          </el-button>
-        </el-card>
-      </el-col>
-    </el-row>
+
+      <draggable v-model="form.attires" handle=".drag-handle" item-key="index"
+      style="display: flex;flex-wrap: wrap;">
+        <template #item="{ element: attire, index }">
+          <el-col :xs="24" :sm="12" :md="8" :lg="6">
+            <div class="drag-handle" style="cursor: move; margin-bottom: 8px;">
+              <Icon icon="material-symbols:drag-handle" width="20" height="20" />
+            </div>
+            <el-card class="mb-4 attire-card">
+              <el-input v-model="attire.name" placeholder="套装名称" class="mb-2" />
+              <el-input v-model="attire.description" type="textarea" :rows="2" placeholder="套装描述" class="mb-2" />
+              <el-input v-model="attire.tops" placeholder="上衣" class="mb-2" />
+              <el-input v-model="attire.bottoms" placeholder="下装" class="mb-2" />
+              <el-input v-model="attire.shoes" placeholder="鞋子" class="mb-2" />
+              <el-input v-model="attire.socks" placeholder="袜子" class="mb-2" />
+              <el-input v-model="attire.underwears" placeholder="内衣" class="mb-2" />
+              <el-input v-model="attire.accessories" placeholder="配饰" class="mb-2" />
+              <div style="margin: 4px;"></div>
+              <el-button type="danger" @click="removeAttire(index)" class="w-full">
+                <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
+                删除套装
+              </el-button>
+            </el-card>
+          </el-col>
+        </template>
+      </draggable>
   </el-card>
 </template>
 
 <script setup lang="ts">
 import { ref, defineProps, watch } from 'vue';
 import { Icon } from "@iconify/vue";
+import draggable from 'vuedraggable';
 
 interface Props {
   form: {

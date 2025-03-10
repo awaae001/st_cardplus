@@ -13,52 +13,60 @@
         </el-button>
       </div>
     </div>
-    <el-row :gutter="16">
-      <el-col v-for="(relationship, index) in form.relationships" :key="index" :xs="24" :sm="12" :md="8" :lg="6">
-        <el-card class="mb-4 relationship-card">
-          <el-input v-model="relationship.name" placeholder="角色名称" class="mb-2" />
-          <el-input v-model="relationship.description" type="textarea" :rows="2" placeholder="关系描述" class="mb-2" />
-          <el-input v-model="relationship.features" type="textarea" :rows="2" placeholder="人物特征" class="mb-2" />
-          <div style="margin-top: 6px;"></div>
-          <div v-for="(_, i) in relationship.dialogueExamples" :key="i" class="mb-2">
-            <div class="flex gap-2">
-              <el-divider border-style="dashed" />
-              <el-input v-model="relationship.dialogueExamples[i]" type="textarea" :rows="3"
-                :placeholder="`对话示例 ${i + 1}`" class="flex-1" />
-              <div style="margin-top: 4px;"></div>
-              <el-popconfirm title="删除此示例？" confirm-button-text="确定" cancel-button-text="取消" icon-color="red"
-                @confirm="relationship.dialogueExamples.splice(i, 1)">
-                <template #reference>
-                  <el-button title="删除此对话示例" style="margin-bottom: 4px; width: 100%;">
-                    <Icon icon="material-symbols:delete-outline" width="18" height="18" />
-                  </el-button>
-                </template>
-              </el-popconfirm>
+      <draggable v-model="form.relationships" handle=".drag-handle" item-key="index"
+      style="display: flex;flex-wrap: wrap;">
+        <template #item="{ element: relationship, index }">
+          <el-col :xs="24" :sm="12" :md="8" :lg="6">
+            <div class="drag-handle" style="cursor: move; margin-bottom: 8px;">
+              <Icon icon="material-symbols:drag-handle" width="20" height="20" />
             </div>
-          </div>
-          <div style="display: flex; justify-content: space-between; margin-top: 4px;">
-            <el-popconfirm title="删除此关系？" confirm-button-text="确定" cancel-button-text="取消"
-              icon-color="red" @confirm="removeRelationship(index)">
-              <template #reference>
-                <el-button type="danger" class="w-full">
-                  <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
-                  删除关系
+            <el-card class="mb-4 relationship-card">
+              <el-input v-model="relationship.name" placeholder="角色名称" class="mb-2" />
+              <el-input v-model="relationship.description" type="textarea" :rows="2" placeholder="关系描述" class="mb-2" />
+              <el-input v-model="relationship.features" type="textarea" :rows="2" placeholder="人物特征" class="mb-2" />
+              <div style="margin-top: 6px;"></div>
+              <div v-for="(_, i) in relationship.dialogueExamples" :key="i" class="mb-2">
+                <div class="flex gap-2">
+                  <el-divider border-style="dashed" />
+                  <el-input v-model="relationship.dialogueExamples[i]" type="textarea" :rows="3"
+                    :placeholder="`对话示例 ${i + 1}`" class="flex-1" />
+                  <div style="margin-top: 4px;"></div>
+                  <el-popconfirm title="删除此示例？" confirm-button-text="确定" cancel-button-text="取消" icon-color="red"
+                    @confirm="relationship.dialogueExamples.splice(i, 1)">
+                    <template #reference>
+                      <el-button title="删除此对话示例" style="margin-bottom: 4px; width: 100%;">
+                        <Icon icon="material-symbols:delete-outline" width="18" height="18" />
+                      </el-button>
+                    </template>
+                  </el-popconfirm>
+                </div>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-top: 4px;">
+                <el-popconfirm title="删除此关系？" confirm-button-text="确定" cancel-button-text="取消"
+                  icon-color="red" @confirm="removeRelationship(index)">
+                  <template #reference>
+                    <el-button type="danger" class="w-full">
+                      <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
+                      删除关系
+                    </el-button>
+                  </template>
+                </el-popconfirm>
+                <el-button type="primary" @click="relationship.dialogueExamples.push('')" class="w-full mb-2">
+                  <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18" />
                 </el-button>
-              </template>
-            </el-popconfirm>
-            <el-button @click="relationship.dialogueExamples.push('')" class="w-full mb-2">
-              <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18" />
-            </el-button>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
+              </div>
+            </el-card>
+          </el-col>
+        </template>
+      </draggable>
+
   </el-card>
 </template>
 
 <script setup lang="ts">
 import { ref, defineProps, watch } from 'vue';
 import { Icon } from "@iconify/vue";
+import draggable from 'vuedraggable';
 
 interface Props {
   readonly form: {

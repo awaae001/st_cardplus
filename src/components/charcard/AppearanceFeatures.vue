@@ -49,8 +49,8 @@
           <el-form-item label="屁眼">
             <el-input v-model="form.appearance.anus" placeholder="请输入屁眼特征" />
           </el-form-item>
-          <el-form-item label="阴唇">
-            <el-input v-model="form.appearance.labia" placeholder="请输入阴唇特征" />
+          <el-form-item label="阴毛">
+            <el-input v-model="form.appearance.pubes" placeholder="请输入阴唇特征" />
           </el-form-item>
           <el-form-item label="胸围">
             <el-input v-model="form.appearance.bust" placeholder="请输入胸围" />
@@ -99,7 +99,7 @@ interface Props {
       breasts: string;
       genitals: string;
       anus: string;
-      labia: string;
+      pubes: string;
       thighs: string;
       butt: string;
       feet: string;

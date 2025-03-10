@@ -22,7 +22,8 @@
     "file-saver": "^2.0.5",
     "tailwindcss": "^4.0.8",
     "vue": "^3.5.13",
-    "vue-router": "4"
+    "vue-router": "4",
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@iconify/vue": "^4.3.0",
