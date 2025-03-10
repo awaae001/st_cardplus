@@ -57,23 +57,26 @@ interface CharacterCard {
   age: number;
   identity: string;
   background: string;
-    appearance: {
-      height: string;
-      hairColor: string;
-      hairstyle: string;
-      eyes: string;
-      nose: string;
-      lips: string;
-      skin: string;
-      body: string;
-      bust: string;
-      waist: string;
-      hips: string;
-      breasts: string;
-      genitals: string;
-      anus: string;
-      labia: string;
-    };
+  appearance: {
+    height: string;
+    hairColor: string;
+    hairstyle: string;
+    eyes: string;
+    nose: string;
+    lips: string;
+    skin: string;
+    body: string;
+    bust: string;
+    waist: string;
+    hips: string;
+    breasts: string;
+    genitals: string;
+    anus: string;
+    labia: string;
+    thighs: string;
+    butt: string;
+    feet: string;
+  };
   attires: {
     name: string;
     description: string;
@@ -123,23 +126,26 @@ const form = ref<CharacterCard>({
   age: 0,
   identity: '',
   background: '',
-      appearance: {
-        height: '',
-        hairColor: '',
-        hairstyle: '',
-        eyes: '',
-        nose: '',
-        lips: '',
-        skin: '',
-        body: '',
-        bust: '',
-        waist: '',
-        hips: '',
-        breasts: '',
-        genitals: '',
-        anus: '',
-        labia: '',
-      },
+  appearance: {
+    height: '',
+    hairColor: '',
+    hairstyle: '',
+    eyes: '',
+    nose: '',
+    lips: '',
+    skin: '',
+    body: '',
+    bust: '',
+    waist: '',
+    hips: '',
+    breasts: '',
+    genitals: '',
+    anus: '',
+    labia: '',
+    thighs: '',
+    butt: '',
+    feet: '',
+  },
   attires: [],
   mbti: '',
   traits: [],
@@ -344,7 +350,10 @@ const loadCharacterCard = async () => {
             breasts: parsedData.appearance?.breasts || '',
             genitals: parsedData.appearance?.genitals || '',
             anus: parsedData.appearance?.anus || '',
-            labia: parsedData.appearance?.labia || ''
+            labia: parsedData.appearance?.labia || '',
+            thighs: parsedData.appearance?.thihes || '',
+            butt:parsedData.appearance?.butt || '',
+            feet: parsedData.appearance?.feet || '',
           },
           attires: Array.isArray(parsedData.attires) ? parsedData.attires.map((attire: {
             name: string;
@@ -459,6 +468,9 @@ const resetForm = () => {
         genitals: '',
         anus: '',
         labia: '',
+        thighs: '',
+        butt: '',
+        feet: '',
       },
       attires: [],
       mbti: '',
