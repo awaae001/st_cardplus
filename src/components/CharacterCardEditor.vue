@@ -473,6 +473,7 @@ const copyToClipboard = async () => {
     const rawData = {
       ...form.value,
       gender: form.value.gender === 'other' ? form.value.customGender : form.value.gender,
+      identity: form.value.identity.split('\n').filter(line => line.trim() !== ''),
       background: form.value.background.split('\n').filter(line => line.trim() !== ''),
       likes: form.value.likes.split('\n').filter(line => line.trim() !== ''),
       dislikes: form.value.dislikes.split('\n').filter(line => line.trim() !== '')
