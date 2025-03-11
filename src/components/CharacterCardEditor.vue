@@ -1,7 +1,7 @@
 <template>
   <div class="p-4 bg-gray-100 min-h-screen">
-    <CharacterCardButtons @saveCharacterCard="saveCharacterCard" @loadCharacterCard="loadCharacterCard"
-      @resetForm="resetForm" @copyToClipboard="copyToClipboard" />
+<CharacterCardButtons @saveCharacterCard="saveCharacterCard" @loadCharacterCard="loadCharacterCard"
+      @resetForm="resetForm" @copyToClipboard="copyToClipboard" @importFromClipboard="(data) => importFromClipboard(data)" />
 
     <div class="section-container">
       <BasicInfo :form="form" />
@@ -484,6 +484,68 @@ const copyToClipboard = async () => {
     ElMessage.success('已复制到剪贴板！');
   } catch (error) {
     ElMessage.error("复制失败");
+  }
+};
+
+const importFromClipboard = async (data: string) => {
+  try {
+    const parsedData = JSON.parse(data);
+
+    // 验证基本结构
+    if (!parsedData.chineseName) {
+      throw new Error('剪贴板内容不是有效的角色卡数据');
+    }
+
+    // 转换字段格式
+    const convertedData = {
+      chineseName: parsedData.chineseName || '',
+      japaneseName: parsedData.japaneseName || '',
+      gender: parsedData.gender || '',
+      customGender: parsedData.customGender || '',
+      age: Number(parsedData.age) || 0,
+      identity: Array.isArray(parsedData.identity) ? parsedData.identity.join('\n') : '',
+      background: Array.isArray(parsedData.background) ? parsedData.background.join('\n') : '',
+      appearance: {
+        height: parsedData.appearance?.height || '',
+        hairColor: parsedData.appearance?.hairColor || '',
+        hairstyle: parsedData.appearance?.hairstyle || '',
+        eyes: parsedData.appearance?.eyes || '',
+        nose: parsedData.appearance?.nose || '',
+        lips: parsedData.appearance?.lips || '',
+        skin: parsedData.appearance?.skin || '',
+        body: parsedData.appearance?.body || '',
+        bust: parsedData.appearance?.bust || '',
+        waist: parsedData.appearance?.waist || '',
+        hips: parsedData.appearance?.hips || '',
+        breasts: parsedData.appearance?.breasts || '',
+        genitals: parsedData.appearance?.genitals || '',
+        anus: parsedData.appearance?.anus || '',
+        pubes: parsedData.appearance?.pubes || '',
+        thighs: parsedData.appearance?.thihes || '',
+        butt: parsedData.appearance?.butt || '',
+        feet: parsedData.appearance?.feet || '',
+      },
+      attires: Array.isArray(parsedData.attires) ? parsedData.attires : [],
+      mbti: parsedData.mbti || '',
+      traits: Array.isArray(parsedData.traits) ? parsedData.traits : [],
+      relationships: Array.isArray(parsedData.relationships) ? parsedData.relationships : [],
+      likes: Array.isArray(parsedData.likes) ? parsedData.likes.join('\n') : '',
+      dislikes: Array.isArray(parsedData.dislikes) ? parsedData.dislikes.join('\n') : '',
+      dailyRoutine: {
+        earlyMorning: parsedData.dailyRoutine?.earlyMorning || '',
+        morning: parsedData.dailyRoutine?.morning || '',
+        afternoon: parsedData.dailyRoutine?.afternoon || '',
+        evening: parsedData.dailyRoutine?.evening || '',
+        night: parsedData.dailyRoutine?.night || '',
+        lateNight: parsedData.dailyRoutine?.lateNight || ''
+      },
+      skills: Array.isArray(parsedData.skills) ? parsedData.skills : []
+    };
+
+    form.value = convertedData;
+    ElMessage.success('从剪贴板导入成功！');
+  } catch (error) {
+    ElMessage.error(`导入失败：${error instanceof Error ? error.message : '未知错误'}`);
   }
 };
 

@@ -17,6 +17,9 @@
       <el-button type="info" @click="copyToClipboard" title="复制到剪贴板">
         <Icon icon="material-symbols:content-copy-outline" width="18" height="18" />
       </el-button>
+      <el-button type="warning" @click="showImportDialog" title="导入数据">
+        <Icon icon="material-symbols:content-paste-outline" width="18" height="18" />
+      </el-button>
     </div>
   </div>
 </template>
@@ -24,8 +27,15 @@
 <script setup lang="ts">
 import { defineEmits } from 'vue';
 import { Icon } from "@iconify/vue";
+import { ElMessageBox } from 'element-plus';
 
-const emit = defineEmits(['saveCharacterCard', 'loadCharacterCard', 'resetForm', 'copyToClipboard']);
+const emit = defineEmits<{
+  (e: 'saveCharacterCard'): void;
+  (e: 'loadCharacterCard'): void;
+  (e: 'resetForm'): void;
+  (e: 'copyToClipboard'): void;
+  (e: 'importFromClipboard', data: string): void;
+}>();
 
 const saveCharacterCard = () => {
   emit('saveCharacterCard');
@@ -41,6 +51,31 @@ const resetForm = () => {
 
 const copyToClipboard = () => {
   emit('copyToClipboard');
+};
+
+const showImportDialog = () => {
+  ElMessageBox.prompt('请输入要导入的JSON数据', '导入数据', {
+    confirmButtonText: '导入',
+    cancelButtonText: '取消',
+    type: 'info',
+    inputType: 'textarea',
+    inputPlaceholder: '在此粘贴或输入JSON数据',
+    inputValidator: (value) => {
+      if (!value) {
+        return '请输入要导入的数据';
+      }
+      try {
+        JSON.parse(value);
+        return true;
+      } catch (e) {
+        return '请输入有效的JSON格式数据';
+      }
+    }
+  }).then(({ value }) => {
+    emit('importFromClipboard', value);
+  }).catch(() => {
+    // 用户取消操作
+  });
 };
 </script>
 

@@ -18,6 +18,9 @@
         <el-button type="info" @click="copyToClipboard" title="复制到剪贴板">
           <Icon icon="material-symbols:content-copy-outline" width="18" height="18" />
         </el-button>
+        <el-button type="warning" @click="showImportDialog" title="导入数据">
+          <Icon icon="material-symbols:content-paste-outline" width="18" height="18" />
+        </el-button>
       </div>
     </div>
 
@@ -197,6 +200,58 @@ const exportForces = async () => {
     ElMessage.success('势力已复制到剪贴板！');
   } catch (error) {
     ElMessage.error("导出失败");
+  }
+};
+
+const showImportDialog = () => {
+  ElMessageBox.prompt('请输入要导入的JSON数据', '导入数据', {
+    confirmButtonText: '导入',
+    cancelButtonText: '取消',
+    type: 'info',
+    inputType: 'textarea',
+    inputPlaceholder: '在此粘贴或输入JSON数据',
+    inputValidator: (value) => {
+      if (!value) {
+        return '请输入要导入的数据';
+      }
+      try {
+        JSON.parse(value);
+        return true;
+      } catch (e) {
+        return '请输入有效的JSON格式数据';
+      }
+    }
+  }).then(({ value }) => {
+    importFromClipboard(value);
+  }).catch(() => {
+    // 用户取消操作
+  });
+};
+
+const importFromClipboard = async (data: string) => {
+  try {
+    const parsedData = JSON.parse(data);
+
+    // 验证并转换数据格式
+    form.value = {
+      name: parsedData.name || '',
+      space: parsedData.space || '',
+      keywords: parsedData.keywords?.join('\n') || '',
+      info: parsedData.info?.join('\n') || '',
+      landmarks: parsedData.landmarks?.map((l: any) => ({
+        name: l.name || '',
+        description: l.description || ''
+      })) || [],
+      forces: parsedData.forces?.map((f: any) => ({
+        name: f.name || '',
+        members: f.members?.join('\n') || '',
+        description: f.description || ''
+      })) || []
+    };
+
+    ElMessage.success('从剪贴板导入成功！');
+  } catch (error) {
+    ElMessage.error(`导入失败：${error instanceof Error ? error.message : '未知错误'}`);
   }
 };
 
