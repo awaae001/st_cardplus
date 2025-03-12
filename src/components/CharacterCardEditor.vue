@@ -219,6 +219,12 @@ const saveCharacterCard = async () => {
       dislikes: form.value.dislikes.split('\n').filter(line => line.trim() !== '')
     };
     const dataToSave = filterEmptyValues(rawData);
+    
+    if (!dataToSave || Object.keys(dataToSave).length === 0) {
+      ElMessage.warning('没有可保存的数据，请先填写角色卡信息');
+      return;
+    }
+    
     const generateRandomNumber = () => Math.floor(10000000 + Math.random() * 90000000);
     const jsonData = JSON.stringify(dataToSave, null, 2);
     const blob = new Blob([jsonData], { type: 'application/json' });
@@ -448,9 +454,10 @@ const exportAttires = async () => {
 // 递归过滤空值
 const filterEmptyValues = (obj: any): any => {
   if (Array.isArray(obj)) {
-    return obj
+    const filtered = obj
       .map(item => filterEmptyValues(item))
       .filter(item => item !== null && item !== undefined && item !== '');
+    return filtered.length > 0 ? filtered : null;
   }
 
   if (typeof obj === 'object' && obj !== null) {
@@ -464,7 +471,9 @@ const filterEmptyValues = (obj: any): any => {
     return Object.keys(result).length > 0 ? result : null;
   }
 
-  return obj !== '' ? obj : null;
+  if (obj === '') return null;
+  if (typeof obj === 'number' && obj === 0) return null;
+  return obj;
 };
 
 // 复制到剪贴板
@@ -479,6 +488,12 @@ const copyToClipboard = async () => {
       dislikes: form.value.dislikes.split('\n').filter(line => line.trim() !== '')
     };
     const dataToSave = filterEmptyValues(rawData);
+    
+    if (!dataToSave || Object.keys(dataToSave).length === 0) {
+      ElMessage.warning('没有可复制的数据，请先填写角色卡信息');
+      return;
+    }
+    
     const jsonData = JSON.stringify(dataToSave, null, 2);
     await navigator.clipboard.writeText(jsonData);
     ElMessage.success('已复制到剪贴板！');
