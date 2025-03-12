@@ -3,24 +3,28 @@
     <div id="tiltleMain">
       <h1 class="text-2xl font-bold mb-4">地标编辑器</h1>
       <div class="btnSL">
-        <el-button type="success" @click="loadWorld">
-          <Icon icon="material-symbols:folder-open-outline-sharp" width="18" height="18" style="margin-right: 4px;" />
-          加载 json
-        </el-button>
-        <el-button type="primary" @click="saveWorld">
-          <Icon icon="material-symbols:file-save-outline-sharp" width="18" height="18" style="margin-right: 4px;" />
-          保存 json
-        </el-button>
-        <el-button plain @click="resetForm">
-          <Icon icon="material-symbols:refresh" width="18" height="18" style="margin-right: 4px;" />
-          重置数据
-        </el-button>
-        <el-button type="info" @click="copyToClipboard" title="复制到剪贴板">
-          <Icon icon="material-symbols:content-copy-outline" width="18" height="18" />
-        </el-button>
-        <el-button type="warning" @click="showImportDialog" title="导入数据">
-          <Icon icon="material-symbols:content-paste-outline" width="18" height="18" />
-        </el-button>
+        <div class="btnSL2">
+          <el-button type="success" @click="loadWorld">
+            <Icon icon="material-symbols:folder-open-outline-sharp" width="18" height="18" style="margin-right: 4px;" />
+            加载 json
+          </el-button>
+          <el-button type="primary" @click="saveWorld">
+            <Icon icon="material-symbols:file-save-outline-sharp" width="18" height="18" style="margin-right: 4px;" />
+            保存 json
+          </el-button>
+          <el-button plain @click="resetForm">
+            <Icon icon="material-symbols:refresh" width="18" height="18" style="margin-right: 4px;" />
+            重置数据
+          </el-button>
+        </div>
+        <div class="btnSL2">
+          <el-button type="info" @click="copyToClipboard" title="复制到剪贴板">
+            <Icon icon="material-symbols:content-copy-outline" width="18" height="18" />
+          </el-button>
+          <el-button type="warning" @click="showImportDialog" title="导入数据">
+            <Icon icon="material-symbols:content-paste-outline" width="18" height="18" />
+          </el-button>
+        </div>
       </div>
     </div>
 
@@ -308,7 +312,7 @@ const loadWorld = async () => {
           try {
             const content = e.target?.result as string
             const data = JSON.parse(content)
-            
+
             // 验证并转换数据格式
             form.value = {
               name: data.name || '',
@@ -325,7 +329,7 @@ const loadWorld = async () => {
                 description: f.description || ''
               })) || []
             }
-            
+
             ElMessage.success('世界书加载成功！')
           } catch (error) {
             ElMessage.error('文件格式错误，请检查文件内容')
@@ -371,25 +375,61 @@ defineExpose({
 /* 使用 Tailwind CSS 进行样式控制 */
 
 .section-container {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.section-container>* {
+  flex: 1;
+  min-width: 100%;
+}
+
+@media (min-width: 768px) {
+  .section-container {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .section-container>* {
+    min-width: auto;
+  }
 }
 
 #tiltleMain {
-  display: flex;
   justify-content: space-between;
 }
 
 .btnSL {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   margin-right: 48px;
+  flex-direction: column;
 }
 
-.title-Btn-add {
+.btnSL2 {
+  margin: 8px 4px 8px 0px;
   display: flex;
-  justify-content: flex-start;
-  align-items: center;
+}
+
+
+
+@media (min-width: 768px) {
+  #tiltleMain {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .btnSL {
+    display: flex;
+    align-items: center;
+    margin-right: 48px;
+    flex-direction: row;
+  }
+
+  .btnSL2 {
+    display: flex;
+  }
+
 }
 </style>

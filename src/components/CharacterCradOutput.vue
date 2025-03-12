@@ -20,7 +20,7 @@
     </div>
 
     <!-- Individual Cards -->
-    <div style="display: flex;">
+    <div class="section-container">
       <el-card style="width: 45%;">
         <h2 class="text-xl font-semibold mb-4">基本信息</h2>
         <span style="margin:8px;">角色名称
@@ -30,9 +30,6 @@
         <span style="margin:8px;">第一条消息</span>
         <el-input type="textarea" v-model="characterData.first_mes" :rows="6" placeholder="请输入第一条消息" />
       </el-card>
-
-      <div style="margin: 8px;"></div>
-
       <el-card style="width: 55%;">
         <div class="title-Btn-add">
           <h2 class="text-xl font-semibold mb-4">角色描述</h2>
@@ -45,9 +42,8 @@
       </el-card>
     </div>
 
-    <div style="margin: 8px;"></div>
 
-    <div style="display: flex;">
+    <div class="section-container">
       <el-card class="mb-4" style="width: 45%;">
         <div class="title-Btn-add">
           <h2 class="text-xl font-semibold mb-4">备用问候语</h2>
@@ -127,7 +123,7 @@
 
     <div style="margin: 8px;"></div>
 
-    <div style="display: flex;">
+    <div class="section-container">
       <el-card class="mb-4" style="width: 50%;">
         <h2 class="text-xl font-semibold mb-4">其他设置</h2>
         <span>发言频率</span>
@@ -321,12 +317,40 @@ const loadData = () => {
 
 
 <style scoped>
+.section-container {
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.section-container>* {
+  flex: 1;
+  min-width: 100%;
+}
+
+@media (min-width: 768px) {
+  .section-container {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .section-container>* {
+    min-width: auto;
+  }
+
+  .btnSL {
+    display: flex;
+    align-items: center;
+    margin-right: 48px;
+    flex-direction: row;
+  }
+}
+
 .container {
   max-width: 800px;
 }
 
 #tiltleMain {
-  display: flex;
   justify-content: space-between;
 }
 
@@ -334,11 +358,21 @@ const loadData = () => {
   display: flex;
   align-items: center;
   margin-right: 48px;
+  flex-direction: row;
 }
 
-.title-Btn-add {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
+
+@media (min-width: 768px) {
+  #tiltleMain {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .btnSL {
+    display: flex;
+    align-items: center;
+    margin-right: 48px;
+    flex-direction: row;
+  }
 }
 </style>

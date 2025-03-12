@@ -1,17 +1,15 @@
 <template>
-  <el-card class="mb-4">
-    <h2 class="text-xl font-semibold mb-2">外貌特征</h2>
+  <el-card class="mb-4 p-2 md:p-4">
+    <h2 class="text-lg md:text-xl font-semibold mb-2">外貌特征</h2>
     <div style="margin-top: 8px;"></div>
-    <p class="whatYouwant" style="
-    display: flex;     
-    align-items: center;">
+    <p class="whatYouwant flex items-center text-sm md:text-base">
       <Icon icon="material-symbols:info-outline" width="24" height="24" />
       <span style="margin-left: 4px;"></span>
       当你在输入框留空时留空的位置不会被导出，即：“不用全部填写”
     </p>
-    <el-form :model="form.appearance" label-width="120px">
-      <div id="appearance-form">
-        <div>
+    <el-form :model="form.appearance" :label-width="screenWidth > 768 ? '120px' : 'auto'">
+      <div id="appearance-form" class="flex flex-col md:flex-row gap-4">
+        <div class="w-full md:w-1/3">
           <el-form-item label="身高">
             <el-input v-model="form.appearance.height" placeholder="请输入身高" />
           </el-form-item>
@@ -38,7 +36,7 @@
           </el-form-item>
         </div>
 
-        <div>
+        <div class="w-full md:w-1/3">
 
           <el-form-item label="胸部">
             <el-input v-model="form.appearance.breasts" placeholder="请输入胸部特征" />
@@ -62,7 +60,7 @@
             <el-input v-model="form.appearance.hips" placeholder="请输入臀围" />
           </el-form-item>
         </div>
-        <div>
+        <div class="w-full md:w-1/3">
           <el-form-item label="大腿">
             <el-input v-model="form.appearance.thighs" placeholder="请输入大腿特征" />
           </el-form-item>
@@ -79,7 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineProps, watch } from 'vue';
+import { ref, defineProps, watch, onMounted, onBeforeUnmount } from 'vue';
 import { Icon } from '@iconify/vue';
 
 interface Props {
@@ -109,6 +107,19 @@ interface Props {
 
 const props = defineProps<Props>();
 const form = ref(props.form);
+const screenWidth = ref(window.innerWidth);
+
+const updateScreenWidth = () => {
+  screenWidth.value = window.innerWidth;
+};
+
+onMounted(() => {
+  window.addEventListener('resize', updateScreenWidth);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateScreenWidth);
+});
 
 watch(() => props.form, (newVal) => {
   form.value = newVal;
@@ -148,8 +159,15 @@ watch(() => props.form, (newVal) => {
 
 #appearance-form {
   display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  #appearance-form {
+    flex-direction: row;
+    gap: 2rem;
+  }
 }
 
 .whatYouwant {

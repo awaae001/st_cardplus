@@ -1,11 +1,11 @@
 <template>
-  <div style="display: flex;">
+  <div class="section-container">
     <el-card class="mb-4">
       <h2 class="text-xl font-semibold mb-2">喜好系统</h2>
       <el-input v-model="form.likes" type="textarea" :rows="5" placeholder="请输入喜好（每行一条）" class="mb-2" />
       <el-input v-model="form.dislikes" type="textarea" :rows="5" placeholder="请输入厌恶（每行一条）" />
     </el-card>
-    <div style="margin: 4px;"></div>
+
     <el-card class="mb-4" style="width: 75%;">
       <h2 class="text-xl font-semibold mb-2">日常作息</h2>
       <el-form :model="form.dailyRoutine" label-width="120px">
@@ -61,13 +61,25 @@ watch(() => props.form, (newVal) => {
 <style scoped>
 /* 使用 Tailwind CSS 进行样式控制 */
 .section-container {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .section-container>* {
   flex: 1;
+  min-width: 100%;
+}
+
+@media (min-width: 768px) {
+  .section-container {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .section-container>* {
+    min-width: auto;
+  }
 }
 
 .ps-text {

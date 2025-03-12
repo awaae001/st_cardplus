@@ -1,9 +1,10 @@
 <template>
-  <div class="p-4 bg-gray-100 min-h-screen">
-<CharacterCardButtons @saveCharacterCard="saveCharacterCard" @loadCharacterCard="loadCharacterCard"
-      @resetForm="resetForm" @copyToClipboard="copyToClipboard" @importFromClipboard="(data) => importFromClipboard(data)" />
+  <div class="p-2 md:p-4 bg-gray-100 min-h-screen">
+    <CharacterCardButtons @saveCharacterCard="saveCharacterCard" @loadCharacterCard="loadCharacterCard"
+      @resetForm="resetForm" @copyToClipboard="copyToClipboard"
+      @importFromClipboard="(data) => importFromClipboard(data)" />
 
-    <div class="section-container">
+    <div class="section-container flex-col md:flex-row">
       <BasicInfo :form="form" />
       <BackgroundStory :form="form" />
     </div>
@@ -219,12 +220,12 @@ const saveCharacterCard = async () => {
       dislikes: form.value.dislikes.split('\n').filter(line => line.trim() !== '')
     };
     const dataToSave = filterEmptyValues(rawData);
-    
+
     if (!dataToSave || Object.keys(dataToSave).length === 0) {
       ElMessage.warning('没有可保存的数据，请先填写角色卡信息');
       return;
     }
-    
+
     const generateRandomNumber = () => Math.floor(10000000 + Math.random() * 90000000);
     const jsonData = JSON.stringify(dataToSave, null, 2);
     const blob = new Blob([jsonData], { type: 'application/json' });
@@ -275,7 +276,7 @@ const loadCharacterCard = async () => {
             anus: parsedData.appearance?.anus || '',
             pubes: parsedData.appearance?.pubes || '',
             thighs: parsedData.appearance?.thihes || '',
-            butt:parsedData.appearance?.butt || '',
+            butt: parsedData.appearance?.butt || '',
             feet: parsedData.appearance?.feet || '',
           },
           attires: Array.isArray(parsedData.attires) ? parsedData.attires.map((attire: {
@@ -488,12 +489,12 @@ const copyToClipboard = async () => {
       dislikes: form.value.dislikes.split('\n').filter(line => line.trim() !== '')
     };
     const dataToSave = filterEmptyValues(rawData);
-    
+
     if (!dataToSave || Object.keys(dataToSave).length === 0) {
       ElMessage.warning('没有可复制的数据，请先填写角色卡信息');
       return;
     }
-    
+
     const jsonData = JSON.stringify(dataToSave, null, 2);
     await navigator.clipboard.writeText(jsonData);
     ElMessage.success('已复制到剪贴板！');
@@ -622,13 +623,25 @@ defineExpose({
 <style scoped>
 /* 使用 Tailwind CSS 进行样式控制 */
 .section-container {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .section-container>* {
   flex: 1;
+  min-width: 100%;
+}
+
+@media (min-width: 768px) {
+  .section-container {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .section-container>* {
+    min-width: auto;
+  }
 }
 
 .ps-text {
