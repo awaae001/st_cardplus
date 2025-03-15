@@ -22,7 +22,13 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            return 'vendor'; // 将node_modules中的依赖打包到单独文件
+            if (id.includes('element-plus')) {
+              return 'element-plus'; // 将element-plus单独打包
+            }
+            if (id.includes('lodash-es')) {
+              return 'lodash'; // 将lodash-es单独打包
+            }
+            return 'vendor'; // 其他node_modules依赖
           }
         },
         chunkFileNames: 'assets/[name]-[hash].js', // 分割后的文件命名规则

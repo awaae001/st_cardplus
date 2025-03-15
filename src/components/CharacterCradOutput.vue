@@ -62,8 +62,6 @@
         </div>
       </el-card>
 
-      <div style="margin: 8px;"></div>
-
       <el-card class="mb-4" style="width: 55%;">
         <div class="title-Btn-add">
           <h2 class="text-xl font-semibold mb-4">角色备注</h2>
@@ -317,6 +315,12 @@ const loadData = () => {
 
 
 <style scoped>
+.title-Btn-add {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .section-container {
   gap: 0.5rem;
   margin-bottom: 0.5rem;

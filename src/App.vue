@@ -2,15 +2,29 @@
 import { RouterView } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import { Edit, DataAnalysis, User } from '@element-plus/icons-vue'
-// import { useDark, useToggle } from '@vueuse/core'
+import { ElLoading } from 'element-plus'
+import { useRouter } from 'vue-router'
 
 const openGithub = () => {
   window.open('https://github.com/awaae001/st_cardplus', '_blank')
 }
 
-// // 暗夜模式切换
-// const isDark = useDark()
-// const toggleDark = useToggle(isDark)
+const router = useRouter()
+let loadingInstance: ReturnType<typeof ElLoading.service>
+
+// 路由切换前显示加载动画
+router.beforeEach(() => {
+  loadingInstance = ElLoading.service({
+    lock: true,
+    text: '加载中...',
+    background: 'rgba(0, 0, 0, 0.7)',
+  })
+})
+
+// 路由切换完成后隐藏加载动画
+router.afterEach(() => {
+  loadingInstance.close()
+})
 </script>
 
 <template>
@@ -37,14 +51,6 @@ const openGithub = () => {
       </el-menu-item>
       <div style="flex-grow: 1"></div>
       <div style="display: flex; align-items: center;">
-        <!-- <el-switch
-          v-model="isDark"
-          @change="toggleDark"
-          inline-prompt
-          active-text="暗"
-          inactive-text="亮"
-          style="margin-right: 12px;"
-        /> -->
         <el-button type="primary" circle @click="openGithub" style="margin-right: 6px;">
           <Icon icon="devicon:github" width="16" height="16" />
         </el-button>

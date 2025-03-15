@@ -1,8 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomePage from '../pages/HomePage.vue'
-import CardPage from '../pages/CardPage.vue'
-import WorldPage from '../pages/WorldPage.vue'
-import CardOutput from '../pages/CardOutput.vue'
 
 const router = createRouter({
   //设置URL为history模式
@@ -11,22 +7,22 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: HomePage
+      component: () => import('../pages/HomePage.vue')
     },
     {
       path: '/card',
       name: 'card',
-      component: CardPage
+      component: () => import('../pages/CardPage.vue')
     },
     {
       path: '/world',
       name: 'world',
-      component: WorldPage
+      component: () => import('../pages/WorldPage.vue')
     },
     {
       path:'/cardoutput',
       name:'cardoutput',
-      component:CardOutput
+      component: () => import('../pages/CardOutput.vue')
     }
   ]
 })
