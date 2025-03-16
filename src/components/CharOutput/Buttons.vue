@@ -14,6 +14,10 @@
         <Icon icon="material-symbols:cycle" width="18" height="18" style="margin-right: 4px;" />
         重置数据
       </el-button>
+      <el-button @click="importImage" type="info">
+        <Icon icon="material-symbols:image-outline" width="18" height="18" style="margin-right: 4px;" />
+        （dev）导入图片
+      </el-button>
     </div>
   </div>
 </template>
@@ -21,8 +25,9 @@
 <script setup>
 import { defineEmits } from 'vue';
 import { Icon } from "@iconify/vue";
+import { ElMessageBox , ElMessage } from 'element-plus';
 
-const emit = defineEmits(['loadData', 'saveData', 'resetData']);
+const emit = defineEmits(['loadData', 'saveData', 'resetData', 'importImage']);
 
 const loadData = () => {
   emit('loadData');
@@ -34,6 +39,16 @@ const saveData = () => {
 
 const resetData = () => {
   emit('resetData');
+};
+const importImage = () => {
+  ElMessageBox.confirm('快捷 PNG 解析开发中,此功能目前仅支持解析导出 json','继续?')
+  .then(
+    () => {
+      emit('importImage');
+    },
+    () => {
+      ElMessage.warning('取消解析');
+    })
 };
 </script>
 
@@ -48,7 +63,6 @@ const resetData = () => {
   margin-right: 48px;
   flex-direction: row;
 }
-
 
 @media (min-width: 768px) {
   #tiltleMain {

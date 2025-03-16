@@ -2,7 +2,7 @@
   <el-card class="mb-4 p-2 md:p-4">
     <h2 class="text-lg md:text-xl font-semibold mb-2">外貌特征</h2>
     <div style="margin-top: 8px;"></div>
-    <p class="whatYouwant flex items-center text-sm md:text-base">
+    <p class="whatYouwant">
       <Icon icon="material-symbols:info-outline" width="24" height="24" />
       <span style="margin-left: 4px;"></span>
       当你在输入框留空时留空的位置不会被导出，即：“不用全部填写”
@@ -171,7 +171,6 @@ watch(() => props.form, (newVal) => {
 }
 
 .whatYouwant {
-  font-size: 1rem;
-  margin-top: -16px;
+  display: flex;
 }
 </style>

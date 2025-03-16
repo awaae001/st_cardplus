@@ -22,7 +22,7 @@
             <Icon icon="material-symbols:content-copy-outline" width="18" height="18" />
           </el-button>
           <el-button type="warning" @click="showImportDialog" title="导入数据">
-            <Icon icon="material-symbols:content-paste-outline" width="18" height="18" />
+            <Icon icon="material-symbols:content-paste-go-rounded" width="18" height="18" />
           </el-button>
         </div>
       </div>
