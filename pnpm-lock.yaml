@@ -17,6 +17,9 @@ importers:
       element-plus:
         specifier: ^2.9.5
         version: 2.9.5(vue@3.5.13(typescript@5.7.3))
+      exifreader:
+        specifier: ^4.26.2
+        version: 4.26.2
       file-saver:
         specifier: ^2.0.5
         version: 2.0.5
@@ -733,6 +736,10 @@ packages:
     resolution: {integrity: sha512-2WALfTl4xo2SkGCYRt6rDTFfk9R1czmBvUQy12gK2KuRKIpWEhcbbzy8EZXtz/jkRqHX8bFEc6FC1HjX4TUWYw==}
     engines: {node: '>=10.0.0'}
 
+  '@xmldom/xmldom@0.9.8':
+    resolution: {integrity: sha512-p96FSY54r+WJ50FIOsCOjyj/wavs8921hG5+kVMmZgKcvIKxMXHTrjNJvRgWa/zuX3B6t2lijLNFaOyuxUH+2A==}
+    engines: {node: '>=14.6'}
+
   abbrev@1.1.1:
     resolution: {integrity: sha512-nne9/IiQ/hzIhY6pdDnbBtz7DjPTKrY00P/zvPSm5pOFkl6xuGrGnXn/VtTNNfNtAfZ9/1RtehkszU9qcTii0Q==}
 
@@ -1202,6 +1209,9 @@ packages:
 
   estree-walker@2.0.2:
     resolution: {integrity: sha512-Rfkk/Mp/DL7JVje3u18FxFujQlTNR2q6QfMSMB7AvCBx91NGj/ba3kCfza0f6dVDbw7YlRf/nDrn7pQrCCyQ/w==}
+
+  exifreader@4.26.2:
+    resolution: {integrity: sha512-+UqmTm2C7fS4u4YnKx7Fod0+UDeUOmmgkslCx4N2p68YNZSPw2AYyklIpNbuhxYmQjpYOS87bt6sPDOvQ+Qvsg==}
 
   exponential-backoff@3.1.2:
     resolution: {integrity: sha512-8QxYTVXUkuy7fIIoitQkPwGonB8F3Zj8eEO8Sqg9Zv/bkI7RJAzowee4gr81Hak/dUTpA2Z7VfQgoijjPNlUZA==}
@@ -2900,6 +2910,9 @@ snapshots:
 
   '@xmldom/xmldom@0.8.10': {}
 
+  '@xmldom/xmldom@0.9.8':
+    optional: true
+
   abbrev@1.1.1: {}
 
   acorn-walk@8.3.4:
@@ -3520,6 +3533,10 @@ snapshots:
     optional: true
 
   estree-walker@2.0.2: {}
+
+  exifreader@4.26.2:
+    optionalDependencies:
+      '@xmldom/xmldom': 0.9.8
 
   exponential-backoff@3.1.2: {}
 
