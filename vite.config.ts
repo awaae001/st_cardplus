@@ -19,6 +19,7 @@ export default defineConfig({
     minify: 'terser', // 使用terser进行更严格的minify
     cssCodeSplit: true, // 启用CSS代码分割
     rollupOptions: {
+      external: ['exifreader'], // 添加exifreader为外部依赖
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
@@ -35,10 +36,10 @@ export default defineConfig({
       },
     },
     chunkSizeWarningLimit: 1000, // 设置chunk大小警告限制
-    sourcemap: true, // 生成sourcemap便于调试
+    sourcemap: false, 
     terserOptions: {
       compress: {
-        drop_console: true, // 移除console.log
+        // drop_console: true, // 移除console.log
         drop_debugger: true, // 移除debugger
       },
     },
