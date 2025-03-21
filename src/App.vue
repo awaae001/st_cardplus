@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
 import { Icon } from '@iconify/vue'
-import { Edit, DataAnalysis, User, Fold, Expand } from '@element-plus/icons-vue'
+import { Menu } from '@element-plus/icons-vue'
 import { ElLoading } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { ref } from 'vue'
 
-const openGithub = () => {
-  window.open('https://github.com/awaae001/st_cardplus', '_blank')
-}
-
 const isSidebarOpen = ref(false)
 const toggleSidebar = () => {
   isSidebarOpen.value = !isSidebarOpen.value
+}
+
+const openGithub = () => {
+  window.open('https://github.com/awaae001/st_cardplus', '_blank')
 }
 
 const router = useRouter()
@@ -35,30 +35,29 @@ router.afterEach(() => {
 
 <template>
   <div class="layout-container">
-    <div class="toggle-button" @click="toggleSidebar">
+    <!-- Mobile toggle button -->
+    <button class="mobile-toggle" @click="toggleSidebar">
       <el-icon>
-        <component :is="isSidebarOpen ? Fold : Expand" />
+        <Menu />
       </el-icon>
-    </div>
-    <el-menu
-      class="menu-bar"
-      :class="{ 'collapsed': !isSidebarOpen }"
-      mode="vertical"
-      :router="true"
-    >
+    </button>
+
+    <el-menu class="menu-bar" :class="{ 'mobile-open': isSidebarOpen }" mode="vertical" :router="true">
       <el-menu-item index="/">
+        <Icon style="margin-right: 4px;" icon="material-symbols:home-outline" width="24" height="24" />
         <span>首页</span>
       </el-menu-item>
       <el-menu-item index="/card">
-        <el-icon><Edit /></el-icon>
+        <Icon style="margin-right: 4px;" icon="material-symbols:person-edit-outline-sharp" width="24" height="24" />
         <span>角色卡编辑器</span>
       </el-menu-item>
       <el-menu-item index="/world">
-        <el-icon><DataAnalysis /></el-icon>
+        <Icon style="margin-right: 4px;" icon="material-symbols:edit-location-alt-outline-rounded" width="24"
+          height="24" />
         <span>地标编辑器</span>
       </el-menu-item>
       <el-menu-item index="/cardoutput">
-        <el-icon><User /></el-icon>
+        <Icon style="margin-right: 4px;" icon="material-symbols:id-card-outline" width="24" height="24" />
         <span>角色卡快搭</span>
       </el-menu-item>
       <div style="flex-grow: 1"></div>
@@ -66,9 +65,10 @@ router.afterEach(() => {
         <el-button type="primary" circle @click="openGithub" style="margin-right: 6px;">
           <Icon icon="devicon:github" width="16" height="16" />
         </el-button>
+        <p class="whatYouwant">dev_0.1.3-1145</p>
       </div>
     </el-menu>
-    <div class="content-container">
+    <div class="content-container" style="overflow: hidden;    margin-top: 16vh;">
       <RouterView />
     </div>
   </div>
@@ -101,77 +101,43 @@ router.afterEach(() => {
   transition: transform 0.3s ease;
 }
 
-.menu-bar.collapsed {
-  width: 64px;
-  transform: none;
-}
-
-.menu-bar.collapsed .el-menu-item span {
-  opacity: 0;
-  width: 0;
-  transition: all 0.3s;
-}
-
-.menu-bar.collapsed .el-menu-item {
-  justify-content: center;
-}
-
 .content-container {
   margin-left: 200px;
-  transition: margin-left 0.3s ease;
 }
 
-.menu-bar.collapsed + .content-container {
-  margin-left: 64px;
-}
-
-/* 保持移动端滑动效果 */
-@media (max-width: 768px) {
-  .menu-bar.collapsed {
-    width: 80%;
-    transform: translateX(-100%);
-  }
-}
-
-.toggle-button {
+.mobile-toggle {
+  display: none;
   position: fixed;
-  bottom: 16px;
-  left: 16px;
+  top: 10px;
+  left: 10px;
   z-index: 1001;
-  cursor: pointer;
-  background-color: #fff;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
   padding: 8px;
-  border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
 }
 
 @media (max-width: 768px) {
   .menu-bar {
-    width: 80%;
-    height: 100vh;
-    position: fixed;
-    transform: translateX(-100%);
-    border-right: 1px solid #ddd;
-  }
-  
-  .menu-bar.collapsed {
+    width: 250px;
     transform: translateX(-100%);
   }
-  
-  .menu-bar:not(.collapsed) {
+
+  .menu-bar.mobile-open {
     transform: translateX(0);
   }
-  
+
   .content-container {
     margin-left: 0;
   }
-  
+
+  .mobile-toggle {
+    display: block;
+  }
+
   .layout-container {
     flex-direction: column;
-  }
-  
-  .toggle-button {
-    display: block;
   }
 }
 
