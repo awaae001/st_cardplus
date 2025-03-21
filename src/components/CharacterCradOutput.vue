@@ -15,21 +15,28 @@
 
     <div style="margin: 8px;"></div>
 
-    <PersonalitySettings :characterData="characterData" />
+    <el-collapse v-model="activeCollapse">
+      <el-collapse-item title="个性设定" name="personality">
+        <PersonalitySettings :characterData="characterData" />
+      </el-collapse-item>
 
-    <div style="margin: 8px;"></div>
+      <el-collapse-item title="情景设定" name="scenario">
+        <ScenarioSettings :characterData="characterData" />
+      </el-collapse-item>
 
-    <ScenarioSettings :characterData="characterData" />
+      <el-collapse-item title="对话示例" name="dialogue">
+        <DialogueExample :characterData="characterData" />
+      </el-collapse-item>
 
-    <div style="margin: 8px;"></div>
-
-    <DialogueExample :characterData="characterData" />
+      <el-collapse-item title="世界书" name="worldbook">
+        <WordBook :charWorldBook="CharWorldBook" @unbind="unbindWorldBook" @bind="bindWorldBook" />
+      </el-collapse-item>
+    </el-collapse>
 
     <div style="margin: 8px;"></div>
 
     <div class="section-container">
       <OtherSettings :characterData="characterData" />
-
       <TagSettings :characterData="characterData" />
     </div>
 
@@ -52,6 +59,9 @@ import DialogueExample from './CharOutput/DialogueExample.vue'
 import OtherSettings from './CharOutput/OtherSettings.vue'
 import TagSettings from './CharOutput/TagSettings.vue'
 import Buttons from './CharOutput/Buttons.vue'
+import WordBook from './CharOutput/WordBook.vue'
+
+const CharWorldBook = ref([])
 
 // Initial data structure
 const initialData = {
@@ -87,6 +97,7 @@ const initialData = {
       world: ''
     },
     group_only_greetings: [],
+    character_book: [],
     creator_notes: '',
     system_prompt: '',
     post_history_instructions: '',
@@ -132,12 +143,26 @@ const importImage = () => {
           const decoded = Base64.decode(tags.ccv3.value);
           console.log('Decoded ccv3:', JSON.parse(decoded));
 
-          // 生成8位随机数并确保类型为字符串
-          const generateRandomNumber = () => 
+          // 暂存解码数据
+          const decodedData = JSON.parse(decoded);
+          CharWorldBook.value = decodedData.data.character_book || [];
+          console.log('Decoded character_book:', CharWorldBook.value);
+
+          // 发送到 loadData
+          characterData.value = { ...initialData, ...decodedData };
+          ElMessage.success('数据已成功加载');
+
+          // 询问用户是否继续
+          const shouldContinue = window.confirm('数据已成功加载，是否要保存为JSON文件？');
+          if (!shouldContinue) {
+            return; // 用户取消操作
+          }
+
+          const generateRandomNumber = () =>
             Math.floor(10000000 + Math.random() * 90000000).toString();
           const randomNumber = generateRandomNumber();
           console.log('Random Number:', randomNumber);
-          
+
           // 创建带随机数的文件名
           const blob = new Blob([decoded], { type: 'application/json' });
           const link = document.createElement('a');
@@ -155,6 +180,7 @@ const importImage = () => {
   };
   input.click();
 };
+
 // Updated save logic
 const saveData = () => {
   // Synchronize top-level fields with nested data object
@@ -190,6 +216,7 @@ const saveData = () => {
   URL.revokeObjectURL(url)
   ElMessage.success('数据已保存为JSON文件')
 }
+
 // 处理文件上传
 const handleFileUpload = () => {
   const input = document.createElement('input')
@@ -214,6 +241,7 @@ const handleFileUpload = () => {
 }
 
 const OpenCharacterDescription = () => {
+  console.log('接到导入唤起，开始处理');
   const input = document.createElement('input')
   input.type = 'file'
   input.accept = '.txt,.md,.json'
@@ -235,8 +263,21 @@ const OpenCharacterDescription = () => {
   input.click()
 }
 
+const bindWorldBook = (data) => {
+  CharWorldBook.value = data;
+  characterData.value.data.character_book = data;
+  ElMessage.success('世界书已绑定');
+}
+
+const unbindWorldBook = () => {
+  CharWorldBook.value = [];
+  characterData.value.data.character_book = [];
+  ElMessage.success('世界书已解绑');
+}
+
 const loadData = () => {
   const input = document.createElement('input')
+  console.log('接到json导入唤起，开始处理');
   input.type = 'file'
   input.accept = '.json'
   input.onchange = (e) => {
@@ -247,6 +288,12 @@ const loadData = () => {
     reader.onload = (e) => {
       try {
         const data = JSON.parse(e.target.result)
+        // Ensure talkativeness is a number
+        if (data.talkativeness) {
+          data.talkativeness = parseFloat(data.talkativeness)
+        } else if (data.data?.extensions?.talkativeness) {
+          data.talkativeness = parseFloat(data.data.extensions.talkativeness)
+        }
         characterData.value = { ...initialData, ...data } // Merge with initial data to ensure structure
         ElMessage.success('数据导入成功')
       } catch (error) {
@@ -307,7 +354,6 @@ const loadData = () => {
   align-items: center;
   flex-direction: row;
 }
-
 
 @media (min-width: 768px) {
   #tiltleMain {
