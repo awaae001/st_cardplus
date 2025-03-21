@@ -68,7 +68,7 @@ router.afterEach(() => {
         <p class="whatYouwant">dev_0.1.3-1145</p>
       </div>
     </el-menu>
-    <div class="content-container" style="overflow: hidden;    margin-top: 16vh;">
+    <div class="content-container" style="overflow: hidden;">
       <RouterView />
     </div>
   </div>
