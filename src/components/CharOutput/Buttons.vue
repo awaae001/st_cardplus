@@ -16,7 +16,6 @@
       </el-button>
       <el-button @click="importImage" type="info">
         <Icon icon="material-symbols:image-outline" width="18" height="18" style="margin-right: 4px;" />
-        （dev）导入图片
       </el-button>
     </div>
   </div>
@@ -60,7 +59,6 @@ const importImage = () => {
 .btnSL {
   display: flex;
   align-items: center;
-  margin-right: 48px;
   flex-direction: row;
 }
 
@@ -73,7 +71,6 @@ const importImage = () => {
   .btnSL {
     display: flex;
     align-items: center;
-    margin-right: 48px;
     flex-direction: row;
   }
 }

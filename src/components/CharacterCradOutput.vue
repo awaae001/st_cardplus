@@ -290,7 +290,6 @@ const loadData = () => {
   .btnSL {
     display: flex;
     align-items: center;
-    margin-right: 48px;
     flex-direction: row;
   }
 }
@@ -306,7 +305,6 @@ const loadData = () => {
 .btnSL {
   display: flex;
   align-items: center;
-  margin-right: 48px;
   flex-direction: row;
 }
 
@@ -320,7 +318,6 @@ const loadData = () => {
   .btnSL {
     display: flex;
     align-items: center;
-    margin-right: 48px;
     flex-direction: row;
   }
 }

@@ -24,7 +24,7 @@
             </div>
             <div>
               <el-input type="textarea" v-model="characterData.data.alternate_greetings[index]" :rows="4"
-                placeholder="请输入备用问候语（支持换行）" style="width: 75vh;" />
+                placeholder="请输入备用问候语（支持换行）" style="width: 55vh;" />
             </div>
           </div>
         </el-card>

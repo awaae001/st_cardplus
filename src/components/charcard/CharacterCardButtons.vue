@@ -122,7 +122,6 @@ const showImportDialog = () => {
 .btnSL {
   display: flex;
   align-items: flex-start;
-  margin-right: 48px;
   flex-direction: column;
 }
 
@@ -142,7 +141,6 @@ const showImportDialog = () => {
   .btnSL {
     display: flex;
     align-items: center;
-    margin-right: 48px;
     flex-direction: row;
   }
 
