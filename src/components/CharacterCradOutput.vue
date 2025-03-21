@@ -263,9 +263,11 @@ const OpenCharacterDescription = () => {
   input.click()
 }
 
-const bindWorldBook = (data) => {
+const bindWorldBook = ({ data, fileName }) => {
   CharWorldBook.value = data;
   characterData.value.data.character_book = data;
+  const worldName = data.character_book?.name || fileName;
+  characterData.value.data.extensions.world = worldName;
   ElMessage.success('世界书已绑定');
 }
 

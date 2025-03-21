@@ -9,8 +9,9 @@
         <p v-if="isWorldBookValid" class="valid-text">世界书有效</p>
         <p v-else class="invalid-text">世界书无效或为空</p>
         <p class="description">世界书包含角色的背景故事、世界观设定等信息，用于丰富角色对话的上下文。</p>
+        <p class="description">⚠️目前只有解绑世界书是可以运作的，绑定暂时还在修复 ⚠️</p>
         <button class="unbind-btn" @click="unbindWorldBook" :disabled="!isWorldBookValid">解绑世界书</button>
-        <button class="bind-btn" @click="bindWorldBook">绑定世界书</button>
+        <button class="bind-btn" @click="bindWorldBook">绑定世界书（dev）</button>
       </div>
     </div>
   </div>
@@ -47,7 +48,7 @@ export default defineComponent({
         reader.onload = (e) => {
           try {
             const data = JSON.parse(e.target?.result as string);
-            this.$emit('bind', data);
+            this.$emit('bind', { data, fileName: file.name });
           } catch (error) {
             console.error('Invalid JSON file:', error);
           }
