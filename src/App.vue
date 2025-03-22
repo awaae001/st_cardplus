@@ -118,7 +118,7 @@ router.afterEach(() => {
   cursor: pointer;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .menu-bar {
     width: 250px;
     transform: translateX(-100%);
