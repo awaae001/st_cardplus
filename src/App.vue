@@ -41,6 +41,12 @@ router.afterEach(() => {
         <Menu />
       </el-icon>
     </button>
+    <!-- PC toggle button -->
+    <button class="pc-toggle" @click="toggleSidebar">
+      <el-icon>
+        <Menu />
+      </el-icon>
+    </button>
 
     <el-menu class="menu-bar" :class="{ 'mobile-open': isSidebarOpen }" mode="vertical" :router="true">
       <el-menu-item index="/">
@@ -62,7 +68,7 @@ router.afterEach(() => {
       </el-menu-item>
       <div style="flex-grow: 1"></div>
       <div style="display: flex; align-items: center; padding: 16px;">
-        <el-button type="primary" circle @click="openGithub" style="margin-right: 6px;">
+        <el-button circle @click="openGithub" style="margin-right: 6px;">
           <Icon icon="devicon:github" width="16" height="16" />
         </el-button>
         <p class="whatYouwant">dev_0.1.3-1145</p>
@@ -98,11 +104,33 @@ router.afterEach(() => {
   left: 0;
   bottom: 0;
   z-index: 1000;
-  transition: transform 0.3s ease;
+  transition: width 0.3s ease;
+}
+
+.menu-bar:not(.mobile-open) {
+  width: 60px; /* Collapsed state for PC */
+}
+
+.menu-bar:not(.mobile-open) .el-menu-item span {
+  display: none; /* Hide text in collapsed state */
+}
+
+.menu-bar:not(.mobile-open) .el-menu-item {
+  justify-content: center; /* Center icons */
+  padding: 0;
+}
+
+.menu-bar:not(.mobile-open) .whatYouwant {
+  display: none; /* Hide version text in collapsed state */
 }
 
 .content-container {
   margin-left: 200px;
+  transition: margin-left 0.3s ease;
+}
+
+.menu-bar:not(.mobile-open) ~ .content-container {
+  margin-left: 60px;
 }
 
 .mobile-toggle {
@@ -118,22 +146,45 @@ router.afterEach(() => {
   cursor: pointer;
 }
 
+.pc-toggle {
+  display: block;
+  position: fixed;
+  bottom: 10px;
+  left: 10px; /* Fixed at page's left edge */
+  z-index: 1001;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 8px;
+  cursor: pointer;
+}
+
 @media (max-width: 1024px) {
   .menu-bar {
     width: 250px;
     transform: translateX(-100%);
+    transition: transform 0.3s ease;
   }
 
   .menu-bar.mobile-open {
     transform: translateX(0);
+    width: 250px;
   }
 
   .content-container {
     margin-left: 0;
   }
 
+  .menu-bar:not(.mobile-open) ~ .content-container {
+    margin-left: 0;
+  }
+
   .mobile-toggle {
     display: block;
+  }
+
+  .pc-toggle {
+    display: none; /* Hide PC toggle in mobile view */
   }
 
   .layout-container {

@@ -52,6 +52,7 @@
     ],
     "onlyBuiltDependencies": [
       "electron",
+      "exifreader",
       "vue-demi"
     ]
   }
