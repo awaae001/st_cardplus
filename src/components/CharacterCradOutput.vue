@@ -28,9 +28,6 @@
         <DialogueExample :characterData="characterData" />
       </el-collapse-item>
 
-      <el-collapse-item title="世界书" name="worldbook">
-        <WordBook :charWorldBook="CharWorldBook" @unbind="unbindWorldBook" @bind="bindWorldBook" />
-      </el-collapse-item>
     </el-collapse>
 
     <div style="margin: 8px;"></div>
@@ -59,9 +56,6 @@ import DialogueExample from './CharOutput/DialogueExample.vue'
 import OtherSettings from './CharOutput/OtherSettings.vue'
 import TagSettings from './CharOutput/TagSettings.vue'
 import Buttons from './CharOutput/Buttons.vue'
-import WordBook from './CharOutput/WordBook.vue'
-
-const CharWorldBook = ref([])
 
 // Initial data structure
 const initialData = {
@@ -145,9 +139,7 @@ const importImage = () => {
 
           // 暂存解码数据
           const decodedData = JSON.parse(decoded);
-          CharWorldBook.value = decodedData.data.character_book || [];
-          console.log('Decoded character_book:', CharWorldBook.value);
-
+          
           // 发送到 loadData
           characterData.value = { ...initialData, ...decodedData };
           ElMessage.success('数据已成功加载');
@@ -263,19 +255,6 @@ const OpenCharacterDescription = () => {
   input.click()
 }
 
-const bindWorldBook = ({ data, fileName }) => {
-  CharWorldBook.value = data;
-  characterData.value.data.character_book = data;
-  const worldName = data.character_book?.name || fileName;
-  characterData.value.data.extensions.world = worldName;
-  ElMessage.success('世界书已绑定');
-}
-
-const unbindWorldBook = () => {
-  CharWorldBook.value = [];
-  characterData.value.data.character_book = [];
-  ElMessage.success('世界书已解绑');
-}
 
 const loadData = () => {
   const input = document.createElement('input')
