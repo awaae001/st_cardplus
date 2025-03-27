@@ -23,6 +23,16 @@ const router = createRouter({
       path:'/cardoutput',
       name:'cardoutput',
       component: () => import('../pages/CardOutput.vue')
+    },
+    {
+      path:'/worldbook',
+      name:'worldbook',
+      component: () => import('../pages/WorldBook.vue')
+    },
+    {
+      path: '/about',
+      name: 'about',
+      component: () => import('../pages/About.vue')
     }
   ]
 })

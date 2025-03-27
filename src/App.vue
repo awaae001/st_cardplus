@@ -11,10 +11,6 @@ const toggleSidebar = () => {
   isSidebarOpen.value = !isSidebarOpen.value
 }
 
-const openGithub = () => {
-  window.open('https://github.com/awaae001/st_cardplus', '_blank')
-}
-
 const router = useRouter()
 let loadingInstance: ReturnType<typeof ElLoading.service>
 
@@ -22,7 +18,7 @@ let loadingInstance: ReturnType<typeof ElLoading.service>
 router.beforeEach(() => {
   loadingInstance = ElLoading.service({
     lock: true,
-    text: '加载中...',
+    text: '获取资源……请稍后',
     background: 'rgba(0, 0, 0, 0.7)',
   })
 })
@@ -66,13 +62,15 @@ router.afterEach(() => {
         <Icon style="margin-right: 4px;" icon="material-symbols:id-card-outline" width="24" height="24" />
         <span>角色卡快搭</span>
       </el-menu-item>
+      <el-menu-item index="/worldbook">
+        <Icon style="margin-right: 4px;" icon="material-symbols:book-2-outline" width="24" height="24" />
+        <span>世界书编辑</span>
+      </el-menu-item>
       <div style="flex-grow: 1"></div>
-      <div style="display: flex; align-items: center; padding: 16px;">
-        <el-button circle @click="openGithub" style="margin-right: 6px;">
-          <Icon icon="devicon:github" width="16" height="16" />
-        </el-button>
-        <p class="whatYouwant">dev_0.1.3-1145</p>
-      </div>
+      <el-menu-item index="/about">
+        <Icon style="margin-right: 4px;" icon="devicon:github" width="24" height="24" />
+        <span>关于</span>
+      </el-menu-item>
     </el-menu>
     <div class="content-container" style="overflow: hidden;">
       <RouterView />
