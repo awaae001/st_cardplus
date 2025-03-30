@@ -62,10 +62,10 @@ router.afterEach(() => {
         <Icon style="margin-right: 4px;" icon="material-symbols:id-card-outline" width="24" height="24" />
         <span>角色卡快搭</span>
       </el-menu-item>
-      <el-menu-item index="/worldbook">
+      <!-- <el-menu-item index="/worldbook">
         <Icon style="margin-right: 4px;" icon="material-symbols:book-2-outline" width="24" height="24" />
         <span>世界书编辑</span>
-      </el-menu-item>
+      </el-menu-item> -->
       <div style="flex-grow: 1"></div>
       <el-menu-item index="/about">
         <Icon style="margin-right: 4px;" icon="devicon:github" width="24" height="24" />
@@ -103,6 +103,7 @@ router.afterEach(() => {
   bottom: 0;
   z-index: 1000;
   transition: width 0.3s ease;
+  overflow-y: auto;
 }
 
 .menu-bar:not(.mobile-open) {

@@ -43,6 +43,7 @@
 <script setup>
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
+const activeCollapse = ref([])
 import { Icon } from "@iconify/vue";
 import ExifReader from 'exifreader';
 import { Base64 } from 'js-base64';

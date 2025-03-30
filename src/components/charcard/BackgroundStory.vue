@@ -12,7 +12,7 @@
           <Icon icon="material-symbols:question-exchange" width="18" height="18" style="margin-right: 4px;" />验证
         </el-button>
       </div>
-      <P class="ps-text" style="  margin-top: -8px;">必须是有效的MBTI数值或者是 none </P>
+      <p class="ps-text" style="  margin-top: -8px;">必须是有效的MBTI数值或者是 none </p>
       <el-input v-model="form.mbti" placeholder="请输入MBTI性格" />
     </el-card>
   </div>

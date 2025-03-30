@@ -11,64 +11,64 @@
       <div id="appearance-form" class="flex flex-col md:flex-row gap-4">
         <div class="w-full md:w-1/1">
           <el-form-item label="身高">
-            <el-input type="textarea" rows="1" v-model="form.appearance.height" placeholder="请输入身高" />
+            <el-input type="textarea" :rows="1" v-model="form.appearance.height" placeholder="请输入身高" />
           </el-form-item>
           <el-form-item label="发色">
-            <el-input type="textarea" rows="1" v-model="form.appearance.hairColor" placeholder="请输入发色" />
+            <el-input type="textarea" :rows="1" v-model="form.appearance.hairColor" placeholder="请输入发色" />
           </el-form-item>
           <el-form-item label="发型">
-            <el-input type="textarea" rows="1" v-model="form.appearance.hairstyle" placeholder="请输入发型" />
+            <el-input type="textarea" :rows="1" v-model="form.appearance.hairstyle" placeholder="请输入发型" />
           </el-form-item>
           <el-form-item label="眼睛">
-            <el-input type="textarea" rows="1" v-model="form.appearance.eyes" placeholder="请输入眼睛特征" />
+            <el-input type="textarea" :rows="1" v-model="form.appearance.eyes" placeholder="请输入眼睛特征" />
           </el-form-item>
           <el-form-item label="鼻子">
-            <el-input type="textarea" rows="1" v-model="form.appearance.nose" placeholder="请输入鼻子特征" />
+            <el-input type="textarea" :rows="1" v-model="form.appearance.nose" placeholder="请输入鼻子特征" />
           </el-form-item>
           <el-form-item label="嘴唇">
-            <el-input type="textarea" rows="1" v-model="form.appearance.lips" placeholder="请输入嘴唇特征" />
+            <el-input type="textarea" :rows="1" v-model="form.appearance.lips" placeholder="请输入嘴唇特征" />
           </el-form-item>
           <el-form-item label="皮肤">
-            <el-input type="textarea" rows="1" v-model="form.appearance.skin" placeholder="请输入皮肤特征" />
+            <el-input type="textarea" :rows="1" v-model="form.appearance.skin" placeholder="请输入皮肤特征" />
           </el-form-item>
           <el-form-item label="身材">
-            <el-input type="textarea" rows="1" v-model="form.appearance.body" placeholder="请输入身材特征" />
+            <el-input type="textarea" :rows="1" v-model="form.appearance.body" placeholder="请输入身材特征" />
           </el-form-item>
         </div>
 
         <div class="w-full md:w-1/1">
 
           <el-form-item label="胸部">
-            <el-input type="textarea" rows="1" v-model="form.appearance.breasts" placeholder="请输入胸部特征" />
+            <el-input type="textarea" :rows="1" v-model="form.appearance.breasts" placeholder="请输入胸部特征" />
           </el-form-item>
           <el-form-item label="生殖器">
-            <el-input type="textarea" rows="1" v-model="form.appearance.genitals" placeholder="请输入生殖器特征" />
+            <el-input type="textarea" :rows="1" v-model="form.appearance.genitals" placeholder="请输入生殖器特征" />
           </el-form-item>
           <el-form-item label="屁眼">
-            <el-input type="textarea" rows="1" v-model="form.appearance.anus" placeholder="请输入屁眼特征" />
+            <el-input type="textarea" :rows="1" v-model="form.appearance.anus" placeholder="请输入屁眼特征" />
           </el-form-item>
           <el-form-item label="阴毛">
-            <el-input type="textarea" rows="1" v-model="form.appearance.pubes" placeholder="请输入阴毛特征" />
+            <el-input type="textarea" :rows="1" v-model="form.appearance.pubes" placeholder="请输入阴毛特征" />
           </el-form-item>
           <el-form-item label="胸围">
-            <el-input type="textarea" rows="1" v-model="form.appearance.bust" placeholder="请输入胸围" />
+            <el-input type="textarea" :rows="1" v-model="form.appearance.bust" placeholder="请输入胸围" />
           </el-form-item>
           <el-form-item label="腰围">
-            <el-input type="textarea" rows="1" v-model="form.appearance.waist" placeholder="请输入腰围" />
+            <el-input type="textarea" :rows="1" v-model="form.appearance.waist" placeholder="请输入腰围" />
           </el-form-item>
           <el-form-item label="臀围">
-            <el-input type="textarea" rows="1" v-model="form.appearance.hips" placeholder="请输入臀围" />
+            <el-input type="textarea" :rows="1" v-model="form.appearance.hips" placeholder="请输入臀围" />
           </el-form-item>
         </div>
         <div class="w-full md:w-1/1">
           <el-form-item label="大腿">
-            <el-input type="textarea" rows="1" v-model="form.appearance.thighs" placeholder="请输入大腿特征" />
+            <el-input type="textarea" :rows="1" v-model="form.appearance.thighs" placeholder="请输入大腿特征" />
           </el-form-item>
           <el-form-item label="屁股">
-            <el-input type="textarea" rows="1" v-model="form.appearance.butt" placeholder="请输入屁股特征" />
+            <el-input type="textarea" :rows="1" v-model="form.appearance.butt" placeholder="请输入屁股特征" />
           </el-form-item>
           <el-form-item label="足部">
-            <el-input type="textarea" rows="1" v-model="form.appearance.feet" placeholder="请输入足部特征" />
+            <el-input type="textarea" :rows="1" v-model="form.appearance.feet" placeholder="请输入足部特征" />
           </el-form-item>
         </div>
       </div>
