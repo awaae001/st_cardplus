@@ -70,19 +70,26 @@
           </el-button>
         </div>
       </div>
-      <el-row :gutter="16">
-        <el-col v-for="(landmark, index) in form.landmarks" :key="index" :xs="24" :sm="12" :md="8" :lg="6">
-          <el-card class="mb-4 landmark-card">
-            <el-input v-model="landmark.name" placeholder="地标名称" class="mb-2" />
-            <el-input v-model="landmark.description" type="textarea" :rows="3" placeholder="地标介绍" class="mb-2" />
-            <div style="margin: 4px;"></div>
-            <el-button type="danger" @click="removeLandmark(index)" class="w-full">
-              <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
-              删除地标
-            </el-button>
-          </el-card>
-        </el-col>
-      </el-row>
+      <draggable 
+        v-model="form.landmarks"
+        item-key="index"
+        tag="el-row"
+        :gutter="16"
+      >
+        <template #item="{element}">
+          <el-col :xs="24" :sm="12" :md="8" :lg="6">
+            <el-card class="mb-4 landmark-card">
+              <el-input v-model="element.name" placeholder="地标名称" class="mb-2" />
+              <el-input v-model="element.description" type="textarea" :rows="3" placeholder="地标介绍" class="mb-2" />
+              <div style="margin: 4px;"></div>
+              <el-button type="danger" @click="removeLandmark(element)" class="w-full">
+                <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
+                删除地标
+              </el-button>
+            </el-card>
+          </el-col>
+        </template>
+      </draggable>
     </el-card>
 
     <div style="margin: 4px;"></div>
@@ -101,26 +108,34 @@
           </el-button>
         </div>
       </div>
-      <el-row :gutter="16">
-        <el-col v-for="(force, index) in form.forces" :key="index" :xs="24" :sm="12" :md="8" :lg="6">
-          <el-card class="mb-4 force-card">
-            <el-input v-model="force.name" placeholder="势力名称" class="mb-2" />
-            <el-input v-model="force.members" type="textarea" :rows="2" placeholder="成员（每行一个）" class="mb-2" />
-            <el-input v-model="force.description" type="textarea" :rows="2" placeholder="势力描述" class="mb-2" />
-            <div style="margin: 4px;"></div>
-            <el-button type="danger" @click="removeForce(index)" class="w-full">
-              <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
-              删除势力
-            </el-button>
-          </el-card>
-        </el-col>
-      </el-row>
+      <draggable 
+        v-model="form.forces"
+        item-key="index"
+        tag="el-row"
+        :gutter="16"
+      >
+        <template #item="{element}">
+          <el-col :xs="24" :sm="12" :md="8" :lg="6">
+            <el-card class="mb-4 force-card">
+              <el-input v-model="element.name" placeholder="势力名称" class="mb-2" />
+              <el-input v-model="element.members" type="textarea" :rows="2" placeholder="成员（每行一个）" class="mb-2" />
+              <el-input v-model="element.description" type="textarea" :rows="2" placeholder="势力描述" class="mb-2" />
+              <div style="margin: 4px;"></div>
+              <el-button type="danger" @click="removeForce(element)" class="w-full">
+                <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
+                删除势力
+              </el-button>
+            </el-card>
+          </el-col>
+        </template>
+      </draggable>
     </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import draggable from 'vuedraggable'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { saveAs } from 'file-saver'
 import { Icon } from "@iconify/vue";
@@ -344,6 +359,14 @@ const loadWorld = async () => {
   }
 }
 // 重置表单数据
+// const onLandmarkDragEnd = () => {
+//   ElMessage.success('地标顺序已更新')
+// }
+
+// const onForceDragEnd = () => {
+//   ElMessage.success('势力顺序已更新')
+// }
+
 const resetForm = () => {
   ElMessageBox.confirm('确定要重置所有数据吗？', '警告', {
     confirmButtonText: '确定',
@@ -382,6 +405,12 @@ defineExpose({
 .section-container>* {
   flex: 1;
   min-width: 100%;
+}
+
+.title-Btn-add {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 @media (min-width: 768px) {

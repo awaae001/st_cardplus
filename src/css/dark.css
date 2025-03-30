@@ -1,0 +1,8 @@
+html.dark {
+    /* 自定义深色背景颜色 */
+    --el-bg-color: rgb(51, 51, 51)
+  }
+
+/* div#app{
+    --el-bg-color: rgb(51, 51, 51)
+} */

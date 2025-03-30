@@ -13,8 +13,15 @@
         </el-button>
       </div>
     </div>
-      <draggable v-model="form.relationships" handle=".drag-handle" item-key="index"
-      style="display: flex;flex-wrap: wrap;">
+      <draggable 
+      v-model="form.relationships" 
+      handle=".drag-handle" 
+      item-key="index"
+      animation="200"
+      ghost-class="ghost"
+      chosen-class="chosen"
+      style="display: flex;flex-wrap: wrap;"
+    >
         <template #item="{ element: relationship, index }">
           <el-col :xs="24" :sm="12" :md="8" :lg="6">
             <div class="drag-handle" style="cursor: move; margin-bottom: 8px;">
@@ -92,6 +99,16 @@ watch(() => props.form, (newVal) => {
 
 <style scoped>
 /* 使用 Tailwind CSS 进行样式控制 */
+.ghost {
+  opacity: 0.5;
+  background: var(--el-color-primary-light-9);
+}
+
+.chosen {
+  transform: scale(1.02);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+}
+
 .section-container {
   display: flex;
   gap: 1rem;

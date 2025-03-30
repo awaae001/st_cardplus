@@ -14,7 +14,15 @@
       </div>
     </div>
 
-    <draggable v-model="form.skills" handle=".drag-handle" item-key="index" style="display: flex;flex-wrap: wrap;">
+    <draggable 
+      v-model="form.skills" 
+      handle=".drag-handle" 
+      item-key="index"
+      animation="200"
+      ghost-class="ghost"
+      chosen-class="chosen"
+      style="display: flex;flex-wrap: wrap;"
+    >
       <template #item="{ element: skill, index }">
         <el-col :xs="24" :sm="12" :md="8" :lg="6">
           <div class="drag-handle" style="cursor: move; margin-bottom: 8px;">
@@ -66,6 +74,16 @@ watch(() => props.form, (newVal) => {
 </script>
 
 <style scoped>
+.ghost {
+  opacity: 0.5;
+  background: var(--el-color-primary-light-9);
+}
+
+.chosen {
+  transform: scale(1.02);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+}
+
 .skill-card {
   padding: 4px;
 }

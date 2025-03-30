@@ -14,11 +14,17 @@
       </div>
     </div>
 
-      <draggable v-model="form.traits" handle=".drag-handle" item-key="index" 
-      style="display: flex;flex-wrap: wrap;">
+      <draggable 
+        v-model="form.traits" 
+        handle=".drag-handle" 
+        item-key="index"
+        animation="200"
+        ghost-class="ghost"
+        chosen-class="chosen"
+        style="display: flex;flex-wrap: wrap;">
         <template #item="{ element: trait, index }">
           <el-col :xs="24" :sm="12" :md="8" :lg="6">
-            <div class="drag-handle" style="cursor: move; margin-bottom: 8px;">
+            <div class="drag-handle" style="cursor: move; margin-bottom: 8px; padding: 4px; border-radius: 4px; ">
               <Icon icon="material-symbols:drag-handle" width="20" height="20" />
             </div>
             <el-card class="mb-4 trait-card">
@@ -143,5 +149,18 @@ const removeBehaviorExample = (traitIndex: number, exampleIndex: number) => {
 .cardInput {
   display: flex;
   align-items: flex-start;
+}
+
+/* Drag and drop styles */
+.ghost {
+  opacity: 0.5;
+  background: var(--el-color-primary-light-9);
+  /* border: 1px dashed var(--el-color-primary); */
+}
+
+.chosen {
+  transform: scale(1.02);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
 }
 </style>
