@@ -5,17 +5,20 @@
     <p>访问我们的 GitHub 页面获取更多信息或贡献代码：</p>
     <p>开发版本：<b>dev_0.1.14</b></p>
     <a href="https://github.com/awaae001/st_cardplus" target="_blank" class="github-link">
+      <Icon icon="mdi:github" width="24" height="24"  style="margin-right: 4px;"/>
       GitHub 仓库
     </a>
       <div style="margin: 6px; display: inline;"></div>
     <a href="https://www.deepseek.com/" target="_blank" class="pro">
+      <Icon icon="material-symbols:key-vertical-outline" width="24" height="24"  style="margin-right: 4px;"/>
       解锁高级版
     </a>
   </div>
 </template>
 
 <script setup lang="ts">
-// 无需额外逻辑，仅展示页面
+import { Icon } from '@iconify/vue';
+
 </script>
 
 <style scoped>

@@ -13,6 +13,9 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
+  /* 添加颜色过渡效果 */
+  transition: color 0.3s ease, background-color 0.3s ease;
 }
 
 a {
@@ -53,7 +56,7 @@ button {
   font-family: inherit;
   background-color: #1a1a1a;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: border-color 0.25s, background-color 0.3s ease;
 }
 button:hover {
   border-color: #646cff;

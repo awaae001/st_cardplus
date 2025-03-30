@@ -4,6 +4,7 @@
     <span>发言频率</span>
     <el-slider v-model="characterData.talkativeness" :min="0" :max="1" :step="0.1" show-input />
     <span>是否收藏</span>
+    <div></div>
     <el-switch v-model="characterData.fav" />
   </el-card>
 </template>

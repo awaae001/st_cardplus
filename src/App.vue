@@ -1,14 +1,27 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
 import { Icon } from '@iconify/vue'
-import { Menu } from '@element-plus/icons-vue'
+import { Menu, Moon, Sunny } from '@element-plus/icons-vue'
 import { ElLoading } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { ref } from 'vue'
+import { useDark, useToggle } from '@vueuse/core'
+
+const isDark = useDark()
+const toggleDark = useToggle(isDark)
 
 const isSidebarOpen = ref(false)
 const toggleSidebar = () => {
   isSidebarOpen.value = !isSidebarOpen.value
+}
+
+const handleClickOutside = (event: MouseEvent) => {
+  const sidebar = document.querySelector('.menu-bar')
+  const target = event.target as HTMLElement
+  
+  if (isSidebarOpen.value && sidebar && !sidebar.contains(target)) {
+    isSidebarOpen.value = false
+  }
 }
 
 const router = useRouter()
@@ -66,13 +79,20 @@ router.afterEach(() => {
         <Icon style="margin-right: 4px;" icon="material-symbols:book-2-outline" width="24" height="24" />
         <span>世界书编辑</span>
       </el-menu-item> -->
-      <div style="flex-grow: 1"></div>
-      <el-menu-item index="/about">
-        <Icon style="margin-right: 4px;" icon="devicon:github" width="24" height="24" />
+    <div style="flex-grow: 1"></div>
+    <el-menu-item @click="toggleDark()">
+      <el-icon>
+        <Moon v-if="!isDark" />
+        <Sunny v-else />
+      </el-icon>
+      <span>{{ isDark ? '浅色模式' : '暗黑模式' }}</span>
+    </el-menu-item>
+    <el-menu-item index="/about">
+        <Icon style="margin-right: 4px;" icon="material-symbols:info-outline-rounded" width="24" height="24" />
         <span>关于</span>
       </el-menu-item>
     </el-menu>
-    <div class="content-container" style="overflow: hidden;">
+    <div class="content-container" style="overflow: hidden;" @click="handleClickOutside">
       <RouterView />
     </div>
   </div>
@@ -94,7 +114,7 @@ router.afterEach(() => {
 
 .menu-bar {
   width: 200px;
-  background-color: #f0f0f0;
+  background-color: var(--el-bg-color);
   padding: 16px 0;
   border-right: 1px solid #ddd;
   position: fixed;
@@ -151,8 +171,8 @@ router.afterEach(() => {
   bottom: 10px;
   left: 10px; /* Fixed at page's left edge */
   z-index: 1001;
-  background: #fff;
-  border: 1px solid #ddd;
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color);
   border-radius: 4px;
   padding: 8px;
   cursor: pointer;

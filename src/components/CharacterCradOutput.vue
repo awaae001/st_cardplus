@@ -15,7 +15,7 @@
 
     <div style="margin: 8px;"></div>
 
-    <el-collapse v-model="activeCollapse">
+    <el-collapse v-if="activeCollapse" v-model="activeCollapse">
       <el-collapse-item title="个性设定" name="personality">
         <PersonalitySettings :characterData="characterData" />
       </el-collapse-item>
