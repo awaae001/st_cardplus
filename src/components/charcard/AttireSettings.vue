@@ -36,7 +36,7 @@
             <el-input v-model="attire.shoes" placeholder="鞋子" class="mb-2" />
             <el-input v-model="attire.socks" placeholder="袜子" class="mb-2" />
             <el-input v-model="attire.underwears" placeholder="内衣" class="mb-2" />
-            <el-input v-model="attire.accessories" placeholder="配饰" class="mb-2" />
+            <el-input type="textarea" :rows="5" v-model="attire.accessories" placeholder="配饰 · 自动分组，一行一条" class="mb-2" />
             <div style="margin: 4px;"></div>
             <el-button type="danger" @click="removeAttire(index)" class="w-full">
               <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />

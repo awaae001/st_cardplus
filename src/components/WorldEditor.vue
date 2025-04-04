@@ -73,7 +73,7 @@
       <draggable 
         v-model="form.landmarks"
         item-key="index"
-        tag="el-row"
+        class="el-row"
         :gutter="16"
       >
         <template #item="{element}">
@@ -111,7 +111,7 @@
       <draggable 
         v-model="form.forces"
         item-key="index"
-        tag="el-row"
+        class="el-row"
         :gutter="16"
       >
         <template #item="{element}">
@@ -185,13 +185,20 @@ const addForce = () => {
   })
 }
 
-const removeForce = (index: number) => {
-  form.value.forces.splice(index, 1)
+const removeForce = (force: Force) => {
+  const index = form.value.forces.indexOf(force)
+  if (index !== -1) {
+    form.value.forces.splice(index, 1)
+    // ElMessage.warning('已删除势力')
+  }
 }
 
-const removeLandmark = (index: number) => {
-  form.value.landmarks.splice(index, 1)
-  ElMessage.warning('已删除地标')
+const removeLandmark = (landmark: Landmark) => {
+  const index = form.value.landmarks.indexOf(landmark)
+  if (index !== -1) {
+    form.value.landmarks.splice(index, 1)
+    // ElMessage.warning('已删除地标')
+  }
 }
 
 const exportLandmarks = async () => {
