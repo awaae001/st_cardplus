@@ -115,4 +115,9 @@ watch(() => props.form, (newVal) => {
   justify-content: space-between;
 }
 
+.title-Btn-add {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
 </style>
