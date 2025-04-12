@@ -33,6 +33,16 @@ const router = createRouter({
       path: '/about',
       name: 'about',
       component: () => import('../pages/About.vue')
+    },
+    {
+      path: '/toolbox',
+      name: 'toolbox',
+      component: () => import('../pages/ToolboxPage.vue')
+    },
+    {
+      path: '/tools/json-formatter',
+      name: 'jsonFormatter',
+      component: () => import('../components/toolsbox/JsonFormatter.vue')
     }
   ]
 })

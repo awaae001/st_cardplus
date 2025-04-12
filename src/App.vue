@@ -75,6 +75,10 @@ router.afterEach(() => {
         <Icon style="margin-right: 4px;" icon="material-symbols:id-card-outline" width="24" height="24" />
         <span>角色卡快搭</span>
       </el-menu-item>
+      <el-menu-item index="/toolbox">
+        <Icon style="margin-right: 4px;" icon="material-symbols:construction" width="24" height="24" />
+        <span>工具箱</span>
+      </el-menu-item>
       <!-- <el-menu-item index="/worldbook">
         <Icon style="margin-right: 4px;" icon="material-symbols:book-2-outline" width="24" height="24" />
         <span>世界书编辑</span>
