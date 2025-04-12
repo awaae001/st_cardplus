@@ -40,7 +40,7 @@ const router = createRouter({
       component: () => import('../pages/ToolboxPage.vue')
     },
     {
-      path: '/tools/json-formatter',
+      path: '/toolbox/json-formatter',
       name: 'jsonFormatter',
       component: () => import('../components/toolsbox/JsonFormatter.vue')
     }

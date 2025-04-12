@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { Icon } from "@iconify/vue";
 
 // 工具箱卡片数据
 const tools = ref([
@@ -7,7 +8,7 @@ const tools = ref([
     title: 'JSON格式化',
     icon: 'material-symbols:code',
     description: '去除JSON中的换行和多余空格',
-    route: '/tools/json-formatter'
+    route: '/toolbox/json-formatter'
   }
 ])
 </script>
