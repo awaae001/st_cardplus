@@ -72,6 +72,7 @@ interface Appearance {
   thighs: string;      // 大腿
   butt: string;        // 臀部
   feet: string;        // 脚
+  [key: string]: string; // 支持动态属性
 }
 
 /**
@@ -382,6 +383,9 @@ const filterEmptyValues = (obj: any): any => {
  */
 const processLoadedData = (parsedData: any): CharacterCard => {
   // 处理外观数据，修复了thihes拼写错误
+  console.log('Original appearance data:', parsedData.appearance);
+  
+  // 处理外观数据，保留所有字段(包括自定义字段)
   const appearance: Appearance = {
     height: parsedData.appearance?.height || '',
     hairColor: parsedData.appearance?.hairColor || '',
@@ -402,6 +406,20 @@ const processLoadedData = (parsedData: any): CharacterCard => {
     butt: parsedData.appearance?.butt || '',
     feet: parsedData.appearance?.feet || '',
   };
+
+  // 保留非标准字段(自定义字段)
+  if (parsedData.appearance) {
+    const standardFields = [
+      'height', 'hairColor', 'hairstyle', 'eyes', 'nose', 'lips', 'skin', 'body',
+      'bust', 'waist', 'hips', 'breasts', 'genitals', 'anus', 'pubes', 'thighs', 'butt', 'feet'
+    ];
+    
+    for (const key in parsedData.appearance) {
+      if (!standardFields.includes(key)) {
+        appearance[key] = parsedData.appearance[key];
+      }
+    }
+  }
 
   // 处理服装数据
   const attires: Attire[] = Array.isArray(parsedData.attires) 
@@ -531,8 +549,35 @@ const resetForm = (): void => {
     cancelButtonText: '取消',
     type: 'warning',
   }).then(() => {
-    form.value = createDefaultCharacterCard();
-    ElMessage.success('数据已重置');
+    // 完全重置表单数据，包括自定义字段
+    const newForm = createDefaultCharacterCard();
+    
+    // 保留标准字段，清除所有自定义字段
+    const standardFields = {
+      height: '',
+      hairColor: '',
+      hairstyle: '',
+      eyes: '',
+      nose: '',
+      lips: '',
+      skin: '',
+      body: '',
+      bust: '',
+      waist: '',
+      hips: '',
+      breasts: '',
+      genitals: '',
+      anus: '',
+      pubes: '',
+      thighs: '',
+      butt: '',
+      feet: ''
+    };
+    
+    newForm.appearance = { ...standardFields };
+    form.value = newForm;
+    
+    ElMessage.success('数据已重置，包括自定义字段');
   }).catch(() => {
     ElMessage.info('取消重置');
   });

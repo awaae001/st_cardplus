@@ -27,7 +27,7 @@ function createWindow() {
     mainWindow == null ? void 0 : mainWindow.loadFile(path.join(__dirname, "../dist/error.html"));
   });
   if (process.env.NODE_ENV === "development") {
-    mainWindow.loadURL("http://localhost:5174");
+    mainWindow.loadURL("http://localhost:3066");
     mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(path.join(__dirname, "../dist/index.html"));
