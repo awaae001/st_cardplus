@@ -684,6 +684,9 @@ const copyToClipboard = async (): Promise<void> => {
  */
 const importFromClipboard = async (data: string): Promise<void> => {
   try {
+    // 先重置表单
+    form.value = createDefaultCharacterCard();
+    
     const parsedData = JSON.parse(data);
 
     // 验证基本结构

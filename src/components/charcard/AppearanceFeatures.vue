@@ -172,10 +172,10 @@ const addCustomField = async () => {
         // 检查是否是标准字段(中英文)或已存在字段
         const standardFields = {
           'height': '身高',
-          'hairColor': '发色', 
+          'hairColor': '发色',
           'hairstyle': '发型',
           'eyes': '眼睛',
-          'nose': '鼻子', 
+          'nose': '鼻子',
           'lips': '嘴唇',
           'skin': '皮肤',
           'body': '身材',
@@ -190,20 +190,20 @@ const addCustomField = async () => {
           'butt': '屁股',
           'feet': '足部'
         };
-        
+
         // 检查是否是英文标准字段或中文标准字段或已存在字段
-        const isStandardField = Object.keys(standardFields).includes(trimmedName) || 
-                              Object.values(standardFields).includes(trimmedName);
-        const exists = isStandardField || 
-                      customFields.value.some(field => field.label === trimmedName);
-        
+        const isStandardField = Object.keys(standardFields).includes(trimmedName) ||
+          Object.values(standardFields).includes(trimmedName);
+        const exists = isStandardField ||
+          customFields.value.some(field => field.label === trimmedName);
+
         if (exists) {
           const isEnglishStandard = Object.keys(standardFields).includes(trimmedName);
           const isChineseStandard = Object.values(standardFields).includes(trimmedName);
           const message = isEnglishStandard || isChineseStandard
-            ? `"${trimmedName}"是预设字段${isChineseStandard ? `(对应英文:${Object.entries(standardFields).find(([_,v]) => v === trimmedName)?.[0]})` : ''}，请使用其他名称`
+            ? `"${trimmedName}"是预设字段${isChineseStandard ? `(对应英文:${Object.entries(standardFields).find(([_, v]) => v === trimmedName)?.[0]})` : ''}，请使用其他名称`
             : `字段"${trimmedName}"已存在，将跳过`;
-            
+
           ElMessageBox.alert(message, '提示', {
             confirmButtonText: '确定'
           });
@@ -256,10 +256,10 @@ onMounted(() => {
   // 初始化时检查form中是否有自定义字段
   const standardFields = {
     'height': '身高',
-    'hairColor': '发色', 
+    'hairColor': '发色',
     'hairstyle': '发型',
     'eyes': '眼睛',
-    'nose': '鼻子', 
+    'nose': '鼻子',
     'lips': '嘴唇',
     'skin': '皮肤',
     'body': '身材',
@@ -276,12 +276,12 @@ onMounted(() => {
   };
 
   console.log('Form appearance data:', form.value.appearance);
-  
+
   // 遍历form.appearance中的所有字段
   for (const key in form.value.appearance) {
     // 如果不是标准字段(中英文)，则添加到自定义字段列表
-    const isStandardField = Object.keys(standardFields).includes(key) || 
-                          Object.values(standardFields).includes(key);
+    const isStandardField = Object.keys(standardFields).includes(key) ||
+      Object.values(standardFields).includes(key);
     if (!isStandardField && form.value.appearance[key]) {
       console.log('Adding custom field:', key, form.value.appearance[key]);
       customFields.value.push({
@@ -307,18 +307,18 @@ watch(customFields, (newFields) => {
 watch(() => props.form, (newVal) => {
   console.log('Props form changed:', newVal);
   form.value = newVal;
-  
+
   // 清空自定义字段数组
   customFields.value = [];
-  
+
   // 如果appearance对象存在且有内容，才处理自定义字段
   if (newVal.appearance) {
     const standardFields = {
       'height': '身高',
-      'hairColor': '发色', 
+      'hairColor': '发色',
       'hairstyle': '发型',
       'eyes': '眼睛',
-      'nose': '鼻子', 
+      'nose': '鼻子',
       'lips': '嘴唇',
       'skin': '皮肤',
       'body': '身材',
@@ -336,8 +336,8 @@ watch(() => props.form, (newVal) => {
 
     // 遍历appearance对象，添加非标准字段
     for (const key in newVal.appearance) {
-      const isStandardField = Object.keys(standardFields).includes(key) || 
-                            Object.values(standardFields).includes(key);
+      const isStandardField = Object.keys(standardFields).includes(key) ||
+        Object.values(standardFields).includes(key);
       if (!isStandardField && newVal.appearance[key]) {
         console.log('Adding custom field from watch:', key, newVal.appearance[key]);
         customFields.value.push({
@@ -387,15 +387,27 @@ watch(() => props.form, (newVal) => {
   gap: 16px;
 }
 
-@media (min-width: 544px) {
+@media (min-width: 744px) {
   #appearance-form {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (min-width: 844px) {
+@media (min-width: 1044px) {
   #appearance-form {
     grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1444px) {
+  #appearance-form {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 1744px) {
+  #appearance-form {
+    grid-template-columns: repeat(5, 1fr);
   }
 }
 
