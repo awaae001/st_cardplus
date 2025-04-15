@@ -27,8 +27,8 @@
         />
       </el-form-item>
       <el-form-item label="年龄">
-        <el-input-number v-model="form.age" :min="0" :max="99999" />
-        <span class="ps-text" style="margin-left: 16px;">有效值为 0~99999</span>
+        <el-input-number v-model="form.age" />
+        <span class="ps-text" style="margin-left: 16px;">限制为数字，请勿输入其他字段</span>
       </el-form-item>
       <el-form-item label="身份">
         <el-input v-model="form.identity" type="textarea" :rows="5" placeholder="请输入身份 · 一行一条" />
