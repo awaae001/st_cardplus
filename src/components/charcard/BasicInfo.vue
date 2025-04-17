@@ -27,7 +27,13 @@
         />
       </el-form-item>
       <el-form-item label="年龄">
-        <el-input-number v-model="form.age" />
+        <el-input-number 
+          v-model="form.age" 
+          controls-position="right"
+          :min="-Infinity"
+          :max="Infinity"
+          :precision="0"
+        />
         <span class="ps-text" style="margin-left: 16px;">限制为数字，请勿输入其他字段</span>
       </el-form-item>
       <el-form-item label="身份">

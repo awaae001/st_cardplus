@@ -2,10 +2,6 @@
   <el-card class="mb-4 p-2 md:p-4">
     <div class="title-Btn">
       <h2 class="text-lg md:text-xl font-semibold mb-2">外貌特征</h2>
-      <el-button type="primary" size="small" @click="addCustomField">
-        <Icon icon="material-symbols:add" width="20" height="20" />
-        添加自定义字段
-      </el-button>
     </div>
     <div style="margin-top: 8px;"></div>
     <p class="whatYouwant">
@@ -84,6 +80,10 @@
         </template>
       </div>
     </el-form>
+    <el-button type="primary" size="small" @click="addCustomField">
+        <Icon icon="material-symbols:add" width="20" height="20" />
+        添加自定义字段
+      </el-button>
   </el-card>
 </template>
 
