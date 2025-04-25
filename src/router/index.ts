@@ -47,7 +47,7 @@ const router = createRouter({
     {
       path: '/toolbox/separator',
       name: 'separator',
-      component: () => import('../components/toolsbox/Separator.vue')
+      component: () => import('../components/toolsbox/separator.vue')
     }
   ]
 })
