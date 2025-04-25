@@ -120,59 +120,59 @@ const resetData = () => {
   ElMessage.success('数据已重置')
 }
 
-const importImage = () => {
-  console.log('接到导入请求……开始处理');
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'image/png';
-  input.onchange = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const arrayBuffer = await file.arrayBuffer();
-      const tags = ExifReader.load(arrayBuffer);
-      console.log('EXIF Data:', tags);
+// const importImage = () => {
+//   console.log('接到导入请求……开始处理');
+//   const input = document.createElement('input');
+//   input.type = 'file';
+//   input.accept = 'image/png';
+//   input.onchange = async (e) => {
+//     const file = e.target.files[0];
+//     if (file) {
+//       const arrayBuffer = await file.arrayBuffer();
+//       const tags = ExifReader.load(arrayBuffer);
+//       console.log('EXIF Data:', tags);
 
-      // 解码ccv3字段
-      if (tags.ccv3?.value) {
-        try {
-          const decoded = Base64.decode(tags.ccv3.value);
-          console.log('Decoded ccv3:', JSON.parse(decoded));
+//       // 解码ccv3字段
+//       if (tags.ccv3?.value) {
+//         try {
+//           const decoded = Base64.decode(tags.ccv3.value);
+//           console.log('Decoded ccv3:', JSON.parse(decoded));
 
-          // 暂存解码数据
-          const decodedData = JSON.parse(decoded);
+//           // 暂存解码数据
+//           const decodedData = JSON.parse(decoded);
           
-          // 发送到 loadData
-          characterData.value = { ...initialData, ...decodedData };
-          ElMessage.success('数据已成功加载');
+//           // 发送到 loadData
+//           characterData.value = { ...initialData, ...decodedData };
+//           ElMessage.success('数据已成功加载');
 
-          // 询问用户是否继续
-          const shouldContinue = window.confirm('数据已成功加载，是否要保存为JSON文件？');
-          if (!shouldContinue) {
-            return; // 用户取消操作
-          }
+//           // 询问用户是否继续
+//           const shouldContinue = window.confirm('数据已成功加载，是否要保存为JSON文件？');
+//           if (!shouldContinue) {
+//             return; // 用户取消操作
+//           }
 
-          const generateRandomNumber = () =>
-            Math.floor(10000000 + Math.random() * 90000000).toString();
-          const randomNumber = generateRandomNumber();
-          console.log('Random Number:', randomNumber);
+//           const generateRandomNumber = () =>
+//             Math.floor(10000000 + Math.random() * 90000000).toString();
+//           const randomNumber = generateRandomNumber();
+//           console.log('Random Number:', randomNumber);
 
-          // 创建带随机数的文件名
-          const blob = new Blob([decoded], { type: 'application/json' });
-          const link = document.createElement('a');
-          link.href = URL.createObjectURL(blob);
-          link.download = `character_card_${randomNumber}.json`; // 插入随机数
-          link.click();
+//           // 创建带随机数的文件名
+//           const blob = new Blob([decoded], { type: 'application/json' });
+//           const link = document.createElement('a');
+//           link.href = URL.createObjectURL(blob);
+//           link.download = `character_card_${randomNumber}.json`; // 插入随机数
+//           link.click();
 
-          // 释放对象URL
-          URL.revokeObjectURL(link.href);
-        } catch (error) {
-          console.error('Failed to decode ccv3:', error);
-        }
-      }
-    }
-  };
-  input.click();
-};
+//           // 释放对象URL
+//           URL.revokeObjectURL(link.href);
+//         } catch (error) {
+//           console.error('Failed to decode ccv3:', error);
+//         }
+//       }
+//     }
+//   };
+//   input.click();
+// };
 
 // Updated save logic
 const saveData = () => {

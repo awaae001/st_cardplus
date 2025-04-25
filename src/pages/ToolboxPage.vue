@@ -9,6 +9,12 @@ const tools = ref([
     icon: 'material-symbols:code',
     description: '去除JSON中的换行和多余空格',
     route: '/toolbox/json-formatter'
+  },
+  {
+    title: '元数据分离器',
+    icon: 'material-symbols:image-outline',
+    description: '分离角色卡的 json 和图片',
+    route: '/toolbox/separator'
   }
 ])
 </script>
