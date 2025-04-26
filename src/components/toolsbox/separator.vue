@@ -101,7 +101,6 @@ const saveJson = () => {
 }
 
 const importImage = async (file: File) => {
-    console.log('接到导入请求……开始处理')
     const arrayBuffer = await file.arrayBuffer()
     const tags = ExifReader.load(arrayBuffer)
     console.log('EXIF Data:', tags)

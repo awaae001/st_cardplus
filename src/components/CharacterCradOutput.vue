@@ -1,6 +1,6 @@
 <template>
   <div class="p-4 bg-gray-100 min-h-screen">
-    <Buttons @loadData="loadData" @saveData="saveData" @resetData="resetData" @importImage="importImage" />
+    <Buttons @loadData="loadData" @saveData="saveData" @resetData="resetData"/>
 
     <!-- Individual Cards -->
     <div class="section-container">
@@ -40,13 +40,13 @@
   </div>
 </template>
 
-<script setup>
-import { ref } from 'vue'
+<script setup lang="ts">
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { ElMessage } from 'element-plus'
 const activeCollapse = ref([])
-import { Icon } from "@iconify/vue";
-import ExifReader from 'exifreader';
-import { Base64 } from 'js-base64';
+
+// 自动保存间隔(毫秒)
+const AUTO_SAVE_INTERVAL = 5000
 import BasicInfo from './CharOutput/BasicInfo.vue'
 import CharacterDescription from './CharOutput/CharacterDescription.vue'
 import AlternateGreetings from './CharOutput/AlternateGreetings.vue'
@@ -80,7 +80,7 @@ const initialData = {
     first_mes: '',
     mes_example: '',
     tags: [],
-    alternate_greetings: [],
+    alternate_greetings: [] as string[],
     extensions: {
       talkativeness: '0.5',
       fav: false,
@@ -103,6 +103,56 @@ const initialData = {
 }
 
 const characterData = ref({ ...initialData })
+let autoSaveTimer: number | null = null
+
+// 保存数据到本地存储
+const saveToLocalStorage = () => {
+  try {
+    localStorage.setItem('characterOutputData', JSON.stringify(characterData.value))
+  } catch (error) {
+    console.error('保存到本地存储失败:', error)
+  }
+}
+
+// 从本地存储加载数据
+const loadFromLocalStorage = () => {
+  try {
+    const savedData = localStorage.getItem('characterOutputData')
+    if (savedData) {
+      const parsedData = JSON.parse(savedData)
+      characterData.value = { ...initialData, ...parsedData }
+    }
+  } catch (error) {
+    console.error('从本地存储加载失败:', error)
+  }
+}
+
+// 清除本地存储的数据
+const clearLocalStorage = () => {
+  localStorage.removeItem('characterOutputData')
+}
+
+// 初始化自动保存
+const initAutoSave = () => {
+  autoSaveTimer = window.setInterval(() => {
+    if (characterData.value.name) { // 只有有数据时才保存
+      saveToLocalStorage()
+    }
+  }, AUTO_SAVE_INTERVAL)
+}
+
+// 组件挂载时加载保存的数据
+onMounted(() => {
+  loadFromLocalStorage()
+  initAutoSave()
+})
+
+// 组件卸载前清除定时器
+onBeforeUnmount(() => {
+  if (autoSaveTimer) {
+    clearInterval(autoSaveTimer)
+  }
+})
 
 // Add a new alternate greeting
 const addGreeting = () => {
@@ -110,69 +160,16 @@ const addGreeting = () => {
 }
 
 // Remove an alternate greeting
-const removeGreeting = (index) => {
+const removeGreeting = (index: number) => {
   characterData.value.data.alternate_greetings.splice(index, 1)
 }
 
 // Reset all data to initial state
 const resetData = () => {
   characterData.value = { ...initialData }
+  clearLocalStorage()
   ElMessage.success('数据已重置')
 }
-
-// const importImage = () => {
-//   console.log('接到导入请求……开始处理');
-//   const input = document.createElement('input');
-//   input.type = 'file';
-//   input.accept = 'image/png';
-//   input.onchange = async (e) => {
-//     const file = e.target.files[0];
-//     if (file) {
-//       const arrayBuffer = await file.arrayBuffer();
-//       const tags = ExifReader.load(arrayBuffer);
-//       console.log('EXIF Data:', tags);
-
-//       // 解码ccv3字段
-//       if (tags.ccv3?.value) {
-//         try {
-//           const decoded = Base64.decode(tags.ccv3.value);
-//           console.log('Decoded ccv3:', JSON.parse(decoded));
-
-//           // 暂存解码数据
-//           const decodedData = JSON.parse(decoded);
-          
-//           // 发送到 loadData
-//           characterData.value = { ...initialData, ...decodedData };
-//           ElMessage.success('数据已成功加载');
-
-//           // 询问用户是否继续
-//           const shouldContinue = window.confirm('数据已成功加载，是否要保存为JSON文件？');
-//           if (!shouldContinue) {
-//             return; // 用户取消操作
-//           }
-
-//           const generateRandomNumber = () =>
-//             Math.floor(10000000 + Math.random() * 90000000).toString();
-//           const randomNumber = generateRandomNumber();
-//           console.log('Random Number:', randomNumber);
-
-//           // 创建带随机数的文件名
-//           const blob = new Blob([decoded], { type: 'application/json' });
-//           const link = document.createElement('a');
-//           link.href = URL.createObjectURL(blob);
-//           link.download = `character_card_${randomNumber}.json`; // 插入随机数
-//           link.click();
-
-//           // 释放对象URL
-//           URL.revokeObjectURL(link.href);
-//         } catch (error) {
-//           console.error('Failed to decode ccv3:', error);
-//         }
-//       }
-//     }
-//   };
-//   input.click();
-// };
 
 // Updated save logic
 const saveData = () => {
@@ -216,13 +213,20 @@ const handleFileUpload = () => {
   input.type = 'file'
   input.accept = '.txt,.md,.json'
   input.onchange = (e) => {
-    const file = e.target.files[0]
+    const target = e.target as HTMLInputElement
+    const file = target.files?.[0]
     if (!file) return
 
     const reader = new FileReader()
     reader.onload = (e) => {
       try {
-        characterData.value.data.extensions.depth_prompt.prompt = e.target.result
+        if (!e.target) return
+        const result = e.target.result
+        if (typeof result === 'string') {
+          characterData.value.data.extensions.depth_prompt.prompt = result
+        } else {
+          throw new Error('Invalid file content')
+        }
         ElMessage.success('备注文件已上传并自动填充')
       } catch (error) {
         ElMessage.error('文件读取失败，请选择有效的文本文件')
@@ -239,13 +243,18 @@ const OpenCharacterDescription = () => {
   input.type = 'file'
   input.accept = '.txt,.md,.json'
   input.onchange = (e) => {
-    const file = e.target.files[0]
+    const target = e.target as HTMLInputElement
+    const file = target.files?.[0]
     if (!file) return
 
     const reader = new FileReader()
     reader.onload = (e) => {
       try {
-        characterData.value.description = e.target.result
+        if (!e.target) return
+        const result = e.target.result
+        if (typeof result === 'string') {
+          characterData.value.description = result
+        }
         ElMessage.success('角色描述文件已上传并自动填充')
       } catch (error) {
         ElMessage.error('文件读取失败，请选择有效的文本文件')
@@ -263,13 +272,19 @@ const loadData = () => {
   input.type = 'file'
   input.accept = '.json'
   input.onchange = (e) => {
-    const file = e.target.files[0]
+    const target = e.target as HTMLInputElement
+    const file = target.files?.[0]
     if (!file) return
 
     const reader = new FileReader()
     reader.onload = (e) => {
       try {
-        const data = JSON.parse(e.target.result)
+        if (!e.target) return
+        const result = e.target.result
+        if (typeof result !== 'string') {
+          throw new Error('Invalid file content')
+        }
+        const data = JSON.parse(result)
         // Ensure talkativeness is a number
         if (data.talkativeness) {
           data.talkativeness = parseFloat(data.talkativeness)

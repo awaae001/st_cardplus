@@ -230,8 +230,9 @@ const addCustomField = async () => {
       }
     }
   } catch (error) {
-    // 用户取消输入
-    console.log('用户取消添加自定义字段');
+    ElMessageBox.alert('添加自定义字段失败', '错误', {
+      confirmButtonText: '确定'
+    });
   }
 };
 
@@ -275,7 +276,6 @@ onMounted(() => {
     'feet': '足部'
   };
 
-  console.log('Form appearance data:', form.value.appearance);
 
   // 遍历form.appearance中的所有字段
   for (const key in form.value.appearance) {
@@ -283,7 +283,6 @@ onMounted(() => {
     const isStandardField = Object.keys(standardFields).includes(key) ||
       Object.values(standardFields).includes(key);
     if (!isStandardField && form.value.appearance[key]) {
-      console.log('Adding custom field:', key, form.value.appearance[key]);
       customFields.value.push({
         label: key,
         value: form.value.appearance[key]
