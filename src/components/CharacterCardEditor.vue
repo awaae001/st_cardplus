@@ -38,11 +38,15 @@ import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { saveAs } from 'file-saver';
 
-// 自动保存间隔(毫秒)
-const AUTO_SAVE_INTERVAL = 5000;
-
 // 导入组件
 import CharacterCardButtons from './charcard/CharacterCardButtons.vue';
+import {
+  saveToLocalStorage,
+  loadFromLocalStorage,
+  clearLocalStorage,
+  initAutoSave,
+  clearAutoSave
+} from '../utils/localStorageUtils';
 import BasicInfo from './charcard/BasicInfo.vue';
 import BackgroundStory from './charcard/BackgroundStory.vue';
 import AppearanceFeatures from './charcard/AppearanceFeatures.vue';
@@ -210,53 +214,22 @@ const createDefaultCharacterCard = (): CharacterCard => ({
 const form = ref<CharacterCard>(createDefaultCharacterCard());
 let autoSaveTimer: number | null = null;
 
-// 保存数据到本地存储
-const saveToLocalStorage = () => {
-  try {
-    localStorage.setItem('characterCardData', JSON.stringify(form.value));
-    console.log('数据已保存到本地存储');
-  } catch (error) {
-    console.error('保存到本地存储失败:', error);
-  }
-};
-
-// 从本地存储加载数据
-const loadFromLocalStorage = () => {
-  try {
-    const savedData = localStorage.getItem('characterCardData');
-    if (savedData) {
-      const parsedData = JSON.parse(savedData);
-      form.value = processLoadedData(parsedData);
-    }
-  } catch (error) {
-    console.error('从本地存储加载失败:', error);
-  }
-};
-
-// 清除本地存储的数据
-const clearLocalStorage = () => {
-  localStorage.removeItem('characterCardData');
-};
-
-// 初始化自动保存
-const initAutoSave = () => {
-  autoSaveTimer = window.setInterval(() => {
-    if (form.value.chineseName) { // 只有有数据时才保存
-      saveToLocalStorage();
-    }
-  }, AUTO_SAVE_INTERVAL);
-};
-
 // 组件挂载时加载保存的数据
 onMounted(() => {
-  loadFromLocalStorage();
-  initAutoSave();
+  const loadedData = loadFromLocalStorage('characterCardData', processLoadedData);
+  if (loadedData) {
+    form.value = loadedData;
+  }
+  autoSaveTimer = initAutoSave(
+    () => saveToLocalStorage(form.value),
+    () => !!form.value.chineseName
+  );
 });
 
 // 组件卸载前清除定时器
 onBeforeUnmount(() => {
   if (autoSaveTimer) {
-    clearInterval(autoSaveTimer);
+    clearAutoSave(autoSaveTimer);
   }
 });
 
@@ -601,8 +574,8 @@ const resetForm = (): void => {
     cancelButtonText: '取消',
     type: 'warning',
   }).then(() => {
-    // 清除本地存储的数据
-    clearLocalStorage();
+  // 清除本地存储的数据
+  clearLocalStorage();
     // 完全重置表单数据，包括自定义字段
     const newForm = createDefaultCharacterCard();
     

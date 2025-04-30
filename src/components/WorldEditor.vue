@@ -139,9 +139,13 @@ import draggable from 'vuedraggable'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { saveAs } from 'file-saver'
 import { Icon } from "@iconify/vue";
-
-// 自动保存间隔(毫秒)
-const AUTO_SAVE_INTERVAL = 5000
+import {
+  saveToLocalStorage,
+  loadFromLocalStorage,
+  clearLocalStorage,
+  initAutoSave,
+  clearAutoSave
+} from '../utils/localStorageUtils';
 
 interface Landmark {
   name: string
@@ -173,52 +177,22 @@ const form = ref<WorldForm>({
 })
 let autoSaveTimer: number | null = null
 
-// 保存数据到本地存储
-const saveToLocalStorage = () => {
-  try {
-    localStorage.setItem('worldEditorData', JSON.stringify(form.value))
-  } catch (error) {
-    console.error('保存到本地存储失败:', error)
-  }
-}
-
-// 从本地存储加载数据
-const loadFromLocalStorage = () => {
-  try {
-    const savedData = localStorage.getItem('worldEditorData')
-    if (savedData) {
-      const parsedData = JSON.parse(savedData)
-      form.value = parsedData
-    }
-  } catch (error) {
-    console.error('从本地存储加载失败:', error)
-  }
-}
-
-// 清除本地存储的数据
-const clearLocalStorage = () => {
-  localStorage.removeItem('worldEditorData')
-}
-
-// 初始化自动保存
-const initAutoSave = () => {
-  autoSaveTimer = window.setInterval(() => {
-    if (form.value.name) { // 只有有数据时才保存
-      saveToLocalStorage()
-    }
-  }, AUTO_SAVE_INTERVAL)
-}
-
 // 组件挂载时加载保存的数据
 onMounted(() => {
-  loadFromLocalStorage()
-  initAutoSave()
+  const loadedData = loadFromLocalStorage('worldEditorData');
+  if (loadedData) {
+    form.value = loadedData;
+  }
+  autoSaveTimer = initAutoSave(
+    () => saveToLocalStorage(form.value, 'worldEditorData'),
+    () => !!form.value.name
+  );
 })
 
 // 组件卸载前清除定时器
 onBeforeUnmount(() => {
   if (autoSaveTimer) {
-    clearInterval(autoSaveTimer)
+    clearAutoSave(autoSaveTimer);
   }
 })
 
@@ -441,7 +415,7 @@ const resetForm = () => {
       landmarks: [],
       forces: []
     };
-    clearLocalStorage();
+    clearLocalStorage('worldEditorData');
     ElMessage.success('数据已重置');
   }).catch(() => {
     ElMessage.info('取消重置');

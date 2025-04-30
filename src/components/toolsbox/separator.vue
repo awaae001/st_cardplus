@@ -53,12 +53,11 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from 'vue'
-import type { UploadFile } from 'element-plus'
-import ExifReader from 'exifreader'
-import { Icon } from '@iconify/vue'
-import { Base64 } from 'js-base64'
-import { ElMessage } from 'element-plus'
+import { ref, computed } from 'vue';
+import type { UploadFile } from 'element-plus';
+import { Icon } from '@iconify/vue';
+import { ElMessage } from 'element-plus';
+import { extractAndDecodeCcv3 } from '@/utils/metadataSeparator'; // Import the new utility function
 
 interface ParsedData {
     filename: string
@@ -101,26 +100,21 @@ const saveJson = () => {
 }
 
 const importImage = async (file: File) => {
-    const arrayBuffer = await file.arrayBuffer()
-    const tags = ExifReader.load(arrayBuffer)
-    console.log('EXIF Data:', tags)
+    const decodedData = await extractAndDecodeCcv3(file);
 
-    // 解码ccv3字段
-    if (tags.ccv3?.value) {
-        try {
-            const decoded = Base64.decode(tags.ccv3.value)
-            console.log('Decoded ccv3:', JSON.parse(decoded))
-
-            // 暂存解码数据
-            const decodedData = JSON.parse(decoded)
-            characterData.value = { ...initialData.value, ...decodedData }
-            ElMessage.success('数据已成功加载')
-        } catch (error) {
-            console.error('Failed to decode ccv3:', error)
-            ElMessage.error('解析ccv3数据失败')
-        }
+    if (decodedData) {
+        // 成功解码，更新数据
+        // 假设 extractAndDecodeCcv3 返回的是需要合并到 initialData 的部分或全部数据
+        // 如果返回的是完整数据，可能不需要 ...initialData.value
+        characterData.value = { ...initialData.value, ...decodedData };
+        ElMessage.success('数据已成功加载');
+    } else {
+        // 解码失败或未找到 ccv3 标签
+        ElMessage.error('无法从图片中加载数据，请检查图片是否包含有效的 ccv3 元数据');
+        // 可选：根据需求决定是否重置 characterData
+        // characterData.value = { ...initialData.value };
     }
-}
+};
 
 const handleFileChange = (file: UploadFile) => {
     if (!file.raw) return

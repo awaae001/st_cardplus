@@ -43,10 +43,15 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { ElMessage } from 'element-plus'
+import {
+  saveToLocalStorage,
+  loadFromLocalStorage,
+  clearLocalStorage,
+  initAutoSave,
+  clearAutoSave
+} from '../utils/localStorageUtils';
 const activeCollapse = ref([])
 
-// 自动保存间隔(毫秒)
-const AUTO_SAVE_INTERVAL = 5000
 import BasicInfo from './CharOutput/BasicInfo.vue'
 import CharacterDescription from './CharOutput/CharacterDescription.vue'
 import AlternateGreetings from './CharOutput/AlternateGreetings.vue'
@@ -105,52 +110,22 @@ const initialData = {
 const characterData = ref({ ...initialData })
 let autoSaveTimer: number | null = null
 
-// 保存数据到本地存储
-const saveToLocalStorage = () => {
-  try {
-    localStorage.setItem('characterOutputData', JSON.stringify(characterData.value))
-  } catch (error) {
-    console.error('保存到本地存储失败:', error)
-  }
-}
-
-// 从本地存储加载数据
-const loadFromLocalStorage = () => {
-  try {
-    const savedData = localStorage.getItem('characterOutputData')
-    if (savedData) {
-      const parsedData = JSON.parse(savedData)
-      characterData.value = { ...initialData, ...parsedData }
-    }
-  } catch (error) {
-    console.error('从本地存储加载失败:', error)
-  }
-}
-
-// 清除本地存储的数据
-const clearLocalStorage = () => {
-  localStorage.removeItem('characterOutputData')
-}
-
-// 初始化自动保存
-const initAutoSave = () => {
-  autoSaveTimer = window.setInterval(() => {
-    if (characterData.value.name) { // 只有有数据时才保存
-      saveToLocalStorage()
-    }
-  }, AUTO_SAVE_INTERVAL)
-}
-
 // 组件挂载时加载保存的数据
 onMounted(() => {
-  loadFromLocalStorage()
-  initAutoSave()
+  const loadedData = loadFromLocalStorage('characterOutputData');
+  if (loadedData) {
+    characterData.value = { ...initialData, ...loadedData };
+  }
+  autoSaveTimer = initAutoSave(
+    () => saveToLocalStorage(characterData.value, 'characterOutputData'),
+    () => !!characterData.value.name
+  );
 })
 
 // 组件卸载前清除定时器
 onBeforeUnmount(() => {
   if (autoSaveTimer) {
-    clearInterval(autoSaveTimer)
+    clearAutoSave(autoSaveTimer);
   }
 })
 
@@ -167,7 +142,7 @@ const removeGreeting = (index: number) => {
 // Reset all data to initial state
 const resetData = () => {
   characterData.value = { ...initialData }
-  clearLocalStorage()
+  clearLocalStorage('characterOutputData')
   ElMessage.success('数据已重置')
 }
 
