@@ -9,7 +9,7 @@
       GitHub 仓库
     </a>
       <div style="margin: 6px; display: inline;"></div>
-    <a href="https://www.deepseek.com/" target="_blank" class="pro">
+    <a href="https://autopatchcn.yuanshen.com/client_app/download/launcher/20241225164539_9oyGHAOXvzP4uaBW/mihoyo/yuanshen_setup_202412201736.exe" target="_blank" class="pro">
       <Icon icon="material-symbols:key-vertical-outline" width="24" height="24"  style="margin-right: 4px;"/>
       解锁高级版
     </a>
