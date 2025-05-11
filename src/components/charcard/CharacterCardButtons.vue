@@ -1,38 +1,45 @@
 <template>
-  <div id="tiltleMain">
-    <h1 class="text-2xl font-bold mb-4">角色信息编辑器</h1>
-    <div class="btnSL">
-      <div class="btnSL2">
-        <el-button type="success" @click="loadCharacterCard">
-          <Icon icon="material-symbols:folder-open-outline-sharp" width="18" height="18" style="margin-right: 4px;" />
-          加载 json
-        </el-button>
-        <el-button type="primary" @click="saveCharacterCard">
-          <Icon icon="material-symbols:file-save-outline" width="18" height="18" style="margin-right: 4px;" />
-          保存 json
-        </el-button>
-        <el-button plain @click="resetForm">
-          <Icon icon="material-symbols:refresh" width="18" height="18" style="margin-right: 4px;" />
-          重置数据
-        </el-button>
-      </div>
-      <!-- <el-divider direction="vertical" border-style="dashed" /> -->
-      <div class="btnSL2">
-        <el-button type="info" @click="copyToClipboard" title="复制到剪贴板">
-          <Icon icon="material-symbols:content-copy-outline" width="18" height="18" />
-        </el-button>
-        <el-button type="warning" @click="showImportDialog" title="导入数据">
-          <Icon icon="material-symbols:content-paste-go-rounded" width="18" height="18" />
-        </el-button>
-      </div>
+  <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 md:gap-3 print:hidden">
+    <!-- 第一组按钮 -->
+    <div class="flex items-center gap-2 md:gap-3">
+      <el-tooltip content="加载角色卡 (Ctrl+O)" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
+        <button @click="loadCharacterCard" class="btn-secondary-adv !p-2.5 aspect-square group" aria-label="加载角色卡">
+          <Icon icon="ph:folder-open-duotone" class="text-lg group-hover:scale-110 transition-transform"/>
+        </button>
+      </el-tooltip>
+      <el-tooltip content="保存角色卡 (Ctrl+S)" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
+        <button @click="saveCharacterCard" class="btn-primary-adv !p-2.5 aspect-square group" aria-label="保存角色卡">
+          <Icon icon="ph:floppy-disk-duotone" class="text-lg group-hover:scale-110 transition-transform"/>
+        </button>
+      </el-tooltip>
+      <el-tooltip content="重置表单" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
+        <button @click="resetForm" class="btn-danger-adv !p-2.5 aspect-square group" aria-label="重置表单">
+          <Icon icon="ph:arrow-counter-clockwise-duotone" class="text-lg group-hover:rotate-[30deg] transition-transform"/>
+        </button>
+      </el-tooltip>
+    </div>
+
+    <!-- 第二组按钮 -->
+    <div class="flex items-center gap-2 md:gap-3">
+      <el-tooltip content="复制到剪贴板 (Ctrl+C)" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
+        <button @click="copyToClipboard" class="btn-secondary-adv !p-2.5 aspect-square group" aria-label="复制到剪贴板">
+          <Icon icon="ph:copy-simple-duotone" class="text-lg group-hover:scale-110 transition-transform"/>
+        </button>
+      </el-tooltip>
+      <el-tooltip content="从剪贴板粘贴 (Ctrl+V)" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
+        <button @click="showImportDialog" class="btn-secondary-adv !p-2.5 aspect-square group" aria-label="从剪贴板粘贴">
+          <Icon icon="ph:clipboard-text-duotone" class="text-lg group-hover:scale-110 transition-transform"/>
+        </button>
+      </el-tooltip>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+// ... Script 部分与你提供的 CharacterCardButtons.vue 保持一致 (包含 emit 和方法)
 import { defineEmits } from 'vue';
 import { Icon } from "@iconify/vue";
-import { ElMessageBox } from 'element-plus';
+import { ElMessageBox, ElTooltip } from 'element-plus';
 
 const emit = defineEmits<{
   (e: 'saveCharacterCard'): void;
@@ -42,111 +49,28 @@ const emit = defineEmits<{
   (e: 'importFromClipboard', data: string): void;
 }>();
 
-const saveCharacterCard = () => {
-  emit('saveCharacterCard');
-};
-
-const loadCharacterCard = () => {
-  emit('loadCharacterCard');
-};
-
-const resetForm = () => {
-  emit('resetForm');
-};
-
-const copyToClipboard = () => {
-  emit('copyToClipboard');
-};
+const saveCharacterCard = () => { emit('saveCharacterCard'); };
+const loadCharacterCard = () => { emit('loadCharacterCard'); };
+const resetForm = () => { emit('resetForm'); };
+const copyToClipboard = () => { emit('copyToClipboard'); };
 
 const showImportDialog = () => {
-  ElMessageBox.prompt('请输入要导入的JSON数据', '导入数据', {
-    confirmButtonText: '导入',
+  ElMessageBox.prompt('请粘贴JSON格式的角色卡数据到下方文本框：', '从剪贴板导入数据', {
+    confirmButtonText: '确认导入',
     cancelButtonText: '取消',
-    type: 'info',
     inputType: 'textarea',
-    inputPlaceholder: '在此粘贴或输入JSON数据',
+    inputPlaceholder: '在此处粘贴JSON数据...',
+    customClass: 'app-dialog break-all',
+    inputRows: 6,
     inputValidator: (value) => {
-      if (!value) {
-        return '请输入要导入的数据';
-      }
-      try {
-        JSON.parse(value);
-        return true;
-      } catch (e) {
-        return '请输入有效的JSON格式数据';
-      }
-    }
+      if (!value || value.trim() === '') return '输入内容不能为空。';
+      try { JSON.parse(value); return true; }
+      catch (e) { return '数据格式无效，请输入正确的JSON。'; }
+    },
   }).then(({ value }) => {
     emit('importFromClipboard', value);
-  }).catch(() => {
-    // 用户取消操作
-  });
+  }).catch(() => { /* User cancelled */ });
 };
 </script>
 
-<style scoped>
-/* 使用 Tailwind CSS 进行样式控制 */
-.section-container {
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.section-container>* {
-  flex: 1;
-  min-width: 100%;
-}
-
-.ps-text {
-  font-style: italic;
-  color: #373737;
-  font-weight: 300;
-}
-
-.title-Btn {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.title-Btn-add {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-}
-
-#tiltleMain {
-  justify-content: space-between;
-}
-
-.btnSL {
-  display: flex;
-  align-items: flex-start;
-  flex-direction: column;
-}
-
-.btnSL2 {
-  margin: 8px 4px 8px 0px;
-  display: flex;
-}
-
-
-
-@media (min-width: 768px) {
-  #tiltleMain {
-    display: flex;
-    justify-content: space-between;
-  }
-
-  .btnSL {
-    display: flex;
-    align-items: center;
-    flex-direction: row;
-  }
-
-  .btnSL2 {
-    display: flex;
-  }
-
-}
-</style>
+<!-- 移除 scoped style，依赖全局按钮样式 -->

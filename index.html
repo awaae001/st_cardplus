@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN"> <!-- 设置语言为中文 -->
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
@@ -12,11 +12,20 @@
     <meta property="og:description" content="一个强大的工具，轻松格式化您的角色卡，提升AI读卡效率" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://cardplus.jiuci.top.com" />
-    <meta property="og:image" content="/public/favicon.ico" />
+    <meta property="og:image" content="/public/favicon.ico" /> <!-- 注意: 路径可能需要调整，通常是相对于根目录 -->
     <script defer src="https://umami.awaae001.top/script.js" data-website-id="6685fde6-dad1-49c1-b952-3a487d6991da"></script>
     <title>酒馆角色卡制卡网站</title>
   </head>
-  <body>
+  <!--
+    在 body 上应用 Tailwind 的基础背景和文字颜色。
+    这些类会根据 html 标签上是否有 'dark' 类来响应。
+    - bg-gray-100: 浅色模式下的背景色 (一个非常浅的灰色)
+    - dark:bg-neutral-900: 深色模式下的背景色 (一个深的近乎黑色的中性色)
+    - text-neutral-800: 浅色模式下的主要文字颜色
+    - dark:text-neutral-200: 深色模式下的主要文字颜色
+    - transition-colors duration-300: 添加颜色过渡效果
+  -->
+  <body class="bg-gray-100 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 transition-colors duration-300">
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>

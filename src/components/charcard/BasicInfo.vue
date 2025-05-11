@@ -1,98 +1,111 @@
 <template>
-  <el-card class="mb-4">
-    <h2 class="text-xl font-semibold mb-2">基础信息</h2>
-    <el-form :model="form" label-width="120px">
-      <el-form-item label="中文名">
-        <el-input v-model="form.chineseName" placeholder="请输入中文名" />
-      </el-form-item>
-      <el-form-item label="日文名">
-        <el-input v-model="form.japaneseName" disabled placeholder="逻辑未处理" />
-      </el-form-item>
-      <el-form-item label="性别">
-        <el-select v-model="form.gender" placeholder="请选择性别">
-          <el-option label="女性" value="female" />
-          <el-option label="男性" value="male" />
-          <el-option label="秀吉（伪娘、正太）" value="秀吉（伪娘、正太）" />
-          <el-option label="武装直升机" value="helicopter" />
-          <el-option label="永雏塔菲" value="tiffany" />
-          <el-option label="赛马娘" value="horse" />
-          <el-option label="沃尔玛购物袋" value="walmartShopingBag" />
-          <el-option label="其他(自定义)" value="other" />
-        </el-select>
-        <el-input
-          v-if="form.gender === 'other'"
-          v-model="form.customGender"
-          placeholder="请输入角色的性别（other）"
-          style="margin-top: 10px;"
+  <!-- 根元素不再是 el-card。父组件的 .content-panel 提供了外部容器 -->
+  <div class="content-panel-body space-y-5"> <!-- 使用全局组件类控制内边距和元素间距 -->
+    <div class="content-panel-header -mx-5 md:-mx-6 -mt-5 md:-mt-6 mb-6"> <!-- 模块内部的标题栏 -->
+       <h3 class="content-panel-title flex items-center gap-2">
+          <Icon icon="ph:identification-card-duotone" class="text-xl text-accent-500 dark:text-accent-400"/>
+          基础信息
+        </h3>
+    </div>
+
+    <!-- 你的 el-form 结构，但 label 使用了 #label slot 和 .form-label-adv 类 -->
+    <el-form :model="localForm" label-position="top" class="space-y-1"> <!-- 减小el-form内部的间距，让label和input更紧凑 -->
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+        <el-form-item class="mb-0"> <!-- 移除 el-form-item 默认的 margin-bottom -->
+          <template #label>
+              <span class="form-label-adv">中文名 <span class="text-red-500 dark:text-red-400 ml-1">*</span></span>
+          </template>
+          <el-input v-model="localForm.chineseName" placeholder="角色的中文名称" clearable />
+        </el-form-item>
+
+        <el-form-item class="mb-0">
+          <template #label>
+              <span class="form-label-adv">日文名 (可选)</span>
+          </template>
+          <el-input v-model="localForm.japaneseName" placeholder="角色的日文名称" clearable />
+        </el-form-item>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 items-start">
+        <el-form-item class="mb-0">
+          <template #label>
+              <span class="form-label-adv">性别</span>
+          </template>
+          <el-select v-model="localForm.gender" placeholder="请选择性别" class="w-full">
+            <el-option label="男" value="male" />
+            <el-option label="女" value="female" />
+            <el-option label="秀吉（伪娘、正太）" value="秀吉（伪娘、正太）" />
+            <el-option label="武装直升机" value="helicopter" />
+            <el-option label="永雏塔菲" value="tiffany" />
+            <el-option label="赛马娘" value="horse" />
+            <el-option label="沃尔玛购物袋" value="walmartShopingBag" />
+            <el-option label="其他(自定义)" value="other" />
+            <el-option label="无" value="none" />
+          </el-select>
+        </el-form-item>
+        
+        <el-form-item v-if="localForm.gender === 'other'" class="mb-0 sm:mt-[27px]">
+          <template #label>
+             <span class="form-label-adv sm:opacity-0 sm:pointer-events-none">自定义性别</span>
+          </template>
+          <el-input v-model="localForm.customGender" placeholder="输入自定义性别" />
+        </el-form-item>
+      </div>
+    
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+        <el-form-item class="mb-0">
+           <template #label>
+              <span class="form-label-adv">年龄</span>
+          </template>
+          <el-input-number 
+            v-model="localForm.age" 
+            controls-position="right"
+            :min="0" :max="9999" :precision="0" 
+            class="w-full" placeholder="角色年龄"
+          />
+          <p class="form-help-text">请输入数字，0表示未设定或未知。</p>
+        </el-form-item>
+
+        <el-form-item class="mb-0" v-if="'mbti' in localForm">
+          <template #label>
+              <span class="form-label-adv">MBTI 性格 (可选)</span>
+          </template>
+          <el-input v-model="localForm.mbti" placeholder="例如：INFJ, ENTP" clearable />
+        </el-form-item>
+      </div>
+    
+      <el-form-item class="mb-0">
+        <template #label>
+            <span class="form-label-adv">身份/称呼</span>
+        </template>
+        <el-input 
+          v-model="localForm.identity" 
+          type="textarea" 
+          :autosize="{minRows: 3, maxRows:6}" 
+          placeholder="角色的主要身份、职业或他人对TA的称呼。例如：学生, 老师, {{user}}。一行一条。" 
         />
+        <p class="form-help-text">可以使用 {{user}} (用户) 和 {{char}} (角色自身) 占位符。</p>
       </el-form-item>
-      <el-form-item label="年龄">
-        <el-input-number 
-          v-model="form.age" 
-          controls-position="right"
-          :min="-Infinity"
-          :max="Infinity"
-          :precision="0"
-        />
-        <span class="ps-text" style="margin-left: 16px;">限制为数字，请勿输入其他字段</span>
-      </el-form-item>
-      <el-form-item label="身份">
-        <el-input v-model="form.identity" type="textarea" :rows="5" placeholder="请输入身份 · 一行一条" />
-      </el-form-item>
+
     </el-form>
-  </el-card>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, defineProps, watch } from 'vue';
+// ... Script 部分与你提供的 BasicInfo.vue 保持一致 (包含 props, localForm, watches, emits)
+import { ref, watch, defineProps, defineEmits } from 'vue';
+import { ElInput, ElSelect, ElOption, ElInputNumber, ElForm, ElFormItem } from 'element-plus';
+import { Icon } from '@iconify/vue';
 
-interface Props {
-  form: {
-    chineseName: string;
-    japaneseName: string;
-    gender: string;
-    customGender: string;
-    age: number;
-    identity: string;
-  };
+interface BasicInfoForm {
+  chineseName: string; japaneseName: string; gender: string; customGender: string; age: number; identity: string; mbti: string;
 }
-
-const props = defineProps<Props>();
-const form = ref(props.form);
-
-watch(() => props.form, (newVal) => {
-  form.value = newVal;
-}, { deep: true });
+const props = defineProps<{ form: BasicInfoForm }>();
+const emit = defineEmits(['update:form']);
+const localForm = ref<BasicInfoForm>({ ...props.form });
+watch(() => props.form, (newVal) => { if (JSON.stringify(newVal) !== JSON.stringify(localForm.value)) { localForm.value = { ...newVal }; } }, { deep: true });
+watch(localForm, (newVal) => { emit('update:form', { ...newVal }); }, { deep: true });
 </script>
 
-<style scoped>
-/* 使用 Tailwind CSS 进行样式控制 */
-.section-container {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.section-container>* {
-  flex: 1;
-}
-
-.ps-text {
-  font-style: italic;
-  color: #373737;
-  font-weight: 300;
-}
-
-.title-Btn {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.title-Btn-add {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-}
-</style>
+<!-- 移除 scoped style，依赖全局样式 -->
