@@ -1,5 +1,5 @@
 /* src/style.css */
-@import \"tailwindcss\";
+@import "tailwindcss";
 
 @variant dark (&:where(.dark, .dark *)); /* 暗黑模式变体 */
 
@@ -30,24 +30,23 @@
   --color-accent-900: oklch(0.4 0.29 260);
   --color-accent-950: oklch(0.3 0.3 260);
 
-  /* Neutral/Gray Colors - 中性/灰色系列 */
-  /* 假设 Tailwind v4 默认提供 --color-gray-XXX，我们用它作为 neutral 的基础 */
-  --color-neutral-50: var(--color-gray-50, oklch(0.984 0.003 240));
-  --color-neutral-100: var(--color-gray-100, oklch(0.961 0.006 240));
-  --color-neutral-200: var(--color-gray-200, oklch(0.929 0.009 240));
-  --color-neutral-300: var(--color-gray-300, oklch(0.878 0.012 240));
-  --color-neutral-400: var(--color-gray-400, oklch(0.816 0.014 240));
-  --color-neutral-500: var(--color-gray-500, oklch(0.749 0.015 240));
-  --color-neutral-600: var(--color-gray-600, oklch(0.647 0.016 240));
-  --color-neutral-700: var(--color-gray-700, oklch(0.549 0.017 240));
+  /* Neutral/Gray Colors - 自定义中性/灰色系列 (冷色调) */
+  --color-neutral-50: oklch(0.984 0.003 240);
+  --color-neutral-100: oklch(0.961 0.006 240);
+  --color-neutral-200: oklch(0.929 0.009 240);
+  --color-neutral-300: oklch(0.878 0.012 240);
+  --color-neutral-400: oklch(0.816 0.014 240);
+  --color-neutral-500: oklch(0.749 0.015 240);
+  --color-neutral-600: oklch(0.647 0.016 240);
+  --color-neutral-700: oklch(0.549 0.017 240);
   --color-neutral-750: oklch(0.47 0.0175 240); /* 自定义中间色阶 */
-  --color-neutral-800: var(--color-gray-800, oklch(0.392 0.018 240));
+  --color-neutral-800: oklch(0.392 0.018 240);
   --color-neutral-850: oklch(0.30 0.018 240);  /* 自定义较深中间色阶 */
-  --color-neutral-900: var(--color-gray-900, oklch(0.22 0.018 240));
-  --color-neutral-950: var(--color-gray-950, oklch(0.149 0.018 240));
+  --color-neutral-900: oklch(0.22 0.018 240);
+  --color-neutral-950: oklch(0.149 0.018 240);
 
   /* Other Named Colors - 其他命名颜色系列 */
-  --color-white: oklch(1 0 0); /* 明确定义白色，以供 var() 使用 */
+  --color-white: oklch(1 0 0); /* 明确定义白色 */
   --color-black: oklch(0 0 0); /* 明确定义黑色 */
 
   --color-sky-50: oklch(0.97 0.05 230);
@@ -77,22 +76,21 @@
   --color-amber-600: oklch(0.7 0.21 80);
 
   /* Radius Variables - 圆角变量 */
-  --radius-DEFAULT: 0.25rem; /* rounded */
-  --radius-sm: 0.125rem;    /* rounded-sm */
-  --radius-md: 0.375rem;    /* rounded-md */
-  --radius-lg: 0.5rem;     /* rounded-lg */
-  --radius-xl: 0.75rem;    /* rounded-xl, 对应 attire-ghost */
-  --radius-2xl: 1rem;     /* rounded-2xl */
-  --radius-3xl: 1.5rem;    /* rounded-3xl */
-  --radius-full: 9999px;  /* rounded-full */
+  --radius-DEFAULT: 0.25rem;
+  --radius-sm: 0.125rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+  --radius-full: 9999px;
   
   /* Glassmorphism background variable */
   --bg-glass-light: oklch(0.98 0.005 240 / 0.5);
   --bg-glass-dark: oklch(0.25 0.015 240 / 0.5);
 }
 
-/* --- @layer components 和 :deep 样式与你之前提供的版本一致 --- */
-/* (确保这里的类名和 @apply 的工具类与 @theme 中的颜色定义对应) */
+/* --- @layer components --- */
 @layer components {
   /* Main Content Panels / Cards */
   .content-panel {
@@ -100,7 +98,6 @@
            border border-neutral-200 dark:border-neutral-750 overflow-hidden
            transition-all duration-300 ease-out;
   }
-  /* ... (所有其他的 .content-panel-*, .form-*-adv, .command-palette-*, .btn-*-adv, .entry-menu 类) ... */
   .content-panel-header {
     @apply px-5 py-3.5 border-b border-neutral-200 dark:border-neutral-750 flex justify-between items-center;
   }
@@ -171,7 +168,7 @@
            border border-transparent 
            transform transition-all duration-150 ease-in-out active:scale-[0.97]
            focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-neutral-900;
-     @apply bg-amber-500 text-neutral-900 hover:bg-amber-600 focus:ring-amber-500;
+     @apply bg-amber-500 text-neutral-900 hover:bg-amber-600 focus:ring-amber-500; /* text-neutral-900 is chosen for better contrast on amber background */
   }
   .form-section { @apply pt-6 first:pt-0; }
   .form-section:not(:first-child) { @apply border-t border-neutral-200 dark:border-neutral-700; }
@@ -183,13 +180,7 @@
   .entry-menu .el-menu-item.is-active { @apply bg-accent-500/10 dark:bg-accent-600/20 text-accent-600 dark:text-accent-400 font-semibold; }
 }
 
-/* --- Element Plus :deep 样式与你之前提供的版本一致 --- */
-/* (确保这里的颜色能正确引用 @theme 中定义的变量) */
-:deep(.el-input__wrapper), 
-:deep(.el-textarea__inner), 
-:deep(.el-select .el-input__wrapper),
-:deep(.el-input-number .el-input__wrapper) { /* ... */ }
-/* ... (所有其他的 :deep 样式，过渡动画，滚动条样式，对话框样式) ... */
+/* --- Element Plus :deep 样式 --- */
 :deep(.el-input__wrapper), 
 :deep(.el-textarea__inner), 
 :deep(.el-select .el-input__wrapper),
@@ -277,20 +268,7 @@ html.dark .el-message-box__content { @apply text-neutral-300; }
 html.dark .el-message-box__input .el-input__wrapper { @apply bg-neutral-750 border-neutral-600 text-neutral-200; }
 html.dark .el-message-box__input .el-input__wrapper:hover { @apply border-accent-500/70; }
 html.dark .el-message-box__input .el-input__wrapper.is-focus { @apply border-accent-500 ring-1 ring-accent-500/30; }
-
-/* Specific scrollbars */
-.command-palette-scrollbar ::-webkit-scrollbar { @apply w-1.5 h-1.5; }
-.command-palette-scrollbar ::-webkit-scrollbar-track { @apply bg-transparent; }
-.command-palette-scrollbar ::-webkit-scrollbar-thumb { @apply bg-neutral-300 dark:bg-neutral-600 rounded-full; }
-.command-palette-scrollbar ::-webkit-scrollbar-thumb:hover { @apply bg-neutral-400 dark:bg-neutral-500; }
-.command-palette-scrollbar { scrollbar-width: thin; scrollbar-color: var(--color-neutral-300) transparent; } /* Changed theme() to var() */
-html.dark .command-palette-scrollbar { scrollbar-color: var(--color-neutral-600) transparent; } /* Changed theme() to var() */
-
-.editor-main-scroll-area ::-webkit-scrollbar-track { @apply bg-neutral-100 dark:bg-neutral-800/50 rounded-lg; }
-.editor-main-scroll-area ::-webkit-scrollbar-thumb { @apply bg-neutral-300 dark:bg-neutral-600 rounded-lg; }
-.editor-main-scroll-area ::-webkit-scrollbar-thumb:hover { @apply bg-neutral-400 dark:bg-neutral-500; }
-.editor-main-scroll-area { scrollbar-width: thin; scrollbar-color: var(--color-neutral-400) var(--color-neutral-100); } /* Changed theme() to var() */
-html.dark .editor-main-scroll-area { scrollbar-color: var(--color-neutral-600) oklch(from var(--color-neutral-800) l c h / 0.5); } /* Changed theme() to var() and oklch() */
+.el-message-box__input textarea.el-textarea__inner { min-height: 120px !important; }
 
 
 /* App Dialog (for paste modal etc.) */
@@ -300,4 +278,18 @@ html.dark .app-dialog.el-dialog, html.dark .app-dialog .el-dialog__header { @app
 html.dark .app-dialog .el-dialog__body { @apply bg-neutral-800 text-neutral-200; padding: 20px; }
 html.dark .app-dialog .el-dialog__footer { @apply bg-neutral-800 border-t border-neutral-700 py-3 px-5; }
 html.dark .app-dialog .el-dialog__headerbtn .el-dialog__close { @apply text-neutral-400 hover:text-accent-500; }
-.el-message-box__input textarea.el-textarea__inner { min-height: 120px !important; }
+
+
+/* Specific scrollbars */
+.command-palette-scrollbar ::-webkit-scrollbar { @apply w-1.5 h-1.5; }
+.command-palette-scrollbar ::-webkit-scrollbar-track { @apply bg-transparent; }
+.command-palette-scrollbar ::-webkit-scrollbar-thumb { @apply bg-neutral-300 dark:bg-neutral-600 rounded-full; }
+.command-palette-scrollbar ::-webkit-scrollbar-thumb:hover { @apply bg-neutral-400 dark:bg-neutral-500; }
+.command-palette-scrollbar { scrollbar-width: thin; scrollbar-color: var(--color-neutral-300) transparent; }
+html.dark .command-palette-scrollbar { scrollbar-color: var(--color-neutral-600) transparent; }
+
+.editor-main-scroll-area ::-webkit-scrollbar-track { @apply bg-neutral-100 dark:bg-neutral-800/50 rounded-lg; }
+.editor-main-scroll-area ::-webkit-scrollbar-thumb { @apply bg-neutral-300 dark:bg-neutral-600 rounded-lg; }
+.editor-main-scroll-area ::-webkit-scrollbar-thumb:hover { @apply bg-neutral-400 dark:bg-neutral-500; }
+.editor-main-scroll-area { scrollbar-width: thin; scrollbar-color: var(--color-neutral-400) var(--color-neutral-100); }
+html.dark .editor-main-scroll-area { scrollbar-color: var(--color-neutral-600) oklch(from var(--color-neutral-800) l c h / 0.5); }

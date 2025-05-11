@@ -1,166 +1,180 @@
 <template>
-  <el-card class="mb-4">
-    <div class="title-Btn-add">
-      <h2 class="text-xl font-semibold mb-4">性格特质</h2>
-      <div style="display: flex; gap: 8px;">
-        <el-button type="primary" @click="addTrait" class="w-full" style="margin-left: 16px;">
-          <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
-            style="margin-right: 4px;" />
-          添加特质（卡片）
-        </el-button>
-        <el-button type="success" @click="exportTraits" title="导出性格特质">
-          <Icon icon="material-symbols:content-copy-outline" width="18" height="18" />
-        </el-button>
+  <div class="content-panel-body space-y-5">
+    
+    <div class="content-panel-header -mx-5 md:-mx-6 -mt-5 md:-mt-6 mb-6">
+      <h3 class="content-panel-title flex items-center gap-2">
+        <Icon icon="ph:strategy-duotone" class="text-xl text-accent-500 dark:text-accent-400"/>
+        性格特质
+      </h3>
+      <div class="flex gap-x-3 ml-auto">
+        <button @click="props.addTrait" class="btn-primary-adv text-sm !py-1.5 !px-3 whitespace-nowrap" title="添加新的性格特质">
+          <Icon icon="material-symbols:add-circle-outline-rounded" width="18" height="18" class="mr-1.5 -ml-0.5" />
+          添加特质
+        </button>
+        <button @click="props.exportTraits" title="导出所有性格特质 (JSON)" class="btn-secondary-adv text-sm !py-1.5 !px-3" >
+          <Icon icon="material-symbols:ios-share-rounded" width="18" height="18" />
+        </button>
       </div>
     </div>
 
-      <draggable 
-        v-model="form.traits" 
-        handle=".drag-handle" 
-        item-key="index"
-        animation="200"
-        ghost-class="ghost"
-        chosen-class="chosen"
-        style="display: flex;flex-wrap: wrap;">
-        <template #item="{ element: trait, index }">
-          <el-col :xs="24" :sm="12" :md="8" :lg="6">
-            <div class="drag-handle" style="cursor: move; margin-bottom: 8px; padding: 4px; border-radius: 4px; ">
-              <Icon icon="material-symbols:drag-handle" width="20" height="20" />
+    
+    <draggable
+      v-if="localTraits && localTraits.length > 0"
+      v-model="localTraits"
+      item-key="id" 
+      animation="200"
+      ghost-class="trait-ghost"
+      chosen-class="trait-chosen"
+      handle=".trait-card-drag-handle"
+      class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5"
+      @change="handleDraggableChange"
+    >
+      <template #item="{ element: trait, index: traitIndex }">
+        <div :key="trait.id" class="trait-item-card-outer-wrapper"> 
+          <div class="trait-item-card bg-white dark:bg-neutral-800 rounded-lg shadow-md dark:shadow-black/20 border border-neutral-200 dark:border-neutral-700 
+                        flex flex-col relative transition-all duration-150 ease-in-out hover:shadow-lg dark:hover:border-neutral-600 overflow-hidden">
+            <div class="trait-card-drag-handle bg-neutral-100 dark:bg-neutral-700/50 px-3 py-1.5 cursor-move flex items-center justify-between text-neutral-500 dark:text-neutral-400 border-b border-neutral-200 dark:border-neutral-700 text-xs">
+              <div class="flex items-center gap-1.5 flex-grow min-w-0" title="按住拖拽排序">
+                <Icon icon="material-symbols:drag-indicator-rounded" width="18" height="18"/>
+                <el-input v-model="trait.name" type="textarea" :autosize="{ minRows: 1, maxRows: 2 }" placeholder="特质名称" size="small" class="trait-name-input flex-grow min-w-0"></el-input>
+              </div>
+              <button @click="() => props.removeTrait(trait.id)" class="btn-danger-adv !p-1 !aspect-square shrink-0 !rounded-full !text-xs ml-2" title="删除此特质">
+                <Icon icon="ph:x-bold" width="12" height="12" />
+              </button>
             </div>
-            <el-card class="mb-4 trait-card">
-              <el-input v-model="trait.name" placeholder="特质名称" class="mb-2" />
-              <el-input v-model="trait.description" type="textarea" :rows="4" placeholder="描述" class="mb-2" />
-
-              <div style="margin-top: 4px;"></div>
-
-              <div v-for="(_, i) in trait.dialogueExamples" :key="i" class="cardInput">
-                <el-input v-model="trait.dialogueExamples[i]" type="textarea" :rows="2"
-                  :placeholder="`对话示例 ${i + 1}`" />
-                <el-button @click="removeDialogueExample(index, i)" size="small" class="mt-1">
-                  <Icon icon="material-symbols:delete-outline" width="18" height="18" />
-                </el-button>
+            <div class="p-3 flex flex-col gap-y-3 flex-grow">
+              <el-input v-model="trait.description" type="textarea" :autosize="{ minRows: 2, maxRows: 6 }" placeholder="特质描述 (详细说明该特质的表现和影响)" size="small"></el-input>
+              <div class="space-y-2">
+                <label class="form-label-adv text-xs block mb-1">对话示例</label>
+                <div v-for="(dialogue, dialogueIndex) in trait.dialogueExamples" :key="`dialogue-${trait.id}-${dialogueIndex}`" class="flex items-start gap-x-2">
+                  <el-input v-model="trait.dialogueExamples[dialogueIndex]" type="textarea" :autosize="{minRows: 1, maxRows: 4}" :placeholder="`示例 ${dialogueIndex + 1}`" size="small" class="flex-grow"></el-input>
+                  <button @click="removeDialogueExample(traitIndex, dialogueIndex)" class="btn-danger-adv !p-1.5 !aspect-square shrink-0 !text-xs mt-0.5" title="移除此示例">
+                     <Icon icon="ph:trash-simple-duotone" width="14" height="14" />
+                  </button>
+                </div>
+                <button @click="addDialogueExample(traitIndex)" class="btn-secondary-adv w-full !py-1 !px-2 text-xs">
+                  <Icon icon="ph:plus-circle-duotone" class="mr-1 text-sm"/> 添加对话示例
+                </button>
               </div>
-              <el-button type="primary" @click="addDialogueExample(index)" size="small" class="mb-4"
-                style="width: 100%; margin-top: 4px;">
-                添加对话示例
-              </el-button>
-
-              <el-divider border-style="dashed" />
-
-              <div v-for="(_, i) in trait.behaviorExamples" :key="i" class="cardInput">
-                <el-input v-model="trait.behaviorExamples[i]" type="textarea" :rows="2"
-                  :placeholder="`行为示例 ${i + 1}`" />
-                <el-button @click="removeBehaviorExample(index, i)" size="small" class="mt-1">
-                  <Icon icon="material-symbols:delete-outline" width="18" height="18" />
-                </el-button>
+              <div class="space-y-2">
+                <label class="form-label-adv text-xs block mb-1">行为示例</label>
+                <div v-for="(behavior, behaviorIndex) in trait.behaviorExamples" :key="`behavior-${trait.id}-${behaviorIndex}`" class="flex items-start gap-x-2">
+                  <el-input v-model="trait.behaviorExamples[behaviorIndex]" type="textarea" :autosize="{minRows: 1, maxRows: 4}" :placeholder="`示例 ${behaviorIndex + 1}`" size="small" class="flex-grow"></el-input>
+                  <button @click="removeBehaviorExample(traitIndex, behaviorIndex)" class="btn-danger-adv !p-1.5 !aspect-square shrink-0 !text-xs mt-0.5" title="移除此示例">
+                     <Icon icon="ph:trash-simple-duotone" width="14" height="14" />
+                  </button>
+                </div>
+                <button @click="addBehaviorExample(traitIndex)" class="btn-secondary-adv w-full !py-1 !px-2 text-xs">
+                  <Icon icon="ph:plus-circle-duotone" class="mr-1 text-sm"/> 添加行为示例
+                </button>
               </div>
-              <el-button type="primary" @click="addBehaviorExample(index)" size="small" class="mb-4"
-                style="width: 100%; margin-top: 4px;">
-                添加行为示例
-              </el-button>
+            </div>
+          </div>
+        </div>
+      </template>
+    </draggable>
 
-              <div style="margin: 4px;"></div>
-              <el-button type="danger" @click="removeTrait(index)" class="w-full">
-                <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
-                删除特质
-              </el-button>
-            </el-card>
-          </el-col>
-        </template>
-      </draggable>
-
-  </el-card>
+    
+    <div v-else class="mt-6 text-center py-10 border-2 border-dashed border-neutral-300/70 dark:border-neutral-700/70 rounded-lg bg-neutral-50 dark:bg-neutral-800/30">
+      <Icon icon="ph:smiley-blank-duotone" class="text-5xl text-neutral-400 dark:text-neutral-600 mx-auto mb-3" />
+      <p class="text-neutral-600 dark:text-neutral-400 text-sm font-medium">暂无性格特质</p>
+      <p class="text-xs text-neutral-500 dark:text-neutral-500 mt-1">点击“添加特质”来塑造角色的独特个性吧！</p>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, defineProps, watch } from 'vue';
+import { ref, watch, defineProps, defineEmits } from 'vue';
+import { ElInput, ElButton } from 'element-plus';
 import { Icon } from "@iconify/vue";
 import draggable from 'vuedraggable';
 
+// --- 接口定义 ---
+interface Trait {
+  id: string; // 每个特质对象必须拥有一个唯一的字符串ID
+  name: string;
+  description: string;
+  dialogueExamples: string[];
+  behaviorExamples: string[];
+}
+
 interface Props {
   form: {
-    traits: {
-      name: string;
-      description: string;
-      dialogueExamples: string[];
-      behaviorExamples: string[];
-    }[];
+    traits: Trait[]; // 父组件确保这里的每个 trait 都有 id
   };
-  addTrait: () => void;
-  removeTrait: (index: number) => void;
+  addTrait: () => void; // 此方法在父组件中实现，负责添加带ID的新特质
+  removeTrait: (traitId: string) => void; // 此方法在父组件中实现，负责根据ID删除特质
   exportTraits: () => Promise<void>;
 }
 
+// --- Props, Emits, 本地状态 ---
 const props = defineProps<Props>();
-const form = ref(props.form);
+const emit = defineEmits(['update:form']);
+const localTraits = ref<Trait[]>([]); // 用于 v-model 和内部修改的本地副本
 
-watch(() => props.form, (newVal) => {
-  form.value = newVal;
+// --- 数据同步 Watchers ---
+// 监听父组件传入的 traits 数据
+watch(() => props.form.traits, (newTraitsFromProp) => {
+  // 调试: 检查传入的 traits 是否每个都有 id
+  // console.log('PersonalityTraits received traits from props:', JSON.stringify(newTraitsFromProp));
+  // newTraitsFromProp?.forEach(t => { if(!t.id) console.error('TRAIT MISSING ID IN PROPS:', t); });
+
+  if (JSON.stringify(newTraitsFromProp) !== JSON.stringify(localTraits.value)) {
+    try {
+      localTraits.value = JSON.parse(JSON.stringify(newTraitsFromProp || []));
+    } catch (e) {
+      console.error('[PersonalityTraits] Cloning traits from props failed:', e);
+      localTraits.value = [];
+    }
+  }
+}, { deep: true, immediate: true });
+
+// 监听本地 localTraits 的变化 (拖拽或内部编辑)
+watch(localTraits, (newLocalTraitsState) => {
+  if (JSON.stringify(newLocalTraitsState) !== JSON.stringify(props.form.traits || [])) {
+    emit('update:form', { traits: newLocalTraitsState });
+  }
 }, { deep: true });
 
+// --- 内部方法 ---
 const addDialogueExample = (traitIndex: number) => {
-  form.value.traits[traitIndex].dialogueExamples.push('');
+  localTraits.value[traitIndex]?.dialogueExamples.push('');
 };
-
 const removeDialogueExample = (traitIndex: number, exampleIndex: number) => {
-  form.value.traits[traitIndex].dialogueExamples.splice(exampleIndex, 1);
+  localTraits.value[traitIndex]?.dialogueExamples.splice(exampleIndex, 1);
 };
-
 const addBehaviorExample = (traitIndex: number) => {
-  form.value.traits[traitIndex].behaviorExamples.push('');
+  localTraits.value[traitIndex]?.behaviorExamples.push('');
 };
-
 const removeBehaviorExample = (traitIndex: number, exampleIndex: number) => {
-  form.value.traits[traitIndex].behaviorExamples.splice(exampleIndex, 1);
+  localTraits.value[traitIndex]?.behaviorExamples.splice(exampleIndex, 1);
+};
+const handleDraggableChange = (event: any) => {
+  // v-model="localTraits" 已经更新了数组顺序
+  // 上面的 watch(localTraits, ...) 会负责 emit 更新
 };
 </script>
 
 <style scoped>
-/* 使用 Tailwind CSS 进行样式控制 */
-.section-container {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
+/* 样式与上一版相同，确保使用了全局 CSS 变量 */
+.trait-ghost { opacity: 0.6; border-radius: var(--radius-lg); background-color: var(--color-sky-100); outline: 2px dashed var(--color-sky-400); box-shadow: none; }
+:where(.dark, .dark *) .trait-ghost { background-color: oklch(from var(--color-sky-800) l c h / 0.4); }
 
-.section-container>* {
-  flex: 1;
+.trait-chosen .trait-item-card { 
+  --chosen-ring-width: 2px; --chosen-ring-offset-width: 2px;
+  --chosen-ring-color-light: var(--color-accent-500); --chosen-ring-offset-color-light: var(--color-white); 
+  --chosen-ring-color-dark: var(--color-accent-400); --chosen-ring-offset-color-dark: var(--color-neutral-850); 
+  box-shadow: 0 0 0 var(--chosen-ring-offset-width) var(--chosen-ring-offset-color-light), 0 0 0 calc(var(--chosen-ring-offset-width) + var(--chosen-ring-width)) var(--chosen-ring-color-light), var(--shadow-xl); 
 }
+:where(.dark, .dark *) .trait-chosen .trait-item-card {
+  box-shadow: 0 0 0 var(--chosen-ring-offset-width) var(--chosen-ring-offset-color-dark), 0 0 0 calc(var(--chosen-ring-offset-width) + var(--chosen-ring-width)) var(--chosen-ring-color-dark), var(--shadow-xl); 
+}
+.trait-chosen { transform: scale(1.02); z-index: 10; }
 
-.ps-text {
-  font-style: italic;
-  color: #373737;
-  font-weight: 300;
-}
+.trait-card-drag-handle :deep(.trait-name-input.el-textarea .el-textarea__inner) { background-color: transparent; border: none; box-shadow: none; padding: 2px 4px; font-weight: 500; line-height: 1.4; font-size: 0.875rem; color: var(--color-neutral-700); resize: none; }
+:where(.dark, .dark *) .trait-card-drag-handle :deep(.trait-name-input.el-textarea .el-textarea__inner) { color: var(--color-neutral-300); }
+.trait-card-drag-handle :deep(.trait-name-input.el-textarea.is-focus .el-textarea__inner) { background-color: var(--color-white); }
+:where(.dark, .dark *) .trait-card-drag-handle :deep(.trait-name-input.el-textarea.is-focus .el-textarea__inner) { background-color: var(--color-neutral-700); }
 
-.title-Btn {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.title-Btn-add {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-}
-
-.cardInput {
-  display: flex;
-  align-items: flex-start;
-}
-
-/* Drag and drop styles */
-.ghost {
-  opacity: 0.5;
-  background: var(--el-color-primary-light-9);
-  /* border: 1px dashed var(--el-color-primary); */
-}
-
-.chosen {
-  transform: scale(1.02);
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
-  z-index: 10;
-}
+.trait-item-card :deep(.el-textarea__inner) { font-size: 0.8125rem; line-height: 1.5; padding-top: 4px; padding-bottom: 4px; resize: none; border-radius: var(--el-input-border-radius, var(--radius-base)); }
 </style>

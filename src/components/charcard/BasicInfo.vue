@@ -1,18 +1,18 @@
 <template>
-  <!-- 根元素不再是 el-card。父组件的 .content-panel 提供了外部容器 -->
-  <div class="content-panel-body space-y-5"> <!-- 使用全局组件类控制内边距和元素间距 -->
-    <div class="content-panel-header -mx-5 md:-mx-6 -mt-5 md:-mt-6 mb-6"> <!-- 模块内部的标题栏 -->
+  
+  <div class="content-panel-body space-y-5"> 
+    <div class="content-panel-header -mx-5 md:-mx-6 -mt-5 md:-mt-6 mb-6"> 
        <h3 class="content-panel-title flex items-center gap-2">
           <Icon icon="ph:identification-card-duotone" class="text-xl text-accent-500 dark:text-accent-400"/>
           基础信息
         </h3>
     </div>
 
-    <!-- 你的 el-form 结构，但 label 使用了 #label slot 和 .form-label-adv 类 -->
-    <el-form :model="localForm" label-position="top" class="space-y-1"> <!-- 减小el-form内部的间距，让label和input更紧凑 -->
+    
+    <el-form :model="localForm" label-position="top" class="space-y-1"> 
       
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-        <el-form-item class="mb-0"> <!-- 移除 el-form-item 默认的 margin-bottom -->
+        <el-form-item class="mb-0"> 
           <template #label>
               <span class="form-label-adv">中文名 <span class="text-red-500 dark:text-red-400 ml-1">*</span></span>
           </template>
@@ -47,7 +47,7 @@
         
         <el-form-item v-if="localForm.gender === 'other'" class="mb-0 sm:mt-[27px]">
           <template #label>
-             <span class="form-label-adv sm:opacity-0 sm:pointer-events-none">自定义性别</span>
+             <span class="form-label-adv sm:opacity-0 sm:pointer-events-none">自定义性别</span> 
           </template>
           <el-input v-model="localForm.customGender" placeholder="输入自定义性别" />
         </el-form-item>
@@ -67,7 +67,7 @@
           <p class="form-help-text">请输入数字，0表示未设定或未知。</p>
         </el-form-item>
 
-        <el-form-item class="mb-0" v-if="'mbti' in localForm">
+        <el-form-item class="mb-0" v-if="'mbti' in localForm && localForm.mbti !== undefined"> 
           <template #label>
               <span class="form-label-adv">MBTI 性格 (可选)</span>
           </template>
@@ -85,7 +85,8 @@
           :autosize="{minRows: 3, maxRows:6}" 
           placeholder="角色的主要身份、职业或他人对TA的称呼。例如：学生, 老师, {{user}}。一行一条。" 
         />
-        <p class="form-help-text">可以使用 {{user}} (用户) 和 {{char}} (角色自身) 占位符。</p>
+        
+        <p class="form-help-text" v-pre>可以使用 {{user}} (用户) 和 {{char}} (角色自身) 占位符。</p>
       </el-form-item>
 
     </el-form>
@@ -93,19 +94,46 @@
 </template>
 
 <script setup lang="ts">
-// ... Script 部分与你提供的 BasicInfo.vue 保持一致 (包含 props, localForm, watches, emits)
-import { ref, watch, defineProps, defineEmits } from 'vue';
+import { ref, watch, defineProps, defineEmits, computed } from 'vue'; // Added computed for mbti display logic
 import { ElInput, ElSelect, ElOption, ElInputNumber, ElForm, ElFormItem } from 'element-plus';
 import { Icon } from '@iconify/vue';
 
 interface BasicInfoForm {
-  chineseName: string; japaneseName: string; gender: string; customGender: string; age: number; identity: string; mbti: string;
+  chineseName: string;
+  japaneseName: string;
+  gender: string;
+  customGender: string;
+  age: number;
+  identity: string;
+  mbti?: string; // Changed to optional
 }
-const props = defineProps<{ form: BasicInfoForm }>();
+
+const props = defineProps<{
+  form: BasicInfoForm
+}>();
+
 const emit = defineEmits(['update:form']);
+
 const localForm = ref<BasicInfoForm>({ ...props.form });
-watch(() => props.form, (newVal) => { if (JSON.stringify(newVal) !== JSON.stringify(localForm.value)) { localForm.value = { ...newVal }; } }, { deep: true });
-watch(localForm, (newVal) => { emit('update:form', { ...newVal }); }, { deep: true });
+
+watch(() => props.form, (newVal) => {
+  if (JSON.stringify(newVal) !== JSON.stringify(localForm.value)) {
+    localForm.value = { ...newVal };
+  }
+}, { deep: true });
+
+watch(localForm, (newVal) => {
+  emit('update:form', { ...newVal });
+}, { deep: true });
+
+// If you want to ensure mbti is always part of the emitted object even if undefined:
+// watch(localForm, (newVal) => {
+//   const formToEmit: BasicInfoForm = {
+//     ...newVal,
+//     mbti: newVal.mbti ?? undefined, // Ensure mbti key exists
+//   };
+//   emit('update:form', formToEmit);
+// }, { deep: true });
+
 </script>
 
-<!-- 移除 scoped style，依赖全局样式 -->

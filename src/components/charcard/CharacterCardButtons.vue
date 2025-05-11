@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 md:gap-3 print:hidden">
-    <!-- 第一组按钮 -->
+    
     <div class="flex items-center gap-2 md:gap-3">
       <el-tooltip content="加载角色卡 (Ctrl+O)" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
         <button @click="loadCharacterCard" class="btn-secondary-adv !p-2.5 aspect-square group" aria-label="加载角色卡">
@@ -19,7 +19,7 @@
       </el-tooltip>
     </div>
 
-    <!-- 第二组按钮 -->
+    
     <div class="flex items-center gap-2 md:gap-3">
       <el-tooltip content="复制到剪贴板 (Ctrl+C)" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
         <button @click="copyToClipboard" class="btn-secondary-adv !p-2.5 aspect-square group" aria-label="复制到剪贴板">
@@ -73,4 +73,3 @@ const showImportDialog = () => {
 };
 </script>
 
-<!-- 移除 scoped style，依赖全局按钮样式 -->
