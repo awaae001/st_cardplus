@@ -1,135 +1,137 @@
 <template>
+
   <div class="content-panel-body space-y-5">
-    
-    <div class="content-panel-header -mx-5 md:-mx-6 -mt-5 md:-mt-6 mb-6">
-      <h3 class="content-panel-title flex items-center gap-2">
-        <Icon icon="ph:person-simple-run-duotone" class="text-xl text-accent-500 dark:text-accent-400"/>
-        服装设定
-      </h3>
-      <div class="flex gap-x-3 ml-auto">
-        <button
-          @click="props.addAttire"
-          class="btn-primary-adv text-sm !py-1.5 !px-3 whitespace-nowrap"
-          title="添加新的服装套装"
+
+<div class="content-panel-header -mx-5 md:-mx-6 -mt-5 md:-mt-6 mb-6">
+  <h3 class="content-panel-title flex items-center gap-2">
+    <Icon icon="ph:person-simple-run-duotone" class="text-xl text-accent-500 dark:text-accent-400"/>
+    服装设定
+  </h3>
+  <div class="flex gap-x-3 ml-auto">
+    <button
+      @click="props.addAttire"
+      class="btn-primary-adv text-sm !py-1.5 !px-3 whitespace-nowrap"
+      title="添加新的服装套装"
+    >
+      <Icon icon="material-symbols:add-circle-outline-rounded" width="18" height="18" class="mr-1.5 -ml-0.5" />
+      添加套装
+    </button>
+    <button
+      @click="props.exportAttires"
+      title="导出所有服装配置 (JSON)"
+      class="btn-secondary-adv text-sm !py-1.5 !px-3"
+    >
+      <Icon icon="material-symbols:ios-share-rounded" width="18" height="18" />
+    </button>
+  </div>
+</div>
+
+
+<draggable
+  v-if="localAttiresReactive && Array.isArray(localAttiresReactive) && localAttiresReactive.length > 0"
+  v-model="localAttiresReactive"
+  item-key="id"
+  animation="200"
+  ghost-class="attire-ghost"
+  chosen-class="attire-chosen"
+  handle=".attire-card-drag-handle"
+  class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-5"
+  @change="handleDraggableChange"
+>
+  <template #item="{ element: attire, index }">
+    <div :key="attire.id" class="attire-item-card-outer-wrapper">
+      <div
+        class="attire-item-card bg-white dark:bg-neutral-800 rounded-lg shadow-md dark:shadow-black/20 border border-neutral-200 dark:border-neutral-700 
+               flex flex-col relative transition-all duration-150 ease-in-out hover:shadow-lg dark:hover:border-neutral-600 overflow-hidden"
+      >
+        
+        <div 
+          class="attire-card-drag-handle bg-neutral-100 dark:bg-neutral-700/50 px-3 py-1.5 cursor-move 
+                 flex items-center justify-between text-neutral-500 dark:text-neutral-400
+                 border-b border-neutral-200 dark:border-neutral-700 text-xs"
         >
-          <Icon icon="material-symbols:add-circle-outline-rounded" width="18" height="18" class="mr-1.5 -ml-0.5" />
-          添加套装
-        </button>
-        <button
-          @click="props.exportAttires"
-          title="导出所有服装配置 (JSON)"
-          class="btn-secondary-adv text-sm !py-1.5 !px-3"
-        >
-          <Icon icon="material-symbols:ios-share-rounded" width="18" height="18" />
-        </button>
+          <div class="flex items-center gap-1.5 flex-grow min-w-0" title="按住拖拽排序">
+            <Icon icon="material-symbols:drag-indicator-rounded" width="18" height="18" class="flex-shrink-0"/>
+            <el-input
+              v-model="attire.name"
+              type="textarea"
+              :autosize="{ minRows: 1, maxRows: 2 }"
+              placeholder="套装名称"
+              size="small"
+              class="attire-name-input-in-handle flex-grow min-w-0"
+              @input="updateFieldHeight(attire, 'name', $event.target as HTMLTextAreaElement)"
+            ></el-input>
+          </div>
+           <button
+            @click="() => props.removeAttire(attire.id)" 
+            class="btn-danger-adv !p-1 !aspect-square shrink-0 !rounded-full !text-xs ml-2"
+            title="删除此套装"
+          >
+            <Icon icon="ph:x-bold" width="12" height="12" />
+          </button>
+        </div>
+
+        
+        <div class="p-3 flex flex-col gap-y-3 flex-grow">
+          
+          <el-input 
+            v-model="attire.description" 
+            type="textarea" 
+            :autosize="{ minRows: 1, maxRows: 5 }"
+            placeholder="套装描述 (可选)" 
+            size="small" 
+            class="expanding-textarea"
+            @input="updateFieldHeight(attire, 'description', $event.target as HTMLTextAreaElement)"
+          ></el-input>
+
+          
+          <div :class="getFieldGroupLayoutClass(attire)">
+            <el-input 
+              v-model="attire.tops" 
+              type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" placeholder="上衣" size="small"
+              class="expanding-textarea" @input="updateFieldHeight(attire, 'tops', $event.target as HTMLTextAreaElement, true)"
+            ></el-input>
+            <el-input 
+              v-model="attire.bottoms" 
+              type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" placeholder="下装" size="small"
+              class="expanding-textarea" @input="updateFieldHeight(attire, 'bottoms', $event.target as HTMLTextAreaElement, true)"
+            ></el-input>
+            <el-input 
+              v-model="attire.shoes" 
+              type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" placeholder="鞋子" size="small"
+              class="expanding-textarea" @input="updateFieldHeight(attire, 'shoes', $event.target as HTMLTextAreaElement, true)"
+            ></el-input>
+            <el-input 
+              v-model="attire.socks" 
+              type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" placeholder="袜子" size="small"
+              class="expanding-textarea" @input="updateFieldHeight(attire, 'socks', $event.target as HTMLTextAreaElement, true)"
+            ></el-input>
+          </div>
+
+          <el-input 
+            v-model="attire.underwears" 
+            type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" placeholder="内衣" size="small" 
+            class="expanding-textarea" @input="updateFieldHeight(attire, 'underwears', $event.target as HTMLTextAreaElement)"
+          ></el-input>
+          <el-input 
+            type="textarea" :autosize="{ minRows: 2, maxRows: 5 }" v-model="attire.accessories" placeholder="配饰 (一行一条)" size="small" 
+            class="expanding-textarea" @input="updateFieldHeight(attire, 'accessories', $event.target as HTMLTextAreaElement)"
+          ></el-input>
+          
+          
+        </div>
       </div>
     </div>
+  </template>
+</draggable>
 
-    
-    <draggable
-      v-if="localAttiresReactive && Array.isArray(localAttiresReactive) && localAttiresReactive.length > 0"
-      v-model="localAttiresReactive"
-      item-key="id"
-      animation="200"
-      ghost-class="attire-ghost"
-      chosen-class="attire-chosen"
-      handle=".attire-card-drag-handle"
-      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-5"
-      @change="handleDraggableChange"
-    >
-      <template #item="{ element: attire, index }">
-        <div :key="attire.id" class="attire-item-card-outer-wrapper">
-          <div
-            class="attire-item-card bg-white dark:bg-neutral-800 rounded-lg shadow-md dark:shadow-black/20 border border-neutral-200 dark:border-neutral-700 
-                   flex flex-col relative transition-all duration-150 ease-in-out hover:shadow-lg dark:hover:border-neutral-600 overflow-hidden"
-          >
-            
-            <div 
-              class="attire-card-drag-handle bg-neutral-100 dark:bg-neutral-700/50 px-3 py-1.5 cursor-move 
-                     flex items-center justify-between text-neutral-500 dark:text-neutral-400
-                     border-b border-neutral-200 dark:border-neutral-700 text-xs"
-            >
-              <div class="flex items-center gap-1.5 flex-grow min-w-0" title="按住拖拽排序">
-                <Icon icon="material-symbols:drag-indicator-rounded" width="18" height="18" class="flex-shrink-0"/>
-                <el-input
-                  v-model="attire.name"
-                  type="textarea"
-                  :autosize="{ minRows: 1, maxRows: 2 }"
-                  placeholder="套装名称"
-                  size="small"
-                  class="attire-name-input-in-handle flex-grow min-w-0"
-                  @input="updateFieldHeight(attire, 'name', $event.target as HTMLTextAreaElement)"
-                ></el-input>
-              </div>
-               <button
-                @click="() => props.removeAttire(attire.id)" 
-                class="btn-danger-adv !p-1 !aspect-square shrink-0 !rounded-full !text-xs ml-2"
-                title="删除此套装"
-              >
-                <Icon icon="ph:x-bold" width="12" height="12" />
-              </button>
-            </div>
 
-            
-            <div class="p-3 flex flex-col gap-y-3 flex-grow">
-              
-              <el-input 
-                v-model="attire.description" 
-                type="textarea" 
-                :autosize="{ minRows: 1, maxRows: 5 }"
-                placeholder="套装描述 (可选)" 
-                size="small" 
-                class="expanding-textarea"
-                @input="updateFieldHeight(attire, 'description', $event.target as HTMLTextAreaElement)"
-              ></el-input>
+<div v-else class="mt-6 text-center py-10 border-2 border-dashed border-neutral-300/70 dark:border-neutral-700/70 rounded-lg bg-neutral-50 dark:bg-neutral-800/30">
+  <Icon icon="ph:t-shirt-duotone" class="text-5xl text-neutral-400 dark:text-neutral-600 mx-auto mb-3" />
+  <p class="text-neutral-600 dark:text-neutral-400 text-sm font-medium">暂无服装设定</p>
+  <p class="text-xs text-neutral-500 dark:text-neutral-500 mt-1">点击“添加套装”开始创建时尚造型吧！</p>
+</div>
 
-              
-              <div :class="getFieldGroupLayoutClass(attire)">
-                <el-input 
-                  v-model="attire.tops" 
-                  type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" placeholder="上衣" size="small"
-                  class="expanding-textarea" @input="updateFieldHeight(attire, 'tops', $event.target as HTMLTextAreaElement, true)"
-                ></el-input>
-                <el-input 
-                  v-model="attire.bottoms" 
-                  type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" placeholder="下装" size="small"
-                  class="expanding-textarea" @input="updateFieldHeight(attire, 'bottoms', $event.target as HTMLTextAreaElement, true)"
-                ></el-input>
-                <el-input 
-                  v-model="attire.shoes" 
-                  type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" placeholder="鞋子" size="small"
-                  class="expanding-textarea" @input="updateFieldHeight(attire, 'shoes', $event.target as HTMLTextAreaElement, true)"
-                ></el-input>
-                <el-input 
-                  v-model="attire.socks" 
-                  type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" placeholder="袜子" size="small"
-                  class="expanding-textarea" @input="updateFieldHeight(attire, 'socks', $event.target as HTMLTextAreaElement, true)"
-                ></el-input>
-              </div>
-
-              <el-input 
-                v-model="attire.underwears" 
-                type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" placeholder="内衣" size="small" 
-                class="expanding-textarea" @input="updateFieldHeight(attire, 'underwears', $event.target as HTMLTextAreaElement)"
-              ></el-input>
-              <el-input 
-                type="textarea" :autosize="{ minRows: 2, maxRows: 5 }" v-model="attire.accessories" placeholder="配饰 (一行一条)" size="small" 
-                class="expanding-textarea" @input="updateFieldHeight(attire, 'accessories', $event.target as HTMLTextAreaElement)"
-              ></el-input>
-              
-              
-            </div>
-          </div>
-        </div>
-      </template>
-    </draggable>
-
-    
-    <div v-else class="mt-6 text-center py-10 border-2 border-dashed border-neutral-300/70 dark:border-neutral-700/70 rounded-lg bg-neutral-50 dark:bg-neutral-800/30">
-      <Icon icon="ph:t-shirt-duotone" class="text-5xl text-neutral-400 dark:text-neutral-600 mx-auto mb-3" />
-      <p class="text-neutral-600 dark:text-neutral-400 text-sm font-medium">暂无服装设定</p>
-      <p class="text-xs text-neutral-500 dark:text-neutral-500 mt-1">点击“添加套装”开始创建时尚造型吧！</p>
-    </div>
   </div>
 </template>
 
