@@ -10,7 +10,12 @@
       <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 md:gap-3">
         <div class="flex items-center gap-2 md:gap-3">
           <el-tooltip content="加载地标设定 (Ctrl+O)" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
-            <button @click="loadWorld" class="btn-success-adv !p-2.5 aspect-square group" aria-label="加载地标设定">
+            <button
+              @click="loadWorld"
+              class="btn-success-adv !p-2.5 aspect-square group disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="加载地标设定"
+              :disabled="appSettings.safeModeLevel === 'forbidden'"
+            >
               <Icon icon="ph:folder-open-duotone" class="text-lg group-hover:scale-110 transition-transform"/>
             </button>
           </el-tooltip>
@@ -20,7 +25,12 @@
             </button>
           </el-tooltip>
           <el-tooltip content="重置表单" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
-            <button @click="resetForm" class="btn-danger-adv !p-2.5 aspect-square group" aria-label="重置表单">
+            <button
+              @click="resetForm"
+              class="btn-danger-adv !p-2.5 aspect-square group disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="重置表单"
+              :disabled="appSettings.safeModeLevel === 'forbidden'"
+            >
               <Icon icon="ph:arrow-counter-clockwise-duotone" class="text-lg group-hover:rotate-[30deg] transition-transform"/>
             </button>
           </el-tooltip>
@@ -33,7 +43,12 @@
             </button>
           </el-tooltip>
           <el-tooltip content="从剪贴板导入JSON (Ctrl+V)" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
-            <button @click="showImportDialog" class="btn-warning-adv !p-2.5 aspect-square group" aria-label="从剪贴板导入JSON">
+            <button
+              @click="showImportDialog"
+              class="btn-warning-adv !p-2.5 aspect-square group disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="从剪贴板导入JSON"
+              :disabled="appSettings.safeModeLevel === 'forbidden'"
+            >
               <Icon icon="ph:clipboard-text-duotone" class="text-lg group-hover:scale-110 transition-transform"/>
             </button>
           </el-tooltip>
@@ -93,6 +108,14 @@
               地标
             </h3>
             <div class="flex gap-x-3 ml-auto">
+              <button
+                @click="importLandmarks"
+                title="导入地标 (JSON, 将替换现有地标)"
+                class="btn-warning-adv text-sm !py-1.5 !px-3 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                :disabled="appSettings.safeModeLevel === 'forbidden'"
+              >
+                 <Icon icon="material-symbols:upload-file-outline-rounded" width="18" height="18" class="mr-1.5 -ml-0.5"/> 导入地标
+              </button>
               <button @click="addLandmark" class="btn-primary-adv text-sm !py-1.5 !px-3 whitespace-nowrap">
                 <Icon icon="material-symbols:add-circle-outline-rounded" width="18" height="18" class="mr-1.5 -ml-0.5"/> 添加地标
               </button>
@@ -125,7 +148,12 @@
                         :autosize="{ minRows: 1, maxRows: 2 }"
                         type="textarea"
                       />
-                       <button @click="removeLandmark(landmark.id)" class="btn-danger-adv !p-1 !aspect-square shrink-0 !rounded-full !text-xs ml-2 flex-shrink-0">
+                       <button
+                          @click="removeLandmark(landmark.id)"
+                          class="btn-danger-adv !p-1 !aspect-square shrink-0 !rounded-full !text-xs ml-2 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="删除此地标"
+                          :disabled="appSettings.safeModeLevel === 'forbidden'"
+                        >
                         <Icon icon="ph:x-bold"/>
                       </button>
                     </div>
@@ -151,6 +179,14 @@
               势力
             </h3>
             <div class="flex gap-x-3 ml-auto">
+              <button
+                @click="importForces"
+                title="导入势力 (JSON, 将替换现有势力)"
+                class="btn-warning-adv text-sm !py-1.5 !px-3 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                :disabled="appSettings.safeModeLevel === 'forbidden'"
+              >
+                 <Icon icon="material-symbols:upload-file-outline-rounded" width="18" height="18" class="mr-1.5 -ml-0.5"/> 导入势力
+              </button>
               <button @click="addForce" class="btn-primary-adv text-sm !py-1.5 !px-3 whitespace-nowrap">
                 <Icon icon="material-symbols:add-circle-outline-rounded" width="18" height="18" class="mr-1.5 -ml-0.5"/> 添加势力
               </button>
@@ -183,7 +219,12 @@
                         :autosize="{ minRows: 1, maxRows: 2 }"
                         type="textarea"
                       />
-                      <button @click="removeForce(force.id)" class="btn-danger-adv !p-1 !aspect-square shrink-0 !rounded-full !text-xs ml-2 flex-shrink-0">
+                      <button
+                        @click="removeForce(force.id)"
+                        class="btn-danger-adv !p-1 !aspect-square shrink-0 !rounded-full !text-xs ml-2 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="删除此势力"
+                        :disabled="appSettings.safeModeLevel === 'forbidden'"
+                      >
                         <Icon icon="ph:x-bold"/>
                       </button>
                     </div>
@@ -209,12 +250,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
+import type { Ref } from 'vue'
 import draggable from 'vuedraggable'
-import { ElMessage, ElMessageBox, ElScrollbar, ElTooltip } from 'element-plus'
+import { ElMessage, ElMessageBox, ElScrollbar, ElTooltip, ElForm, ElFormItem, ElInput, ElInputNumber, ElSelect, ElOption } from 'element-plus'
 import { saveAs } from 'file-saver'
 import { Icon } from "@iconify/vue"
 import { nanoid } from 'nanoid'
+import { useAppSettingsStore, type SafeModeLevel } from '../stores/appSettings'
 import {
   saveToLocalStorage as saveToLS,
   loadFromLocalStorage as loadFromLS,
@@ -246,6 +289,7 @@ interface WorldForm {
 }
 
 const LOCAL_STORAGE_KEY = 'worldEditorData_v2';
+const appSettings = useAppSettingsStore();
 
 const createDefaultWorldForm = (): WorldForm => ({
   name: '',
@@ -259,12 +303,72 @@ const createDefaultWorldForm = (): WorldForm => ({
 const form = ref<WorldForm>(createDefaultWorldForm());
 let autoSaveTimer: number | null = null;
 
-const panelClasses = computed(() => [
-  'content-panel',
-]);
+const panelClasses = computed(() => ['content-panel']);
 
 const textToArray = (text: string | undefined): string[] => text ? text.split('\n').map(s => s.trim()).filter(line => line !== '') : [];
 const arrayToText = (arr: string[] | undefined): string => (arr && Array.isArray(arr) ? arr.join('\n') : '');
+
+async function performSafeAction(
+    safeModeLevel: SafeModeLevel,
+    actionName: string,
+    itemName: string = '',
+    actionFn: () => void | Promise<void>
+) {
+    if (safeModeLevel === 'forbidden') {
+        ElMessage.warning(`当前处于禁止模式，无法${actionName}。`);
+        return Promise.reject('forbidden');
+    }
+
+    const confirmTitle = itemName ? `确认${actionName}` : `确认${actionName}`;
+    const confirmMessage = itemName ? `确定要${actionName} "${itemName}" 吗？` : `确定要${actionName}吗？`;
+    const confirmButtonText = itemName ? `确定${actionName}` : '确定';
+
+    if (safeModeLevel === 'double') {
+        try {
+            await ElMessageBox.confirm(confirmMessage, confirmTitle, {
+                confirmButtonText: confirmButtonText,
+                cancelButtonText: '取消',
+                type: 'warning',
+                draggable: true,
+                customClass: 'app-dialog'
+            });
+            await actionFn();
+            ElMessage.success(`${actionName}成功！`);
+            return Promise.resolve();
+        } catch (e) {
+            if (e === 'cancel' || e?.message?.includes('cancel') || (e instanceof Error && e.message === 'cancel')) {
+                ElMessage.info(`已取消${actionName}操作。`);
+                 return Promise.reject('cancel');
+            } else if (e) {
+                console.error(`${actionName}时出错:`, e);
+                ElMessage.error(`${actionName}操作失败: ${e instanceof Error ? e.message : '未知错误'}`);
+                 return Promise.reject(e);
+            }
+             return Promise.reject('unknown');
+        }
+    } else if (safeModeLevel === 'single') {
+        try {
+            await actionFn();
+            ElMessage.success(`${actionName}成功！`);
+            return Promise.resolve();
+        } catch (e) {
+            console.error(`${actionName}时出错 (single mode):`, e);
+            ElMessage.error(`${actionName}操作失败: ${e instanceof Error ? e.message : '未知错误'}`);
+            return Promise.reject(e);
+        }
+    } else {
+         console.warn(`Unhandled safeModeLevel: ${safeModeLevel}. Performing action directly.`);
+         try {
+             await actionFn();
+             ElMessage.success(`${actionName}成功！`);
+             return Promise.resolve();
+         } catch (e) {
+             console.error(`${actionName}时出错 (unhandled mode):`, e);
+             ElMessage.error(`${actionName}操作失败: ${e instanceof Error ? e.message : '未知错误'}`);
+             return Promise.reject(e);
+         }
+    }
+}
 
 const processLoadedData = (parsedData: any): WorldForm => {
   const defaults = createDefaultWorldForm();
@@ -308,15 +412,35 @@ onMounted(() => {
   if (loadedData) {
     form.value = processLoadedData(loadedData);
   }
-  autoSaveTimer = initAutoSave(
-    () => saveToLS(getDataForStorage(), LOCAL_STORAGE_KEY),
-    () => !!form.value.name
-  );
+  if (appSettings.isAutoSaveEnabled) {
+    autoSaveTimer = initAutoSave(
+      () => saveToLS(getDataForStorage(), LOCAL_STORAGE_KEY),
+      () => !!form.value.name
+    );
+  }
 });
 
 onBeforeUnmount(() => {
   if (autoSaveTimer) {
     clearAutoSave(autoSaveTimer);
+  }
+});
+
+watch(() => appSettings.isAutoSaveEnabled, (newValue) => {
+  if (newValue) {
+    if (!autoSaveTimer) {
+      autoSaveTimer = initAutoSave(
+        () => saveToLS(getDataForStorage(), LOCAL_STORAGE_KEY),
+        () => !!form.value.name
+      );
+      ElMessage.info('自动保存已开启');
+    }
+  } else {
+    if (autoSaveTimer) {
+      clearAutoSave(autoSaveTimer);
+      autoSaveTimer = null;
+      ElMessage.info('自动保存已关闭');
+    }
   }
 });
 
@@ -326,14 +450,20 @@ const addLandmark = () => {
     name: `新地标 ${form.value.landmarks.length + 1}`,
     description: ''
   });
-  ElMessage.success('已添加新地标');
 };
 
-const removeLandmark = (id: string) => {
+const removeLandmark = async (id: string) => {
   const index = form.value.landmarks.findIndex(l => l.id === id);
-  if (index !== -1) {
-    form.value.landmarks.splice(index, 1);
-  }
+  if (index === -1) return;
+  const landmarkName = form.value.landmarks[index].name || `地标 (ID: ${id.substring(0,4)})`;
+  await performSafeAction(appSettings.safeModeLevel, '移除地标', landmarkName, () => {
+    const currentIndex = form.value.landmarks.findIndex(l => l.id === id);
+    if (currentIndex !== -1) {
+      form.value.landmarks.splice(currentIndex, 1);
+    } else {
+      throw new Error('地标未找到，可能已被移除。');
+    }
+  }).catch(err => { if(err !== 'cancel' && err !== 'forbidden') console.warn('移除地标操作未成功完成:', err);});
 };
 
 const addForce = () => {
@@ -343,14 +473,20 @@ const addForce = () => {
     members: '',
     description: ''
   });
-  ElMessage.success('已添加新势力');
 };
 
-const removeForce = (id: string) => {
+const removeForce = async (id: string) => {
   const index = form.value.forces.findIndex(f => f.id === id);
-  if (index !== -1) {
-    form.value.forces.splice(index, 1);
-  }
+  if (index === -1) return;
+  const forceName = form.value.forces[index].name || `势力 (ID: ${id.substring(0,4)})`;
+  await performSafeAction(appSettings.safeModeLevel, '移除势力', forceName, () => {
+     const currentIndex = form.value.forces.findIndex(f => f.id === id);
+     if (currentIndex !== -1) {
+        form.value.forces.splice(currentIndex, 1);
+     } else {
+       throw new Error('势力未找到，可能已被移除。');
+     }
+  }).catch(err => { if(err !== 'cancel' && err !== 'forbidden') console.warn('移除势力操作未成功完成:', err);});
 };
 
 const exportListAsJson = async (list: Landmark[] | Force[], listName: string) => {
@@ -373,35 +509,131 @@ const exportListAsJson = async (list: Landmark[] | Force[], listName: string) =>
 const exportLandmarks = () => exportListAsJson(form.value.landmarks, '地标');
 const exportForces = () => exportListAsJson(form.value.forces, '势力');
 
-const showImportDialog = () => {
-  ElMessageBox.prompt('粘贴JSON数据以导入整个地标设定', '导入数据', {
-    confirmButtonText: '导入',
-    cancelButtonText: '取消',
-    inputType: 'textarea',
-    inputPlaceholder: '粘贴JSON数据...',
-    customClass: 'app-dialog import-dialog',
-    inputValidator: (value) => {
-      if (!value) return '请输入数据';
-      try { JSON.parse(value); return true; } catch (e) { return '无效的JSON格式'; }
-    }
-  }).then(({ value }) => {
-    try {
-      const parsedData = JSON.parse(value);
-      form.value = processLoadedData(parsedData);
-      ElMessage.success('数据导入成功！');
-    } catch (error) {
-      ElMessage.error(`导入失败：${error instanceof Error ? error.message : '未知错误'}`);
-    }
-  }).catch(() => {});
+const importListFromFile = async <T extends { id: string }>(
+    listName: string,
+    targetArrayRefValue: T[], // Directly pass the array value
+    itemProcessor: (item: any) => T,
+    updateTargetArray: (newArray: T[]) => void // Callback to update the reactive array
+) => {
+    await performSafeAction(appSettings.safeModeLevel, `导入${listName}`, `此操作将替换当前所有${listName}`, async () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json,application/json';
+        await new Promise<void>((resolve, reject) => {
+            input.onchange = async (event) => {
+                const file = (event.target as HTMLInputElement).files?.[0];
+                if (!file) { reject('cancel'); return; }
+                try {
+                    const content = await file.text();
+                    if (!content.trim()) { throw new Error('文件内容为空。'); }
+                    const parsedData = JSON.parse(content);
+                    if (!Array.isArray(parsedData)) { throw new Error('无效的文件格式，需要包含一个JSON数组。'); }
+
+                    const processedItems = parsedData.map(itemProcessor).filter(Boolean) as T[];
+                    updateTargetArray(processedItems); // Use callback to update
+
+                    saveToLS(getDataForStorage(), LOCAL_STORAGE_KEY);
+                    resolve();
+                } catch (error) {
+                    console.error(`Import ${listName} error:`, error);
+                    reject(error);
+                }
+            };
+            input.addEventListener('cancel', () => reject('cancel'));
+            input.click();
+        });
+    }).catch(err => { if(err !== 'cancel' && err !== 'forbidden') console.warn(`导入${listName}操作未成功完成:`, err);});
+};
+
+const importLandmarks = () => {
+    importListFromFile<Landmark>(
+        '地标',
+        form.value.landmarks,
+        (item: any) => ({
+            id: item.id || nanoid(),
+            name: item.name || '',
+            description: item.description || ''
+        }),
+        (newArray) => { form.value.landmarks = newArray; }
+    );
+};
+
+const importForces = () => {
+    importListFromFile<Force>(
+        '势力',
+        form.value.forces,
+        (item: any) => ({
+            id: item.id || nanoid(),
+            name: item.name || '',
+            members: Array.isArray(item.members) ? arrayToText(item.members) : (item.members || ''),
+            description: item.description || ''
+        }),
+        (newArray) => { form.value.forces = newArray; }
+    );
+};
+
+
+const showImportDialog = async () => {
+  if (appSettings.safeModeLevel === 'forbidden') {
+      ElMessageBox.alert('当前处于禁止模式，无法从剪贴板导入。', '操作禁止', {
+          confirmButtonText: '知道了',
+          type: 'warning',
+          customClass: 'app-dialog'
+      });
+      return;
+  }
+
+  try {
+    const { value } = await ElMessageBox.prompt('粘贴JSON数据以导入整个地标设定', '导入数据', {
+      confirmButtonText: '导入',
+      cancelButtonText: '取消',
+      inputType: 'textarea',
+      inputPlaceholder: '粘贴JSON数据...',
+      customClass: 'app-dialog import-dialog',
+      inputValidator: (val) => {
+        if (!val) return '请输入数据';
+        try { JSON.parse(val); return true; } catch (e) { return '无效的JSON格式'; }
+      }
+    });
+
+    await performSafeAction(appSettings.safeModeLevel, '从剪贴板导入', '此操作将覆盖当前所有地标设定', () => {
+        const parsedData = JSON.parse(value);
+        form.value = processLoadedData(parsedData);
+        saveToLS(getDataForStorage(), LOCAL_STORAGE_KEY);
+    });
+
+  } catch(error) {
+      if(error !== 'cancel' && error !== 'forbidden') {
+          console.warn('从剪贴板导入操作未成功完成或被取消:', error);
+      }
+  }
 };
 
 const copyToClipboard = async () => {
   try {
-    const jsonData = JSON.stringify(getDataForStorage(), null, 2);
+    const baseData = getDataForStorage();
+    const dataForClipboard = JSON.parse(JSON.stringify(baseData));
+
+    if (dataForClipboard.landmarks && Array.isArray(dataForClipboard.landmarks)) {
+      dataForClipboard.landmarks = dataForClipboard.landmarks.map((landmark: any) => {
+        const { id, ...rest } = landmark;
+        return rest;
+      });
+    }
+
+    if (dataForClipboard.forces && Array.isArray(dataForClipboard.forces)) {
+      dataForClipboard.forces = dataForClipboard.forces.map((force: any) => {
+        const { id, ...rest } = force;
+        return rest;
+      });
+    }
+
+    const jsonData = JSON.stringify(dataForClipboard, null, 2);
     await navigator.clipboard.writeText(jsonData);
-    ElMessage.success('数据已复制到剪贴板！');
+    ElMessage.success('数据已复制到剪贴板 (地标/势力无ID)');
   } catch (error) {
     ElMessage.error("复制失败");
+    console.error("Error copying to clipboard:", error);
   }
 };
 
@@ -409,46 +641,47 @@ const saveWorld = async () => {
   try {
     const jsonData = JSON.stringify(getDataForStorage(), null, 2);
     const blob = new Blob([jsonData], { type: 'application/json' });
-    const filename = `${form.value.name || 'world_settings'}_${Date.now()}.json`;
+    const filename = `${(form.value.name || 'world_settings').replace(/[<>:"/\\|?*]+/g, '_')}_${Date.now()}.json`;
     saveAs(blob, filename);
     ElMessage.success('地标设定保存成功！');
+    saveToLS(getDataForStorage(), LOCAL_STORAGE_KEY);
   } catch (error) {
     ElMessage.error('保存失败');
   }
 };
 
 const loadWorld = async () => {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.json,application/json';
-  input.onchange = async (event) => {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (!file) return;
-    try {
-      const content = await file.text();
-      if (!content.trim()) throw new Error('文件内容为空。');
-      const parsedData = JSON.parse(content);
-      form.value = processLoadedData(parsedData);
-      ElMessage.success('地标设定加载成功！');
-    } catch (error) {
-      ElMessage.error(`加载文件失败：${error instanceof Error ? error.message : '未知错误'}`);
-    }
-  };
-  input.click();
+  await performSafeAction(appSettings.safeModeLevel, '加载地标设定', '此操作将覆盖当前内容', async () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json,application/json';
+    await new Promise<void>((resolve, reject) => {
+        input.onchange = async (event) => {
+            const file = (event.target as HTMLInputElement).files?.[0];
+            if (!file) { reject('cancel'); return; }
+            try {
+                const content = await file.text();
+                if (!content.trim()) throw new Error('文件内容为空。');
+                const parsedData = JSON.parse(content);
+                form.value = processLoadedData(parsedData);
+                saveToLS(getDataForStorage(), LOCAL_STORAGE_KEY);
+                resolve();
+            } catch (error) {
+                console.error("Load error:", error);
+                reject(error);
+            }
+        };
+        input.addEventListener('cancel', () => reject('cancel'));
+        input.click();
+    });
+  }).catch(err => { if(err !== 'cancel' && err !== 'forbidden') console.warn('加载地标设定操作未成功完成:', err);});
 };
 
-const resetForm = () => {
-  ElMessageBox.confirm('确定要重置所有数据吗？将清除已输入内容和本地存储。', '警告', {
-    confirmButtonText: '确定重置',
-    cancelButtonText: '取消',
-    type: 'warning',
-    draggable: true,
-    customClass: 'app-dialog'
-  }).then(() => {
+const resetForm = async () => {
+  await performSafeAction(appSettings.safeModeLevel, '重置表单', '将清除已输入内容和本地存储', () => {
     clearLS(LOCAL_STORAGE_KEY);
     form.value = createDefaultWorldForm();
-    ElMessage.success('数据已重置');
-  }).catch(() => {});
+  }).catch(err => { if(err !== 'cancel' && err !== 'forbidden') console.warn('重置表单操作未成功完成:', err);});
 };
 
 defineExpose({
@@ -630,5 +863,56 @@ defineExpose({
 :deep(.el-form-item__label) {
   line-height: normal !important;
   padding-bottom: 0 !important;
+}
+
+.content-panel {
+  background-color: var(--color-white);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  border-width: 1px;
+  border-color: var(--color-neutral-200);
+  overflow: hidden;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+  display: flex;
+  flex-direction: column;
+}
+.dark .content-panel {
+  background-color: var(--color-neutral-850);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+  border-color: var(--color-neutral-750);
+}
+.content-panel:hover {
+   box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+   transform: translateY(-0.25rem);
+}
+.dark .content-panel:hover {
+   box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
+}
+
+.content-panel-header {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom-width: 1px;
+  border-color: var(--color-neutral-200);
+}
+.dark .content-panel-header {
+  border-color: var(--color-neutral-700);
+}
+.content-panel-title {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 600;
+  color: var(--color-neutral-800);
+}
+.dark .content-panel-title {
+  color: var(--color-neutral-200);
+}
+
+.content-panel-body {
+  padding: 1.25rem;
+  flex-grow: 1;
 }
 </style>

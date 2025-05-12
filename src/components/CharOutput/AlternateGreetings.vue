@@ -2,7 +2,6 @@
   <div class="content-panel-body space-y-4 md:space-y-5 h-full flex flex-col">
     <div class="content-panel-header -mx-4 md:-mx-5 -mt-4 md:-mt-5 mb-5">
       <h3 class="content-panel-title flex items-center gap-2">
-        <!-- ***** USING ph:chats-bold ICON ***** -->
         <Icon icon="ph:chats-bold" class="text-xl text-accent-500 dark:text-accent-400"/>
         备用问候语
       </h3>
@@ -32,7 +31,12 @@
                 <button title="按住拖拽排序" class="greeting-drag-handle cursor-move text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 p-1 mb-1.5">
                   <Icon icon="material-symbols:drag-indicator-rounded" width="20" height="20" />
                 </button>
-                <button @click="() => handleRemoveGreeting(greeting.id)" class="btn-danger-adv !p-1.5 !rounded-full !text-xs" title="删除此问候语">
+                <button
+                  @click="() => handleRemoveGreeting(greeting.id)"
+                  class="btn-danger-adv !p-1.5 !rounded-full !text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="删除此问候语"
+                  :disabled="appSettings.safeModeLevel === 'forbidden'"
+                >
                   <Icon icon="ph:x-bold" width="12" height="12" />
                 </button>
               </div>
@@ -57,20 +61,83 @@ import { ref, watch, defineProps, defineEmits, nextTick } from 'vue';
 import { Icon } from "@iconify/vue";
 import draggable from 'vuedraggable';
 import { nanoid } from 'nanoid';
-import type { ElInput } from 'element-plus';
+import { ElInput, ElMessage, ElMessageBox } from 'element-plus';
+import { useAppSettingsStore, type SafeModeLevel } from '../../stores/appSettings'; // Assuming path from src/components/CharOutput/
 
 interface GreetingItem { id: string; text: string; }
-interface AlternateGreetingsFormData { data: { alternate_greetings: string[]; [key: string]: any; }; } // Allow other keys in data
+interface AlternateGreetingsFormData { data: { alternate_greetings: string[]; [key: string]: any; }; }
 interface Props { form: AlternateGreetingsFormData; }
 
 const props = defineProps<Props>();
 const emit = defineEmits(['update:form']);
+const appSettings = useAppSettingsStore();
 
 const localGreetings = ref<GreetingItem[]>([]);
 let internalUpdateFlag_Greetings = false;
 
+async function performSafeAction(
+    safeModeLevel: SafeModeLevel,
+    actionName: string,
+    itemName: string = '',
+    actionFn: () => void | Promise<void>
+) {
+    if (safeModeLevel === 'forbidden') {
+        ElMessage.warning(`当前处于禁止模式，无法${actionName}。`);
+        return Promise.reject('forbidden');
+    }
+
+    const confirmTitle = itemName ? `确认${actionName} "${itemName}"` : `确认${actionName}`;
+    const confirmMessage = itemName ? `确定要${actionName} "${itemName}" 吗？` : `确定要${actionName}吗？`;
+    const confirmButtonText = itemName ? `确定${actionName}` : '确定';
+
+    if (safeModeLevel === 'double') {
+        try {
+            await ElMessageBox.confirm(confirmMessage, confirmTitle, {
+                confirmButtonText: confirmButtonText,
+                cancelButtonText: '取消',
+                type: 'warning',
+                draggable: true,
+                customClass: 'app-dialog'
+            });
+            await actionFn();
+            ElMessage.success(`${actionName}成功！`);
+            return Promise.resolve();
+        } catch (e) {
+            if (e === 'cancel' || e?.message?.includes('cancel') || (e instanceof Error && e.message === 'cancel')) {
+                ElMessage.info(`已取消${actionName}操作。`);
+                 return Promise.reject('cancel');
+            } else if (e) {
+                console.error(`${actionName}时出错:`, e);
+                ElMessage.error(`${actionName}操作失败: ${e instanceof Error ? e.message : '未知错误'}`);
+                 return Promise.reject(e);
+            }
+             return Promise.reject('unknown');
+        }
+    } else if (safeModeLevel === 'single') {
+        try {
+            await actionFn();
+            ElMessage.success(`${actionName}成功！`);
+            return Promise.resolve();
+        } catch (e) {
+            console.error(`${actionName}时出错 (single mode):`, e);
+            ElMessage.error(`${actionName}操作失败: ${e instanceof Error ? e.message : '未知错误'}`);
+            return Promise.reject(e);
+        }
+    } else {
+         console.warn(`Unhandled safeModeLevel: ${safeModeLevel}. Performing action directly.`);
+         try {
+             await actionFn();
+             ElMessage.success(`${actionName}成功！`);
+             return Promise.resolve();
+         } catch (e) {
+             console.error(`${actionName}时出错 (unhandled mode):`, e);
+             ElMessage.error(`${actionName}操作失败: ${e instanceof Error ? e.message : '未知错误'}`);
+             return Promise.reject(e);
+         }
+    }
+}
+
 const stringArrayToGreetingItems = (arr: string[] = []): GreetingItem[] => {
-  // Ensure arr is an array before mapping
   return Array.isArray(arr) ? arr.map(text => ({ id: nanoid(), text: text || '' })) : [];
 };
 const greetingItemsToStringArray = (items: GreetingItem[]): string[] => {
@@ -82,7 +149,6 @@ watch(() => props.form.data.alternate_greetings, (newValArray) => {
   const localGreetingsTexts = greetingItemsToStringArray(localGreetings.value);
 
   if (JSON.stringify(propGreetingsTexts) !== JSON.stringify(localGreetingsTexts)) {
-    // console.log('AlternateGreetings: Props updated alternate_greetings. Updating local.');
     internalUpdateFlag_Greetings = true;
     localGreetings.value = stringArrayToGreetingItems(propGreetingsTexts);
     nextTick(() => { internalUpdateFlag_Greetings = false; });
@@ -91,45 +157,49 @@ watch(() => props.form.data.alternate_greetings, (newValArray) => {
 
 const emitUpdate = () => {
   if (internalUpdateFlag_Greetings) {
-    // console.log('AlternateGreetings: Emit blocked for prop-driven update (flag).');
     return;
   }
   const newStringArray = greetingItemsToStringArray(localGreetings.value);
   const currentPropStringArray = Array.isArray(props.form.data.alternate_greetings) ? props.form.data.alternate_greetings : [];
 
   if (JSON.stringify(newStringArray) !== JSON.stringify(currentPropStringArray)) {
-    // console.log('AlternateGreetings: Local changed. Emitting new string array:', newStringArray);
     emit('update:form', {
-      data: { 
-        ...props.form.data, // Preserve other fields in data
-        alternate_greetings: newStringArray 
+      data: {
+        ...props.form.data,
+        alternate_greetings: newStringArray
       }
     });
   }
 };
 
-// Watch for direct changes to localGreetings (e.g., text input in textarea)
-// and also for order changes (though draggable @change also calls emitUpdate)
 watch(localGreetings, emitUpdate, { deep: true });
 
 const handleAddGreeting = () => {
-  // This is a user action, directly modify local state, then let watch handle emit
   localGreetings.value.push({ id: nanoid(), text: '' });
-  // emitUpdate(); // Optionally call emitUpdate directly if watch is problematic for additions
 };
 
-const handleRemoveGreeting = (idToRemove: string) => {
+const handleRemoveGreeting = async (idToRemove: string) => {
   const index = localGreetings.value.findIndex(g => g.id === idToRemove);
-  if (index !== -1) {
-    localGreetings.value.splice(index, 1);
-    // emitUpdate(); // Optionally call emitUpdate directly
-  }
+  if (index === -1) return;
+  // Truncate long greeting text for confirmation message if needed
+  const greetingTextPreview = localGreetings.value[index].text.length > 20
+    ? localGreetings.value[index].text.substring(0, 17) + '...'
+    : localGreetings.value[index].text;
+  const itemName = greetingTextPreview || `该问候语 (ID: ${idToRemove.substring(0,4)})`;
+
+  await performSafeAction(appSettings.safeModeLevel, '移除问候语', itemName, () => {
+      const currentIndex = localGreetings.value.findIndex(g => g.id === idToRemove);
+      if (currentIndex !== -1) {
+        localGreetings.value.splice(currentIndex, 1);
+      } else {
+          // Should not happen if index was found initially, but good practice
+          throw new Error('问候语未找到，可能已被移除。');
+      }
+  }).catch(err => { if(err !== 'cancel' && err !== 'forbidden') console.warn('移除问候语操作未成功完成:', err);});
 };
 
 const handleDraggableChange = () => {
-  // v-model on draggable already updated localGreetings order
-  // Call emitUpdate to sync with parent
-  emitUpdate(); 
+  emitUpdate();
 };
 </script>
 

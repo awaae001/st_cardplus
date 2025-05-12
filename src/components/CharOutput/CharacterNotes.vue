@@ -6,7 +6,12 @@
         角色备注 (深度提示)
       </h3>
       <div class="ml-auto">
-        <button @click="handleTriggerFileUpload" class="btn-primary-adv text-sm !py-1.5 !px-3 whitespace-nowrap" title="从文件导入备注内容">
+        <button
+          @click="handleTriggerFileUpload"
+          class="btn-primary-adv text-sm !py-1.5 !px-3 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+          title="从文件导入备注内容"
+          :disabled="props.safeModeLevel === 'forbidden'"
+        >
           <Icon icon="material-symbols:file-open-outline-rounded" width="18" height="18" class="mr-1.5 -ml-0.5" />
           导入内容
         </button>
@@ -36,14 +41,21 @@
 <script setup lang="ts">
 import { reactive, watch, defineProps, defineEmits, nextTick } from 'vue';
 import { Icon } from "@iconify/vue";
-import type { ElInputNumber, ElInput, ElSelect, ElOption, ElFormItem } from 'element-plus';
+import { ElInputNumber, ElInput, ElSelect, ElOption, ElFormItem } from 'element-plus'; // Keep these as they are used in template
+import { useAppSettingsStore, type SafeModeLevel } from '../../stores/appSettings'; // Assuming path from src/components/CharOutput/
 
 interface DepthPromptData { prompt: string; depth: number; role: string; }
 interface CharacterNotesFormData { data: { extensions: { depth_prompt: DepthPromptData; [key: string]: any; }; [key: string]: any; }; }
-interface Props { form: CharacterNotesFormData; }
+
+// Modified Props definition to include safeModeLevel
+interface Props {
+  form: CharacterNotesFormData;
+  safeModeLevel: SafeModeLevel;
+}
 
 const props = defineProps<Props>();
 const emit = defineEmits(['update:form', 'handleFileUpload']);
+const appSettings = useAppSettingsStore();
 
 const defaultDepthPrompt = (): DepthPromptData => ({ prompt: '', depth: 0, role: 'system' });
 const localDepthPrompt = reactive<DepthPromptData>(defaultDepthPrompt());
@@ -52,24 +64,21 @@ let internalUpdateFlag_Notes = false;
 watch(() => props.form.data.extensions.depth_prompt, (newVal) => {
   const propVal = newVal || defaultDepthPrompt();
   if (JSON.stringify(propVal) !== JSON.stringify(localDepthPrompt)) {
-    // console.log('CharacterNotes: Props updated depth_prompt. Updating local.');
     internalUpdateFlag_Notes = true;
-    Object.assign(localDepthPrompt, propVal); // Assign to existing reactive object
+    Object.assign(localDepthPrompt, propVal);
     nextTick(() => { internalUpdateFlag_Notes = false; });
   }
 }, { deep: true, immediate: true });
 
 watch(localDepthPrompt, (newVal) => {
   if (internalUpdateFlag_Notes) {
-    // console.log('CharacterNotes: Emit blocked for prop-driven update.');
     return;
   }
   const currentPropVal = props.form.data.extensions.depth_prompt || defaultDepthPrompt();
   if (JSON.stringify(newVal) !== JSON.stringify(currentPropVal)) {
-    // console.log('CharacterNotes: Local changed. Emitting depth_prompt:', JSON.parse(JSON.stringify(newVal)));
     emit('update:form', {
-      data: { 
-        ...props.form.data, 
+      data: {
+        ...props.form.data,
         extensions: { ...props.form.data.extensions, depth_prompt: { ...newVal } }
       }
     });
