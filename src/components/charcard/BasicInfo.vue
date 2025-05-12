@@ -61,10 +61,12 @@
           <el-input-number 
             v-model="localForm.age" 
             controls-position="right"
-            :min="0" :max="9999" :precision="0" 
+            :min="-Infinity"
+            :max="Infinity"
+            :precision="0" 
             class="w-full" placeholder="角色年龄"
           />
-          <p class="form-help-text">请输入数字，0表示未设定或未知。</p>
+          <p class="form-help-text">请输入整数。</p>
         </el-form-item>
 
         <el-form-item class="mb-0" v-if="'mbti' in localForm && localForm.mbti !== undefined"> 
@@ -94,7 +96,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, defineProps, defineEmits, computed } from 'vue'; // Added computed for mbti display logic
+import { ref, watch, defineProps, defineEmits } from 'vue';
 import { ElInput, ElSelect, ElOption, ElInputNumber, ElForm, ElFormItem } from 'element-plus';
 import { Icon } from '@iconify/vue';
 
@@ -105,7 +107,7 @@ interface BasicInfoForm {
   customGender: string;
   age: number;
   identity: string;
-  mbti?: string; // Changed to optional
+  mbti?: string;
 }
 
 const props = defineProps<{
@@ -126,14 +128,4 @@ watch(localForm, (newVal) => {
   emit('update:form', { ...newVal });
 }, { deep: true });
 
-// If you want to ensure mbti is always part of the emitted object even if undefined:
-// watch(localForm, (newVal) => {
-//   const formToEmit: BasicInfoForm = {
-//     ...newVal,
-//     mbti: newVal.mbti ?? undefined, // Ensure mbti key exists
-//   };
-//   emit('update:form', formToEmit);
-// }, { deep: true });
-
 </script>
-
