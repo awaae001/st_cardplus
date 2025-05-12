@@ -17,75 +17,75 @@
         
         <el-form-item class="mb-0">
           <template #label><span class="form-label-adv">身高</span></template>
-          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.height" placeholder="例如：175cm"></el-input>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.height" placeholder="例如：测量值 175cm"></el-input>
         </el-form-item>
         <el-form-item class="mb-0">
           <template #label><span class="form-label-adv">发色</span></template>
-          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.hairColor" placeholder="例如：黑色"></el-input>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.hairColor" placeholder="例如：深棕色，接近Pantone 19-1118 TPX"></el-input>
         </el-form-item>
         <el-form-item class="mb-0">
           <template #label><span class="form-label-adv">发型</span></template>
-          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.hairstyle" placeholder="例如：及肩短发"></el-input>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.hairstyle" placeholder="例如：自然垂顺，长度至肩胛骨下缘"></el-input>
         </el-form-item>
         <el-form-item class="mb-0">
           <template #label><span class="form-label-adv">眼睛</span></template>
-          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.eyes" placeholder="例如：深邃的蓝色眼眸"></el-input>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.eyes" placeholder="例如：虹膜呈浅褐色，瞳孔对光反射正常"></el-input>
         </el-form-item>
         <el-form-item class="mb-0">
           <template #label><span class="form-label-adv">鼻子</span></template>
-          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.nose" placeholder="例如：高挺的鼻梁"></el-input>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.nose" placeholder="例如：鼻梁直，鼻翼对称，无明显偏曲"></el-input>
         </el-form-item>
         <el-form-item class="mb-0">
           <template #label><span class="form-label-adv">嘴唇</span></template>
-          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.lips" placeholder="例如：薄而性感的双唇"></el-input>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.lips" placeholder="例如：唇红缘清晰，厚度适中"></el-input>
         </el-form-item>
         <el-form-item class="mb-0">
           <template #label><span class="form-label-adv">皮肤</span></template>
-          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.skin" placeholder="例如：白皙的皮肤"></el-input>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.skin" placeholder="例如：Fitzpatrick皮肤分型II型，无明显瘢痕或色素沉着"></el-input>
         </el-form-item>
         <el-form-item class="mb-0">
           <template #label><span class="form-label-adv">身材</span></template>
-          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.body" placeholder="例如：匀称而富有力量"></el-input>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.body" placeholder="例如：体型匀称，肌肉组织发育良好"></el-input>
         </el-form-item>
         <el-form-item class="mb-0">
           <template #label><span class="form-label-adv">胸部</span></template>
-          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.breasts" placeholder="例如：饱满的C罩杯"></el-input>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.breasts" placeholder="例如：乳腺组织发育对称，Tanner分期V期"></el-input>
         </el-form-item>
         <el-form-item class="mb-0">
           <template #label><span class="form-label-adv">生殖器</span></template>
-          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.genitals" placeholder="例如：尺寸可观"></el-input>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.genitals" placeholder="例如：外生殖器发育正常，符合生理性别特征"></el-input>
         </el-form-item>
         <el-form-item class="mb-0">
           <template #label><span class="form-label-adv">肛门</span></template>
-          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.anus" placeholder="例如：紧致"></el-input>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.anus" placeholder="例如：肛周皮肤完整，无异常赘生物"></el-input>
         </el-form-item>
         <el-form-item class="mb-0">
           <template #label><span class="form-label-adv">阴毛</span></template>
-          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.pubes" placeholder="例如：修剪整齐"></el-input>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.pubes" placeholder="例如：耻骨联合区毛发分布呈倒三角形"></el-input>
         </el-form-item>
         <el-form-item class="mb-0">
           <template #label><span class="form-label-adv">胸围</span></template>
-          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.bust" placeholder="例如：90cm"></el-input>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.bust" placeholder="例如：经乳头点水平周长90cm"></el-input>
         </el-form-item>
         <el-form-item class="mb-0">
           <template #label><span class="form-label-adv">腰围</span></template>
-          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.waist" placeholder="例如：60cm"></el-input>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.waist" placeholder="例如：脐水平周长60cm"></el-input>
         </el-form-item>
         <el-form-item class="mb-0">
           <template #label><span class="form-label-adv">臀围</span></template>
-          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.hips" placeholder="例如：90cm"></el-input>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.hips" placeholder="例如：臀部最突出点水平周长90cm"></el-input>
         </el-form-item>
         <el-form-item class="mb-0">
           <template #label><span class="form-label-adv">大腿</span></template>
-          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.thighs" placeholder="例如：结实有力"></el-input>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.thighs" placeholder="例如：股四头肌轮廓清晰，无萎缩"></el-input>
         </el-form-item>
         <el-form-item class="mb-0">
           <template #label><span class="form-label-adv">屁股</span></template>
-          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.butt" placeholder="例如：圆润挺翘"></el-input>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.butt" placeholder="例如：臀大肌饱满，形态圆隆"></el-input>
         </el-form-item>
         <el-form-item class="mb-0">
           <template #label><span class="form-label-adv">足部</span></template>
-          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.feet" placeholder="例如：小巧玲珑的玉足"></el-input>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.feet" placeholder="例如：双足对称，足弓形态正常，无畸形"></el-input>
         </el-form-item>
 
         
@@ -112,7 +112,7 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted, onBeforeUnmount, defineProps, defineEmits, computed } from 'vue';
-import { ElInput, ElButton, ElFormItem, ElForm, ElMessageBox, ElMessage } from 'element-plus'; // Added ElMessage
+import { ElInput, ElButton, ElFormItem, ElForm, ElMessageBox, ElMessage } from 'element-plus';
 import { Icon } from '@iconify/vue';
 
 interface CustomField { label: string; value: string; }
@@ -159,29 +159,22 @@ watch(() => props.form.appearance, (newAppearance) => {
   if (newAppearanceJson !== currentLocalAppearanceJson) {
     localForm.value.appearance = newAppearance ? { ...newAppearance } : {};
   }
-  // Initialize custom fields regardless, as props could change custom fields too
   initializeCustomFields(newAppearance);
 
 }, { deep: true, immediate: true });
 
-// Watch localForm.appearance (standard fields) for changes and emit
 watch(() => localForm.value.appearance, (newVal, oldVal) => {
-  // We need to ensure this doesn't create an infinite loop with customFields watcher
-  // This watcher is primarily for standard fields modified directly in localForm.appearance
   if (JSON.stringify(newVal) !== JSON.stringify(oldVal)) {
-     // Filter out custom fields that are managed by `customFields` ref from direct emission
     const standardFieldsUpdate: Record<string, string> = {};
     for (const key in newVal) {
       if (STANDARD_APPEARANCE_KEYS.has(key) || !customFields.value.find(cf => cf.label === key)) {
         standardFieldsUpdate[key] = newVal[key];
       }
     }
-    // Also add custom fields from customFields ref
     customFields.value.forEach(cf => {
         standardFieldsUpdate[cf.label] = cf.value;
     });
 
-    // Only emit if the effective data (standard + custom from customFields) has changed from props
     const propsAppearanceJson = JSON.stringify(props.form.appearance || {});
     const effectiveLocalAppearanceJson = JSON.stringify(standardFieldsUpdate);
 
@@ -191,12 +184,10 @@ watch(() => localForm.value.appearance, (newVal, oldVal) => {
   }
 }, { deep: true });
 
-// Watch customFields array (for adding, removing, or changing value of custom fields)
 watch(customFields, (newCustomFields, oldCustomFields) => {
   let changed = false;
   const newLocalAppearance = { ...localForm.value.appearance };
 
-  // Update from new custom fields
   newCustomFields.forEach(field => {
     if (newLocalAppearance[field.label] !== field.value) {
       newLocalAppearance[field.label] = field.value;
@@ -204,7 +195,6 @@ watch(customFields, (newCustomFields, oldCustomFields) => {
     }
   });
 
-  // Remove old custom fields that are no longer in customFields list
   const newCustomLabels = new Set(newCustomFields.map(f => f.label));
   for (const key in newLocalAppearance) {
     if (!STANDARD_APPEARANCE_KEYS.has(key) && !newCustomLabels.has(key)) {
@@ -214,8 +204,6 @@ watch(customFields, (newCustomFields, oldCustomFields) => {
   }
   
   if (changed) {
-    // Update localForm.appearance, this will trigger the above watcher to emit
-    // Compare before assigning to prevent loop if only order changed in customFields
     if (JSON.stringify(localForm.value.appearance) !== JSON.stringify(newLocalAppearance)) {
         localForm.value.appearance = newLocalAppearance;
     }
@@ -226,7 +214,7 @@ watch(customFields, (newCustomFields, oldCustomFields) => {
 const addCustomField = async () => {
   try {
     const { value: inputText } = await ElMessageBox.prompt(
-      '<b>请输入自定义字段，每行一个</b><br>格式："字段名:字段描述"<br>例如：<br>纹身:淡青色小龙纹身<br>角:一对黑曜石长角',
+      '<b>请输入自定义字段，每行一个</b><br>格式："字段名:字段描述"<br>例如：<br>体表:左肩胛区可见一约2cm陈旧性线状瘢痕<br>牙齿:上颌右侧第一前磨牙缺失',
       '添加自定义外貌字段',
       {
         confirmButtonText: '确认添加', cancelButtonText: '取消', inputType: 'textarea',
@@ -267,7 +255,7 @@ const addCustomField = async () => {
         addedCount++;
       }
       if (newFieldsToAdd.length > 0) {
-         customFields.value.push(...newFieldsToAdd); // This will trigger the watch on customFields
+         customFields.value.push(...newFieldsToAdd);
       }
       if (addedCount > 0) {
         ElMessage.success(`成功添加 ${addedCount} 个自定义字段。`);
@@ -283,7 +271,7 @@ const addCustomField = async () => {
 
 const removeCustomField = (index: number) => {
   if (customFields.value[index]) {
-    customFields.value.splice(index, 1); // This will trigger the watch on customFields
+    customFields.value.splice(index, 1); 
   }
 };
 
@@ -293,9 +281,8 @@ onBeforeUnmount(() => { window.removeEventListener('resize', updateScreenWidth);
 </script>
 
 <style scoped>
-/* Optional: if textareas in grid need specific styling adjustments */
 .el-form-item :deep(.el-textarea__inner) {
-  font-size: 0.8125rem; /* 13px if you want to match AttireSettings */
+  font-size: 0.8125rem; 
   line-height: 1.5; 
   padding-top: 4px; 
   padding-bottom: 4px;

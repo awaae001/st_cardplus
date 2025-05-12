@@ -3,7 +3,7 @@
     
     <div class="flex items-center gap-2 md:gap-3">
       <el-tooltip content="加载角色卡 (Ctrl+O)" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
-        <button @click="loadCharacterCard" class="btn-secondary-adv !p-2.5 aspect-square group" aria-label="加载角色卡">
+        <button @click="loadCharacterCard" class="btn-success-adv !p-2.5 aspect-square group" aria-label="加载角色卡">
           <Icon icon="ph:folder-open-duotone" class="text-lg group-hover:scale-110 transition-transform"/>
         </button>
       </el-tooltip>
@@ -27,7 +27,7 @@
         </button>
       </el-tooltip>
       <el-tooltip content="从剪贴板粘贴 (Ctrl+V)" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
-        <button @click="showImportDialog" class="btn-secondary-adv !p-2.5 aspect-square group" aria-label="从剪贴板粘贴">
+        <button @click="showImportDialog" class="btn-warning-adv !p-2.5 aspect-square group" aria-label="从剪贴板粘贴">
           <Icon icon="ph:clipboard-text-duotone" class="text-lg group-hover:scale-110 transition-transform"/>
         </button>
       </el-tooltip>
@@ -36,7 +36,6 @@
 </template>
 
 <script setup lang="ts">
-// ... Script 部分与你提供的 CharacterCardButtons.vue 保持一致 (包含 emit 和方法)
 import { defineEmits } from 'vue';
 import { Icon } from "@iconify/vue";
 import { ElMessageBox, ElTooltip } from 'element-plus';
@@ -69,7 +68,6 @@ const showImportDialog = () => {
     },
   }).then(({ value }) => {
     emit('importFromClipboard', value);
-  }).catch(() => { /* User cancelled */ });
+  }).catch(() => {});
 };
 </script>
-

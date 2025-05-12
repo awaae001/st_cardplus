@@ -1,65 +1,96 @@
 <template>
-    <div class="image-parser-container">
-        <div class="header-top">
-            <el-button type="primary" plain @click="$router.push('/toolbox')" class="back-button">
-                <Icon icon="material-symbols:arrow-back" width="16" height="16" />
-                返回工具箱
-            </el-button>
-            <el-alert title="解析角色卡自带的json并且本地保存，方便快捷" type="info" :closable="false"
-                class="info-alert" />
+  <div class="image-parser-page p-3 md:p-5 h-full flex flex-col">
+    <header class="flex flex-col sm:flex-row justify-between items-center mb-4 md:mb-6 flex-shrink-0 gap-y-3">
+      <div class="flex items-center gap-3">
+        <button @click="$router.push('/toolbox')" class="btn-secondary-adv !py-1.5 !px-3 text-sm">
+          <Icon icon="ph:arrow-left-duotone" class="mr-1.5 -ml-0.5" />
+          返回工具箱
+        </button>
+        <h1 class="text-xl md:text-2xl font-bold text-neutral-700 dark:text-neutral-100">
+          图片元数据分离器
+        </h1>
+      </div>
+    </header>
+
+    <el-alert title="解析角色卡图片内嵌的JSON元数据并支持本地保存。" type="info" :closable="false" class="mb-4 md:mb-6 flex-shrink-0" />
+
+    <div class="content-panel flex-grow flex flex-col min-h-0">
+      <div class="content-panel-header">
+        <h3 class="content-panel-title flex items-center gap-2">
+          <Icon icon="ph:image-square-duotone" class="text-xl text-accent-500 dark:text-accent-400"/>
+          上传与预览
+        </h3>
+      </div>
+      <div class="content-panel-body flex-grow flex flex-col md:flex-row gap-4 md:gap-6">
+        <div class="w-full md:w-1/3">
+          <el-upload
+            class="image-upload-area"
+            drag
+            action=""
+            :auto-upload="false"
+            :on-change="handleFileChange"
+            :show-file-list="false"
+            accept="image/png, image/webp"
+          >
+            <div class="el-upload__icon text-6xl text-neutral-400 dark:text-neutral-500"><Icon icon="ph:upload-simple-duotone" /></div>
+            <div class="el-upload__text text-neutral-600 dark:text-neutral-300">将图片拖到此处，或<em>点击上传</em></div>
+            <template #tip>
+              <div class="el-upload__tip text-xs text-neutral-500 dark:text-neutral-400 mt-2">
+                仅支持 PNG 和 WebP 格式的图片
+              </div>
+            </template>
+          </el-upload>
         </div>
-        <h3>元数据分离器</h3>
-        <el-card shadow="hover">
-            <el-upload class="upload-demo" drag action="" :auto-upload="false" :on-change="handleFileChange"
-                :show-file-list="false">
-                <i class="el-icon-upload"></i>
-                <div class="el-upload__text">
-                    将文件拖到此处，或<em>点击上传</em>
-                </div>
-            </el-upload>
 
-            <div class="preview-area" v-if="imageUrl">
-                <el-image :src="imageUrl" :preview-src-list="[imageUrl]" fit="contain" style="max-height: 300px;" />
-            </div>
-
-            <el-divider></el-divider>
-
-            <div class="result-area" v-if="parsedData || characterData">
-                <el-tabs type="border-card">
-                    <el-tab-pane label="解析结果" v-if="parsedData">
-                        <pre>{{ parsedData }}</pre>
-                    </el-tab-pane>
-                    <el-tab-pane label="CCV3数据" v-if="characterData">
-                        <div class="data-stats">
-                            <div class="stat-item">
-                                <span>字符数: {{ charCount }}</span>
-                            </div>
-                            <div class="stat-item">
-                                <span>大小: {{ dataSize }} KB</span>
-                            </div>
-                            <div class="save-button">
-                                <el-button type="primary" @click="saveJson" style="float: right;">
-                                    保存JSON
-                                </el-button>
-                            </div>
-                        </div>
-                        <el-divider border-style="dashed" />
-                        <pre class="json-data">{{ characterData }}</pre>
-                    </el-tab-pane>
-                </el-tabs>
-            </div>
-        </el-card>
+        <div class="w-full md:w-2/3 flex justify-center items-center bg-neutral-100 dark:bg-neutral-800 rounded-lg min-h-[200px] p-4">
+          <el-image
+            v-if="imageUrl"
+            :src="imageUrl"
+            :preview-src-list="[imageUrl]"
+            fit="contain"
+            class="max-h-[300px] md:max-h-[400px] w-auto rounded-md shadow-md"
+          />
+          <el-empty v-else description="暂无图片预览" :image-size="100" />
+        </div>
+      </div>
     </div>
+
+    <div class="content-panel mt-4 md:mt-6 flex-shrink-0" v-if="parsedData || characterData">
+       <div class="content-panel-header">
+        <h3 class="content-panel-title flex items-center gap-2">
+          <Icon icon="ph:file-text-duotone" class="text-xl text-accent-500 dark:text-accent-400"/>
+          解析结果
+        </h3>
+        <button v-if="characterData" @click="saveJson" class="btn-primary-adv !py-1.5 !px-3 text-sm">
+            <Icon icon="ph:floppy-disk-duotone" class="mr-1.5 -ml-0.5" />保存JSON
+        </button>
+      </div>
+      <div class="content-panel-body">
+        <el-tabs type="border-card" class="custom-tabs">
+          <el-tab-pane label="图片信息" v-if="parsedData" class="tab-pane-content">
+            <pre class="metadata-pre">{{ parsedData }}</pre>
+          </el-tab-pane>
+          <el-tab-pane label="角色卡数据 (CCV3)" v-if="characterData" class="tab-pane-content">
+            <div class="flex justify-between items-center text-xs text-neutral-500 dark:text-neutral-400 mb-2">
+              <span>字符数: {{ charCount }}</span>
+              <span>数据大小: {{ dataSize }} KB</span>
+            </div>
+            <pre class="json-data-pre">{{ characterData }}</pre>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
 import type { UploadFile } from 'element-plus';
 import { Icon } from '@iconify/vue';
-import { ElMessage } from 'element-plus';
-import { extractAndDecodeCcv3 } from '@/utils/metadataSeparator'; // Import the new utility function
+import { ElMessage, ElButton, ElAlert, ElUpload, ElImage, ElTabs, ElTabPane, ElEmpty, ElTooltip } from 'element-plus';
+import { extractAndDecodeCcv3 } from '@/utils/metadataSeparator';
 
-interface ParsedData {
+interface ParsedFileInfo {
     filename: string
     size?: number
     type: string
@@ -67,9 +98,8 @@ interface ParsedData {
 }
 
 const imageUrl = ref('')
-const parsedData = ref<ParsedData | null>(null)
+const parsedData = ref<ParsedFileInfo | null>(null)
 const characterData = ref<any>(null)
-const initialData = ref<any>({})
 
 const charCount = computed(() => {
     if (!characterData.value) return 0
@@ -93,116 +123,83 @@ const saveJson = () => {
     const blob = new Blob([jsonStr], { type: 'application/json' })
     const link = document.createElement('a')
     link.href = URL.createObjectURL(blob)
-    link.download = `character_card_${randomNumber}.json`
+    link.download = `character_card_v3_${characterData.value.name || randomNumber}.json`
     link.click()
     URL.revokeObjectURL(link.href)
-    ElMessage.success('JSON文件已保存')
+    ElMessage.success('角色卡JSON文件已保存')
 }
 
-const importImage = async (file: File) => {
-    const decodedData = await extractAndDecodeCcv3(file);
-
-    if (decodedData) {
-        // 成功解码，更新数据
-        // 假设 extractAndDecodeCcv3 返回的是需要合并到 initialData 的部分或全部数据
-        // 如果返回的是完整数据，可能不需要 ...initialData.value
-        characterData.value = { ...initialData.value, ...decodedData };
-        ElMessage.success('数据已成功加载');
-    } else {
-        // 解码失败或未找到 ccv3 标签
-        ElMessage.error('无法从图片中加载数据，请检查图片是否包含有效的 ccv3 元数据');
-        // 可选：根据需求决定是否重置 characterData
-        // characterData.value = { ...initialData.value };
+const importImageAndExtract = async (file: File) => {
+    try {
+        const decodedData = await extractAndDecodeCcv3(file);
+        if (decodedData) {
+            characterData.value = decodedData;
+            ElMessage.success('图片内嵌角色卡数据已成功加载！');
+        } else {
+            characterData.value = null;
+            ElMessage.info('在图片中未找到有效的角色卡数据 (ccv3/chara)。');
+        }
+    } catch (error) {
+        characterData.value = null;
+        ElMessage.error('解析图片数据时发生错误。');
+        console.error("Error extracting/decoding data:", error);
     }
 };
 
-const handleFileChange = (file: UploadFile) => {
-    if (!file.raw) return
+const handleFileChange = (uploadFile: UploadFile) => {
+    if (!uploadFile.raw) return
 
-    // 生成预览URL
-    imageUrl.value = URL.createObjectURL(file.raw)
-    importImage(file.raw)
+    imageUrl.value = URL.createObjectURL(uploadFile.raw)
+    importImageAndExtract(uploadFile.raw)
 
     parsedData.value = {
-        filename: file.name,
-        size: file.size,
-        type: file.raw.type,
-        lastModified: file.raw.lastModified
+        filename: uploadFile.name,
+        size: uploadFile.size,
+        type: uploadFile.raw.type,
+        lastModified: uploadFile.raw.lastModified
     }
 }
 </script>
 
 <style scoped>
-.header-top {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 15px;
+.image-upload-area :deep(.el-upload-dragger) {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 200px; /* Or adjust as needed */
+  border-radius: var(--radius-lg);
+  background-color: var(--color-neutral-50);
+  border-color: var(--color-neutral-300);
+}
+.dark .image-upload-area :deep(.el-upload-dragger) {
+  background-color: var(--color-neutral-800);
+  border-color: var(--color-neutral-700);
+}
+.image-upload-area :deep(.el-upload-dragger:hover) {
+  border-color: var(--color-accent-500);
 }
 
-.header-top .format-button {
-    margin-right: auto;
+.metadata-pre, .json-data-pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  background-color: var(--color-neutral-100);
+  color: var(--color-neutral-800);
+  padding: 10px 15px;
+  border-radius: var(--radius-md);
+  max-height: 400px;
+  overflow: auto;
+  font-size: 0.8125rem; /* 13px */
+}
+.dark .metadata-pre, .dark .json-data-pre {
+  background-color: var(--color-neutral-850);
+  color: var(--color-neutral-200);
 }
 
-.header-top .info-alert {
-    flex: 1;
-    margin: 0;
+.custom-tabs :deep(.el-tabs__content) {
+  padding: 0;
 }
-
-.image-parser-container {
-    padding: 20px;
-}
-
-.card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.upload-demo {
-    margin-bottom: 20px;
-}
-
-.preview-area {
-    margin: 20px 0;
-    display: flex;
-    justify-content: center;
-}
-
-.result-area {
-    margin-top: 20px;
-}
-
-.json-data {
-    white-space: pre-wrap;
-    /* 保留空白符序列，但会自动换行 */
-    white-space: -moz-pre-wrap;
-    /* Mozilla浏览器的兼容性 */
-    white-space: -pre-wrap;
-    /* 旧版浏览器的兼容性 */
-    white-space: -o-pre-wrap;
-    /* Opera浏览器的兼容性 */
-    word-wrap: break-word;
-    /* 强制长单词换行 */
-    max-height: 300px;
-    overflow: auto;
-}
-
-.data-stats {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 10px;
-    flex-direction: row;
-    align-items: center;
-}
-
-.stat-item {
-    font-size: 14px;
-    color: var(--el-text-color-secondary);
-}
-
-.save-button {
-    clear: both;
-    margin-left: auto;
+.tab-pane-content {
+  padding: 15px;
 }
 </style>

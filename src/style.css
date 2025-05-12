@@ -1,9 +1,8 @@
-/* src/style.css */
 @import "tailwindcss";
 
-@variant dark (&:where(.dark, .dark *)); /* 暗黑模式变体 */
+@variant dark (&:where(.dark, .dark *));
 
-@layer base { /* 基础层样式 */
+@layer base {
   body {
     @apply bg-neutral-100 dark:bg-gradient-to-br dark:from-neutral-900 dark:to-neutral-800 text-neutral-800 dark:text-neutral-300;
     @apply font-sans antialiased;
@@ -16,8 +15,7 @@
   ::-webkit-scrollbar-thumb:hover { @apply bg-neutral-400 dark:bg-neutral-600; }
 }
 
-@theme { /* 主题配置 */
-  /* Accent Color - 强调色系列 */
+@theme {
   --color-accent-50: oklch(0.95 0.08 260);
   --color-accent-100: oklch(0.92 0.12 260);
   --color-accent-200: oklch(0.88 0.16 260);
@@ -30,7 +28,6 @@
   --color-accent-900: oklch(0.4 0.29 260);
   --color-accent-950: oklch(0.3 0.3 260);
 
-  /* Neutral/Gray Colors - 自定义中性/灰色系列 (冷色调) */
   --color-neutral-50: oklch(0.984 0.003 240);
   --color-neutral-100: oklch(0.961 0.006 240);
   --color-neutral-200: oklch(0.929 0.009 240);
@@ -39,15 +36,14 @@
   --color-neutral-500: oklch(0.749 0.015 240);
   --color-neutral-600: oklch(0.647 0.016 240);
   --color-neutral-700: oklch(0.549 0.017 240);
-  --color-neutral-750: oklch(0.47 0.0175 240); /* 自定义中间色阶 */
+  --color-neutral-750: oklch(0.47 0.0175 240);
   --color-neutral-800: oklch(0.392 0.018 240);
-  --color-neutral-850: oklch(0.30 0.018 240);  /* 自定义较深中间色阶 */
+  --color-neutral-850: oklch(0.30 0.018 240);
   --color-neutral-900: oklch(0.22 0.018 240);
   --color-neutral-950: oklch(0.149 0.018 240);
 
-  /* Other Named Colors - 其他命名颜色系列 */
-  --color-white: oklch(1 0 0); /* 明确定义白色 */
-  --color-black: oklch(0 0 0); /* 明确定义黑色 */
+  --color-white: oklch(1 0 0);
+  --color-black: oklch(0 0 0);
 
   --color-sky-50: oklch(0.97 0.05 230);
   --color-sky-100: oklch(0.93 0.09 230);
@@ -56,7 +52,7 @@
   --color-sky-400: oklch(0.79 0.18 230);
   --color-sky-500: oklch(0.72 0.21 230);
   --color-sky-600: oklch(0.65 0.24 230);
-  --color-sky-800: oklch(0.5 0.28 230); /* 为 dark:bg-sky-800/30 提供基础 */
+  --color-sky-800: oklch(0.5 0.28 230);
 
   --color-green-50: oklch(0.96 0.08 130);
   --color-green-300: oklch(0.85 0.18 133);
@@ -75,7 +71,6 @@
   --color-amber-500: oklch(0.75 0.2 80);
   --color-amber-600: oklch(0.7 0.21 80);
 
-  /* Radius Variables - 圆角变量 */
   --radius-DEFAULT: 0.25rem;
   --radius-sm: 0.125rem;
   --radius-md: 0.375rem;
@@ -85,18 +80,15 @@
   --radius-3xl: 1.5rem;
   --radius-full: 9999px;
   
-  /* Glassmorphism background variable */
   --bg-glass-light: oklch(0.98 0.005 240 / 0.5);
   --bg-glass-dark: oklch(0.25 0.015 240 / 0.5);
 }
 
-/* --- @layer components --- */
 @layer components {
-  /* Main Content Panels / Cards */
   .content-panel {
     @apply bg-white dark:bg-neutral-850 rounded-xl shadow-xl dark:shadow-black/30 
            border border-neutral-200 dark:border-neutral-750 overflow-hidden
-           transition-all duration-300 ease-out;
+           transition-all duration-300 ease-out hover:transform hover:-translate-y-1 hover:shadow-2xl dark:hover:shadow-black/50;
   }
   .content-panel-header {
     @apply px-5 py-3.5 border-b border-neutral-200 dark:border-neutral-750 flex justify-between items-center;
@@ -168,7 +160,7 @@
            border border-transparent 
            transform transition-all duration-150 ease-in-out active:scale-[0.97]
            focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-neutral-900;
-     @apply bg-amber-500 text-neutral-900 hover:bg-amber-600 focus:ring-amber-500; /* text-neutral-900 is chosen for better contrast on amber background */
+     @apply bg-amber-500 text-neutral-900 hover:bg-amber-600 focus:ring-amber-500;
   }
   .form-section { @apply pt-6 first:pt-0; }
   .form-section:not(:first-child) { @apply border-t border-neutral-200 dark:border-neutral-700; }
@@ -180,7 +172,6 @@
   .entry-menu .el-menu-item.is-active { @apply bg-accent-500/10 dark:bg-accent-600/20 text-accent-600 dark:text-accent-400 font-semibold; }
 }
 
-/* --- Element Plus :deep 样式 --- */
 :deep(.el-input__wrapper), 
 :deep(.el-textarea__inner), 
 :deep(.el-select .el-input__wrapper),
@@ -251,7 +242,6 @@
 .el-select-dropdown__item.hover, .el-select-dropdown__item:hover { @apply bg-neutral-100 dark:bg-neutral-700/70; }
 .el-select-dropdown__item.selected { @apply text-accent-600 dark:text-accent-400 font-medium bg-accent-50 dark:bg-accent-600/25; }
 
-/* Transitions */
 .palette-overlay-fade-enter-active, .palette-overlay-fade-leave-active { transition: opacity 0.15s ease-out; }
 .palette-overlay-fade-enter-from, .palette-overlay-fade-leave-to { opacity: 0; }
 .palette-slide-fade-enter-active, .palette-slide-fade-leave-active { transition: opacity 0.2s ease-out, transform 0.2s ease-out; }
@@ -260,7 +250,6 @@
 .module-fade-enter-from { opacity: 0; transform: translateY(10px) scale(0.98); }
 .module-fade-leave-to { opacity: 0; transform: translateY(-10px) scale(0.98); }
 
-/* ElMessageBox custom styling */
 html.dark .el-message-box { @apply bg-neutral-800 rounded-lg shadow-xl border border-neutral-700; }
 html.dark .el-message-box__header { @apply border-b border-neutral-700; }
 html.dark .el-message-box__title { @apply text-neutral-100; }
@@ -270,8 +259,6 @@ html.dark .el-message-box__input .el-input__wrapper:hover { @apply border-accent
 html.dark .el-message-box__input .el-input__wrapper.is-focus { @apply border-accent-500 ring-1 ring-accent-500/30; }
 .el-message-box__input textarea.el-textarea__inner { min-height: 120px !important; }
 
-
-/* App Dialog (for paste modal etc.) */
 .app-dialog .el-dialog__header { @apply py-3 px-5 border-b border-neutral-200 dark:border-neutral-700; }
 .app-dialog .el-dialog__title { @apply text-base font-semibold text-neutral-700 dark:text-neutral-100; }
 html.dark .app-dialog.el-dialog, html.dark .app-dialog .el-dialog__header { @apply bg-neutral-800 text-neutral-200 rounded-lg shadow-xl; }
@@ -279,8 +266,6 @@ html.dark .app-dialog .el-dialog__body { @apply bg-neutral-800 text-neutral-200;
 html.dark .app-dialog .el-dialog__footer { @apply bg-neutral-800 border-t border-neutral-700 py-3 px-5; }
 html.dark .app-dialog .el-dialog__headerbtn .el-dialog__close { @apply text-neutral-400 hover:text-accent-500; }
 
-
-/* Specific scrollbars */
 .command-palette-scrollbar ::-webkit-scrollbar { @apply w-1.5 h-1.5; }
 .command-palette-scrollbar ::-webkit-scrollbar-track { @apply bg-transparent; }
 .command-palette-scrollbar ::-webkit-scrollbar-thumb { @apply bg-neutral-300 dark:bg-neutral-600 rounded-full; }
@@ -293,3 +278,42 @@ html.dark .command-palette-scrollbar { scrollbar-color: var(--color-neutral-600)
 .editor-main-scroll-area ::-webkit-scrollbar-thumb:hover { @apply bg-neutral-400 dark:bg-neutral-500; }
 .editor-main-scroll-area { scrollbar-width: thin; scrollbar-color: var(--color-neutral-400) var(--color-neutral-100); }
 html.dark .editor-main-scroll-area { scrollbar-color: var(--color-neutral-600) oklch(from var(--color-neutral-800) l c h / 0.5); }
+
+@layer utilities {
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+  }
+  .animate-shake {
+    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+  }
+
+  @keyframes flyInsideBox {
+    0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+    30% { transform: translate(5px, -60px) rotate(-15deg) scale(0.9); opacity: 0.8; }
+    70% { transform: translate(-10px, -80px) rotate(25deg) scale(0.7); opacity: 0.4; }
+    100% { transform: translate(0px, -150px) rotate(0deg) scale(0.3); opacity: 0; visibility: hidden; }
+  }
+  .animate-fly-inside-box {
+    animation: flyInsideBox 0.8s cubic-bezier(0.550, 0.085, 0.680, 0.530) forwards;
+  }
+
+  @keyframes fallIn {
+    0% { transform: translateY(-150%) scale(1.5) rotateX(-60deg); opacity: 0; filter: blur(5px); }
+    60% { transform: translateY(10%) scale(0.9) rotateX(10deg); opacity: 0.9; filter: blur(1px); }
+    80% { transform: translateY(-5%) scale(1.05) rotateX(-5deg); opacity: 1; filter: blur(0); }
+    100% { transform: translateY(0) scale(1) rotateX(0deg); opacity: 1; filter: blur(0); }
+  }
+  .animate-fall-in {
+    animation: fallIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  @keyframes spinOnce {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .animate-spin-once {
+    animation: spinOnce 0.5s ease-out;
+  }
+}

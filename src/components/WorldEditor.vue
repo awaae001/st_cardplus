@@ -1,158 +1,236 @@
 <template>
-  <div class="p-4 bg-gray-100 min-h-screen">
-    <div id="tiltleMain">
-      <h1 class="text-2xl font-bold mb-4">地标编辑器</h1>
-      <div class="btnSL">
-        <div class="btnSL2">
-          <el-button type="success" @click="loadWorld">
-            <Icon icon="material-symbols:folder-open-outline-sharp" width="18" height="18" style="margin-right: 4px;" />
-            加载 json
-          </el-button>
-          <el-button type="primary" @click="saveWorld">
-            <Icon icon="material-symbols:file-save-outline-sharp" width="18" height="18" style="margin-right: 4px;" />
-            保存 json
-          </el-button>
-          <el-button plain @click="resetForm">
-            <Icon icon="material-symbols:refresh" width="18" height="18" style="margin-right: 4px;" />
-            重置数据
-          </el-button>
+  <div class="landmark-editor p-3 md:p-5 h-full flex flex-col
+              bg-neutral-100 dark:bg-gradient-to-br dark:from-neutral-900 dark:to-neutral-800
+              text-neutral-800 dark:text-neutral-300 print:p-0 print:bg-white print:text-black">
+
+    <header class="flex flex-col sm:flex-row justify-between items-center mb-4 md:mb-6 print:hidden flex-shrink-0 px-1 gap-y-3">
+      <h1 class="text-xl md:text-2xl font-bold text-neutral-700 dark:text-neutral-100">
+        地标编辑器
+      </h1>
+      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 md:gap-3">
+        <div class="flex items-center gap-2 md:gap-3">
+          <el-tooltip content="加载地标设定 (Ctrl+O)" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
+            <button @click="loadWorld" class="btn-success-adv !p-2.5 aspect-square group" aria-label="加载地标设定">
+              <Icon icon="ph:folder-open-duotone" class="text-lg group-hover:scale-110 transition-transform"/>
+            </button>
+          </el-tooltip>
+          <el-tooltip content="保存地标设定 (Ctrl+S)" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
+            <button @click="saveWorld" class="btn-primary-adv !p-2.5 aspect-square group" aria-label="保存地标设定">
+              <Icon icon="ph:floppy-disk-duotone" class="text-lg group-hover:scale-110 transition-transform"/>
+            </button>
+          </el-tooltip>
+          <el-tooltip content="重置表单" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
+            <button @click="resetForm" class="btn-danger-adv !p-2.5 aspect-square group" aria-label="重置表单">
+              <Icon icon="ph:arrow-counter-clockwise-duotone" class="text-lg group-hover:rotate-[30deg] transition-transform"/>
+            </button>
+          </el-tooltip>
         </div>
-        <div class="btnSL2">
-          <el-button type="info" @click="copyToClipboard" title="复制到剪贴板">
-            <Icon icon="material-symbols:content-copy-outline" width="18" height="18" />
-          </el-button>
-          <el-button type="warning" @click="showImportDialog" title="导入数据">
-            <Icon icon="material-symbols:content-paste-go-rounded" width="18" height="18" />
-          </el-button>
-        </div>
-      </div>
-    </div>
 
-    <!-- 基本信息 -->
-    <div class="section-container">
-      <div>
-        <el-card>
-          <h2 class="text-xl font-semibold mb-2">基本信息</h2>
-          <el-form :model="form" label-width="80px">
-            <el-form-item label="名称">
-              <el-input v-model="form.name" placeholder="请输入地标名称" />
-            </el-form-item>
-            <el-form-item label="所属空间">
-              <el-input v-model="form.space" placeholder="请输入所属空间" />
-            </el-form-item>
-          </el-form>
-        </el-card>
-        <el-card style="margin-top: 10px;">
-          <h2 class="text-xl font-semibold mb-2">关键词（每行一条）</h2>
-          <el-input v-model="form.keywords" type="textarea" :rows="3" placeholder="请输入关键词" />
-        </el-card>
-      </div>
-      <el-card class="mb-4" style="width: 75%;">
-        <h2 class="text-xl font-semibold mb-2">介绍（每行一段）</h2>
-        <el-input v-model="form.info" type="textarea" :rows="12" placeholder="请输入介绍" />
-      </el-card>
-    </div>
-
-    <div style="margin: 4px;"></div>
-
-    <!-- 地标 -->
-    <el-card class="mb-4">
-      <div class="title-Btn-add">
-        <h2 class="text-xl font-semibold mb-4">地标</h2>
-        <div style="display: flex; gap: 8px;">
-          <el-button type="primary" @click="addLandmark" class="w-full" style="margin-left: 16px;">
-            <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
-              style="margin-right: 4px;" />
-            添加地标（卡片）
-          </el-button>
-          <el-button type="success" @click="exportLandmarks" title="导出地标">
-            <Icon icon="material-symbols:content-copy-outline" width="18" height="18" />
-          </el-button>
+        <div class="flex items-center gap-2 md:gap-3">
+          <el-tooltip content="复制JSON到剪贴板 (Ctrl+C)" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
+            <button @click="copyToClipboard" class="btn-secondary-adv !p-2.5 aspect-square group" aria-label="复制JSON到剪贴板">
+              <Icon icon="ph:copy-simple-duotone" class="text-lg group-hover:scale-110 transition-transform"/>
+            </button>
+          </el-tooltip>
+          <el-tooltip content="从剪贴板导入JSON (Ctrl+V)" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
+            <button @click="showImportDialog" class="btn-warning-adv !p-2.5 aspect-square group" aria-label="从剪贴板导入JSON">
+              <Icon icon="ph:clipboard-text-duotone" class="text-lg group-hover:scale-110 transition-transform"/>
+            </button>
+          </el-tooltip>
         </div>
       </div>
-      <draggable 
-        v-model="form.landmarks"
-        item-key="index"
-        class="el-row"
-        :gutter="16"
-      >
-        <template #item="{element}">
-          <el-col :xs="24" :sm="12" :md="8" :lg="6">
-            <el-card class="mb-4 landmark-card">
-              <el-input v-model="element.name" placeholder="地标名称" class="mb-2" />
-              <el-input v-model="element.description" type="textarea" :rows="3" placeholder="地标介绍" class="mb-2" />
-              <div style="margin: 4px;"></div>
-              <el-button type="danger" @click="removeLandmark(element)" class="w-full">
-                <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
-                删除地标
-              </el-button>
-            </el-card>
-          </el-col>
-        </template>
-      </draggable>
-    </el-card>
+    </header>
 
-    <div style="margin: 4px;"></div>
-    <!-- 势力 -->
-    <el-card class="mb-4">
-      <div class="title-Btn-add">
-        <h2 class="text-xl font-semibold mb-4">势力</h2>
-        <div style="display: flex; gap: 8px;">
-          <el-button type="primary" @click="addForce" class="w-full" style="margin-left: 16px;">
-            <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
-              style="margin-right: 4px;" />
-            添加势力（卡片）
-          </el-button>
-          <el-button type="success" @click="exportForces" title="导出势力">
-            <Icon icon="material-symbols:content-copy-outline" width="18" height="18" />
-          </el-button>
+    <el-scrollbar class="flex-grow main-content-scrollbar" view-class="p-1 print:p-0">
+      <div class="space-y-5 md:space-y-8">
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-8 items-stretch">
+          <div :class="[panelClasses, 'lg:col-span-1', 'flex flex-col']">
+            <div class="content-panel-header">
+              <h3 class="content-panel-title flex items-center gap-2">
+                <Icon icon="ph:info-duotone" class="text-xl text-accent-500 dark:text-accent-400"/>
+                基本信息
+              </h3>
+            </div>
+            <div class="content-panel-body space-y-4 flex-grow">
+              <el-form :model="form" label-position="top">
+                <el-form-item>
+                  <template #label><span class="form-label-adv">地标集合名称</span></template>
+                  <el-input v-model="form.name" placeholder="例如：艾尔登法环地区设定" />
+                </el-form-item>
+                <el-form-item>
+                  <template #label><span class="form-label-adv">所属空间/世界</span></template>
+                  <el-input v-model="form.space" placeholder="例如：交界地" />
+                </el-form-item>
+              </el-form>
+            </div>
+          </div>
+
+          <div :class="[panelClasses, 'lg:col-span-2', 'flex flex-col']">
+            <div class="content-panel-header">
+              <h3 class="content-panel-title flex items-center gap-2">
+                <Icon icon="ph:text-aa-duotone" class="text-xl text-accent-500 dark:text-accent-400"/>
+                描述与关键词
+              </h3>
+            </div>
+            <div class="content-panel-body space-y-4 flex-grow">
+              <div>
+                <label class="form-label-adv">介绍 (每行一段)</label>
+                <el-input v-model="form.info" type="textarea" :autosize="{minRows: 5, maxRows: 15}" placeholder="关于这个地标集合的整体介绍..." />
+              </div>
+              <div>
+                <label class="form-label-adv">关键词 (每行一条)</label>
+                <el-input v-model="form.keywords" type="textarea" :autosize="{minRows: 3, maxRows: 8}" placeholder="相关的关键词，方便检索或生成..." />
+              </div>
+            </div>
+          </div>
         </div>
+
+        <div :class="panelClasses">
+          <div class="content-panel-header">
+            <h3 class="content-panel-title flex items-center gap-2">
+              <Icon icon="ph:map-pin-duotone" class="text-xl text-accent-500 dark:text-accent-400"/>
+              地标
+            </h3>
+            <div class="flex gap-x-3 ml-auto">
+              <button @click="addLandmark" class="btn-primary-adv text-sm !py-1.5 !px-3 whitespace-nowrap">
+                <Icon icon="material-symbols:add-circle-outline-rounded" width="18" height="18" class="mr-1.5 -ml-0.5"/> 添加地标
+              </button>
+              <button @click="exportLandmarks" title="导出地标 (JSON)" class="btn-secondary-adv text-sm !py-1.5 !px-3">
+                <Icon icon="material-symbols:ios-share-rounded" width="18" height="18"/>
+              </button>
+            </div>
+          </div>
+          <div class="content-panel-body">
+            <draggable
+              v-if="form.landmarks.length > 0"
+              v-model="form.landmarks"
+              item-key="id"
+              animation="200"
+              ghost-class="item-ghost"
+              chosen-class="item-chosen"
+              handle=".item-drag-handle"
+              class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-5"
+            >
+              <template #item="{element: landmark}">
+                <div class="item-card-outer-wrapper">
+                  <div class="item-card">
+                    <div class="item-drag-handle">
+                      <Icon icon="material-symbols:drag-indicator-rounded" class="text-lg flex-shrink-0"/>
+                      <el-input
+                        v-model="landmark.name"
+                        placeholder="地标名称"
+                        size="small"
+                        class="item-name-input-in-handle flex-grow min-w-0"
+                        :autosize="{ minRows: 1, maxRows: 2 }"
+                        type="textarea"
+                      />
+                       <button @click="removeLandmark(landmark.id)" class="btn-danger-adv !p-1 !aspect-square shrink-0 !rounded-full !text-xs ml-2 flex-shrink-0">
+                        <Icon icon="ph:x-bold"/>
+                      </button>
+                    </div>
+                    <div class="p-3 space-y-3">
+                      <el-input v-model="landmark.description" type="textarea" :autosize="{minRows: 2, maxRows: 6}" placeholder="地标介绍" size="small" />
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </draggable>
+            <div v-else class="empty-state-placeholder">
+              <Icon icon="ph:map-trifold-duotone" class="empty-state-icon" />
+              <p class="empty-state-title">暂无地标</p>
+              <p class="empty-state-description">点击“添加地标”开始创建。</p>
+            </div>
+          </div>
+        </div>
+
+        <div :class="panelClasses">
+          <div class="content-panel-header">
+            <h3 class="content-panel-title flex items-center gap-2">
+              <Icon icon="ph:shield-checkered-duotone" class="text-xl text-accent-500 dark:text-accent-400"/>
+              势力
+            </h3>
+            <div class="flex gap-x-3 ml-auto">
+              <button @click="addForce" class="btn-primary-adv text-sm !py-1.5 !px-3 whitespace-nowrap">
+                <Icon icon="material-symbols:add-circle-outline-rounded" width="18" height="18" class="mr-1.5 -ml-0.5"/> 添加势力
+              </button>
+               <button @click="exportForces" title="导出势力 (JSON)" class="btn-secondary-adv text-sm !py-1.5 !px-3">
+                <Icon icon="material-symbols:ios-share-rounded" width="18" height="18"/>
+              </button>
+            </div>
+          </div>
+          <div class="content-panel-body">
+            <draggable
+              v-if="form.forces.length > 0"
+              v-model="form.forces"
+              item-key="id"
+              animation="200"
+              ghost-class="item-ghost"
+              chosen-class="item-chosen"
+              handle=".item-drag-handle"
+              class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-5"
+            >
+              <template #item="{element: force}">
+                 <div class="item-card-outer-wrapper">
+                  <div class="item-card">
+                    <div class="item-drag-handle">
+                      <Icon icon="material-symbols:drag-indicator-rounded" class="text-lg flex-shrink-0"/>
+                      <el-input
+                        v-model="force.name"
+                        placeholder="势力名称"
+                        size="small"
+                        class="item-name-input-in-handle flex-grow min-w-0"
+                        :autosize="{ minRows: 1, maxRows: 2 }"
+                        type="textarea"
+                      />
+                      <button @click="removeForce(force.id)" class="btn-danger-adv !p-1 !aspect-square shrink-0 !rounded-full !text-xs ml-2 flex-shrink-0">
+                        <Icon icon="ph:x-bold"/>
+                      </button>
+                    </div>
+                    <div class="p-3 space-y-3">
+                      <el-input v-model="force.members" type="textarea" :autosize="{minRows: 2, maxRows: 5}" placeholder="成员 (每行一个)" size="small"/>
+                      <el-input v-model="force.description" type="textarea" :autosize="{minRows: 2, maxRows: 5}" placeholder="势力描述" size="small"/>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </draggable>
+             <div v-else class="empty-state-placeholder">
+              <Icon icon="ph:users-three-duotone" class="empty-state-icon" />
+              <p class="empty-state-title">暂无势力</p>
+              <p class="empty-state-description">点击“添加势力”开始创建。</p>
+            </div>
+          </div>
+        </div>
+
       </div>
-      <draggable 
-        v-model="form.forces"
-        item-key="index"
-        class="el-row"
-        :gutter="16"
-      >
-        <template #item="{element}">
-          <el-col :xs="24" :sm="12" :md="8" :lg="6">
-            <el-card class="mb-4 force-card">
-              <el-input v-model="element.name" placeholder="势力名称" class="mb-2" />
-              <el-input v-model="element.members" type="textarea" :rows="2" placeholder="成员（每行一个）" class="mb-2" />
-              <el-input v-model="element.description" type="textarea" :rows="2" placeholder="势力描述" class="mb-2" />
-              <div style="margin: 4px;"></div>
-              <el-button type="danger" @click="removeForce(element)" class="w-full">
-                <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
-                删除势力
-              </el-button>
-            </el-card>
-          </el-col>
-        </template>
-      </draggable>
-    </el-card>
+    </el-scrollbar>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import draggable from 'vuedraggable'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox, ElScrollbar, ElTooltip } from 'element-plus'
 import { saveAs } from 'file-saver'
-import { Icon } from "@iconify/vue";
+import { Icon } from "@iconify/vue"
+import { nanoid } from 'nanoid'
 import {
-  saveToLocalStorage,
-  loadFromLocalStorage,
-  clearLocalStorage,
+  saveToLocalStorage as saveToLS,
+  loadFromLocalStorage as loadFromLS,
+  clearLocalStorage as clearLS,
   initAutoSave,
   clearAutoSave
-} from '../utils/localStorageUtils';
+} from '../utils/localStorageUtils'
 
 interface Landmark {
+  id: string
   name: string
   description: string
 }
 
 interface Force {
+  id: string
   name: string
   members: string
   description: string
@@ -167,161 +245,161 @@ interface WorldForm {
   forces: Force[]
 }
 
-const form = ref<WorldForm>({
+const LOCAL_STORAGE_KEY = 'worldEditorData_v2';
+
+const createDefaultWorldForm = (): WorldForm => ({
   name: '',
   space: '',
   keywords: '',
   info: '',
   landmarks: [],
   forces: []
-})
-let autoSaveTimer: number | null = null
+});
 
-// 组件挂载时加载保存的数据
+const form = ref<WorldForm>(createDefaultWorldForm());
+let autoSaveTimer: number | null = null;
+
+const panelClasses = computed(() => [
+  'content-panel',
+]);
+
+const textToArray = (text: string | undefined): string[] => text ? text.split('\n').map(s => s.trim()).filter(line => line !== '') : [];
+const arrayToText = (arr: string[] | undefined): string => (arr && Array.isArray(arr) ? arr.join('\n') : '');
+
+const processLoadedData = (parsedData: any): WorldForm => {
+  const defaults = createDefaultWorldForm();
+  if (typeof parsedData !== 'object' || parsedData === null) {
+    ElMessage.error('加载的数据格式无效，已使用默认值。');
+    return defaults;
+  }
+  return {
+    name: parsedData.name || defaults.name,
+    space: parsedData.space || defaults.space,
+    keywords: Array.isArray(parsedData.keywords) ? arrayToText(parsedData.keywords) : (parsedData.keywords || defaults.keywords),
+    info: Array.isArray(parsedData.info) ? arrayToText(parsedData.info) : (parsedData.info || defaults.info),
+    landmarks: Array.isArray(parsedData.landmarks) ? parsedData.landmarks.map((l: any) => ({
+      id: l.id || nanoid(),
+      name: l.name || '',
+      description: l.description || ''
+    })).filter(Boolean) : defaults.landmarks,
+    forces: Array.isArray(parsedData.forces) ? parsedData.forces.map((f: any) => ({
+      id: f.id || nanoid(),
+      name: f.name || '',
+      members: Array.isArray(f.members) ? arrayToText(f.members) : (f.members || ''),
+      description: f.description || ''
+    })).filter(Boolean) : defaults.forces,
+  };
+};
+
+const getDataForStorage = (): object => {
+  return {
+    ...form.value,
+    keywords: textToArray(form.value.keywords),
+    info: textToArray(form.value.info),
+    forces: form.value.forces.map(force => ({
+      ...force,
+      members: textToArray(force.members)
+    }))
+  };
+};
+
 onMounted(() => {
-  const loadedData = loadFromLocalStorage('worldEditorData');
+  const loadedData = loadFromLS(LOCAL_STORAGE_KEY);
   if (loadedData) {
-    form.value = loadedData;
+    form.value = processLoadedData(loadedData);
   }
   autoSaveTimer = initAutoSave(
-    () => saveToLocalStorage(form.value, 'worldEditorData'),
+    () => saveToLS(getDataForStorage(), LOCAL_STORAGE_KEY),
     () => !!form.value.name
   );
-})
+});
 
-// 组件卸载前清除定时器
 onBeforeUnmount(() => {
   if (autoSaveTimer) {
     clearAutoSave(autoSaveTimer);
   }
-})
+});
 
 const addLandmark = () => {
   form.value.landmarks.push({
-    name: '',
+    id: nanoid(),
+    name: `新地标 ${form.value.landmarks.length + 1}`,
     description: ''
-  })
-  ElMessage.success('已添加新地标')
-}
+  });
+  ElMessage.success('已添加新地标');
+};
+
+const removeLandmark = (id: string) => {
+  const index = form.value.landmarks.findIndex(l => l.id === id);
+  if (index !== -1) {
+    form.value.landmarks.splice(index, 1);
+  }
+};
 
 const addForce = () => {
   form.value.forces.push({
-    name: '',
+    id: nanoid(),
+    name: `新势力 ${form.value.forces.length + 1}`,
     members: '',
     description: ''
-  })
-}
+  });
+  ElMessage.success('已添加新势力');
+};
 
-const removeForce = (force: Force) => {
-  const index = form.value.forces.indexOf(force)
+const removeForce = (id: string) => {
+  const index = form.value.forces.findIndex(f => f.id === id);
   if (index !== -1) {
-    form.value.forces.splice(index, 1)
-    // ElMessage.warning('已删除势力')
-  }
-}
-
-const removeLandmark = (landmark: Landmark) => {
-  const index = form.value.landmarks.indexOf(landmark)
-  if (index !== -1) {
-    form.value.landmarks.splice(index, 1)
-    // ElMessage.warning('已删除地标')
-  }
-}
-
-const exportLandmarks = async () => {
-  try {
-    const landmarksData = form.value.landmarks;
-    if (landmarksData.length === 0) {
-      ElMessage.warning('没有可导出的地标');
-      return;
-    }
-    await navigator.clipboard.writeText(JSON.stringify(landmarksData, null, 2));
-    ElMessage.success('地标已复制到剪贴板！');
-  } catch (error) {
-    ElMessage.error("导出失败");
+    form.value.forces.splice(index, 1);
   }
 };
 
-const exportForces = async () => {
-  try {
-    const forcesData = form.value.forces;
-    if (forcesData.length === 0) {
-      ElMessage.warning('没有可导出的势力');
+const exportListAsJson = async (list: Landmark[] | Force[], listName: string) => {
+  if (!list || list.length === 0) {
+      ElMessage.warning(`没有可导出的${listName}`);
       return;
     }
-    await navigator.clipboard.writeText(JSON.stringify(forcesData, null, 2));
-    ElMessage.success('势力已复制到剪贴板！');
+  try {
+    let dataToExport = list;
+    if (listName === '势力') {
+        dataToExport = (list as Force[]).map(f => ({...f, members: textToArray(f.members)}));
+    }
+    await navigator.clipboard.writeText(JSON.stringify(dataToExport, null, 2));
+    ElMessage.success(`${listName}已复制到剪贴板！`);
   } catch (error) {
-    ElMessage.error("导出失败");
+    ElMessage.error(`导出${listName}失败`);
   }
-};
+}
+
+const exportLandmarks = () => exportListAsJson(form.value.landmarks, '地标');
+const exportForces = () => exportListAsJson(form.value.forces, '势力');
 
 const showImportDialog = () => {
-  ElMessageBox.prompt('请输入要导入的JSON数据', '导入数据', {
+  ElMessageBox.prompt('粘贴JSON数据以导入整个地标设定', '导入数据', {
     confirmButtonText: '导入',
     cancelButtonText: '取消',
-    type: 'info',
     inputType: 'textarea',
-    inputPlaceholder: '在此粘贴或输入JSON数据',
+    inputPlaceholder: '粘贴JSON数据...',
+    customClass: 'app-dialog import-dialog',
     inputValidator: (value) => {
-      if (!value) {
-        return '请输入要导入的数据';
-      }
-      try {
-        JSON.parse(value);
-        return true;
-      } catch (e) {
-        return '请输入有效的JSON格式数据';
-      }
+      if (!value) return '请输入数据';
+      try { JSON.parse(value); return true; } catch (e) { return '无效的JSON格式'; }
     }
   }).then(({ value }) => {
-    importFromClipboard(value);
-  }).catch(() => {
-    // 用户取消操作
-  });
-};
-
-const importFromClipboard = async (data: string) => {
-  try {
-    const parsedData = JSON.parse(data);
-
-    // 验证并转换数据格式
-    form.value = {
-      name: parsedData.name || '',
-      space: parsedData.space || '',
-      keywords: parsedData.keywords?.join('\n') || '',
-      info: parsedData.info?.join('\n') || '',
-      landmarks: parsedData.landmarks?.map((l: any) => ({
-        name: l.name || '',
-        description: l.description || ''
-      })) || [],
-      forces: parsedData.forces?.map((f: any) => ({
-        name: f.name || '',
-        members: f.members?.join('\n') || '',
-        description: f.description || ''
-      })) || []
-    };
-
-    ElMessage.success('从剪贴板导入成功！');
-  } catch (error) {
-    ElMessage.error(`导入失败：${error instanceof Error ? error.message : '未知错误'}`);
-  }
+    try {
+      const parsedData = JSON.parse(value);
+      form.value = processLoadedData(parsedData);
+      ElMessage.success('数据导入成功！');
+    } catch (error) {
+      ElMessage.error(`导入失败：${error instanceof Error ? error.message : '未知错误'}`);
+    }
+  }).catch(() => {});
 };
 
 const copyToClipboard = async () => {
   try {
-    const dataToSave = {
-      ...form.value,
-      keywords: form.value.keywords.split('\n').filter(line => line.trim() !== ''),
-      info: form.value.info.split('\n').filter(line => line.trim() !== ''),
-      forces: form.value.forces.map(force => ({
-        ...force,
-        members: force.members.split('\n').filter(line => line.trim() !== '')
-      }))
-    };
-    const jsonData = JSON.stringify(dataToSave, null, 2);
+    const jsonData = JSON.stringify(getDataForStorage(), null, 2);
     await navigator.clipboard.writeText(jsonData);
-    ElMessage.success('已复制到剪贴板！');
+    ElMessage.success('数据已复制到剪贴板！');
   } catch (error) {
     ElMessage.error("复制失败");
   }
@@ -329,169 +407,228 @@ const copyToClipboard = async () => {
 
 const saveWorld = async () => {
   try {
-    const dataToSave = {
-      ...form.value,
-      keywords: form.value.keywords.split('\n').filter(line => line.trim() !== ''),
-      info: form.value.info.split('\n').filter(line => line.trim() !== ''),
-      forces: form.value.forces.map(force => ({
-        ...force,
-        members: force.members.split('\n').filter(line => line.trim() !== '')
-      }))
-    };
-    const generateRandomNumber = () => Math.floor(10000000 + Math.random() * 90000000);
-    const jsonData = JSON.stringify(dataToSave, null, 2)
-    const blob = new Blob([jsonData], { type: 'application/json' })
-    saveAs(blob, `${form.value.name || 'world'}_${generateRandomNumber()}.json`)
-    ElMessage.success('世界书保存成功！')
+    const jsonData = JSON.stringify(getDataForStorage(), null, 2);
+    const blob = new Blob([jsonData], { type: 'application/json' });
+    const filename = `${form.value.name || 'world_settings'}_${Date.now()}.json`;
+    saveAs(blob, filename);
+    ElMessage.success('地标设定保存成功！');
   } catch (error) {
-    ElMessage.error('保存失败')
+    ElMessage.error('保存失败');
   }
-}
+};
 
 const loadWorld = async () => {
-  try {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = '.json'
-    input.onchange = (event) => {
-      const file = (event.target as HTMLInputElement).files?.[0]
-      if (file) {
-        const reader = new FileReader()
-        reader.onload = (e) => {
-          try {
-            const content = e.target?.result as string
-            const data = JSON.parse(content)
-
-            // 验证并转换数据格式
-            form.value = {
-              name: data.name || '',
-              space: data.space || '',
-              keywords: data.keywords?.join('\n') || '',
-              info: data.info?.join('\n') || '',
-              landmarks: data.landmarks?.map((l: any) => ({
-                name: l.name || '',
-                description: l.description || ''
-              })) || [],
-              forces: data.forces?.map((f: any) => ({
-                name: f.name || '',
-                members: f.members?.join('\n') || '',
-                description: f.description || ''
-              })) || []
-            }
-
-            ElMessage.success('世界书加载成功！')
-          } catch (error) {
-            ElMessage.error('文件格式错误，请检查文件内容')
-          }
-        }
-        reader.readAsText(file)
-      }
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json,application/json';
+  input.onchange = async (event) => {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    try {
+      const content = await file.text();
+      if (!content.trim()) throw new Error('文件内容为空。');
+      const parsedData = JSON.parse(content);
+      form.value = processLoadedData(parsedData);
+      ElMessage.success('地标设定加载成功！');
+    } catch (error) {
+      ElMessage.error(`加载文件失败：${error instanceof Error ? error.message : '未知错误'}`);
     }
-    input.click()
-  } catch (error) {
-    ElMessage.error('加载失败')
-  }
-}
-// 重置表单数据
-// const onLandmarkDragEnd = () => {
-//   ElMessage.success('地标顺序已更新')
-// }
-
-// const onForceDragEnd = () => {
-//   ElMessage.success('势力顺序已更新')
-// }
+  };
+  input.click();
+};
 
 const resetForm = () => {
-  ElMessageBox.confirm('确定要重置所有数据吗？', '警告', {
-    confirmButtonText: '确定',
+  ElMessageBox.confirm('确定要重置所有数据吗？将清除已输入内容和本地存储。', '警告', {
+    confirmButtonText: '确定重置',
     cancelButtonText: '取消',
     type: 'warning',
+    draggable: true,
+    customClass: 'app-dialog'
   }).then(() => {
-    form.value = {
-      name: '',
-      space: '',
-      keywords: '',
-      info: '',
-      landmarks: [],
-      forces: []
-    };
-    clearLocalStorage('worldEditorData');
+    clearLS(LOCAL_STORAGE_KEY);
+    form.value = createDefaultWorldForm();
     ElMessage.success('数据已重置');
-  }).catch(() => {
-    ElMessage.info('取消重置');
-  });
+  }).catch(() => {});
 };
 
 defineExpose({
   saveWorld,
   loadWorld,
   resetForm
-})
+});
 </script>
 
 <style scoped>
-/* 使用 Tailwind CSS 进行样式控制 */
+.item-card-outer-wrapper {}
 
-.section-container {
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
+.item-card {
+  background-color: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  border-width: 1px;
+  border-color: var(--color-neutral-200);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+  overflow: hidden;
+}
+.dark .item-card {
+  background-color: var(--color-neutral-850);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+  border-color: var(--color-neutral-750);
+}
+.item-card:hover {
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+.dark .item-card:hover {
+  border-color: var(--color-neutral-600);
 }
 
-.section-container>* {
-  flex: 1;
-  min-width: 100%;
-}
-
-.title-Btn-add {
+.item-drag-handle {
+  background-color: var(--color-neutral-100);
+  padding: 0.375rem 0.75rem;
+  cursor: move;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  gap: 0.5rem;
+  color: var(--color-neutral-600);
+  border-bottom-width: 1px;
+  border-color: var(--color-neutral-200);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+.dark .item-drag-handle {
+  background-color: oklch(from var(--color-neutral-700) l c h / 0.5);
+  color: var(--color-neutral-300);
+  border-color: var(--color-neutral-700);
+}
+.item-drag-handle:hover {
+  background-color: var(--color-neutral-200);
+}
+.dark .item-drag-handle:hover {
+  background-color: var(--color-neutral-700);
 }
 
-@media (min-width: 768px) {
-  .section-container {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
+.item-drag-handle :deep(.item-name-input-in-handle.el-textarea .el-textarea__inner) {
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 2px 4px;
+  font-weight: 500;
+  line-height: 1.4;
+  font-size: 0.875rem;
+  color: var(--color-neutral-700);
+  resize: none;
+  text-align: left;
+  height: auto !important;
+  min-height: unset !important;
+}
+.dark .item-drag-handle :deep(.item-name-input-in-handle.el-textarea .el-textarea__inner) {
+  color: var(--color-neutral-300);
+}
+.item-drag-handle :deep(.item-name-input-in-handle.el-textarea.is-focus .el-textarea__inner) {
+  background-color: var(--color-white);
+}
+.dark .item-drag-handle :deep(.item-name-input-in-handle.el-textarea.is-focus .el-textarea__inner) {
+  background-color: var(--color-neutral-700);
+}
 
-  .section-container>* {
-    min-width: auto;
+.item-ghost {
+  opacity: 0.6;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-sky-100);
+  outline-width: 2px;
+  outline-style: dashed;
+  outline-color: var(--color-sky-400);
+  box-shadow: none;
+}
+.dark .item-ghost {
+  background-color: oklch(from var(--color-sky-800) l c h / 0.4);
+  outline-color: var(--color-sky-600);
+}
+
+.item-chosen .item-card {
+  --chosen-ring-width: 2px;
+  --chosen-ring-offset-width: 1px;
+  --chosen-ring-color-light: var(--color-accent-500);
+  --chosen-ring-offset-color-light: var(--color-white);
+  --chosen-ring-color-dark: var(--color-accent-400);
+  --chosen-ring-offset-color-dark: var(--color-neutral-850);
+
+  box-shadow: 0 0 0 var(--chosen-ring-offset-width) var(--chosen-ring-offset-color-light),
+              0 0 0 calc(var(--chosen-ring-offset-width) + var(--chosen-ring-width)) var(--chosen-ring-color-light),
+              0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  transform: scale(1.02);
+  z-index: 10;
+}
+.dark .item-chosen .item-card {
+   box-shadow: 0 0 0 var(--chosen-ring-offset-width) var(--chosen-ring-offset-color-dark),
+              0 0 0 calc(var(--chosen-ring-offset-width) + var(--chosen-ring-width)) var(--chosen-ring-color-dark),
+              0 20px 25px -5px rgb(0 0 0 / 0.3), 0 8px 10px -6px rgb(0 0 0 / 0.3);
+}
+
+.empty-state-placeholder {
+  margin-top: 1rem;
+  text-align: center;
+  padding: 2.5rem 1rem;
+  border-width: 2px;
+  border-style: dashed;
+  border-color: oklch(from var(--color-neutral-300) l c h / 0.7);
+  border-radius: var(--radius-lg);
+  background-color: oklch(from var(--color-neutral-50) l c h / 0.3);
+}
+.dark .empty-state-placeholder {
+  border-color: oklch(from var(--color-neutral-700) l c h / 0.7);
+  background-color: oklch(from var(--color-neutral-800) l c h / 0.3);
+}
+
+.empty-state-icon {
+  font-size: 3rem;
+  line-height: 1;
+  color: var(--color-neutral-400);
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 0.75rem;
+}
+.dark .empty-state-icon {
+  color: var(--color-neutral-600);
+}
+
+.empty-state-title {
+  color: var(--color-neutral-600);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+}
+.dark .empty-state-title {
+  color: var(--color-neutral-400);
+}
+
+.empty-state-description {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: var(--color-neutral-500);
+  margin-top: 0.25rem;
+}
+
+:global(.el-message-box.import-dialog) {
+  min-width: 320px;
+  max-width: 90vw;
+}
+@media (min-width: 640px) {
+  :global(.el-message-box.import-dialog) {
+    width: 500px !important;
+  }
+  :global(.el-message-box.import-dialog .el-message-box__input textarea.el-textarea__inner) {
+    min-height: 200px;
   }
 }
 
-#tiltleMain {
-  justify-content: space-between;
-}
-
-.btnSL {
-  display: flex;
-  align-items: flex-start;
-  flex-direction: column;
-}
-
-.btnSL2 {
-  margin: 8px 4px 8px 0px;
-  display: flex;
-}
-
-
-
-@media (min-width: 768px) {
-  #tiltleMain {
-    display: flex;
-    justify-content: space-between;
-  }
-
-  .btnSL {
-    display: flex;
-    align-items: center;
-    flex-direction: row;
-  }
-
-  .btnSL2 {
-    display: flex;
-  }
-
+:deep(.el-form-item__label) {
+  line-height: normal !important;
+  padding-bottom: 0 !important;
 }
 </style>
