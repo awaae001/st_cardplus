@@ -852,24 +852,32 @@ watch(worldBookEntries, () => {
 
 </script>
 
-<style>
-.worldbook-tabs-mobile.el-tabs--border-card > .el-tabs__header .el-tabs__item {
+<style scoped> /* <--- 添加 scoped */
+/* --- 针对 Element Plus 组件内部结构的样式，使用 :deep() --- */
+:deep(.worldbook-tabs-mobile.el-tabs--border-card > .el-tabs__header .el-tabs__item) {
   padding: 0;
 }
-.worldbook-tabs-mobile.el-tabs--border-card > .el-tabs__content {
+:deep(.worldbook-tabs-mobile.el-tabs--border-card > .el-tabs__content) {
   padding: 0;
   flex-grow: 1;
   display: flex;
 }
 
+/* 对 el-tab-pane 本身添加的类，不需要 :deep() */
 .worldbook-tabs-mobile .el-tab-pane {
   width: 100%;
+  /* 确保 flex 布局在 pane 内部生效 */
+  display: flex;
+  flex-direction: column;
 }
 
+/* 对 el-scrollbar 本身添加的类，不需要 :deep()，但其父级是 .el-tab-pane */
 .worldbook-tabs-mobile .el-tab-pane > .el-scrollbar {
   flex-grow: 1;
-  height: 0;
+  height: 0; /* 这个依赖于父级 flex 容器，确保父级有高度或能 flex grow */
 }
+
+/* --- 组件内部的自定义样式，scoped 会自动处理 --- */
 .content-panel {
   background-color: var(--color-white);
   border-radius: var(--radius-xl);
@@ -916,33 +924,48 @@ watch(worldBookEntries, () => {
 }
 
 .content-panel-body {
-  padding: 1rem;
+  padding: 1rem; /* 调整为仅在桌面版编辑器应用内边距，或者确保移动版滚动区域正确 */
   flex-grow: 1;
-  display: flex; /* Added for form sections */
-  flex-direction: column; /* Added for form sections */
+  display: flex;
+  flex-direction: column;
 }
-.entry-menu.el-menu {
-  background-color: transparent !important;
+
+/* 移动端 el-tabs 内的 el-scrollbar 不需要额外的 padding，由内部的 form 处理 */
+.worldbook-tabs-mobile .el-tab-pane > .el-scrollbar > .el-scrollbar__view {
+ /* padding for scrollbar content if needed, e.g., padding: 1rem; */
+ /* But the form already has padding */
 }
-.entry-menu .el-menu-item {
+
+/* --- 针对 el-menu 和 el-menu-item 的样式，使用 :deep() --- */
+:deep(.entry-menu.el-menu) {
+  background-color: transparent !important; /* !important 可能需要保留以覆盖 Element Plus 默认 */
+  border: none !important; /* 确保没有边框 */
+}
+:deep(.entry-menu .el-menu-item) {
   transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+  height: auto !important; /* 覆盖默认高度 */
+  /* 从模板中的 !px-3 !py-2.5 推断内边距 */
+  padding: 0.625rem 0.75rem !important;
+  line-height: normal !important; /* 覆盖默认行高 */
+  /* !leading-normal 在模板中，这里也设置一下 */
 }
-.entry-menu .el-menu-item:hover {
+:deep(.entry-menu .el-menu-item:hover) {
   background-color: var(--color-neutral-100) !important;
 }
-.dark .entry-menu .el-menu-item:hover {
+.dark :deep(.entry-menu .el-menu-item:hover) {
   background-color: var(--color-neutral-700) !important;
 }
-.entry-menu .el-menu-item.is-active {
+:deep(.entry-menu .el-menu-item.is-active) {
   background-color: var(--color-accent-50) !important;
   color: var(--color-accent-600) !important;
   position: relative;
 }
-.dark .entry-menu .el-menu-item.is-active {
+.dark :deep(.entry-menu .el-menu-item.is-active) {
   background-color: var(--color-accent-800) !important;
   color: var(--color-accent-300) !important;
 }
-.entry-menu .el-menu-item.is-active::before {
+/* ::before 是伪元素，也需要 :deep() */
+:deep(.entry-menu .el-menu-item.is-active::before) {
   content: '';
   position: absolute;
   left: 0;
@@ -953,9 +976,11 @@ watch(worldBookEntries, () => {
   border-top-right-radius: 2px;
   border-bottom-right-radius: 2px;
 }
-.dark .entry-menu .el-menu-item.is-active::before {
+.dark :deep(.entry-menu .el-menu-item.is-active::before) {
   background-color: var(--color-accent-400);
 }
+
+/* --- 其他自定义样式，scoped 会处理 --- */
 .form-section {
   padding: 1.25rem;
   border: 1px solid var(--color-neutral-200);
