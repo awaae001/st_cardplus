@@ -92,19 +92,14 @@
                     size="small"
                     class="flex-grow"
                   ></el-input>
-                  <el-popconfirm
-                    title="确定删除此对话示例吗？"
-                    confirm-button-text="删除"
-                    cancel-button-text="取消"
-                    icon-color="var(--color-red-500)"
-                    @confirm="removeDialogueExample(relationshipIndex, dialogueIndex)"
+                  <button
+                    @click="removeDialogueExample(relationshipIndex, dialogueIndex)"
+                    class="btn-danger-adv !p-1.5 !aspect-square shrink-0 !text-xs mt-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="移除此示例"
+                    :disabled="appSettings.safeModeLevel === 'forbidden' && appSettings.safeModeLevel !== 'double'"
                   >
-                    <template #reference>
-                      <button class="btn-danger-adv !p-1.5 !aspect-square shrink-0 !text-xs mt-0.5" title="移除此示例">
-                         <Icon icon="ph:trash-simple-duotone" width="14" height="14" />
-                      </button>
-                    </template>
-                  </el-popconfirm>
+                     <Icon icon="ph:trash-simple-duotone" width="14" height="14" />
+                  </button>
                 </div>
                 <button @click="addDialogueExample(relationshipIndex)" class="btn-secondary-adv w-full !py-1 !px-2 text-xs">
                   <Icon icon="ph:plus-circle-duotone" class="mr-1 text-sm"/> 添加对话示例
@@ -126,10 +121,10 @@
 
 <script setup lang="ts">
 import { ref, watch, defineProps, defineEmits } from 'vue';
-import { ElInput, ElPopconfirm } from 'element-plus';
+import { ElInput, ElMessage, ElMessageBox } from 'element-plus'; // ElPopconfirm is no longer needed here
 import { Icon } from "@iconify/vue";
 import draggable from 'vuedraggable';
-import { useAppSettingsStore } from '../../stores/appSettings';
+import { useAppSettingsStore, type SafeModeLevel } from '../../stores/appSettings';
 
 interface Relationship {
   id: string;
@@ -152,6 +147,68 @@ const props = defineProps<Props>();
 const emit = defineEmits(['update:form']);
 const localRelationships = ref<Relationship[]>([]);
 const appSettings = useAppSettingsStore();
+
+async function performSafeAction(
+    safeModeLevel: SafeModeLevel,
+    actionName: string,
+    itemName: string = '',
+    actionFn: () => void | Promise<void>
+) {
+    if (safeModeLevel === 'forbidden') {
+        ElMessage.warning(`当前处于禁止模式，无法${actionName}。`);
+        return Promise.reject('forbidden');
+    }
+    const confirmTitle = itemName ? `确认${actionName} "${itemName}"` : `确认${actionName}`;
+    const confirmMessage = itemName ? `确定要${actionName} "${itemName}" 吗？` : `确定要${actionName}吗？`;
+    const confirmButtonText = itemName ? `确定${actionName}` : '确定';
+
+    if (safeModeLevel === 'double') {
+        try {
+            await ElMessageBox.confirm(confirmMessage, confirmTitle, {
+                confirmButtonText: confirmButtonText,
+                cancelButtonText: '取消',
+                type: 'warning',
+                draggable: true,
+                customClass: 'app-dialog'
+            });
+            await actionFn();
+            ElMessage.success(`${actionName}成功！`);
+            return Promise.resolve();
+        } catch (e) {
+            if (e === 'cancel' || e?.message?.includes('cancel') || (e instanceof Error && e.message === 'cancel')) {
+                ElMessage.info(`已取消${actionName}操作。`);
+                 return Promise.reject('cancel');
+            } else if (e) {
+                console.error(`${actionName}时出错:`, e);
+                ElMessage.error(`${actionName}操作失败: ${e instanceof Error ? e.message : '未知错误'}`);
+                 return Promise.reject(e);
+            }
+             return Promise.reject('unknown');
+        }
+    } else if (safeModeLevel === 'single') {
+        try {
+            await actionFn();
+            ElMessage.success(`${actionName}成功！`);
+            return Promise.resolve();
+        } catch (e) {
+            console.error(`${actionName}时出错 (single mode):`, e);
+            ElMessage.error(`${actionName}操作失败: ${e instanceof Error ? e.message : '未知错误'}`);
+            return Promise.reject(e);
+        }
+    } else {
+         console.warn(`Unhandled safeModeLevel: ${safeModeLevel}. Performing action directly.`);
+         try {
+             await actionFn();
+             ElMessage.success(`${actionName}成功！`);
+             return Promise.resolve();
+         } catch (e) {
+             console.error(`${actionName}时出错 (unhandled mode):`, e);
+             ElMessage.error(`${actionName}操作失败: ${e instanceof Error ? e.message : '未知错误'}`);
+             return Promise.reject(e);
+         }
+    }
+}
+
 
 watch(() => props.form.relationships, (newRelationshipsFromProp) => {
   if (JSON.stringify(newRelationshipsFromProp) !== JSON.stringify(localRelationships.value)) {
@@ -180,11 +237,22 @@ const addDialogueExample = (relationshipIndex: number) => {
   }
 };
 
-const removeDialogueExample = (relationshipIndex: number, exampleIndex: number) => {
+const removeDialogueExample = async (relationshipIndex: number, exampleIndex: number) => {
   const relationship = localRelationships.value[relationshipIndex];
-  if (relationship?.dialogueExamples) {
-    relationship.dialogueExamples.splice(exampleIndex, 1);
-  }
+  if (!relationship || !relationship.dialogueExamples || exampleIndex < 0 || exampleIndex >= relationship.dialogueExamples.length) return;
+
+  const exampleText = relationship.dialogueExamples[exampleIndex].substring(0, 20) || `对话示例 ${exampleIndex + 1}`;
+
+  await performSafeAction(appSettings.safeModeLevel, '移除对话示例', exampleText, () => {
+    const currentRelationship = localRelationships.value[relationshipIndex]; // Re-fetch for safety in async context
+    if (currentRelationship?.dialogueExamples && exampleIndex < currentRelationship.dialogueExamples.length) {
+      currentRelationship.dialogueExamples.splice(exampleIndex, 1);
+    } else {
+      // This case should ideally not be reached if initial checks are correct
+      console.warn('Attempted to remove a dialogue example that no longer exists or index is out of bounds.');
+      throw new Error('对话示例未找到或索引无效。');
+    }
+  }).catch(err => { if(err !== 'cancel' && err !== 'forbidden') console.warn('移除对话示例操作未成功完成:', err);});
 };
 
 const handleDraggableChange = (event: any) => {
