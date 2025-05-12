@@ -51,7 +51,12 @@
                 <label class="form-label-adv text-xs block mb-1">对话示例</label>
                 <div v-for="(dialogue, dialogueIndex) in trait.dialogueExamples" :key="`dialogue-${trait.id}-${dialogueIndex}`" class="flex items-start gap-x-2">
                   <el-input v-model="trait.dialogueExamples[dialogueIndex]" type="textarea" :autosize="{minRows: 1, maxRows: 4}" :placeholder="`示例 ${dialogueIndex + 1}`" size="small" class="flex-grow"></el-input>
-                  <button @click="removeDialogueExample(traitIndex, dialogueIndex)" class="btn-danger-adv !p-1.5 !aspect-square shrink-0 !text-xs mt-0.5" title="移除此示例">
+                  <button
+                    @click="removeDialogueExample(traitIndex, dialogueIndex)"
+                    class="btn-danger-adv !p-1.5 !aspect-square shrink-0 !text-xs mt-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="移除此示例"
+                    :disabled="appSettings.safeModeLevel === 'forbidden'"
+                  >
                      <Icon icon="ph:trash-simple-duotone" width="14" height="14" />
                   </button>
                 </div>
@@ -63,7 +68,12 @@
                 <label class="form-label-adv text-xs block mb-1">行为示例</label>
                 <div v-for="(behavior, behaviorIndex) in trait.behaviorExamples" :key="`behavior-${trait.id}-${behaviorIndex}`" class="flex items-start gap-x-2">
                   <el-input v-model="trait.behaviorExamples[behaviorIndex]" type="textarea" :autosize="{minRows: 1, maxRows: 4}" :placeholder="`示例 ${behaviorIndex + 1}`" size="small" class="flex-grow"></el-input>
-                  <button @click="removeBehaviorExample(traitIndex, behaviorIndex)" class="btn-danger-adv !p-1.5 !aspect-square shrink-0 !text-xs mt-0.5" title="移除此示例">
+                  <button
+                    @click="removeBehaviorExample(traitIndex, behaviorIndex)"
+                    class="btn-danger-adv !p-1.5 !aspect-square shrink-0 !text-xs mt-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="移除此示例"
+                    :disabled="appSettings.safeModeLevel === 'forbidden'"
+                  >
                      <Icon icon="ph:trash-simple-duotone" width="14" height="14" />
                   </button>
                 </div>
@@ -87,10 +97,10 @@
 
 <script setup lang="ts">
 import { ref, watch, defineProps, defineEmits } from 'vue';
-import { ElInput } from 'element-plus';
+import { ElInput, ElMessage, ElMessageBox } from 'element-plus';
 import { Icon } from "@iconify/vue";
 import draggable from 'vuedraggable';
-import { useAppSettingsStore } from '../../stores/appSettings'; // Corrected path
+import { useAppSettingsStore, type SafeModeLevel } from '../../stores/appSettings';
 
 interface Trait {
   id: string;
@@ -114,6 +124,67 @@ const emit = defineEmits(['update:form']);
 const localTraits = ref<Trait[]>([]);
 const appSettings = useAppSettingsStore();
 
+async function performSafeAction(
+    safeModeLevel: SafeModeLevel,
+    actionName: string,
+    itemName: string = '',
+    actionFn: () => void | Promise<void>
+) {
+    if (safeModeLevel === 'forbidden') {
+        ElMessage.warning(`当前处于禁止模式，无法${actionName}。`);
+        return Promise.reject('forbidden');
+    }
+    const confirmTitle = itemName ? `确认${actionName} "${itemName}"` : `确认${actionName}`;
+    const confirmMessage = itemName ? `确定要${actionName} "${itemName}" 吗？` : `确定要${actionName}吗？`;
+    const confirmButtonText = itemName ? `确定${actionName}` : '确定';
+
+    if (safeModeLevel === 'double') {
+        try {
+            await ElMessageBox.confirm(confirmMessage, confirmTitle, {
+                confirmButtonText: confirmButtonText,
+                cancelButtonText: '取消',
+                type: 'warning',
+                draggable: true,
+                customClass: 'app-dialog'
+            });
+            await actionFn();
+            ElMessage.success(`${actionName}成功！`);
+            return Promise.resolve();
+        } catch (e) {
+            if (e === 'cancel' || e?.message?.includes('cancel') || (e instanceof Error && e.message === 'cancel')) {
+                ElMessage.info(`已取消${actionName}操作。`);
+                 return Promise.reject('cancel');
+            } else if (e) {
+                console.error(`${actionName}时出错:`, e);
+                ElMessage.error(`${actionName}操作失败: ${e instanceof Error ? e.message : '未知错误'}`);
+                 return Promise.reject(e);
+            }
+             return Promise.reject('unknown');
+        }
+    } else if (safeModeLevel === 'single') {
+        try {
+            await actionFn();
+            ElMessage.success(`${actionName}成功！`);
+            return Promise.resolve();
+        } catch (e) {
+            console.error(`${actionName}时出错 (single mode):`, e);
+            ElMessage.error(`${actionName}操作失败: ${e instanceof Error ? e.message : '未知错误'}`);
+            return Promise.reject(e);
+        }
+    } else {
+         console.warn(`Unhandled safeModeLevel: ${safeModeLevel}. Performing action directly.`);
+         try {
+             await actionFn();
+             ElMessage.success(`${actionName}成功！`);
+             return Promise.resolve();
+         } catch (e) {
+             console.error(`${actionName}时出错 (unhandled mode):`, e);
+             ElMessage.error(`${actionName}操作失败: ${e instanceof Error ? e.message : '未知错误'}`);
+             return Promise.reject(e);
+         }
+    }
+}
+
 watch(() => props.form.traits, (newTraitsFromProp) => {
   if (JSON.stringify(newTraitsFromProp) !== JSON.stringify(localTraits.value)) {
     try {
@@ -134,14 +205,37 @@ watch(localTraits, (newLocalTraitsState) => {
 const addDialogueExample = (traitIndex: number) => {
   localTraits.value[traitIndex]?.dialogueExamples.push('');
 };
-const removeDialogueExample = (traitIndex: number, exampleIndex: number) => {
-  localTraits.value[traitIndex]?.dialogueExamples.splice(exampleIndex, 1);
+const removeDialogueExample = async (traitIndex: number, exampleIndex: number) => {
+  const trait = localTraits.value[traitIndex];
+  if (!trait || !trait.dialogueExamples || exampleIndex < 0 || exampleIndex >= trait.dialogueExamples.length) return;
+  const exampleText = trait.dialogueExamples[exampleIndex].substring(0,20) || `示例 ${exampleIndex + 1}`;
+
+  await performSafeAction(appSettings.safeModeLevel, '移除对话示例', exampleText, () => {
+      const currentTrait = localTraits.value[traitIndex]; // Re-fetch in case of async delays
+      if (currentTrait?.dialogueExamples) {
+        currentTrait.dialogueExamples.splice(exampleIndex, 1);
+      } else {
+          throw new Error('对话示例未找到，可能已被移除。');
+      }
+  }).catch(err => { if(err !== 'cancel' && err !== 'forbidden') console.warn('移除对话示例操作未成功完成:', err);});
 };
+
 const addBehaviorExample = (traitIndex: number) => {
   localTraits.value[traitIndex]?.behaviorExamples.push('');
 };
-const removeBehaviorExample = (traitIndex: number, exampleIndex: number) => {
-  localTraits.value[traitIndex]?.behaviorExamples.splice(exampleIndex, 1);
+const removeBehaviorExample = async (traitIndex: number, exampleIndex: number) => {
+  const trait = localTraits.value[traitIndex];
+  if (!trait || !trait.behaviorExamples || exampleIndex < 0 || exampleIndex >= trait.behaviorExamples.length) return;
+  const exampleText = trait.behaviorExamples[exampleIndex].substring(0,20) || `示例 ${exampleIndex + 1}`;
+
+  await performSafeAction(appSettings.safeModeLevel, '移除行为示例', exampleText, () => {
+      const currentTrait = localTraits.value[traitIndex];
+      if (currentTrait?.behaviorExamples) {
+        currentTrait.behaviorExamples.splice(exampleIndex, 1);
+      } else {
+           throw new Error('行为示例未找到，可能已被移除。');
+      }
+  }).catch(err => { if(err !== 'cancel' && err !== 'forbidden') console.warn('移除行为示例操作未成功完成:', err);});
 };
 const handleDraggableChange = (event: any) => {};
 </script>
