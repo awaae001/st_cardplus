@@ -14,7 +14,7 @@
 
     <el-form :model="localForm.appearance" :label-width="labelWidth" label-position="top" class="space-y-1">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-x-6 gap-y-4">
-        
+
         <el-form-item class="mb-0">
           <template #label><span class="form-label-adv">身高</span></template>
           <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.height" placeholder="例如：测量值 175cm"></el-input>
@@ -88,12 +88,18 @@
           <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.feet" placeholder="例如：双足对称，足弓形态正常，无畸形"></el-input>
         </el-form-item>
 
-        
+
         <el-form-item v-for="(field, index) in customFields" :key="field.label + '-' + index" class="mb-0 col-span-1">
           <template #label><span class="form-label-adv">{{ field.label }}</span></template>
           <div class="flex items-center gap-2">
             <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="field.value" :placeholder="`请输入 ${field.label} 特征`" class="flex-grow"></el-input>
-            <button @click="removeCustomField(index)" class="btn-danger-adv !p-1.5 !aspect-square shrink-0" aria-label="移除此字段">
+            <button
+              @click.prevent="requestRemoveCustomField(index)"
+              :disabled="appSettings.safeModeLevel === 'forbidden'"
+              :class="{ 'opacity-50 cursor-not-allowed': appSettings.safeModeLevel === 'forbidden' }"
+              class="btn-danger-adv !p-1.5 !aspect-square shrink-0"
+              aria-label="移除此字段"
+            >
               <Icon icon="ph:trash-simple-duotone" class="text-base"/>
             </button>
           </div>
@@ -114,21 +120,23 @@
 import { ref, watch, onMounted, onBeforeUnmount, defineProps, defineEmits, computed } from 'vue';
 import { ElInput, ElButton, ElFormItem, ElForm, ElMessageBox, ElMessage } from 'element-plus';
 import { Icon } from '@iconify/vue';
+import { useAppSettingsStore } from '../../stores/appSettings';
 
 interface CustomField { label: string; value: string; }
 
 interface AppearanceForm {
   appearance: {
     height: string; hairColor: string; hairstyle: string; eyes: string; nose: string; lips: string; skin: string; body: string; bust: string; waist: string; hips: string; breasts: string; genitals: string; anus: string; pubes: string; thighs: string; butt: string; feet: string;
-    [key: string]: string; 
+    [key: string]: string;
   };
 }
 
 const props = defineProps<{ form: AppearanceForm }>();
-const emit = defineEmits(['update:form']);
+const emit = defineEmits(['update:form', 'remove-custom-field']);
+const appSettings = useAppSettingsStore();
 
-const localForm = ref<AppearanceForm>({ 
-  appearance: { ...(props.form.appearance || {}) } 
+const localForm = ref<AppearanceForm>({
+  appearance: { ...(props.form.appearance || {}) }
 });
 
 const customFields = ref<CustomField[]>([]);
@@ -202,7 +210,7 @@ watch(customFields, (newCustomFields, oldCustomFields) => {
       changed = true;
     }
   }
-  
+
   if (changed) {
     if (JSON.stringify(localForm.value.appearance) !== JSON.stringify(newLocalAppearance)) {
         localForm.value.appearance = newLocalAppearance;
@@ -237,7 +245,7 @@ const addCustomField = async () => {
     if (inputText) {
       const lines = inputText.split('\n').filter(line => line.trim());
       let addedCount = 0;
-      
+
       const newFieldsToAdd: CustomField[] = [];
 
       for (const line of lines) {
@@ -262,18 +270,57 @@ const addCustomField = async () => {
       }
     }
   } catch (e) {
-    if (e !== 'cancel' && e !== 'close') {
+    if (e === 'cancel' || e?.message?.includes('cancel') || (e instanceof Error && e.message === 'cancel')) {
+        ElMessage.info('已取消添加');
+    } else if (e) {
         console.error("添加自定义字段时出错:", e);
         ElMessage.error('添加自定义字段操作失败。');
     }
   }
 };
 
-const removeCustomField = (index: number) => {
-  if (customFields.value[index]) {
-    customFields.value.splice(index, 1); 
+const requestRemoveCustomField = async (index: number) => {
+  const fieldToRemove = customFields.value[index];
+  if (!fieldToRemove) return;
+
+  const fieldLabel = fieldToRemove.label;
+
+  if (appSettings.safeModeLevel === 'forbidden') {
+    ElMessage.warning({ message: '当前处于禁止删除模式，无法移除字段。', duration: 2000 });
+    return;
+  }
+
+  if (appSettings.safeModeLevel === 'double') {
+      try {
+          await ElMessageBox.confirm(`确定要移除自定义字段 "${fieldLabel}" 吗？`, '确认删除', {
+              confirmButtonText: '确定移除',
+              cancelButtonText: '取消',
+              type: 'warning',
+              draggable: true,
+              customClass: 'app-dialog'
+          });
+          emit('remove-custom-field', fieldLabel);
+      } catch (e) {
+          if (e === 'cancel' || e?.message?.includes('cancel') || (e instanceof Error && e.message === 'cancel')) {
+              ElMessage.info('已取消移除操作。');
+          } else if (e) {
+             console.error('请求移除自定义字段时出错 (double mode):', e);
+             ElMessage.error('移除操作失败。');
+          }
+      }
+  } else if (appSettings.safeModeLevel === 'single') {
+        try {
+            emit('remove-custom-field', fieldLabel);
+        } catch (e) {
+            console.error('请求移除自定义字段时出错 (single mode):', e);
+            ElMessage.error('请求移除字段失败。');
+        }
+  } else {
+      console.warn(`Unhandled safeModeLevel: ${appSettings.safeModeLevel}. Requesting removal directly.`);
+      emit('remove-custom-field', fieldLabel);
   }
 };
+
 
 onMounted(() => { window.addEventListener('resize', updateScreenWidth); });
 onBeforeUnmount(() => { window.removeEventListener('resize', updateScreenWidth); });
@@ -282,11 +329,11 @@ onBeforeUnmount(() => { window.removeEventListener('resize', updateScreenWidth);
 
 <style scoped>
 .el-form-item :deep(.el-textarea__inner) {
-  font-size: 0.8125rem; 
-  line-height: 1.5; 
-  padding-top: 4px; 
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  padding-top: 4px;
   padding-bottom: 4px;
-  resize: none; 
+  resize: none;
   border-radius: var(--el-input-border-radius, var(--radius-base));
 }
 </style>

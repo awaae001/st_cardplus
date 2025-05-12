@@ -1,6 +1,5 @@
 <template>
   <div class="content-panel-body space-y-5">
-    
     <div class="content-panel-header -mx-5 md:-mx-6 -mt-5 md:-mt-6 mb-6">
       <h3 class="content-panel-title flex items-center gap-2">
         <Icon icon="ph:strategy-duotone" class="text-xl text-accent-500 dark:text-accent-400"/>
@@ -17,11 +16,10 @@
       </div>
     </div>
 
-    
     <draggable
       v-if="localTraits && localTraits.length > 0"
       v-model="localTraits"
-      item-key="id" 
+      item-key="id"
       animation="200"
       ghost-class="trait-ghost"
       chosen-class="trait-chosen"
@@ -30,15 +28,20 @@
       @change="handleDraggableChange"
     >
       <template #item="{ element: trait, index: traitIndex }">
-        <div :key="trait.id" class="trait-item-card-outer-wrapper"> 
-          <div class="trait-item-card bg-white dark:bg-neutral-800 rounded-lg shadow-md dark:shadow-black/20 border border-neutral-200 dark:border-neutral-700 
+        <div :key="trait.id" class="trait-item-card-outer-wrapper">
+          <div class="trait-item-card bg-white dark:bg-neutral-800 rounded-lg shadow-md dark:shadow-black/20 border border-neutral-200 dark:border-neutral-700
                         flex flex-col relative transition-all duration-150 ease-in-out hover:shadow-lg dark:hover:border-neutral-600 overflow-hidden">
             <div class="trait-card-drag-handle bg-neutral-100 dark:bg-neutral-700/50 px-3 py-1.5 cursor-move flex items-center justify-between text-neutral-500 dark:text-neutral-400 border-b border-neutral-200 dark:border-neutral-700 text-xs">
               <div class="flex items-center gap-1.5 flex-grow min-w-0" title="按住拖拽排序">
                 <Icon icon="material-symbols:drag-indicator-rounded" width="18" height="18"/>
                 <el-input v-model="trait.name" type="textarea" :autosize="{ minRows: 1, maxRows: 2 }" placeholder="特质名称" size="small" class="trait-name-input flex-grow min-w-0"></el-input>
               </div>
-              <button @click="() => props.removeTrait(trait.id)" class="btn-danger-adv !p-1 !aspect-square shrink-0 !rounded-full !text-xs ml-2" title="删除此特质">
+              <button
+                @click="() => props.removeTrait(trait.id)"
+                class="btn-danger-adv !p-1 !aspect-square shrink-0 !rounded-full !text-xs ml-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="删除此特质"
+                :disabled="appSettings.safeModeLevel === 'forbidden'"
+              >
                 <Icon icon="ph:x-bold" width="12" height="12" />
               </button>
             </div>
@@ -74,7 +77,6 @@
       </template>
     </draggable>
 
-    
     <div v-else class="mt-6 text-center py-10 border-2 border-dashed border-neutral-300/70 dark:border-neutral-700/70 rounded-lg bg-neutral-50 dark:bg-neutral-800/30">
       <Icon icon="ph:smiley-blank-duotone" class="text-5xl text-neutral-400 dark:text-neutral-600 mx-auto mb-3" />
       <p class="text-neutral-600 dark:text-neutral-400 text-sm font-medium">暂无性格特质</p>
@@ -85,13 +87,13 @@
 
 <script setup lang="ts">
 import { ref, watch, defineProps, defineEmits } from 'vue';
-import { ElInput, ElButton } from 'element-plus';
+import { ElInput } from 'element-plus';
 import { Icon } from "@iconify/vue";
 import draggable from 'vuedraggable';
+import { useAppSettingsStore } from '../../stores/appSettings'; // Corrected path
 
-// --- 接口定义 ---
 interface Trait {
-  id: string; // 每个特质对象必须拥有一个唯一的字符串ID
+  id: string;
   name: string;
   description: string;
   dialogueExamples: string[];
@@ -100,25 +102,19 @@ interface Trait {
 
 interface Props {
   form: {
-    traits: Trait[]; // 父组件确保这里的每个 trait 都有 id
+    traits: Trait[];
   };
-  addTrait: () => void; // 此方法在父组件中实现，负责添加带ID的新特质
-  removeTrait: (traitId: string) => void; // 此方法在父组件中实现，负责根据ID删除特质
+  addTrait: () => void;
+  removeTrait: (traitId: string) => void;
   exportTraits: () => Promise<void>;
 }
 
-// --- Props, Emits, 本地状态 ---
 const props = defineProps<Props>();
 const emit = defineEmits(['update:form']);
-const localTraits = ref<Trait[]>([]); // 用于 v-model 和内部修改的本地副本
+const localTraits = ref<Trait[]>([]);
+const appSettings = useAppSettingsStore();
 
-// --- 数据同步 Watchers ---
-// 监听父组件传入的 traits 数据
 watch(() => props.form.traits, (newTraitsFromProp) => {
-  // 调试: 检查传入的 traits 是否每个都有 id
-  // console.log('PersonalityTraits received traits from props:', JSON.stringify(newTraitsFromProp));
-  // newTraitsFromProp?.forEach(t => { if(!t.id) console.error('TRAIT MISSING ID IN PROPS:', t); });
-
   if (JSON.stringify(newTraitsFromProp) !== JSON.stringify(localTraits.value)) {
     try {
       localTraits.value = JSON.parse(JSON.stringify(newTraitsFromProp || []));
@@ -129,14 +125,12 @@ watch(() => props.form.traits, (newTraitsFromProp) => {
   }
 }, { deep: true, immediate: true });
 
-// 监听本地 localTraits 的变化 (拖拽或内部编辑)
 watch(localTraits, (newLocalTraitsState) => {
   if (JSON.stringify(newLocalTraitsState) !== JSON.stringify(props.form.traits || [])) {
     emit('update:form', { traits: newLocalTraitsState });
   }
 }, { deep: true });
 
-// --- 内部方法 ---
 const addDialogueExample = (traitIndex: number) => {
   localTraits.value[traitIndex]?.dialogueExamples.push('');
 };
@@ -149,25 +143,21 @@ const addBehaviorExample = (traitIndex: number) => {
 const removeBehaviorExample = (traitIndex: number, exampleIndex: number) => {
   localTraits.value[traitIndex]?.behaviorExamples.splice(exampleIndex, 1);
 };
-const handleDraggableChange = (event: any) => {
-  // v-model="localTraits" 已经更新了数组顺序
-  // 上面的 watch(localTraits, ...) 会负责 emit 更新
-};
+const handleDraggableChange = (event: any) => {};
 </script>
 
 <style scoped>
-/* 样式与上一版相同，确保使用了全局 CSS 变量 */
 .trait-ghost { opacity: 0.6; border-radius: var(--radius-lg); background-color: var(--color-sky-100); outline: 2px dashed var(--color-sky-400); box-shadow: none; }
 :where(.dark, .dark *) .trait-ghost { background-color: oklch(from var(--color-sky-800) l c h / 0.4); }
 
-.trait-chosen .trait-item-card { 
+.trait-chosen .trait-item-card {
   --chosen-ring-width: 2px; --chosen-ring-offset-width: 2px;
-  --chosen-ring-color-light: var(--color-accent-500); --chosen-ring-offset-color-light: var(--color-white); 
-  --chosen-ring-color-dark: var(--color-accent-400); --chosen-ring-offset-color-dark: var(--color-neutral-850); 
-  box-shadow: 0 0 0 var(--chosen-ring-offset-width) var(--chosen-ring-offset-color-light), 0 0 0 calc(var(--chosen-ring-offset-width) + var(--chosen-ring-width)) var(--chosen-ring-color-light), var(--shadow-xl); 
+  --chosen-ring-color-light: var(--color-accent-500); --chosen-ring-offset-color-light: var(--color-white);
+  --chosen-ring-color-dark: var(--color-accent-400); --chosen-ring-offset-color-dark: var(--color-neutral-850);
+  box-shadow: 0 0 0 var(--chosen-ring-offset-width) var(--chosen-ring-offset-color-light), 0 0 0 calc(var(--chosen-ring-offset-width) + var(--chosen-ring-width)) var(--chosen-ring-color-light), var(--shadow-xl);
 }
 :where(.dark, .dark *) .trait-chosen .trait-item-card {
-  box-shadow: 0 0 0 var(--chosen-ring-offset-width) var(--chosen-ring-offset-color-dark), 0 0 0 calc(var(--chosen-ring-offset-width) + var(--chosen-ring-width)) var(--chosen-ring-color-dark), var(--shadow-xl); 
+  box-shadow: 0 0 0 var(--chosen-ring-offset-width) var(--chosen-ring-offset-color-dark), 0 0 0 calc(var(--chosen-ring-offset-width) + var(--chosen-ring-width)) var(--chosen-ring-color-dark), var(--shadow-xl);
 }
 .trait-chosen { transform: scale(1.02); z-index: 10; }
 

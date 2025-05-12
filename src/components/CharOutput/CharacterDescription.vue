@@ -6,7 +6,12 @@
         角色描述
       </h3>
       <div class="ml-auto">
-        <button @click="handleOpenImport" class="btn-primary-adv text-sm !py-1.5 !px-3 whitespace-nowrap" title="从文件导入角色描述">
+        <button
+          @click="handleOpenImport"
+          class="btn-primary-adv text-sm !py-1.5 !px-3 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+          title="从文件导入角色描述"
+          :disabled="props.safeModeLevel === 'forbidden'"
+        >
           <Icon icon="material-symbols:file-open-outline-rounded" width="18" height="18" class="mr-1.5 -ml-0.5" />
           导入描述
         </button>
@@ -21,16 +26,23 @@
 <script setup lang="ts">
 import { ref, watch, defineProps, defineEmits, nextTick } from 'vue';
 import { Icon } from "@iconify/vue";
-import type { ElInput } from 'element-plus';
+import { ElInput } from 'element-plus'; // Corrected import - only ElInput is used
+import { useAppSettingsStore, type SafeModeLevel } from '../../stores/appSettings'; // Assuming path from src/components/CharOutput/
 
 interface CharacterDescriptionFormData {
   description: string;
   data?: { description?: string; [key: string]: any; };
 }
-interface Props { form: CharacterDescriptionFormData; }
+
+// Modified Props definition to include safeModeLevel
+interface Props {
+  form: CharacterDescriptionFormData;
+  safeModeLevel: SafeModeLevel;
+}
 
 const props = defineProps<Props>();
 const emit = defineEmits(['update:form', 'openCharacterDescriptionImport']);
+const appSettings = useAppSettingsStore();
 
 const localDescription = ref<string>('');
 let internalUpdateFlag_Desc = false;
@@ -38,7 +50,6 @@ let internalUpdateFlag_Desc = false;
 watch(() => props.form.description, (newVal) => {
   const currentPropVal = newVal || '';
   if (currentPropVal !== localDescription.value) {
-    // console.log('CharacterDescription: Prop updated. Updating local to:', currentPropVal);
     internalUpdateFlag_Desc = true;
     localDescription.value = currentPropVal;
     nextTick(() => { internalUpdateFlag_Desc = false; });
@@ -47,12 +58,10 @@ watch(() => props.form.description, (newVal) => {
 
 watch(localDescription, (newVal) => {
   if (internalUpdateFlag_Desc) {
-    // console.log('CharacterDescription: Emit blocked for prop-driven update.');
     return;
   }
   if (newVal !== (props.form.description || '')) {
-    // console.log('CharacterDescription: Local changed. Emitting:', newVal);
-    emit('update:form', { 
+    emit('update:form', {
       description: newVal,
       data: { ...(props.form.data || {}), description: newVal }
     });

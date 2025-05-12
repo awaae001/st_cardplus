@@ -2,7 +2,12 @@
   <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 md:gap-3 print:hidden">
     <div class="flex items-center gap-2 md:gap-3">
       <el-tooltip content="加载角色输出配置" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
-        <button @click="emit('loadData')" class="btn-success-adv !p-2.5 aspect-square group" aria-label="加载角色输出配置">
+        <button
+          @click="emit('loadData')"
+          class="btn-success-adv !p-2.5 aspect-square group disabled:opacity-50 disabled:cursor-not-allowed"
+          aria-label="加载角色输出配置"
+          :disabled="props.safeModeLevel === 'forbidden'"
+        >
           <Icon icon="ph:folder-open-duotone" class="text-lg group-hover:scale-110 transition-transform"/>
         </button>
       </el-tooltip>
@@ -12,7 +17,12 @@
         </button>
       </el-tooltip>
       <el-tooltip content="重置所有输出设置" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
-        <button @click="emit('resetData')" class="btn-danger-adv !p-2.5 aspect-square group" aria-label="重置所有输出设置">
+        <button
+          @click="emit('resetData')"
+          class="btn-danger-adv !p-2.5 aspect-square group disabled:opacity-50 disabled:cursor-not-allowed"
+          aria-label="重置所有输出设置"
+          :disabled="props.safeModeLevel === 'forbidden'"
+        >
           <Icon icon="ph:arrow-counter-clockwise-duotone" class="text-lg group-hover:rotate-[30deg] transition-transform"/>
         </button>
       </el-tooltip>
@@ -25,7 +35,12 @@
         </button>
       </el-tooltip>
       <el-tooltip content="从剪贴板导入配置" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
-        <button @click="showImportDialog" class="btn-warning-adv !p-2.5 aspect-square group" aria-label="从剪贴板导入配置">
+        <button
+          @click="showImportDialog"
+          class="btn-warning-adv !p-2.5 aspect-square group disabled:opacity-50 disabled:cursor-not-allowed"
+          aria-label="从剪贴板导入配置"
+          :disabled="props.safeModeLevel === 'forbidden'"
+        >
           <Icon icon="ph:clipboard-text-duotone" class="text-lg group-hover:scale-110 transition-transform"/>
         </button>
       </el-tooltip>
@@ -34,9 +49,14 @@
 </template>
 
 <script setup lang="ts">
-import { defineEmits } from 'vue';
+import { defineEmits, defineProps } from 'vue';
 import { Icon } from "@iconify/vue";
 import { ElMessageBox, ElTooltip } from 'element-plus';
+import type { SafeModeLevel } from '../../../stores/appSettings'; // Adjust path as needed
+
+const props = defineProps<{
+  safeModeLevel: SafeModeLevel;
+}>();
 
 const emit = defineEmits<{
   (e: 'saveData'): void;
@@ -47,6 +67,15 @@ const emit = defineEmits<{
 }>();
 
 const showImportDialog = () => {
+  if (props.safeModeLevel === 'forbidden') {
+      ElMessageBox.alert('当前处于禁止模式，无法从剪贴板导入。', '操作禁止', {
+          confirmButtonText: '知道了',
+          type: 'warning',
+          customClass: 'app-dialog'
+      });
+      return;
+  }
+
   ElMessageBox.prompt('请粘贴JSON格式的角色输出配置数据：', '从剪贴板导入配置', {
     confirmButtonText: '确认导入',
     cancelButtonText: '取消',

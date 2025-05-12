@@ -11,22 +11,23 @@
         @saveData="saveData"
         @loadData="loadData"
         @resetData="resetData"
+        :safe-mode-level="appSettings.safeModeLevel"
         class="flex flex-wrap items-center gap-2 md:gap-3"
       />
     </header>
 
     <el-scrollbar class="flex-grow main-content-scrollbar" view-class="p-1 print:p-0">
       <div class="space-y-5 md:space-y-8">
-        
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-8 items-stretch">
           <div :class="panelClasses">
             <BasicInfo :form="form" @update:form="handleFormUpdate" class="flex flex-col h-full" />
           </div>
           <div :class="panelClasses">
-            <CharacterDescription 
-              :form="form" 
+            <CharacterDescription
+              :form="form"
               @update:form="handleFormUpdate"
-              @openCharacterDescriptionImport="openCharacterDescriptionImport" 
+              @openCharacterDescriptionImport="openCharacterDescriptionImport"
+              :safe-mode-level="appSettings.safeModeLevel"
               class="flex flex-col h-full"
             />
           </div>
@@ -34,7 +35,7 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-8 items-stretch">
           <div :class="panelClasses">
-            <AlternateGreetings 
+            <AlternateGreetings
               :form="form"
               @update:form="handleFormUpdate"
               class="flex flex-col h-full"
@@ -42,14 +43,15 @@
           </div>
           <div :class="panelClasses">
             <CharacterNotes
-              :form="form" 
+              :form="form"
               @update:form="handleFormUpdate"
               @handleFileUpload="handleCharacterNotesUpload"
+              :safe-mode-level="appSettings.safeModeLevel"
               class="flex flex-col h-full"
             />
           </div>
         </div>
-        
+
         <div :class="panelClasses">
           <PersonalitySettings :form="form" @update:form="handleFormUpdate" class="flex flex-col h-full" />
         </div>
@@ -70,16 +72,16 @@
             <TagSettings :form="form" @update:form="handleFormUpdate" class="flex flex-col h-full" />
           </div>
         </div>
-
       </div>
     </el-scrollbar>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
+import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue';
 import { ElMessage, ElMessageBox, ElScrollbar } from 'element-plus';
 import { saveAs } from 'file-saver';
+import { useAppSettingsStore, type SafeModeLevel } from '../stores/appSettings';
 
 import {
   saveToLocalStorage as saveToLS,
@@ -89,7 +91,6 @@ import {
   clearAutoSave
 } from '../utils/localStorageUtils';
 
-// --- 子组件导入 ---
 import Buttons from './CharOutput/Buttons.vue';
 import BasicInfo from './CharOutput/BasicInfo.vue';
 import CharacterDescription from './CharOutput/CharacterDescription.vue';
@@ -101,7 +102,6 @@ import DialogueExample from './CharOutput/DialogueExample.vue';
 import OtherSettings from './CharOutput/OtherSettings.vue';
 import TagSettings from './CharOutput/TagSettings.vue';
 
-// --- TypeScript 接口定义 ---
 interface CharacterOutputDataExtensions {
   talkativeness: string;
   fav: boolean;
@@ -111,7 +111,7 @@ interface CharacterOutputDataExtensions {
     role: string;
   };
   world: string;
-  [key: string]: any; // Allow other extension fields
+  [key: string]: any;
 }
 
 interface CharacterOutputDataNested {
@@ -131,7 +131,7 @@ interface CharacterOutputDataNested {
   post_history_instructions: string;
   creator: string;
   character_version: string;
-  [key: string]: any; // Allow other data fields
+  [key: string]: any;
 }
 
 interface CharacterOutputForm {
@@ -149,10 +149,11 @@ interface CharacterOutputForm {
   spec_version: string;
   data: CharacterOutputDataNested;
   creatorcomment: string;
-  [key: string]: any; // Allow other top-level fields
+  [key: string]: any;
 }
 
 const LOCAL_STORAGE_KEY = 'characterOutputData';
+const appSettings = useAppSettingsStore();
 
 const createDefaultForm = (): CharacterOutputForm => ({
   name: '', description: '', personality: '', scenario: '', first_mes: '', mes_example: '',
@@ -185,49 +186,118 @@ const panelClasses = computed(() => [
 onMounted(() => {
   const loadedData = loadFromLS(LOCAL_STORAGE_KEY, processLoadedData);
   if (loadedData) { form.value = loadedData; }
-  autoSaveTimer = initAutoSave(
-    () => saveToLS(form.value, LOCAL_STORAGE_KEY),
-    () => !!(form.value.name || form.value.data.name)
-  );
+  if (appSettings.isAutoSaveEnabled) {
+    autoSaveTimer = initAutoSave(
+      () => saveToLS(form.value, LOCAL_STORAGE_KEY),
+      () => !!(form.value.name || form.value.data.name)
+    );
+  }
 });
 
 onBeforeUnmount(() => { if (autoSaveTimer) clearAutoSave(autoSaveTimer); });
 
-const handleFormUpdate = (updatedPart: Partial<CharacterOutputForm>) => {
-  // console.log('Parent: handleFormUpdate received:', JSON.parse(JSON.stringify(updatedPart)));
-  const newFormState = { ...form.value };
+watch(() => appSettings.isAutoSaveEnabled, (newValue) => {
+  if (newValue) {
+    if (!autoSaveTimer) {
+      autoSaveTimer = initAutoSave(
+        () => saveToLS(form.value, LOCAL_STORAGE_KEY),
+        () => !!(form.value.name || form.value.data.name)
+      );
+      ElMessage.info('自动保存已开启');
+    }
+  } else {
+    if (autoSaveTimer) {
+      clearAutoSave(autoSaveTimer);
+      autoSaveTimer = null;
+      ElMessage.info('自动保存已关闭');
+    }
+  }
+});
 
+const handleFormUpdate = (updatedPart: Partial<CharacterOutputForm>) => {
+  const newFormState = { ...form.value };
   for (const key in updatedPart) {
     if (Object.prototype.hasOwnProperty.call(updatedPart, key)) {
       if (key === 'data' && typeof updatedPart.data === 'object' && updatedPart.data !== null) {
-        // Deep merge for 'data' object
-        newFormState.data = {
-          ...newFormState.data,
-          ...updatedPart.data,
-        };
+        newFormState.data = { ...newFormState.data, ...updatedPart.data };
         if (typeof updatedPart.data.extensions === 'object' && updatedPart.data.extensions !== null) {
-          newFormState.data.extensions = {
-            ...newFormState.data.extensions,
-            ...updatedPart.data.extensions,
-          };
+          newFormState.data.extensions = { ...newFormState.data.extensions, ...updatedPart.data.extensions };
         }
       } else {
-        // Direct assignment for top-level properties
         (newFormState as any)[key] = (updatedPart as any)[key];
       }
     }
   }
   form.value = newFormState;
-  // console.log('Parent: form.value updated:', JSON.parse(JSON.stringify(form.value)));
 };
+
+async function performSafeAction(
+    safeModeLevel: SafeModeLevel,
+    actionName: string,
+    itemName: string = '',
+    actionFn: () => void | Promise<void>
+) {
+    if (safeModeLevel === 'forbidden') {
+        ElMessage.warning(`当前处于禁止模式，无法${actionName}。`);
+        return Promise.reject('forbidden');
+    }
+
+    const confirmTitle = itemName ? `确认${actionName}` : `确认${actionName}`;
+    const confirmMessage = itemName ? `确定要${actionName} "${itemName}" 吗？` : `确定要${actionName}吗？`;
+    const confirmButtonText = itemName ? `确定${actionName}` : '确定';
+
+    if (safeModeLevel === 'double') {
+        try {
+            await ElMessageBox.confirm(confirmMessage, confirmTitle, {
+                confirmButtonText: confirmButtonText,
+                cancelButtonText: '取消',
+                type: 'warning',
+                draggable: true,
+                customClass: 'app-dialog'
+            });
+            await actionFn();
+            ElMessage.success(`${actionName}成功！`);
+            return Promise.resolve();
+        } catch (e) {
+            if (e === 'cancel' || e?.message?.includes('cancel') || (e instanceof Error && e.message === 'cancel')) {
+                ElMessage.info(`已取消${actionName}操作。`);
+                 return Promise.reject('cancel');
+            } else if (e) {
+                console.error(`${actionName}时出错:`, e);
+                ElMessage.error(`${actionName}操作失败: ${e instanceof Error ? e.message : '未知错误'}`);
+                 return Promise.reject(e);
+            }
+             return Promise.reject('unknown');
+        }
+    } else if (safeModeLevel === 'single') {
+        try {
+            await actionFn();
+            ElMessage.success(`${actionName}成功！`);
+            return Promise.resolve();
+        } catch (e) {
+            console.error(`${actionName}时出错 (single mode):`, e);
+            ElMessage.error(`${actionName}操作失败: ${e instanceof Error ? e.message : '未知错误'}`);
+            return Promise.reject(e);
+        }
+    } else {
+         console.warn(`Unhandled safeModeLevel: ${safeModeLevel}. Performing action directly.`);
+         try {
+             await actionFn();
+             ElMessage.success(`${actionName}成功！`);
+             return Promise.resolve();
+         } catch (e) {
+             console.error(`${actionName}时出错 (unhandled mode):`, e);
+             ElMessage.error(`${actionName}操作失败: ${e instanceof Error ? e.message : '未知错误'}`);
+             return Promise.reject(e);
+         }
+    }
+}
 
 
 const processLoadedData = (parsedData: any): CharacterOutputForm => {
   const defaultForm = createDefaultForm();
-  // Start with a deep clone of the default form
   let processed: CharacterOutputForm = JSON.parse(JSON.stringify(defaultForm));
 
-  // Merge parsedData level by level to avoid overwriting nested defaults with undefined
   const mergeDeep = (target: any, source: any) => {
     for (const key in source) {
       if (Object.prototype.hasOwnProperty.call(source, key)) {
@@ -236,7 +306,7 @@ const processLoadedData = (parsedData: any): CharacterOutputForm => {
             target[key] = {};
           }
           mergeDeep(target[key], source[key]);
-        } else if (source[key] !== undefined) { // Only assign if source has a defined value
+        } else if (source[key] !== undefined) {
           target[key] = source[key];
         }
       }
@@ -245,14 +315,13 @@ const processLoadedData = (parsedData: any): CharacterOutputForm => {
 
   mergeDeep(processed, parsedData);
 
-  // Specific handling for talkativeness and fav to sync top-level and data.extensions
-  if (parsedData.talkativeness !== undefined) { // If top-level exists
+  if (parsedData.talkativeness !== undefined) {
     processed.talkativeness = Number(parsedData.talkativeness) || 0.5;
     processed.data.extensions.talkativeness = String(processed.talkativeness);
-  } else if (parsedData.data?.extensions?.talkativeness !== undefined) { // If only in extensions
+  } else if (parsedData.data?.extensions?.talkativeness !== undefined) {
     processed.talkativeness = Number(parsedData.data.extensions.talkativeness) || 0.5;
     processed.data.extensions.talkativeness = String(processed.talkativeness);
-  } else { // Fallback to default
+  } else {
      processed.talkativeness = defaultForm.talkativeness;
      processed.data.extensions.talkativeness = defaultForm.data.extensions.talkativeness;
   }
@@ -267,29 +336,25 @@ const processLoadedData = (parsedData: any): CharacterOutputForm => {
     processed.fav = defaultForm.fav;
     processed.data.extensions.fav = defaultForm.data.extensions.fav;
   }
-  
-  // Ensure arrays are arrays, defaulting to empty if not present or not an array
+
   const fieldsToEnsureArray = ['tags', 'alternate_greetings', 'group_only_greetings', 'character_book'];
   fieldsToEnsureArray.forEach(field => {
-    if (field === 'tags') { // Top-level tags
+    if (field === 'tags') {
       processed.tags = Array.isArray(parsedData.tags) ? parsedData.tags : (Array.isArray(parsedData.data?.tags) ? parsedData.data.tags : []);
-      processed.data.tags = processed.tags; // Sync to data.tags
-    } else if (Object.prototype.hasOwnProperty.call(processed.data, field)) { // Nested in data
+      processed.data.tags = processed.tags;
+    } else if (Object.prototype.hasOwnProperty.call(processed.data, field)) {
        (processed.data as any)[field] = Array.isArray(parsedData.data?.[field]) ? parsedData.data[field] : [];
     }
   });
-  
+
   return processed;
 };
 
-const resetData = () => {
-  ElMessageBox.confirm('确定要重置所有数据吗？这将清除所有已输入的内容，并从本地存储中删除自动保存的数据。', '警告', { 
-    confirmButtonText: '确定重置', cancelButtonText: '取消', type: 'warning', draggable: true, customClass: 'app-dialog'
-  }).then(() => {
-    clearLS(LOCAL_STORAGE_KEY);
-    form.value = createDefaultForm();
-    ElMessage.success({ message: '表单已重置。', duration: 2000 });
-  }).catch(() => ElMessage.info({ message: '已取消重置。', duration: 1500 }));
+const resetData = async () => {
+  await performSafeAction(appSettings.safeModeLevel, '重置数据', '此操作将清除所有内容并删除自动保存', () => {
+      clearLS(LOCAL_STORAGE_KEY);
+      form.value = createDefaultForm();
+  }).catch(err => { if(err !== 'cancel' && err !== 'forbidden') console.warn('重置数据操作未成功完成:', err);});
 };
 
 const saveData = () => {
@@ -311,65 +376,92 @@ const saveData = () => {
   ElMessage.success('数据已保存为JSON文件');
 };
 
-const loadData = () => {
-  const input = document.createElement('input');
-  input.type = 'file'; input.accept = '.json,application/json';
-  input.onchange = async (event) => {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (!file) return;
-    try {
-      const content = await file.text();
-      if (!content.trim()) throw new Error('文件内容为空。');
-      const parsedData = JSON.parse(content);
-      if (!parsedData || typeof parsedData !== 'object') throw new Error('无效的角色数据文件格式。');
-      form.value = processLoadedData(parsedData);
-      ElMessage.success({ message: '角色数据加载成功！', duration: 2000 });
-    } catch (error) {
-      ElMessage.error(`加载文件失败：${error instanceof Error ? error.message : '未知错误'}`);
-    }
-  };
-  input.click();
+const loadData = async () => {
+    await performSafeAction(appSettings.safeModeLevel, '加载角色数据', '此操作将覆盖当前内容', async () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json,application/json';
+      await new Promise<void>((resolve, reject) => {
+          input.onchange = async (event) => {
+              const file = (event.target as HTMLInputElement).files?.[0];
+              if (!file) { reject('cancel'); return; }
+              try {
+                  const content = await file.text();
+                  if (!content.trim()) { throw new Error('文件内容为空。'); }
+                  const parsedData = JSON.parse(content);
+                  if (!parsedData || (typeof parsedData !== 'object')) { throw new Error('无效的角色数据文件格式。'); }
+                  form.value = processLoadedData(parsedData);
+                  saveToLS(form.value, LOCAL_STORAGE_KEY);
+                  resolve();
+              } catch (error) {
+                  console.error("Load error:", error);
+                  reject(error);
+              }
+          };
+          input.addEventListener('cancel', () => reject('cancel'));
+          input.click();
+      });
+   }).catch(err => { if(err !== 'cancel' && err !== 'forbidden') console.warn('加载角色数据操作未成功完成:', err);});
 };
 
-const handleCharacterNotesUpload = () => {
-  const input = document.createElement('input');
-  input.type = 'file'; input.accept = '.txt,.md';
-  input.onchange = (e) => {
-    const file = (e.target as HTMLInputElement).files?.[0]; if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        if (!ev.target?.result || typeof ev.target.result !== 'string') throw new Error('无法读取或文件内容无效。');
-        // Ensure path exists, using defaults if necessary
-        if (!form.value.data) form.value.data = createDefaultForm().data;
-        if (!form.value.data.extensions) form.value.data.extensions = createDefaultForm().data.extensions;
-        if (!form.value.data.extensions.depth_prompt) form.value.data.extensions.depth_prompt = createDefaultForm().data.extensions.depth_prompt;
-        form.value.data.extensions.depth_prompt.prompt = ev.target.result;
-        ElMessage.success('角色备注（深度提示）文件已上传并自动填充');
-      } catch (error) { ElMessage.error(`文件读取失败：${error instanceof Error ? error.message : '未知错误'}`); }
-    };
-    reader.readAsText(file);
-  };
-  input.click();
+const handleCharacterNotesUpload = async () => {
+  await performSafeAction(appSettings.safeModeLevel, '导入角色备注', '此操作将覆盖当前备注', async () => {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = '.txt,.md';
+    await new Promise<void>((resolve, reject) => {
+      input.onchange = (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0]; if (!file) { reject('cancel'); return; }
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          try {
+            if (!ev.target?.result || typeof ev.target.result !== 'string') throw new Error('无法读取或文件内容无效。');
+            if (!form.value.data) form.value.data = createDefaultForm().data;
+            if (!form.value.data.extensions) form.value.data.extensions = createDefaultForm().data.extensions;
+            if (!form.value.data.extensions.depth_prompt) form.value.data.extensions.depth_prompt = createDefaultForm().data.extensions.depth_prompt;
+            form.value.data.extensions.depth_prompt.prompt = ev.target.result;
+            saveToLS(form.value, LOCAL_STORAGE_KEY);
+            resolve();
+          } catch (error) {
+            console.error("Notes upload error:", error);
+            reject(error);
+          }
+        };
+        reader.onerror = (e) => reject(new Error('文件读取出错'));
+        reader.readAsText(file);
+      };
+      input.addEventListener('cancel', () => reject('cancel'));
+      input.click();
+    });
+  }).catch(err => { if(err !== 'cancel' && err !== 'forbidden') console.warn('导入角色备注操作未成功完成:', err);});
 };
 
-const openCharacterDescriptionImport = () => {
-  const input = document.createElement('input');
-  input.type = 'file'; input.accept = '.txt,.md';
-  input.onchange = (e) => {
-    const file = (e.target as HTMLInputElement).files?.[0]; if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        if (!ev.target?.result || typeof ev.target.result !== 'string') throw new Error('无法读取或文件内容无效。');
-        form.value.description = ev.target.result;
-        if(form.value.data) form.value.data.description = ev.target.result;
-        ElMessage.success('角色描述文件已上传并自动填充');
-      } catch (error) { ElMessage.error(`文件读取失败：${error instanceof Error ? error.message : '未知错误'}`);}
-    };
-    reader.readAsText(file);
-  };
-  input.click();
+const openCharacterDescriptionImport = async () => {
+  await performSafeAction(appSettings.safeModeLevel, '导入角色描述', '此操作将覆盖当前描述', async () => {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = '.txt,.md';
+     await new Promise<void>((resolve, reject) => {
+      input.onchange = (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0]; if (!file) { reject('cancel'); return; }
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          try {
+            if (!ev.target?.result || typeof ev.target.result !== 'string') throw new Error('无法读取或文件内容无效。');
+            form.value.description = ev.target.result;
+            if(form.value.data) form.value.data.description = ev.target.result;
+            saveToLS(form.value, LOCAL_STORAGE_KEY);
+            resolve();
+          } catch (error) {
+             console.error("Description import error:", error);
+             reject(error);
+          }
+        };
+        reader.onerror = (e) => reject(new Error('文件读取出错'));
+        reader.readAsText(file);
+      };
+      input.addEventListener('cancel', () => reject('cancel'));
+      input.click();
+     });
+  }).catch(err => { if(err !== 'cancel' && err !== 'forbidden') console.warn('导入角色描述操作未成功完成:', err);});
 };
 </script>
 
