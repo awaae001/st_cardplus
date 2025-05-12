@@ -1,8 +1,14 @@
+// vite.config.ts
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import electron from 'vite-plugin-electron';
 import tailwindcss from '@tailwindcss/vite';
-import path from 'path'; // 引入 path 模块
+import path from 'path';
+import fs from 'fs'; // 导入 fs 模块
+
+// 读取 package.json 文件
+const packageJsonPath = path.resolve(__dirname, 'package.json');
+const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
 
 export default defineConfig({
   server: {
@@ -11,43 +17,54 @@ export default defineConfig({
   plugins: [
     vue(),
     tailwindcss(),
-    electron({
-      entry: 'electron/main.ts', // 主进程入口文件
-    }),
+    electron([ // 假设你的 electron 配置是一个数组，如果只有一个对象则不需要数组
+      {
+        entry: 'electron/main.ts',
+      },
+      // 如果你有 preload 脚本，应该像这样配置:
+      // {
+      //   entry: 'electron/preload.ts', // 根据你的实际路径修改
+      //   onstart(options) {
+      //     options.reload(); // 或者 options.startup();
+      //   },
+      // }
+    ]),
   ],
-  resolve: { // 添加 resolve 配置
+  resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src'), // 定义 @ 别名指向 src 目录
+      '@': path.resolve(__dirname, 'src'),
     },
   },
+  define: {
+    'import.meta.env.PACKAGE_VERSION': JSON.stringify(packageJson.version),
+  },
   build: {
-    outDir: 'dist', // 打包输出目录
-    minify: 'terser', // 使用terser进行更严格的minify
-    cssCodeSplit: true, // 启用CSS代码分割
+    outDir: 'dist',
+    minify: 'terser',
+    cssCodeSplit: true,
     rollupOptions: {
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
             if (id.includes('element-plus')) {
-              return 'element-plus'; // 将element-plus单独打包
+              return 'element-plus';
             }
-            if (id.includes('lodash-es')) {
-              return 'lodash'; // 将lodash-es单独打包
+            if (id.includes('lodash-es')) { 
+              return 'lodash';
             }
-            return 'vendor'; // 其他node_modules依赖
+            return 'vendor';
           }
         },
-        chunkFileNames: 'assets/[name]-[hash].js', // 分割后的文件命名规则
+        chunkFileNames: 'assets/[name]-[hash].js',
       },
     },
-    chunkSizeWarningLimit: 1000, // 设置chunk大小警告限制
-    sourcemap: false, 
+    chunkSizeWarningLimit: 1000,
+    sourcemap: false,
     terserOptions: {
       compress: {
-        // drop_console: true, // 移除console.log
-        drop_debugger: true, // 移除debugger
+        drop_debugger: true,
       },
     },
   },
-  assetsInclude: ['src/image/**/*']
+  assetsInclude: ['src/image/**/*'],
 });

@@ -1,154 +1,231 @@
 <template>
-  <el-card class="mb-4 p-2 md:p-4">
-    <div class="title-Btn">
-      <h2 class="text-lg md:text-xl font-semibold mb-2">外貌特征</h2>
+  <div class="content-panel-body space-y-5">
+    <div class="content-panel-header -mx-5 md:-mx-6 -mt-5 md:-mt-6 mb-6">
+      <h3 class="content-panel-title flex items-center gap-2">
+        <Icon icon="ph:person-duotone" class="text-xl text-accent-500 dark:text-accent-400"/>
+        外貌特征
+      </h3>
     </div>
-    <div style="margin-top: 8px;"></div>
-    <p class="whatYouwant">
-      <Icon icon="material-symbols:info-outline" width="24" height="24" />
-      <span style="margin-left: 4px;"></span>
-      当你在输入框留空时留空的位置不会被导出，即："不用全部填写"
-    </p>
-    <el-form :model="form.appearance" :label-width="screenWidth > 768 ? '120px' : 'auto'">
-      <div id="appearance-form">
-        <el-form-item label="身高">
-          <el-input type="textarea" :rows="1" v-model="form.appearance.height" placeholder="请输入身高" />
+
+    <div class="flex items-center gap-2 p-3 rounded-md bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/30 text-sky-700 dark:text-sky-300 text-xs mb-4">
+      <Icon icon="ph:info-duotone" class="text-lg shrink-0"/>
+      <span>当输入框留空时，该位置不会被导出，即："不用全部填写"。</span>
+    </div>
+
+    <el-form :model="localForm.appearance" :label-width="labelWidth" label-position="top" class="space-y-1">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-x-6 gap-y-4">
+        
+        <el-form-item class="mb-0">
+          <template #label><span class="form-label-adv">身高</span></template>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.height" placeholder="例如：测量值 175cm"></el-input>
         </el-form-item>
-        <el-form-item label="发色">
-          <el-input type="textarea" :rows="1" v-model="form.appearance.hairColor" placeholder="请输入发色" />
+        <el-form-item class="mb-0">
+          <template #label><span class="form-label-adv">发色</span></template>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.hairColor" placeholder="例如：深棕色，接近Pantone 19-1118 TPX"></el-input>
         </el-form-item>
-        <el-form-item label="发型">
-          <el-input type="textarea" :rows="1" v-model="form.appearance.hairstyle" placeholder="请输入发型" />
+        <el-form-item class="mb-0">
+          <template #label><span class="form-label-adv">发型</span></template>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.hairstyle" placeholder="例如：自然垂顺，长度至肩胛骨下缘"></el-input>
         </el-form-item>
-        <el-form-item label="眼睛">
-          <el-input type="textarea" :rows="1" v-model="form.appearance.eyes" placeholder="请输入眼睛特征" />
+        <el-form-item class="mb-0">
+          <template #label><span class="form-label-adv">眼睛</span></template>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.eyes" placeholder="例如：虹膜呈浅褐色，瞳孔对光反射正常"></el-input>
         </el-form-item>
-        <el-form-item label="鼻子">
-          <el-input type="textarea" :rows="1" v-model="form.appearance.nose" placeholder="请输入鼻子特征" />
+        <el-form-item class="mb-0">
+          <template #label><span class="form-label-adv">鼻子</span></template>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.nose" placeholder="例如：鼻梁直，鼻翼对称，无明显偏曲"></el-input>
         </el-form-item>
-        <el-form-item label="嘴唇">
-          <el-input type="textarea" :rows="1" v-model="form.appearance.lips" placeholder="请输入嘴唇特征" />
+        <el-form-item class="mb-0">
+          <template #label><span class="form-label-adv">嘴唇</span></template>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.lips" placeholder="例如：唇红缘清晰，厚度适中"></el-input>
         </el-form-item>
-        <el-form-item label="皮肤">
-          <el-input type="textarea" :rows="1" v-model="form.appearance.skin" placeholder="请输入皮肤特征" />
+        <el-form-item class="mb-0">
+          <template #label><span class="form-label-adv">皮肤</span></template>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.skin" placeholder="例如：Fitzpatrick皮肤分型II型，无明显瘢痕或色素沉着"></el-input>
         </el-form-item>
-        <el-form-item label="身材">
-          <el-input type="textarea" :rows="1" v-model="form.appearance.body" placeholder="请输入身材特征" />
+        <el-form-item class="mb-0">
+          <template #label><span class="form-label-adv">身材</span></template>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.body" placeholder="例如：体型匀称，肌肉组织发育良好"></el-input>
+        </el-form-item>
+        <el-form-item class="mb-0">
+          <template #label><span class="form-label-adv">胸部</span></template>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.breasts" placeholder="例如：乳腺组织发育对称，Tanner分期V期"></el-input>
+        </el-form-item>
+        <el-form-item class="mb-0">
+          <template #label><span class="form-label-adv">生殖器</span></template>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.genitals" placeholder="例如：外生殖器发育正常，符合生理性别特征"></el-input>
+        </el-form-item>
+        <el-form-item class="mb-0">
+          <template #label><span class="form-label-adv">肛门</span></template>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.anus" placeholder="例如：肛周皮肤完整，无异常赘生物"></el-input>
+        </el-form-item>
+        <el-form-item class="mb-0">
+          <template #label><span class="form-label-adv">阴毛</span></template>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.pubes" placeholder="例如：耻骨联合区毛发分布呈倒三角形"></el-input>
+        </el-form-item>
+        <el-form-item class="mb-0">
+          <template #label><span class="form-label-adv">胸围</span></template>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.bust" placeholder="例如：经乳头点水平周长90cm"></el-input>
+        </el-form-item>
+        <el-form-item class="mb-0">
+          <template #label><span class="form-label-adv">腰围</span></template>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.waist" placeholder="例如：脐水平周长60cm"></el-input>
+        </el-form-item>
+        <el-form-item class="mb-0">
+          <template #label><span class="form-label-adv">臀围</span></template>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.hips" placeholder="例如：臀部最突出点水平周长90cm"></el-input>
+        </el-form-item>
+        <el-form-item class="mb-0">
+          <template #label><span class="form-label-adv">大腿</span></template>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.thighs" placeholder="例如：股四头肌轮廓清晰，无萎缩"></el-input>
+        </el-form-item>
+        <el-form-item class="mb-0">
+          <template #label><span class="form-label-adv">屁股</span></template>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.butt" placeholder="例如：臀大肌饱满，形态圆隆"></el-input>
+        </el-form-item>
+        <el-form-item class="mb-0">
+          <template #label><span class="form-label-adv">足部</span></template>
+          <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="localForm.appearance.feet" placeholder="例如：双足对称，足弓形态正常，无畸形"></el-input>
         </el-form-item>
 
-        <el-form-item label="胸部">
-          <el-input type="textarea" :rows="1" v-model="form.appearance.breasts" placeholder="请输入胸部特征" />
+        
+        <el-form-item v-for="(field, index) in customFields" :key="field.label + '-' + index" class="mb-0 col-span-1">
+          <template #label><span class="form-label-adv">{{ field.label }}</span></template>
+          <div class="flex items-center gap-2">
+            <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" v-model="field.value" :placeholder="`请输入 ${field.label} 特征`" class="flex-grow"></el-input>
+            <button @click="removeCustomField(index)" class="btn-danger-adv !p-1.5 !aspect-square shrink-0" aria-label="移除此字段">
+              <Icon icon="ph:trash-simple-duotone" class="text-base"/>
+            </button>
+          </div>
         </el-form-item>
-        <el-form-item label="生殖器">
-          <el-input type="textarea" :rows="1" v-model="form.appearance.genitals" placeholder="请输入生殖器特征" />
-        </el-form-item>
-        <el-form-item label="屁眼">
-          <el-input type="textarea" :rows="1" v-model="form.appearance.anus" placeholder="请输入屁眼特征" />
-        </el-form-item>
-        <el-form-item label="阴毛">
-          <el-input type="textarea" :rows="1" v-model="form.appearance.pubes" placeholder="请输入阴毛特征" />
-        </el-form-item>
-        <el-form-item label="胸围">
-          <el-input type="textarea" :rows="1" v-model="form.appearance.bust" placeholder="请输入胸围" />
-        </el-form-item>
-        <el-form-item label="腰围">
-          <el-input type="textarea" :rows="1" v-model="form.appearance.waist" placeholder="请输入腰围" />
-        </el-form-item>
-        <el-form-item label="臀围">
-          <el-input type="textarea" :rows="1" v-model="form.appearance.hips" placeholder="请输入臀围" />
-        </el-form-item>
-        <el-form-item label="大腿">
-          <el-input type="textarea" :rows="1" v-model="form.appearance.thighs" placeholder="请输入大腿特征" />
-        </el-form-item>
-        <el-form-item label="屁股">
-          <el-input type="textarea" :rows="1" v-model="form.appearance.butt" placeholder="请输入屁股特征" />
-        </el-form-item>
-        <el-form-item label="足部">
-          <el-input type="textarea" :rows="1" v-model="form.appearance.feet" placeholder="请输入足部特征" />
-        </el-form-item>
-
-        <!-- 自定义字段部分 -->
-        <template v-if="customFields.length > 0">
-          <el-form-item v-for="(field, index) in customFields" :key="index" :label="field.label">
-            <div class="custom-field-container">
-              <el-input type="textarea" :rows="1" v-model="field.value" :placeholder="`请输入${field.label}特征`" />
-              <el-button type="danger" size="small" @click="removeCustomField(index)" class="remove-btn">
-                <Icon icon="material-symbols:delete-outline" width="20" height="20" />
-              </el-button>
-            </div>
-          </el-form-item>
-        </template>
       </div>
     </el-form>
-    <el-button type="primary" size="small" @click="addCustomField">
-        <Icon icon="material-symbols:add" width="20" height="20" />
-        添加自定义字段
-      </el-button>
-  </el-card>
+
+    <div class="mt-4">
+      <button @click="addCustomField" class="btn-secondary-adv !py-1.5 !px-3 text-xs">
+        <Icon icon="ph:plus-circle-duotone" class="mr-1.5 text-base"/>
+        添加自定义外貌字段
+      </button>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, defineProps, watch, onMounted, onBeforeUnmount, defineEmits } from 'vue';
+import { ref, watch, onMounted, onBeforeUnmount, defineProps, defineEmits, computed } from 'vue';
+import { ElInput, ElButton, ElFormItem, ElForm, ElMessageBox, ElMessage } from 'element-plus';
 import { Icon } from '@iconify/vue';
-import { ElMessageBox } from 'element-plus';
 
-interface CustomField {
-  label: string;
-  value: string;
-}
+interface CustomField { label: string; value: string; }
 
-interface Props {
-  form: {
-    appearance: {
-      height: string;
-      hairColor: string;
-      hairstyle: string;
-      eyes: string;
-      nose: string;
-      lips: string;
-      skin: string;
-      body: string;
-      bust: string;
-      waist: string;
-      hips: string;
-      breasts: string;
-      genitals: string;
-      anus: string;
-      pubes: string;
-      thighs: string;
-      butt: string;
-      feet: string;
-      [key: string]: string; // 添加索引签名以支持动态属性
-    };
+interface AppearanceForm {
+  appearance: {
+    height: string; hairColor: string; hairstyle: string; eyes: string; nose: string; lips: string; skin: string; body: string; bust: string; waist: string; hips: string; breasts: string; genitals: string; anus: string; pubes: string; thighs: string; butt: string; feet: string;
+    [key: string]: string; 
   };
 }
 
+const props = defineProps<{ form: AppearanceForm }>();
 const emit = defineEmits(['update:form']);
-const props = defineProps<Props>();
-const form = ref(props.form);
-const screenWidth = ref(window.innerWidth);
-const customFields = ref<CustomField[]>([]);
 
-const updateScreenWidth = () => {
-  screenWidth.value = window.innerWidth;
+const localForm = ref<AppearanceForm>({ 
+  appearance: { ...(props.form.appearance || {}) } 
+});
+
+const customFields = ref<CustomField[]>([]);
+const screenWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 769);
+
+const labelWidth = computed(() => (screenWidth.value > 768 ? '0px' : 'auto'));
+
+const updateScreenWidth = () => { screenWidth.value = window.innerWidth; };
+
+const STANDARD_APPEARANCE_KEYS = new Set(['height', 'hairColor', 'hairstyle', 'eyes', 'nose', 'lips', 'skin', 'body', 'bust', 'waist', 'hips', 'breasts', 'genitals', 'anus', 'pubes', 'thighs', 'butt', 'feet']);
+
+const initializeCustomFields = (appearanceData: AppearanceForm['appearance'] | undefined) => {
+  const newCustomFields: CustomField[] = [];
+  if (appearanceData) {
+    for (const key in appearanceData) {
+      if (Object.prototype.hasOwnProperty.call(appearanceData, key) && !STANDARD_APPEARANCE_KEYS.has(key)) {
+        newCustomFields.push({ label: key, value: appearanceData[key] });
+      }
+    }
+  }
+  customFields.value = newCustomFields;
 };
+
+watch(() => props.form.appearance, (newAppearance) => {
+  const currentLocalAppearanceJson = JSON.stringify(localForm.value.appearance || {});
+  const newAppearanceJson = JSON.stringify(newAppearance || {});
+
+  if (newAppearanceJson !== currentLocalAppearanceJson) {
+    localForm.value.appearance = newAppearance ? { ...newAppearance } : {};
+  }
+  initializeCustomFields(newAppearance);
+
+}, { deep: true, immediate: true });
+
+watch(() => localForm.value.appearance, (newVal, oldVal) => {
+  if (JSON.stringify(newVal) !== JSON.stringify(oldVal)) {
+    const standardFieldsUpdate: Record<string, string> = {};
+    for (const key in newVal) {
+      if (STANDARD_APPEARANCE_KEYS.has(key) || !customFields.value.find(cf => cf.label === key)) {
+        standardFieldsUpdate[key] = newVal[key];
+      }
+    }
+    customFields.value.forEach(cf => {
+        standardFieldsUpdate[cf.label] = cf.value;
+    });
+
+    const propsAppearanceJson = JSON.stringify(props.form.appearance || {});
+    const effectiveLocalAppearanceJson = JSON.stringify(standardFieldsUpdate);
+
+    if (effectiveLocalAppearanceJson !== propsAppearanceJson) {
+        emit('update:form', { appearance: { ...standardFieldsUpdate } });
+    }
+  }
+}, { deep: true });
+
+watch(customFields, (newCustomFields, oldCustomFields) => {
+  let changed = false;
+  const newLocalAppearance = { ...localForm.value.appearance };
+
+  newCustomFields.forEach(field => {
+    if (newLocalAppearance[field.label] !== field.value) {
+      newLocalAppearance[field.label] = field.value;
+      changed = true;
+    }
+  });
+
+  const newCustomLabels = new Set(newCustomFields.map(f => f.label));
+  for (const key in newLocalAppearance) {
+    if (!STANDARD_APPEARANCE_KEYS.has(key) && !newCustomLabels.has(key)) {
+      delete newLocalAppearance[key];
+      changed = true;
+    }
+  }
+  
+  if (changed) {
+    if (JSON.stringify(localForm.value.appearance) !== JSON.stringify(newLocalAppearance)) {
+        localForm.value.appearance = newLocalAppearance;
+    }
+  }
+}, { deep: true });
+
 
 const addCustomField = async () => {
   try {
     const { value: inputText } = await ElMessageBox.prompt(
-      '<b>请输入自定义字段，每行一个字段</b><br>格式为"字段名:字段描述"<br>例如:<br>纹身:淡青色纹身，一条小龙<br>右腿:断掉的右腿，只有裤腿在晃荡',
-      '添加自定义字段',
+      '<b>请输入自定义字段，每行一个</b><br>格式："字段名:字段描述"<br>例如：<br>体表:左肩胛区可见一约2cm陈旧性线状瘢痕<br>牙齿:上颌右侧第一前磨牙缺失',
+      '添加自定义外貌字段',
       {
-        confirmButtonText: '确认',
-        cancelButtonText: '取消',
-        inputType: 'textarea',
-        inputPlaceholder: '字段名:字段描述',
+        confirmButtonText: '确认添加', cancelButtonText: '取消', inputType: 'textarea',
+        inputPlaceholder: '字段名1:描述1\n字段名2:描述2',
+        customClass: 'app-dialog break-all', inputRows: 3,
         inputValidator: (value) => {
           if (!value) return true;
           const lines = value.split('\n').filter(line => line.trim());
           for (const line of lines) {
-            if (!line.includes(':')) {
-              return `格式错误: "${line}"每行必须包含冒号(:)分隔字段名和描述`;
+            if (!line.includes(':') || line.split(':').length < 2 || !line.split(':')[0].trim()) {
+              return `格式错误: "${line}"。每行必须是“字段名:描述”，且字段名不能为空。`;
             }
           }
           return true;
@@ -157,10 +234,11 @@ const addCustomField = async () => {
       }
     );
 
-
     if (inputText) {
       const lines = inputText.split('\n').filter(line => line.trim());
       let addedCount = 0;
+      
+      const newFieldsToAdd: CustomField[] = [];
 
       for (const line of lines) {
         const [fieldName, ...fieldValueParts] = line.split(':');
@@ -169,262 +247,46 @@ const addCustomField = async () => {
 
         if (!trimmedName) continue;
 
-        // 检查是否是标准字段(中英文)或已存在字段
-        const standardFields = {
-          'height': '身高',
-          'hairColor': '发色',
-          'hairstyle': '发型',
-          'eyes': '眼睛',
-          'nose': '鼻子',
-          'lips': '嘴唇',
-          'skin': '皮肤',
-          'body': '身材',
-          'bust': '胸围',
-          'waist': '腰围',
-          'hips': '臀围',
-          'breasts': '胸部',
-          'genitals': '生殖器',
-          'anus': '屁眼',
-          'pubes': '阴毛',
-          'thighs': '大腿',
-          'butt': '屁股',
-          'feet': '足部'
-        };
-
-        // 检查是否是英文标准字段或中文标准字段或已存在字段
-        const isStandardField = Object.keys(standardFields).includes(trimmedName) ||
-          Object.values(standardFields).includes(trimmedName);
-        const exists = isStandardField ||
-          customFields.value.some(field => field.label === trimmedName);
-
-        if (exists) {
-          const isEnglishStandard = Object.keys(standardFields).includes(trimmedName);
-          const isChineseStandard = Object.values(standardFields).includes(trimmedName);
-          const message = isEnglishStandard || isChineseStandard
-            ? `"${trimmedName}"是预设字段${isChineseStandard ? `(对应英文:${Object.entries(standardFields).find(([_, v]) => v === trimmedName)?.[0]})` : ''}，请使用其他名称`
-            : `字段"${trimmedName}"已存在，将跳过`;
-
-          ElMessageBox.alert(message, '提示', {
-            confirmButtonText: '确定'
-          });
+        if (STANDARD_APPEARANCE_KEYS.has(trimmedName) || customFields.value.some(field => field.label === trimmedName)) {
+          ElMessageBox.alert(`字段 "${trimmedName}" 是预设字段或已存在，将跳过。`, '提示', { confirmButtonText: '好的', customClass: 'app-dialog' });
           continue;
         }
-
-        // 添加到自定义字段列表
-        customFields.value.push({
-          label: trimmedName,
-          value: fieldValue
-        });
-
-        // 同时添加到form中以便导出
-        form.value.appearance[trimmedName] = fieldValue;
+        newFieldsToAdd.push({ label: trimmedName, value: fieldValue });
         addedCount++;
       }
-
+      if (newFieldsToAdd.length > 0) {
+         customFields.value.push(...newFieldsToAdd);
+      }
       if (addedCount > 0) {
-        // 通知父组件更新
-        emit('update:form', form.value);
-        ElMessageBox.alert(`成功添加 ${addedCount} 个自定义字段`, '成功', {
-          confirmButtonText: '确定'
-        });
+        ElMessage.success(`成功添加 ${addedCount} 个自定义字段。`);
       }
     }
-  } catch (error) {
-    ElMessageBox.alert('添加自定义字段失败', '错误', {
-      confirmButtonText: '确定'
-    });
+  } catch (e) {
+    if (e !== 'cancel' && e !== 'close') {
+        console.error("添加自定义字段时出错:", e);
+        ElMessage.error('添加自定义字段操作失败。');
+    }
   }
 };
 
 const removeCustomField = (index: number) => {
-  const fieldToRemove = customFields.value[index];
-
-  // 从form中删除该字段
-  if (fieldToRemove && fieldToRemove.label in form.value.appearance) {
-    delete form.value.appearance[fieldToRemove.label];
+  if (customFields.value[index]) {
+    customFields.value.splice(index, 1); 
   }
-
-  // 从自定义字段列表中删除
-  customFields.value.splice(index, 1);
-
-  // 通知父组件更新
-  emit('update:form', form.value);
 };
 
-onMounted(() => {
-  window.addEventListener('resize', updateScreenWidth);
+onMounted(() => { window.addEventListener('resize', updateScreenWidth); });
+onBeforeUnmount(() => { window.removeEventListener('resize', updateScreenWidth); });
 
-  // 初始化时检查form中是否有自定义字段
-  const standardFields = {
-    'height': '身高',
-    'hairColor': '发色',
-    'hairstyle': '发型',
-    'eyes': '眼睛',
-    'nose': '鼻子',
-    'lips': '嘴唇',
-    'skin': '皮肤',
-    'body': '身材',
-    'bust': '胸围',
-    'waist': '腰围',
-    'hips': '臀围',
-    'breasts': '胸部',
-    'genitals': '生殖器',
-    'anus': '屁眼',
-    'pubes': '阴毛',
-    'thighs': '大腿',
-    'butt': '屁股',
-    'feet': '足部'
-  };
-
-
-  // 遍历form.appearance中的所有字段
-  for (const key in form.value.appearance) {
-    // 如果不是标准字段(中英文)，则添加到自定义字段列表
-    const isStandardField = Object.keys(standardFields).includes(key) ||
-      Object.values(standardFields).includes(key);
-    if (!isStandardField && form.value.appearance[key]) {
-      customFields.value.push({
-        label: key,
-        value: form.value.appearance[key]
-      });
-    }
-  }
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', updateScreenWidth);
-});
-
-// 监听自定义字段的变化，同步到form中
-watch(customFields, (newFields) => {
-  newFields.forEach(field => {
-    form.value.appearance[field.label] = field.value;
-  });
-  emit('update:form', form.value);
-}, { deep: true });
-
-watch(() => props.form, (newVal) => {
-  console.log('Props form changed:', newVal);
-  form.value = newVal;
-
-  // 清空自定义字段数组
-  customFields.value = [];
-
-  // 如果appearance对象存在且有内容，才处理自定义字段
-  if (newVal.appearance) {
-    const standardFields = {
-      'height': '身高',
-      'hairColor': '发色',
-      'hairstyle': '发型',
-      'eyes': '眼睛',
-      'nose': '鼻子',
-      'lips': '嘴唇',
-      'skin': '皮肤',
-      'body': '身材',
-      'bust': '胸围',
-      'waist': '腰围',
-      'hips': '臀围',
-      'breasts': '胸部',
-      'genitals': '生殖器',
-      'anus': '屁眼',
-      'pubes': '阴毛',
-      'thighs': '大腿',
-      'butt': '屁股',
-      'feet': '足部'
-    };
-
-    // 遍历appearance对象，添加非标准字段
-    for (const key in newVal.appearance) {
-      const isStandardField = Object.keys(standardFields).includes(key) ||
-        Object.values(standardFields).includes(key);
-      if (!isStandardField && newVal.appearance[key]) {
-        console.log('Adding custom field from watch:', key, newVal.appearance[key]);
-        customFields.value.push({
-          label: key,
-          value: newVal.appearance[key]
-        });
-      }
-    }
-  }
-}, { deep: true, immediate: true });
 </script>
 
 <style scoped>
-/* 使用 Tailwind CSS 进行样式控制 */
-.section-container {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.section-container>* {
-  flex: 1;
-}
-
-.ps-text {
-  font-style: italic;
-  color: #373737;
-  font-weight: 300;
-}
-
-.title-Btn {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.title-Btn-add {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-}
-
-#appearance-form {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-}
-
-@media (min-width: 744px) {
-  #appearance-form {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1044px) {
-  #appearance-form {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (min-width: 1444px) {
-  #appearance-form {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-@media (min-width: 1744px) {
-  #appearance-form {
-    grid-template-columns: repeat(5, 1fr);
-  }
-}
-
-.whatYouwant {
-  display: flex;
-}
-
-.custom-field-container {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.custom-field-container .el-input {
-  flex: 1;
-}
-
-.remove-btn {
-  flex-shrink: 0;
+.el-form-item :deep(.el-textarea__inner) {
+  font-size: 0.8125rem; 
+  line-height: 1.5; 
+  padding-top: 4px; 
+  padding-bottom: 4px;
+  resize: none; 
+  border-radius: var(--el-input-border-radius, var(--radius-base));
 }
 </style>

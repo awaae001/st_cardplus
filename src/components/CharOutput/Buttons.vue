@@ -1,88 +1,66 @@
 <template>
-  <div id="tiltleMain">
-    <h1 class="text-2xl font-bold">角色卡本地编辑</h1>
-    <div class="btnSL">
-      <div class="btnSL2">
-        <el-button @click="loadData" type="primary">
-          <Icon icon="material-symbols:folder-open-outline-sharp" width="18" height="18" style="margin-right: 4px;" />
-          载入数据
-        </el-button>
-        <el-button @click="saveData" type="success">
-          <Icon icon="material-symbols:file-save-outline" width="18" height="18" style="margin-right: 4px;" />
-          保存数据
-        </el-button>
-        <el-button @click="resetData" plain>
-          <Icon icon="material-symbols:cycle" width="18" height="18" style="margin-right: 4px;" />
-          重置数据
-        </el-button>
-      </div>
-      <!-- <div class="btnSL2">
-        <el-button @click="importImage" type="info">
-          <Icon icon="material-symbols:image-outline" width="18" height="18" style="margin-right: 4px;" />
-        </el-button>
-      </div> -->
+  <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 md:gap-3 print:hidden">
+    <div class="flex items-center gap-2 md:gap-3">
+      <el-tooltip content="加载角色输出配置" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
+        <button @click="emit('loadData')" class="btn-success-adv !p-2.5 aspect-square group" aria-label="加载角色输出配置">
+          <Icon icon="ph:folder-open-duotone" class="text-lg group-hover:scale-110 transition-transform"/>
+        </button>
+      </el-tooltip>
+      <el-tooltip content="保存角色输出配置" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
+        <button @click="emit('saveData')" class="btn-primary-adv !p-2.5 aspect-square group" aria-label="保存角色输出配置">
+          <Icon icon="ph:floppy-disk-duotone" class="text-lg group-hover:scale-110 transition-transform"/>
+        </button>
+      </el-tooltip>
+      <el-tooltip content="重置所有输出设置" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
+        <button @click="emit('resetData')" class="btn-danger-adv !p-2.5 aspect-square group" aria-label="重置所有输出设置">
+          <Icon icon="ph:arrow-counter-clockwise-duotone" class="text-lg group-hover:rotate-[30deg] transition-transform"/>
+        </button>
+      </el-tooltip>
+    </div>
+
+    <div class="flex items-center gap-2 md:gap-3">
+      <el-tooltip content="复制配置到剪贴板" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
+        <button @click="emit('copyData')" class="btn-secondary-adv !p-2.5 aspect-square group" aria-label="复制配置到剪贴板">
+          <Icon icon="ph:copy-simple-duotone" class="text-lg group-hover:scale-110 transition-transform"/>
+        </button>
+      </el-tooltip>
+      <el-tooltip content="从剪贴板导入配置" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
+        <button @click="showImportDialog" class="btn-warning-adv !p-2.5 aspect-square group" aria-label="从剪贴板导入配置">
+          <Icon icon="ph:clipboard-text-duotone" class="text-lg group-hover:scale-110 transition-transform"/>
+        </button>
+      </el-tooltip>
     </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { defineEmits } from 'vue';
 import { Icon } from "@iconify/vue";
-import { ElMessageBox, ElMessage } from 'element-plus';
+import { ElMessageBox, ElTooltip } from 'element-plus';
 
-const emit = defineEmits(['loadData', 'saveData', 'resetData']);
+const emit = defineEmits<{
+  (e: 'saveData'): void;
+  (e: 'loadData'): void;
+  (e: 'resetData'): void;
+  (e: 'copyData'): void;
+  (e: 'importData', data: string): void;
+}>();
 
-const loadData = () => {
-  emit('loadData');
-};
-
-const saveData = () => {
-  emit('saveData');
-};
-
-const resetData = () => {
-  emit('resetData');
+const showImportDialog = () => {
+  ElMessageBox.prompt('请粘贴JSON格式的角色输出配置数据：', '从剪贴板导入配置', {
+    confirmButtonText: '确认导入',
+    cancelButtonText: '取消',
+    inputType: 'textarea',
+    inputPlaceholder: '在此处粘贴JSON数据...',
+    customClass: 'app-dialog break-all',
+    inputRows: 6,
+    inputValidator: (value) => {
+      if (!value || value.trim() === '') return '输入内容不能为空。';
+      try { JSON.parse(value); return true; }
+      catch (e) { return '数据格式无效，请输入正确的JSON。'; }
+    },
+  }).then(({ value }) => {
+    emit('importData', value);
+  }).catch(() => {});
 };
 </script>
-
-<style scoped>
-.title-Btn-add {
-  display: flex;
-  align-items: center;
-  /* align-content: flex-start; */
-  flex-direction: row;
-}
-
-#tiltleMain {
-  justify-content: space-between;
-  margin-bottom: 6px;
-}
-
-.btnSL {
-  display: flex;
-  align-items: center;
-  flex-direction: row;
-}
-
-.btnSL2 {
-  margin-top: 6px;
-}
-
-@media (min-width: 768px) {
-  #tiltleMain {
-    display: flex;
-    justify-content: space-between;
-  }
-
-  .btnSL {
-    display: flex;
-    align-items: center;
-    flex-direction: row;
-  }
-
-  .btnSL2 {
-    margin-top: 0px;
-    margin-left: 4px;
-  }
-}
-</style>

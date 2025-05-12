@@ -1,117 +1,92 @@
 <template>
-  <div>
-    <el-card class="mb-4">
-      <h2 class="text-xl font-semibold mb-2">背景故事</h2>
-      <el-input v-model="form.background" type="textarea" :rows="6" placeholder="请输入背景故事（每行一条）" />
-    </el-card>
-    <div style="margin: 4px;"></div>
-    <el-card class="mb-4">
-      <div class="title-Btn">
-        <h2 class="text-xl font-semibold mb-2">MBTI性格</h2>
-        <el-button type="primary" @click="validateMBTI" style="margin-right: 26px;">
-          <Icon icon="material-symbols:question-exchange" width="18" height="18" style="margin-right: 4px;" />验证
+  <div class="content-panel-body space-y-5 flex flex-col h-full">
+    
+    <div class="flex flex-col flex-grow"> <!-- 背景故事文本域占据剩余空间 -->
+      <div class="content-panel-header -mx-5 md:-mx-6 -mt-5 md:-mt-6 mb-4">
+        <h3 class="content-panel-title flex items-center gap-2">
+          <Icon icon="ph:book-open-text-duotone" class="text-xl text-accent-500 dark:text-accent-400"/>
+          背景故事
+        </h3>
+      </div>
+      <el-input 
+        v-model="localForm.background" 
+        type="textarea" 
+        :autosize="{minRows: 8, maxRows: 15}"
+        placeholder="请输入角色的背景故事、世界观设定等（建议每行一个段落或关键信息）" 
+        class="flex-grow custom-textarea"
+        :input-style="{ resize: 'none', height: '100%' }"
+      /> <!-- ********** 确保这里是自闭合的 ********** -->
+    </div>
+
+    <div class="pt-5 border-t border-neutral-200 dark:border-neutral-700/60 shrink-0"> 
+      <div class="flex justify-between items-center mb-2">
+        <h4 class="text-base font-medium text-neutral-700 dark:text-neutral-200 flex items-center gap-2">
+           <Icon icon="ph:brain-duotone" class="text-lg text-sky-500 dark:text-sky-400"/>
+           MBTI 性格 <span class="text-xs text-neutral-400 dark:text-neutral-500">(可选)</span>
+        </h4>
+        <el-button 
+          @click="validateMBTI" 
+          size="small"
+          class="px-3 py-1 text-xs font-medium rounded-md shadow-sm transition-colors duration-150 ease-in-out
+                 bg-sky-600 hover:bg-sky-700 border border-sky-600 hover:border-sky-700 text-white 
+                 dark:bg-sky-500 dark:hover:bg-sky-400 dark:border-sky-500 dark:hover:border-sky-400 dark:text-neutral-900
+                 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800"
+        >
+          <Icon icon="material-symbols:question-exchange-rounded" width="16" height="16" class="mr-1"/>
+          验证
         </el-button>
       </div>
-      <p class="ps-text" style="  margin-top: -8px;">必须是有效的MBTI数值或者是 none </p>
-      <el-input v-model="form.mbti" placeholder="请输入MBTI性格" />
-    </el-card>
+      <p class="form-help-text mb-1.5">
+        必须是有效的MBTI数值 (4个字母，如 INFJ) 或者是 "none"。
+      </p>
+      <el-input v-model="localForm.mbti" placeholder="请输入MBTI性格，例如：INFJ 或 none" clearable /> <!-- ********** 确保这里是自闭合的 ********** -->
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, defineProps, watch } from 'vue';
-import { ElMessageBox } from 'element-plus';
+// ... (脚本部分保持不变)
+import { ref, watch, defineProps, defineEmits } from 'vue';
+import { ElMessageBox, ElInput, ElButton } from 'element-plus';
 import { Icon } from "@iconify/vue";
 
-interface Props {
-  form: {
-    background: string;
-    mbti: string;
-  };
-}
+interface BackgroundStoryForm { background: string; mbti: string; }
+const props = defineProps<{ form: BackgroundStoryForm }>();
+const emit = defineEmits(['update:form']);
+const localForm = ref<BackgroundStoryForm>({ ...props.form });
 
-const props = defineProps<Props>();
-const form = ref(props.form);
+watch(() => props.form, (newVal) => { if (JSON.stringify(newVal) !== JSON.stringify(localForm.value)) { localForm.value = { ...newVal }; } }, { deep: true });
+watch(localForm, (newVal) => { emit('update:form', { ...newVal }); }, { deep: true });
 
-watch(() => props.form, (newVal) => {
-  form.value = newVal;
-}, { deep: true });
-
-// 验证MBTI格式
-const isValidMBTI = (mbti: string) => {
-  return mbti.toLowerCase() === 'none' || /^[EI][SN][TF][JP]$/i.test(mbti);
-};
-
-// MBTI类型描述
-interface MBTIDescriptions {
-  [key: string]: string;
-}
-
+const isValidMBTI = (mbti: string): boolean => { if (!mbti) return false; return mbti.trim().toLowerCase() === 'none' || /^[EI][SN][TF][JP]$/i.test(mbti.trim()); };
+interface MBTIDescriptions { [key: string]: string; }
 const mbtiDescriptions: MBTIDescriptions = {
-  INTP: '逻辑学家',
-  INTJ: '建筑师',
-  ENTP: '辩论家',
-  ENTJ: '指挥官',
-  INFP: '调停者',
-  INFJ: '提倡者',
-  ENFJ: '主人公',
-  ENFP: '竞选者',
-  ISTJ: '物流师',
-  ISFJ: '守卫者',
-  ESTJ: '总经理',
-  ESFJ: '执政官',
-  ISTP: '鉴赏家',
-  ISFP: '探险家',
-  ESTP: '企业家',
-  ESFP: '表演者',
-  none: '未指定'
+  INTP: '逻辑学家 (Architect)', INTJ: '战略家 (Mastermind)', ENTP: '辩论家 (Innovator)', ENTJ: '指挥官 (Commander)',
+  INFP: '调停者 (Mediator)', INFJ: '提倡者 (Advocate)', ENFJ: '主人公 (Protagonist)', ENFP: '追梦人 (Campaigner)',
+  ISTJ: '物流师 (Logistician)', ISFJ: '守卫者 (Defender)', ESTJ: '总经理 (Executive)', ESFJ: '执政官 (Consul)',
+  ISTP: '鉴赏家 (Virtuoso)', ISFP: '探险家 (Adventurer)', ESTP: '企业家 (Dynamo)', ESFP: '表演者 (Entertainer)',
+  NONE: '未指定或不适用'
 };
-
-// MBTI验证处理
 const validateMBTI = () => {
-  if (!form.value.mbti) {
-    ElMessageBox.alert('请输入MBTI类型', '警告');
+  const currentMbti = localForm.value.mbti ? localForm.value.mbti.trim() : '';
+  if (!currentMbti) {
+    ElMessageBox.alert('请输入MBTI类型进行验证，或输入 "none" 表示不指定。', '提示', { confirmButtonText: '好的', customClass: 'app-dialog' });
     return;
   }
-
-  const type = form.value.mbti.toUpperCase();
-  if (isValidMBTI(form.value.mbti)) {
-    const description = mbtiDescriptions[type] || mbtiDescriptions['none'];
-    ElMessageBox.alert(`MBTI格式正确，类型：${type} - ${description}`, '正确');
+  const type = currentMbti.toUpperCase();
+  if (isValidMBTI(currentMbti)) {
+    const descriptionKey = type === 'NONE' ? 'NONE' : type;
+    const description = mbtiDescriptions[descriptionKey] || '此特定组合无官方描述，但格式正确';
+    ElMessageBox.alert(`MBTI格式有效！\n类型：${type}\n描述：${description}`, '验证成功', { confirmButtonText: '太棒了', type: 'success', customClass: 'app-dialog' });
   } else {
-    ElMessageBox.alert(`MBTI格式无效：${type}，请输入4个字母的组合或"none"`, '不合规');
+    ElMessageBox.alert(`MBTI格式无效：“${currentMbti}”。\n\n请输入由 E/I, S/N, T/F, J/P (不区分大小写) 组成的4个字母，或输入 "none"。`, '验证失败', { confirmButtonText: '我知道了', type: 'error', customClass: 'app-dialog' });
   }
 };
 </script>
 
 <style scoped>
-/* 使用 Tailwind CSS 进行样式控制 */
-.section-container {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.section-container>* {
-  flex: 1;
-}
-
-.ps-text {
-  font-style: italic;
-  color: #373737;
-  font-weight: 300;
-}
-
-.title-Btn {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.title-Btn-add {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
+.custom-textarea :deep(.el-textarea__inner) {
+  height: 100% !important;
+  min-height: calc(theme('spacing.8') * 2 + theme('lineHeight.normal') * 8); 
 }
 </style>

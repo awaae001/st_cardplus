@@ -1,14 +1,91 @@
+<template>
+  <div class="json-formatter-page p-3 md:p-5 h-full flex flex-col">
+    <header class="flex flex-col sm:flex-row justify-between items-center mb-4 md:mb-6 flex-shrink-0 gap-y-3">
+      <div class="flex items-center gap-3">
+        <button @click="$router.push('/toolbox')" class="btn-secondary-adv !py-1.5 !px-3 text-sm">
+          <Icon icon="ph:arrow-left-duotone" class="mr-1.5 -ml-0.5" />
+          返回工具箱
+        </button>
+        <h1 class="text-xl md:text-2xl font-bold text-neutral-700 dark:text-neutral-100">
+          JSON 去除换行工具
+        </h1>
+      </div>
+      <div class="flex items-center gap-2 md:gap-3">
+        <button @click="formatJson" :disabled="!inputJson" class="btn-primary-adv !py-1.5 !px-3 text-sm">
+          <Icon icon="ph:sparkle-duotone" class="mr-1.5 -ml-0.5" />
+          处理
+        </button>
+        <el-tooltip content="复制处理结果" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
+          <button @click="copyToClipboard" :disabled="!outputJson" class="btn-secondary-adv !p-2.5 aspect-square group">
+            <Icon icon="ph:copy-simple-duotone" class="text-lg group-hover:scale-110 transition-transform"/>
+          </button>
+        </el-tooltip>
+      </div>
+    </header>
+
+    <el-alert title="去除回车可以有效的节省Token，也可以在一定程度上增加阅读困难，但是不影响AI的阅读。" type="info" :closable="false" class="mb-4 md:mb-6 flex-shrink-0" />
+
+    <div class="flex-grow grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 min-h-0">
+      <div class="content-panel flex flex-col">
+        <div class="content-panel-header">
+          <h3 class="content-panel-title flex items-center gap-2">
+            <Icon icon="ph:keyboard-duotone" class="text-xl text-accent-500 dark:text-accent-400"/>
+            输入
+          </h3>
+        </div>
+        <div class="content-panel-body flex-grow flex">
+          <el-input v-model="inputJson" type="textarea" placeholder="粘贴带换行的JSON内容" class="flex-grow custom-textarea"/>
+        </div>
+      </div>
+
+      <div class="content-panel flex flex-col">
+        <div class="content-panel-header">
+          <h3 class="content-panel-title flex items-center gap-2">
+            <Icon icon="ph:file-text-duotone" class="text-xl text-accent-500 dark:text-accent-400"/>
+            输出 (自动去除换行)
+          </h3>
+        </div>
+        <div class="content-panel-body flex-grow flex">
+          <el-input v-model="outputJson" type="textarea" readonly placeholder="处理后的JSON将显示在这里" class="flex-grow custom-textarea"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="content-panel mt-4 md:mt-6 flex-shrink-0">
+      <div class="content-panel-header">
+        <h3 class="content-panel-title flex items-center gap-2">
+          <Icon icon="ph:clock-counter-clockwise-duotone" class="text-xl text-accent-500 dark:text-accent-400"/>
+          历史记录 (最近10条)
+        </h3>
+      </div>
+      <div class="content-panel-body">
+        <el-table :data="historyRecords" height="250px" @row-click="useHistoryRecord" style="width: 100%" empty-text="暂无历史记录">
+          <el-table-column prop="date" label="时间" width="160" />
+          <el-table-column prop="json" label="内容" show-overflow-tooltip min-width="150"/>
+          <el-table-column label="操作" width="80" align="center">
+            <template #default="scope">
+              <el-tooltip content="删除此记录" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+                <button @click.stop="deleteRecord(scope.row.id)" class="btn-danger-adv !p-1.5 aspect-square group">
+                  <Icon icon="ph:trash-simple-duotone" class="text-base"/>
+                </button>
+              </el-tooltip>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { ElMessage, ElButton, ElInput, ElTable, ElTableColumn, ElMessageBox } from 'element-plus'
-import { Delete } from '@element-plus/icons-vue'
+import { ElMessage, ElButton, ElInput, ElTable, ElTableColumn, ElMessageBox, ElAlert, ElTooltip } from 'element-plus'
 import { Icon } from '@iconify/vue'
 
 const inputJson = ref('')
 const outputJson = ref('')
 const historyRecords = ref<Array<{ id: string, json: string, date: string }>>([])
 
-// 加载历史记录
 onMounted(() => {
   const records = localStorage.getItem('jsonFormatterHistory')
   if (records) {
@@ -16,7 +93,6 @@ onMounted(() => {
   }
 })
 
-// 保存记录
 const saveToHistory = () => {
   if (!outputJson.value) return
 
@@ -30,26 +106,23 @@ const saveToHistory = () => {
   localStorage.setItem('jsonFormatterHistory', JSON.stringify(historyRecords.value))
 }
 
-// 使用历史记录
 const useHistoryRecord = (record: { json: string }) => {
   outputJson.value = record.json
   inputJson.value = ''
 }
 
-// 删除记录
 const deleteRecord = async (id: string) => {
   try {
     await ElMessageBox.confirm('确定要删除这条记录吗?', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
-      type: 'warning'
+      type: 'warning',
+      customClass: 'app-dialog'
     })
     historyRecords.value = historyRecords.value.filter(record => record.id !== id)
     localStorage.setItem('jsonFormatterHistory', JSON.stringify(historyRecords.value))
     ElMessage.success('删除成功')
-  } catch {
-    // 用户取消删除
-  }
+  } catch {}
 }
 
 const copyToClipboard = () => {
@@ -61,162 +134,32 @@ const copyToClipboard = () => {
 
 const formatJson = () => {
   try {
-    // 去除换行和多余空格
     const trimmed = inputJson.value.replace(/\s+/g, ' ')
-    // 尝试解析确保是有效JSON
     JSON.parse(trimmed)
     outputJson.value = trimmed
     saveToHistory()
+    ElMessage.success('处理完成！')
   } catch (error) {
-    ElMessage.error('无效的JSON格式')
+    ElMessage.error('无效的JSON格式或处理失败')
     console.error(error)
   }
 }
 </script>
 
-<template>
-  <div class="json-formatter">
-    <div class="header">
-      <div class="header-top">
-        <el-button type="primary" plain @click="$router.push('/toolbox')" class="back-button">
-          <Icon icon="material-symbols:arrow-back" width="16" height="16" />
-          返回工具箱
-        </el-button>
-        <el-alert title="去除回车可以有效的节省token，也可以在一定程度上增加阅读困难，但是不影响AI的阅读" type="info" :closable="false"
-          class="info-alert" />
-      </div>
-      <div style="display: flex;align-items: center;gap: 16px;">
-        <h3>JSON去除换行工具</h3>
-        <div class="output-actions">
-          <el-button type="primary" @click="formatJson" :disabled="!inputJson">
-            <Icon icon="material-symbols:autorenew" width="16" height="16" />
-            格式化
-          </el-button>
-          <el-button type="primary" @click="copyToClipboard" :disabled="!outputJson">
-            <Icon icon="material-symbols:content-copy" width="16" height="16" />
-            复制到剪贴板
-          </el-button>
-        </div>
-      </div>
-    </div>
-    <div class="content-wrapper">
-      <div class="io-columns">
-        <el-input v-model="inputJson" type="textarea" :rows="20" placeholder="粘贴带换行的JSON内容" class="input-area" />
-        <el-input v-model="outputJson" type="textarea" :rows="20" readonly placeholder="处理后的JSON将显示在这里"
-          class="output-area" />
-      </div>
-      <div class="history-panel">
-        <h4>历史记录 (最近10条)</h4>
-        <el-table :data="historyRecords" height="500" @row-click="useHistoryRecord" style="width: 100%">
-          <el-table-column prop="date" label="时间" width="120" />
-          <el-table-column prop="json" label="内容" show-overflow-tooltip />
-          <el-table-column label="操作" width="80">
-            <template #default="scope">
-              <el-button type="danger" size="small" @click.stop="deleteRecord(scope.row.id)" :icon="Delete" />
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
-    </div>
-  </div>
-</template>
-
 <style scoped>
-.json-formatter {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+.custom-textarea :deep(.el-textarea__inner) {
+  height: 100% !important;
+  min-height: 200px; /* Ensure a minimum height */
+  resize: none;
 }
 
-.content-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  margin-bottom: 20px;
-}
-
-.io-columns {
-  flex: 1;
-  display: flex;
-  flex-direction: row;
-  gap: 20px;
-}
-
-.history-panel {
-  background: var(--el-fill-color-light);
-  padding: 15px;
-  border-radius: 4px;
-  border: 1px solid var(--el-border-color-lighter);
-  width: 100%;
-}
-
-.history-panel h4 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  color: var(--el-text-color-primary);
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.input-area,
-.output-area {
-  flex: 1;
-  min-width: 0;
-}
-
-.header {
-  margin-bottom: 20px;
-}
-
-.header-top {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-
-.header-top .format-button {
-  margin-right: auto;
-}
-
-.header-top .info-alert {
-  flex: 1;
-  margin: 0;
-}
-
-/* 响应式设计 - 移动端 */
-@media (max-width: 768px) {
-  .content-wrapper {
-    flex-direction: column;
+@media (max-width: 1023px) { /* Below lg */
+  .flex-grow.grid {
+    grid-template-columns: 1fr; /* Stack IO columns */
+    min-height: auto; /* Allow natural height */
   }
-
-  .io-columns {
-    flex-direction: column;
-  }
-
-  .input-area,
-  .output-area {
-    height: 200px;
-  }
-
-  .history-panel {
-    max-width: 100%;
-    min-width: 100%;
-  }
-
-  .header-top {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .header-top .format-button {
-    margin-right: 0;
-    width: 100%;
-  }
-
-  .header-top .info-alert {
-    width: 100%;
+  .custom-textarea :deep(.el-textarea__inner) {
+     min-height: 20vh; /* Adjust for smaller screens */
   }
 }
 </style>

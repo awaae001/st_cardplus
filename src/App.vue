@@ -1,33 +1,221 @@
+<template>
+  <div class="flex h-screen overflow-hidden bg-gray-100 dark:bg-neutral-950">
+    <header class="lg:hidden p-2 fixed top-0 left-0 z-[1002] bg-white/80 dark:bg-neutral-800/80 backdrop-blur-sm shadow-sm">
+      <button
+        @click="toggleSidebar"
+        class="mobile-toggle p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 transition-colors duration-150"
+      >
+        <ElIcon :size="24"><IconMenu /></ElIcon>
+      </button>
+    </header>
+
+    <div
+      class="menu-bar-container flex-shrink-0 fixed lg:static inset-y-0 left-0 z-[1001]
+             transform transition-transform lg:transition-[width] duration-300 ease-in-out"
+      :class="{
+        '-translate-x-full': !isSidebarOpen && isMobileView,
+        'translate-x-0': isSidebarOpen || !isMobileView,   
+        'shadow-xl lg:shadow-none': isSidebarOpen && isMobileView,
+        'w-[57px]': !isSidebarOpen && !isMobileView, 
+        'w-60': isSidebarOpen || isMobileView       
+      }"
+    >
+      <ElMenu
+        :default-active="$route.path"
+        class="menu-bar h-full flex flex-col 
+               bg-white dark:bg-neutral-800 border-r border-gray-200 dark:border-neutral-700
+               overflow-x-hidden transition-[width] duration-300 ease-in-out"
+        :class="{ 
+          'is-collapsed-Lg': !isSidebarOpen && !isMobileView,
+          'is-expanded-Lg': isSidebarOpen && !isMobileView,
+          'is-mobile-expanded': isSidebarOpen && isMobileView
+        }"
+        mode="vertical"
+        :router="true"
+        :title="isEffectivelyCollapsedForTitle ? 'Menu' : ''"
+      >
+        <div class="app-title-container p-4 text-center text-lg font-semibold text-gray-700 dark:text-gray-200 flex-shrink-0 h-[56px] flex items-center justify-center overflow-hidden whitespace-nowrap relative">
+          <img 
+            src="@/image/logo.png" 
+            alt="Logo" 
+            class="app-logo"
+            :class="{ 'logo-visible': isEffectivelyCollapsedForTextAnimation }"
+          />
+          <span
+            class="app-title-text"
+            :class="{ 'text-collapsed-style': isEffectivelyCollapsedForTextAnimation }"
+          >ST CardPlus</span>
+        </div>
+
+        <div class="flex-grow overflow-y-auto menu-items-wrapper">
+          <ElMenuItem index="/" :title="isEffectivelyCollapsedForTitle ? '首页' : ''">
+            <ElIcon :size="22"><Icon icon="ph:house-light" /></ElIcon>
+            <template #title>
+                <span class="menu-item-text" :class="{'text-collapsed-style': isEffectivelyCollapsedForTextAnimation}">首页</span>
+            </template>
+          </ElMenuItem>
+
+          <ElMenuItem index="/card" :title="isEffectivelyCollapsedForTitle ? '角色卡编辑器' : ''">
+            <ElIcon :size="22"><Icon icon="ph:user-circle-gear-light" /></ElIcon>
+            <template #title>
+                <span class="menu-item-text" :class="{'text-collapsed-style': isEffectivelyCollapsedForTextAnimation}">角色卡编辑器</span>
+            </template>
+          </ElMenuItem>
+
+          <ElMenuItem index="/world" :title="isEffectivelyCollapsedForTitle ? '地标编辑器' : ''">
+            <ElIcon :size="22"><Icon icon="ph:map-trifold-light" /></ElIcon>
+            <template #title>
+                <span class="menu-item-text" :class="{'text-collapsed-style': isEffectivelyCollapsedForTextAnimation}">地标编辑器</span>
+            </template>
+          </ElMenuItem>
+
+          <ElMenuItem index="/cardoutput" :title="isEffectivelyCollapsedForTitle ? '角色卡快搭' : ''">
+            <ElIcon :size="22"><Icon icon="ph:identification-card-light" /></ElIcon>
+            <template #title>
+                <span class="menu-item-text" :class="{'text-collapsed-style': isEffectivelyCollapsedForTextAnimation}">角色卡快搭</span>
+            </template>
+          </ElMenuItem>
+          
+          <ElMenuItem index="/worldbook" :title="isEffectivelyCollapsedForTitle ? '世界书编辑' : ''">
+            <ElIcon :size="22"><Icon icon="ph:book-open-text-light" /></ElIcon>
+            <template #title>
+                <span class="menu-item-text" :class="{'text-collapsed-style': isEffectivelyCollapsedForTextAnimation}">世界书编辑</span>
+            </template>
+          </ElMenuItem>
+
+          <ElMenuItem index="/toolbox" :title="isEffectivelyCollapsedForTitle ? '工具箱' : ''">
+            <ElIcon :size="22"><Icon icon="ph:wrench-light" /></ElIcon>
+            <template #title>
+                <span class="menu-item-text" :class="{'text-collapsed-style': isEffectivelyCollapsedForTextAnimation}">工具箱</span>
+            </template>
+          </ElMenuItem>
+        </div>
+
+        <div class="mt-auto flex-shrink-0 border-t border-gray-200 dark:border-neutral-700">
+          <ElMenuItem @click="toggleDark()" :title="isEffectivelyCollapsedForTitle ? (isDark ? '切换到浅色模式' : '切换到深色模式') : ''">
+            <ElIcon :size="22">
+              <!-- 修改图标的 v-if 条件 -->
+              <Icon v-if="isDark" icon="ph:moon-light" /> 
+              <Icon v-else icon="ph:sun-light" />
+            </ElIcon>
+            <template #title>
+                <span class="menu-item-text" :class="{'text-collapsed-style': isEffectivelyCollapsedForTextAnimation}">{{ isDark ? '深色模式' : '浅色模式' }}</span>
+            </template>
+          </ElMenuItem>
+          <ElMenuItem index="/about" :title="isEffectivelyCollapsedForTitle ? '关于' : ''">
+            <ElIcon :size="22"><Icon icon="ph:info-light" /></ElIcon>
+            <template #title>
+                <span class="menu-item-text" :class="{'text-collapsed-style': isEffectivelyCollapsedForTextAnimation}">关于</span>
+            </template>
+          </ElMenuItem>
+
+          <div
+            class="pc-toggle-container hidden lg:flex items-center justify-center h-[var(--el-menu-item-height,48px)] sticky bottom-0 bg-inherit"
+            v-if="!isMobileView" 
+          >
+            <button
+              @click="toggleSidebar"
+              class="pc-toggle w-full h-full rounded-md text-gray-600 dark:text-gray-300 hover:bg-neutral-100 dark:hover:bg-neutral-700/70 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-accent-500 transition-colors duration-150 flex items-center justify-center"
+              aria-label="切换侧边栏"
+            >
+              <ElIcon :size="20">
+                <ArrowLeftBold v-if="isSidebarOpen" />
+                <ArrowRightBold v-else />
+              </ElIcon>
+            </button>
+          </div>
+        </div>
+      </ElMenu>
+    </div>
+
+    <main
+      class="flex-1 flex flex-col overflow-hidden"
+      :class="{
+        'pt-14 lg:pt-0': true 
+      }"
+    >
+      <div class="flex-1 p-4 md:p-6 overflow-y-auto">
+        <div class="w-full h-full"> 
+          <RouterView v-slot="{ Component, route }">
+            <transition name="fade" mode="out-in">
+              <component :is="Component" :key="route.path" />
+            </transition>
+          </RouterView>
+        </div>
+      </div>
+    </main>
+
+    <div
+      v-if="isSidebarOpen && isMobileView"
+      class="fixed inset-0 z-[1000] bg-black/30 dark:bg-black/40 backdrop-blur-sm lg:hidden
+             transition-opacity duration-300 ease-in-out"
+      :class="{'opacity-100': isSidebarOpen, 'opacity-0 pointer-events-none': !isSidebarOpen}"
+      aria-hidden="true"
+    ></div>
+  </div>
+</template>
+
 <script setup lang="ts">
+// ... (script setup 内容保持不变)
 import { RouterView } from 'vue-router'
 import { Icon } from '@iconify/vue'
-import { Menu, Moon, Sunny } from '@element-plus/icons-vue'
-import { ElLoading } from 'element-plus'
+import { Menu as IconMenu, ArrowLeftBold, ArrowRightBold } from '@element-plus/icons-vue'
+import { ElLoading, ElMenu, ElMenuItem, ElIcon, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
-import { ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
 import { useDark, useToggle } from '@vueuse/core'
 
-const isDark = useDark()
+const screenWidth = ref(0)
+const updateScreenWidth = () => {
+  screenWidth.value = window.innerWidth
+}
+const isMobileView = computed(() => screenWidth.value <= 1024)
+
+const isDark = useDark({
+  selector: 'html',
+  attribute: 'class',
+  valueDark: 'dark',
+  valueLight: 'light',
+})
 const toggleDark = useToggle(isDark)
 
-const isSidebarOpen = ref(false)
+const isSidebarOpen = ref(true)
 const toggleSidebar = () => {
   isSidebarOpen.value = !isSidebarOpen.value
 }
 
 const handleClickOutside = (event: MouseEvent) => {
-  const sidebar = document.querySelector('.menu-bar')
-  const target = event.target as HTMLElement
-  
-  if (isSidebarOpen.value && sidebar && !sidebar.contains(target)) {
-    isSidebarOpen.value = false
+  if (isMobileView.value && isSidebarOpen.value) {
+    const sidebar = document.querySelector('.menu-bar-container')
+    const toggleButton = document.querySelector('.mobile-toggle')
+    const target = event.target as HTMLElement
+    if (sidebar && !sidebar.contains(target) && toggleButton && !toggleButton.contains(target)) {
+      isSidebarOpen.value = false
+    }
   }
 }
 
-const router = useRouter()
-let loadingInstance: ReturnType<typeof ElLoading.service>
+watch(isMobileView, (newIsMobile, oldIsMobile) => {
+  if (newIsMobile === false && (oldIsMobile === true || oldIsMobile === undefined)) {
+     isSidebarOpen.value = true;
+  } else if (newIsMobile && (oldIsMobile === false || oldIsMobile === undefined)) {
+     isSidebarOpen.value = false;
+  }
+}, { immediate: true }) 
 
-// 路由切换前显示加载动画
+onMounted(() => {
+  updateScreenWidth()
+  window.addEventListener('resize', updateScreenWidth)
+  document.addEventListener('click', handleClickOutside, true)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateScreenWidth)
+  document.removeEventListener('click', handleClickOutside, true)
+})
+
+const router = useRouter()
+let loadingInstance: any
 router.beforeEach(() => {
   loadingInstance = ElLoading.service({
     lock: true,
@@ -35,194 +223,139 @@ router.beforeEach(() => {
     background: 'rgba(0, 0, 0, 0.7)',
   })
 })
-
-// 路由切换完成后隐藏加载动画
 router.afterEach(() => {
-  loadingInstance.close()
+  if (loadingInstance) {
+    loadingInstance.close()
+  }
 })
+
+const isEffectivelyCollapsedForTitle = computed(() => {
+  if (isMobileView.value) {
+    return false; 
+  }
+  return !isSidebarOpen.value;
+});
+
+const isEffectivelyCollapsedForTextAnimation = computed(() => {
+  return !isMobileView.value && !isSidebarOpen.value;
+});
 </script>
 
-<template>
-  <div class="layout-container">
-    <!-- Mobile toggle button -->
-    <button class="mobile-toggle" @click="toggleSidebar">
-      <el-icon>
-        <Menu />
-      </el-icon>
-    </button>
-    <!-- PC toggle button -->
-    <button class="pc-toggle" @click="toggleSidebar">
-      <el-icon>
-        <Menu />
-      </el-icon>
-    </button>
-
-    <el-menu class="menu-bar" :class="{ 'mobile-open': isSidebarOpen }" mode="vertical" :router="true">
-      <el-menu-item index="/">
-        <Icon style="margin-right: 4px;" icon="material-symbols:home-outline" width="24" height="24" />
-        <span>首页</span>
-      </el-menu-item>
-      <el-menu-item index="/card">
-        <Icon style="margin-right: 4px;" icon="material-symbols:person-edit-outline-sharp" width="24" height="24" />
-        <span>角色卡编辑器</span>
-      </el-menu-item>
-      <el-menu-item index="/world">
-        <Icon style="margin-right: 4px;" icon="material-symbols:edit-location-alt-outline-rounded" width="24"
-          height="24" />
-        <span>地标编辑器</span>
-      </el-menu-item>
-      <el-menu-item index="/cardoutput">
-        <Icon style="margin-right: 4px;" icon="material-symbols:id-card-outline" width="24" height="24" />
-        <span>角色卡快搭</span>
-      </el-menu-item>
-      <el-menu-item index="/toolbox">
-        <Icon style="margin-right: 4px;" icon="material-symbols:construction" width="24" height="24" />
-        <span>工具箱</span>
-      </el-menu-item>
-      <!-- <el-menu-item index="/worldbook">
-        <Icon style="margin-right: 4px;" icon="material-symbols:book-2-outline" width="24" height="24" />
-        <span>世界书编辑</span>
-      </el-menu-item> -->
-    <div style="flex-grow: 1"></div>
-    <el-menu-item @click="toggleDark()">
-      <el-icon>
-        <Moon v-if="!isDark" />
-        <Sunny v-else />
-      </el-icon>
-      <span>{{ isDark ? '浅色模式' : '暗黑模式' }}</span>
-    </el-menu-item>
-    <el-menu-item index="/about">
-        <Icon style="margin-right: 4px;" icon="material-symbols:info-outline-rounded" width="24" height="24" />
-        <span>关于</span>
-      </el-menu-item>
-    </el-menu>
-    <div class="content-container" style="overflow: hidden;" @click="handleClickOutside">
-      <RouterView />
-    </div>
-  </div>
-</template>
-
-<style scoped>
-.content-container {
-  flex: 1;
-  overflow: auto;
-  padding: 16px;
+<style>
+/* ... (style 内容保持不变) */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease-in-out;
 }
-
-.layout-container {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: row;
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 
 .menu-bar {
-  width: 200px;
-  background-color: var(--el-bg-color);
-  padding: 16px 0;
-  border-right: 1px solid #ddd;
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  z-index: 1000;
-  transition: width 0.3s ease;
-  overflow-y: auto;
+  transition-property: width;
 }
 
-.menu-bar:not(.mobile-open) {
-  width: 60px; /* Collapsed state for PC */
+.menu-bar .el-menu-item,
+.menu-bar .el-sub-menu__title {
+  height: var(--el-menu-item-height, 48px);
+  display: flex;
+  align-items: center;
+  padding-left: 20px; 
+  padding-right: 20px;
+  transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.menu-bar:not(.mobile-open) .el-menu-item span {
-  display: none; /* Hide text in collapsed state */
+.menu-bar.is-collapsed-Lg .el-menu-item,
+.menu-bar.is-collapsed-Lg .el-sub-menu__title {
+  justify-content: center;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }
 
-.menu-bar:not(.mobile-open) .el-menu-item {
-  justify-content: center; /* Center icons */
-  padding: 0;
+.menu-bar .el-menu-item .el-icon,
+.menu-bar .el-sub-menu__title .el-icon {
+  margin-right: 10px;
+  transition: margin-right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.menu-bar:not(.mobile-open) .whatYouwant {
-  display: none; /* Hide version text in collapsed state */
+.menu-bar .el-menu-item .el-icon .iconify,
+.menu-bar .el-sub-menu__title .el-icon .iconify {
+  vertical-align: middle;
 }
 
-.content-container {
-  margin-left: 200px;
-  transition: margin-left 0.3s ease;
+
+.menu-bar.is-collapsed-Lg .el-menu-item .el-icon,
+.menu-bar.is-collapsed-Lg .el-sub-menu__title .el-icon {
+  margin-right: 0;
 }
 
-.menu-bar:not(.mobile-open) ~ .content-container {
-  margin-left: 60px;
+.menu-item-text {
+  display: inline-block;
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 0.2s ease-in-out 0.1s, transform 0.2s ease-in-out 0.1s, max-width 0.2s ease-in-out 0.1s, visibility 0s linear 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 150px;
+  vertical-align: middle;
 }
 
-.mobile-toggle {
+.menu-item-text.text-collapsed-style {
+  opacity: 0;
+  transform: translateX(-10px);
+  max-width: 0;
+  pointer-events: none;
+  visibility: hidden;
+  margin-left: 0; 
+  transition-delay: 0s;
+}
+
+.app-title-container {
+  transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.app-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.app-logo.logo-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transition-delay: 0.15s;
+}
+
+.app-title-text {
+  display: inline-block;
+  opacity: 1;
+  transform: translateX(0) scale(1);
+  width: auto;
+  transition: opacity 0.2s ease-in-out 0.1s, transform 0.2s ease-in-out 0.1s, width 0.2s ease-in-out 0.1s, visibility 0s linear 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+.app-title-text.text-collapsed-style {
+  opacity: 0;
+  transform: translateX(-10px) scale(0.9);
+  width: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transition-delay: 0s;
+}
+
+.el-menu--collapse .el-sub-menu__icon-arrow,
+.menu-bar .el-sub-menu__icon-arrow {
   display: none;
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  z-index: 1001;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 8px;
-  cursor: pointer;
-}
-
-.pc-toggle {
-  display: block;
-  position: fixed;
-  bottom: 10px;
-  left: 10px; /* Fixed at page's left edge */
-  z-index: 1001;
-  background: var(--el-bg-color);
-  border: 1px solid var(--el-border-color);
-  border-radius: 4px;
-  padding: 8px;
-  cursor: pointer;
-}
-
-@media (max-width: 1024px) {
-  .menu-bar {
-    width: 250px;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-  }
-
-  .menu-bar.mobile-open {
-    transform: translateX(0);
-    width: 250px;
-  }
-
-  .content-container {
-    margin-left: 0;
-  }
-
-  .menu-bar:not(.mobile-open) ~ .content-container {
-    margin-left: 0;
-  }
-
-  .mobile-toggle {
-    display: block;
-  }
-
-  .pc-toggle {
-    display: none; /* Hide PC toggle in mobile view */
-  }
-
-  .layout-container {
-    flex-direction: column;
-  }
-}
-
-.menu-item {
-  padding: 8px 16px;
-  cursor: pointer;
-  margin-right: 8px;
-}
-
-.menu-item:hover {
-  background-color: #e0e0e0;
-  border-radius: 4px;
 }
 </style>

@@ -1,342 +1,379 @@
 <template>
-  <div class="p-4 bg-gray-100 min-h-screen">
-    <Buttons @loadData="loadData" @saveData="saveData" @resetData="resetData"/>
+  <div class="character-output-editor p-3 md:p-5 h-full flex flex-col
+              bg-neutral-100 dark:bg-gradient-to-br dark:from-neutral-900 dark:to-neutral-800
+              text-neutral-800 dark:text-neutral-300 print:p-0 print:bg-white print:text-black">
 
-    <!-- Individual Cards -->
-    <div class="section-container">
-      <BasicInfo :characterData="characterData" />
-      <CharacterDescription :characterData="characterData" @openCharacterDescription="OpenCharacterDescription" />
-    </div>
+    <header class="flex justify-between items-center mb-4 md:mb-6 print:hidden flex-shrink-0 px-1">
+      <h1 class="text-xl md:text-2xl font-bold text-neutral-700 dark:text-neutral-100">
+        角色数据导出器
+      </h1>
+      <Buttons
+        @saveData="saveData"
+        @loadData="loadData"
+        @resetData="resetData"
+        class="flex flex-wrap items-center gap-2 md:gap-3"
+      />
+    </header>
 
-    <div class="section-container">
-      <AlternateGreetings :characterData="characterData" @addGreeting="addGreeting" @removeGreeting="removeGreeting" />
-      <CharacterNotes :characterData="characterData" @handleFileUpload="handleFileUpload" />
-    </div>
+    <el-scrollbar class="flex-grow main-content-scrollbar" view-class="p-1 print:p-0">
+      <div class="space-y-5 md:space-y-8">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-8 items-stretch">
+          <div :class="panelClasses">
+            <BasicInfo :form="form" @update:form="handleFormUpdate" class="flex flex-col h-full" />
+          </div>
+          <div :class="panelClasses">
+            <CharacterDescription 
+              :form="form" 
+              @update:form="handleFormUpdate"
+              @openCharacterDescriptionImport="openCharacterDescriptionImport" 
+              class="flex flex-col h-full"
+            />
+          </div>
+        </div>
 
-    <div style="margin: 8px;"></div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-8 items-stretch">
+          <div :class="panelClasses">
+            <AlternateGreetings 
+              :form="form"
+              @update:form="handleFormUpdate"
+              class="flex flex-col h-full"
+            />
+          </div>
+          <div :class="panelClasses">
+            <CharacterNotes
+              :form="form" 
+              @update:form="handleFormUpdate"
+              @handleFileUpload="handleCharacterNotesUpload"
+              class="flex flex-col h-full"
+            />
+          </div>
+        </div>
+        
+        <div :class="panelClasses">
+          <PersonalitySettings :form="form" @update:form="handleFormUpdate" class="flex flex-col h-full" />
+        </div>
 
-    <el-collapse v-if="activeCollapse" v-model="activeCollapse">
-      <el-collapse-item title="个性设定" name="personality">
-        <PersonalitySettings :characterData="characterData" />
-      </el-collapse-item>
+        <div :class="panelClasses">
+          <ScenarioSettings :form="form" @update:form="handleFormUpdate" class="flex flex-col h-full" />
+        </div>
 
-      <el-collapse-item title="情景设定" name="scenario">
-        <ScenarioSettings :characterData="characterData" />
-      </el-collapse-item>
+        <div :class="panelClasses">
+          <DialogueExample :form="form" @update:form="handleFormUpdate" class="flex flex-col h-full" />
+        </div>
 
-      <el-collapse-item title="对话示例" name="dialogue">
-        <DialogueExample :characterData="characterData" />
-      </el-collapse-item>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-8 items-stretch">
+          <div :class="panelClasses">
+            <OtherSettings :form="form" @update:form="handleFormUpdate" class="flex flex-col h-full" />
+          </div>
+          <div :class="panelClasses">
+            <TagSettings :form="form" @update:form="handleFormUpdate" class="flex flex-col h-full" />
+          </div>
+        </div>
 
-    </el-collapse>
-
-    <div style="margin: 8px;"></div>
-
-    <div class="section-container">
-      <OtherSettings :characterData="characterData" />
-      <TagSettings :characterData="characterData" />
-    </div>
-
+      </div>
+    </el-scrollbar>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
+import { ElMessage, ElMessageBox, ElScrollbar } from 'element-plus';
+import { saveAs } from 'file-saver';
+
 import {
-  saveToLocalStorage,
-  loadFromLocalStorage,
-  clearLocalStorage,
+  saveToLocalStorage as saveToLS,
+  loadFromLocalStorage as loadFromLS,
+  clearLocalStorage as clearLS,
   initAutoSave,
   clearAutoSave
 } from '../utils/localStorageUtils';
-const activeCollapse = ref([])
 
-import BasicInfo from './CharOutput/BasicInfo.vue'
-import CharacterDescription from './CharOutput/CharacterDescription.vue'
-import AlternateGreetings from './CharOutput/AlternateGreetings.vue'
-import CharacterNotes from './CharOutput/CharacterNotes.vue'
-import PersonalitySettings from './CharOutput/PersonalitySettings.vue'
-import ScenarioSettings from './CharOutput/ScenarioSettings.vue'
-import DialogueExample from './CharOutput/DialogueExample.vue'
-import OtherSettings from './CharOutput/OtherSettings.vue'
-import TagSettings from './CharOutput/TagSettings.vue'
-import Buttons from './CharOutput/Buttons.vue'
+// --- 子组件导入 ---
+import Buttons from './CharOutput/Buttons.vue';
+import BasicInfo from './CharOutput/BasicInfo.vue';
+import CharacterDescription from './CharOutput/CharacterDescription.vue';
+import AlternateGreetings from './CharOutput/AlternateGreetings.vue';
+import CharacterNotes from './CharOutput/CharacterNotes.vue';
+import PersonalitySettings from './CharOutput/PersonalitySettings.vue';
+import ScenarioSettings from './CharOutput/ScenarioSettings.vue';
+import DialogueExample from './CharOutput/DialogueExample.vue';
+import OtherSettings from './CharOutput/OtherSettings.vue';
+import TagSettings from './CharOutput/TagSettings.vue';
 
-// Initial data structure
-const initialData = {
-  name: '',
-  description: '',
-  personality: '',
-  scenario: '',
-  first_mes: '',
-  mes_example: '',
-  avatar: 'none',
-  talkativeness: 0.5,
-  fav: false,
-  tags: [],
-  spec: 'chara_card_v3',
-  spec_version: '3.0',
+// --- TypeScript 接口定义 ---
+interface CharacterOutputDataExtensions {
+  talkativeness: string;
+  fav: boolean;
+  depth_prompt: {
+    prompt: string;
+    depth: number;
+    role: string;
+  };
+  world: string;
+  [key: string]: any; // Allow other extension fields
+}
+
+interface CharacterOutputDataNested {
+  name: string;
+  description: string;
+  personality: string;
+  scenario: string;
+  first_mes: string;
+  mes_example: string;
+  tags: string[];
+  alternate_greetings: string[];
+  extensions: CharacterOutputDataExtensions;
+  group_only_greetings: string[];
+  character_book: any[];
+  creator_notes: string;
+  system_prompt: string;
+  post_history_instructions: string;
+  creator: string;
+  character_version: string;
+  [key: string]: any; // Allow other data fields
+}
+
+interface CharacterOutputForm {
+  name: string;
+  description: string;
+  personality: string;
+  scenario: string;
+  first_mes: string;
+  mes_example: string;
+  avatar: string;
+  talkativeness: number;
+  fav: boolean;
+  tags: string[];
+  spec: string;
+  spec_version: string;
+  data: CharacterOutputDataNested;
+  creatorcomment: string;
+  [key: string]: any; // Allow other top-level fields
+}
+
+const LOCAL_STORAGE_KEY = 'characterOutputData';
+
+const createDefaultForm = (): CharacterOutputForm => ({
+  name: '', description: '', personality: '', scenario: '', first_mes: '', mes_example: '',
+  avatar: 'none', talkativeness: 0.5, fav: false, tags: [],
+  spec: 'chara_card_v3', spec_version: '3.0',
   data: {
-    name: '',
-    description: '',
-    personality: '',
-    scenario: '',
-    first_mes: '',
-    mes_example: '',
-    tags: [],
-    alternate_greetings: [] as string[],
+    name: '', description: '', personality: '', scenario: '', first_mes: '', mes_example: '',
+    tags: [], alternate_greetings: [],
     extensions: {
-      talkativeness: '0.5',
-      fav: false,
-      depth_prompt: {
-        prompt: '',
-        depth: 4,
-        role: 'system'
-      },
+      talkativeness: '0.5', fav: false,
+      depth_prompt: { prompt: '', depth: 4, role: 'system' },
       world: ''
     },
-    group_only_greetings: [],
-    character_book: [],
-    creator_notes: '',
-    system_prompt: '',
-    post_history_instructions: '',
-    creator: '',
-    character_version: ''
+    group_only_greetings: [], character_book: [], creator_notes: '', system_prompt: '',
+    post_history_instructions: '', creator: '', character_version: ''
   },
   creatorcomment: ''
-}
+});
 
-const characterData = ref({ ...initialData })
-let autoSaveTimer: number | null = null
+const form = ref<CharacterOutputForm>(createDefaultForm());
+let autoSaveTimer: number | null = null;
 
-// 组件挂载时加载保存的数据
+const panelClasses = computed(() => [
+  'bg-white dark:bg-neutral-850', 'rounded-xl shadow-lg dark:shadow-black/30',
+  'border border-neutral-200 dark:border-neutral-750', 'overflow-hidden',
+  'transition-all duration-300 ease-out',
+  'hover:shadow-xl dark:hover:shadow-black/50 hover:-translate-y-1'
+]);
+
 onMounted(() => {
-  const loadedData = loadFromLocalStorage('characterOutputData');
-  if (loadedData) {
-    characterData.value = { ...initialData, ...loadedData };
-  }
+  const loadedData = loadFromLS(LOCAL_STORAGE_KEY, processLoadedData);
+  if (loadedData) { form.value = loadedData; }
   autoSaveTimer = initAutoSave(
-    () => saveToLocalStorage(characterData.value, 'characterOutputData'),
-    () => !!characterData.value.name
+    () => saveToLS(form.value, LOCAL_STORAGE_KEY),
+    () => !!(form.value.name || form.value.data.name)
   );
-})
+});
 
-// 组件卸载前清除定时器
-onBeforeUnmount(() => {
-  if (autoSaveTimer) {
-    clearAutoSave(autoSaveTimer);
+onBeforeUnmount(() => { if (autoSaveTimer) clearAutoSave(autoSaveTimer); });
+
+const handleFormUpdate = (updatedPart: Partial<CharacterOutputForm>) => {
+  // console.log('Parent: handleFormUpdate received:', JSON.parse(JSON.stringify(updatedPart)));
+  const newFormState = { ...form.value };
+
+  for (const key in updatedPart) {
+    if (Object.prototype.hasOwnProperty.call(updatedPart, key)) {
+      if (key === 'data' && typeof updatedPart.data === 'object' && updatedPart.data !== null) {
+        // Deep merge for 'data' object
+        newFormState.data = {
+          ...newFormState.data,
+          ...updatedPart.data,
+        };
+        if (typeof updatedPart.data.extensions === 'object' && updatedPart.data.extensions !== null) {
+          newFormState.data.extensions = {
+            ...newFormState.data.extensions,
+            ...updatedPart.data.extensions,
+          };
+        }
+      } else {
+        // Direct assignment for top-level properties
+        (newFormState as any)[key] = (updatedPart as any)[key];
+      }
+    }
   }
-})
+  form.value = newFormState;
+  // console.log('Parent: form.value updated:', JSON.parse(JSON.stringify(form.value)));
+};
 
-// Add a new alternate greeting
-const addGreeting = () => {
-  characterData.value.data.alternate_greetings.push('')
-}
 
-// Remove an alternate greeting
-const removeGreeting = (index: number) => {
-  characterData.value.data.alternate_greetings.splice(index, 1)
-}
+const processLoadedData = (parsedData: any): CharacterOutputForm => {
+  const defaultForm = createDefaultForm();
+  // Start with a deep clone of the default form
+  let processed: CharacterOutputForm = JSON.parse(JSON.stringify(defaultForm));
 
-// Reset all data to initial state
+  // Merge parsedData level by level to avoid overwriting nested defaults with undefined
+  const mergeDeep = (target: any, source: any) => {
+    for (const key in source) {
+      if (Object.prototype.hasOwnProperty.call(source, key)) {
+        if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+          if (!target[key] || typeof target[key] !== 'object') {
+            target[key] = {};
+          }
+          mergeDeep(target[key], source[key]);
+        } else if (source[key] !== undefined) { // Only assign if source has a defined value
+          target[key] = source[key];
+        }
+      }
+    }
+  };
+
+  mergeDeep(processed, parsedData);
+
+  // Specific handling for talkativeness and fav to sync top-level and data.extensions
+  if (parsedData.talkativeness !== undefined) { // If top-level exists
+    processed.talkativeness = Number(parsedData.talkativeness) || 0.5;
+    processed.data.extensions.talkativeness = String(processed.talkativeness);
+  } else if (parsedData.data?.extensions?.talkativeness !== undefined) { // If only in extensions
+    processed.talkativeness = Number(parsedData.data.extensions.talkativeness) || 0.5;
+    processed.data.extensions.talkativeness = String(processed.talkativeness);
+  } else { // Fallback to default
+     processed.talkativeness = defaultForm.talkativeness;
+     processed.data.extensions.talkativeness = defaultForm.data.extensions.talkativeness;
+  }
+
+  if (parsedData.fav !== undefined) {
+    processed.fav = Boolean(parsedData.fav);
+    processed.data.extensions.fav = processed.fav;
+  } else if (parsedData.data?.extensions?.fav !== undefined) {
+    processed.fav = Boolean(parsedData.data.extensions.fav);
+    processed.data.extensions.fav = processed.fav;
+  } else {
+    processed.fav = defaultForm.fav;
+    processed.data.extensions.fav = defaultForm.data.extensions.fav;
+  }
+  
+  // Ensure arrays are arrays, defaulting to empty if not present or not an array
+  const fieldsToEnsureArray = ['tags', 'alternate_greetings', 'group_only_greetings', 'character_book'];
+  fieldsToEnsureArray.forEach(field => {
+    if (field === 'tags') { // Top-level tags
+      processed.tags = Array.isArray(parsedData.tags) ? parsedData.tags : (Array.isArray(parsedData.data?.tags) ? parsedData.data.tags : []);
+      processed.data.tags = processed.tags; // Sync to data.tags
+    } else if (Object.prototype.hasOwnProperty.call(processed.data, field)) { // Nested in data
+       (processed.data as any)[field] = Array.isArray(parsedData.data?.[field]) ? parsedData.data[field] : [];
+    }
+  });
+  
+  return processed;
+};
+
 const resetData = () => {
-  characterData.value = { ...initialData }
-  clearLocalStorage('characterOutputData')
-  ElMessage.success('数据已重置')
-}
+  ElMessageBox.confirm('确定要重置所有数据吗？这将清除所有已输入的内容，并从本地存储中删除自动保存的数据。', '警告', { 
+    confirmButtonText: '确定重置', cancelButtonText: '取消', type: 'warning', draggable: true, customClass: 'app-dialog'
+  }).then(() => {
+    clearLS(LOCAL_STORAGE_KEY);
+    form.value = createDefaultForm();
+    ElMessage.success({ message: '表单已重置。', duration: 2000 });
+  }).catch(() => ElMessage.info({ message: '已取消重置。', duration: 1500 }));
+};
 
-// Updated save logic
 const saveData = () => {
-  // Synchronize top-level fields with nested data object
-  const syncedData = {
-    ...characterData.value,
-    data: {
-      ...characterData.value.data,
-      name: characterData.value.name,
-      description: characterData.value.description,
-      personality: characterData.value.personality,
-      scenario: characterData.value.scenario,
-      first_mes: characterData.value.first_mes,
-      mes_example: characterData.value.mes_example,
-      tags: characterData.value.tags,
-      extensions: {
-        ...characterData.value.data.extensions,
-        talkativeness: characterData.value.talkativeness.toString(),
-        fav: characterData.value.fav
-      }
-    }
-  }
+  const dataToSave: CharacterOutputForm = JSON.parse(JSON.stringify(form.value));
+  dataToSave.data.name = dataToSave.name;
+  dataToSave.data.description = dataToSave.description;
+  dataToSave.data.personality = dataToSave.personality;
+  dataToSave.data.scenario = dataToSave.scenario;
+  dataToSave.data.first_mes = dataToSave.first_mes;
+  dataToSave.data.mes_example = dataToSave.mes_example;
+  dataToSave.data.tags = Array.isArray(dataToSave.tags) ? dataToSave.tags : [];
+  dataToSave.data.extensions.talkativeness = String(dataToSave.talkativeness);
+  dataToSave.data.extensions.fav = dataToSave.fav;
 
-  // Convert to JSON and trigger download
-  const jsonStr = JSON.stringify(syncedData, null, 2)
-  const blob = new Blob([jsonStr], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `character_${Date.now()}.json`
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
-  ElMessage.success('数据已保存为JSON文件')
-}
-
-// 处理文件上传
-const handleFileUpload = () => {
-  const input = document.createElement('input')
-  input.type = 'file'
-  input.accept = '.txt,.md,.json'
-  input.onchange = (e) => {
-    const target = e.target as HTMLInputElement
-    const file = target.files?.[0]
-    if (!file) return
-
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      try {
-        if (!e.target) return
-        const result = e.target.result
-        if (typeof result === 'string') {
-          characterData.value.data.extensions.depth_prompt.prompt = result
-        } else {
-          throw new Error('Invalid file content')
-        }
-        ElMessage.success('备注文件已上传并自动填充')
-      } catch (error) {
-        ElMessage.error('文件读取失败，请选择有效的文本文件')
-      }
-    }
-    reader.readAsText(file)
-  }
-  input.click()
-}
-
-const OpenCharacterDescription = () => {
-  console.log('接到导入唤起，开始处理');
-  const input = document.createElement('input')
-  input.type = 'file'
-  input.accept = '.txt,.md,.json'
-  input.onchange = (e) => {
-    const target = e.target as HTMLInputElement
-    const file = target.files?.[0]
-    if (!file) return
-
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      try {
-        if (!e.target) return
-        const result = e.target.result
-        if (typeof result === 'string') {
-          characterData.value.description = result
-        }
-        ElMessage.success('角色描述文件已上传并自动填充')
-      } catch (error) {
-        ElMessage.error('文件读取失败，请选择有效的文本文件')
-      }
-    }
-    reader.readAsText(file)
-  }
-  input.click()
-}
-
+  const jsonStr = JSON.stringify(dataToSave, null, 2);
+  const blob = new Blob([jsonStr], { type: 'application/json' });
+  const filename = `character_export_${(dataToSave.name || 'untitled').replace(/[<>:"/\\|?*]+/g, '_')}_${Date.now()}.json`;
+  saveAs(blob, filename);
+  ElMessage.success('数据已保存为JSON文件');
+};
 
 const loadData = () => {
-  const input = document.createElement('input')
-  console.log('接到json导入唤起，开始处理');
-  input.type = 'file'
-  input.accept = '.json'
-  input.onchange = (e) => {
-    const target = e.target as HTMLInputElement
-    const file = target.files?.[0]
-    if (!file) return
-
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      try {
-        if (!e.target) return
-        const result = e.target.result
-        if (typeof result !== 'string') {
-          throw new Error('Invalid file content')
-        }
-        const data = JSON.parse(result)
-        // Ensure talkativeness is a number
-        if (data.talkativeness) {
-          data.talkativeness = parseFloat(data.talkativeness)
-        } else if (data.data?.extensions?.talkativeness) {
-          data.talkativeness = parseFloat(data.data.extensions.talkativeness)
-        }
-        characterData.value = { ...initialData, ...data } // Merge with initial data to ensure structure
-        ElMessage.success('数据导入成功')
-      } catch (error) {
-        ElMessage.error('文件格式错误，请选择有效的JSON文件')
-      }
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = '.json,application/json';
+  input.onchange = async (event) => {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    try {
+      const content = await file.text();
+      if (!content.trim()) throw new Error('文件内容为空。');
+      const parsedData = JSON.parse(content);
+      if (!parsedData || typeof parsedData !== 'object') throw new Error('无效的角色数据文件格式。');
+      form.value = processLoadedData(parsedData);
+      ElMessage.success({ message: '角色数据加载成功！', duration: 2000 });
+    } catch (error) {
+      ElMessage.error(`加载文件失败：${error instanceof Error ? error.message : '未知错误'}`);
     }
-    reader.readAsText(file)
-  }
-  input.click()
-}
+  };
+  input.click();
+};
+
+const handleCharacterNotesUpload = () => {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = '.txt,.md';
+  input.onchange = (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        if (!ev.target?.result || typeof ev.target.result !== 'string') throw new Error('无法读取或文件内容无效。');
+        // Ensure path exists, using defaults if necessary
+        if (!form.value.data) form.value.data = createDefaultForm().data;
+        if (!form.value.data.extensions) form.value.data.extensions = createDefaultForm().data.extensions;
+        if (!form.value.data.extensions.depth_prompt) form.value.data.extensions.depth_prompt = createDefaultForm().data.extensions.depth_prompt;
+        form.value.data.extensions.depth_prompt.prompt = ev.target.result;
+        ElMessage.success('角色备注（深度提示）文件已上传并自动填充');
+      } catch (error) { ElMessage.error(`文件读取失败：${error instanceof Error ? error.message : '未知错误'}`); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+};
+
+const openCharacterDescriptionImport = () => {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = '.txt,.md';
+  input.onchange = (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        if (!ev.target?.result || typeof ev.target.result !== 'string') throw new Error('无法读取或文件内容无效。');
+        form.value.description = ev.target.result;
+        if(form.value.data) form.value.data.description = ev.target.result;
+        ElMessage.success('角色描述文件已上传并自动填充');
+      } catch (error) { ElMessage.error(`文件读取失败：${error instanceof Error ? error.message : '未知错误'}`);}
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+};
 </script>
 
 <style scoped>
-.title-Btn-add {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.section-container {
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.section-container>* {
-  flex: 1;
-  min-width: 100%;
-}
-
-@media (min-width: 768px) {
-  .section-container {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-
-  .section-container>* {
-    min-width: auto;
-  }
-
-  .btnSL {
-    display: flex;
-    align-items: center;
-    flex-direction: row;
-  }
-}
-
-.container {
-  max-width: 800px;
-}
-
-#tiltleMain {
-  justify-content: space-between;
-}
-
-.btnSL {
-  display: flex;
-  align-items: center;
-  flex-direction: row;
-}
-
-@media (min-width: 768px) {
-  #tiltleMain {
-    display: flex;
-    justify-content: space-between;
-  }
-
-  .btnSL {
-    display: flex;
-    align-items: center;
-    flex-direction: row;
-  }
-}
+:deep(.main-content-scrollbar .el-scrollbar__wrap) {}
+:deep(.main-content-scrollbar .el-scrollbar__view) {}
 </style>
