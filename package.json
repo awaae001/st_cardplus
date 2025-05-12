@@ -3,7 +3,7 @@
   "author": "awaae001",
   "description": "快速卡片格式化工具",
   "private": true,
-  "version": "0.1.4",
+  "version": "0.2.0(0_1433)",
   "type": "module",
   "main": "dist-electron/main.js",
   "scripts": {
