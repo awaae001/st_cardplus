@@ -154,12 +154,14 @@
       </ElMenu>
     </div>
 
-    <main
-      class="flex-1 flex flex-col overflow-hidden dark:bg-gradient-to-br dark:from-neutral-900 dark:to-neutral-800 text-neutral-800 dark:text-neutral-300"
-      :class="{
-        'pt-14 lg:pt-0': true
-      }"
-    >
+<main
+  class="flex-1 flex flex-col overflow-hidden
+         dark:bg-gradient-to-br dark:from-neutral-950 dark:to-neutral-900
+         text-neutral-800 dark:text-neutral-300"
+  :class="{
+    'pt-14 lg:pt-0': true
+  }"
+>
       <div class="flex-1 p-4 md:p-6 overflow-y-auto">
         <div class="w-full h-full">
           <RouterView v-slot="{ Component, route }">
