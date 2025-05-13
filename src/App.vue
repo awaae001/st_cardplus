@@ -31,7 +31,7 @@
           'is-mobile-expanded': isSidebarOpen && isMobileView
         }"
         mode="vertical"
-        :router="true"
+        @select="handleMenuNavigation"
         :title="isEffectivelyCollapsedForTitle ? 'Menu' : ''"
       >
         <div class="app-title-container p-4 text-center text-lg font-semibold text-gray-700 dark:text-gray-200 flex-shrink-0 h-[56px] flex items-center justify-center overflow-hidden whitespace-nowrap relative">
@@ -93,7 +93,7 @@
 
         <div class="mt-auto flex-shrink-0 border-t border-gray-200 dark:border-neutral-700">
 
-           <ElMenuItem @click="appSettings.toggleAutoSave()" :title="isEffectivelyCollapsedForTitle ? ('自动保存: ' + (appSettings.isAutoSaveEnabled ? '开启' : '关闭')) : ''">
+           <ElMenuItem index="action:toggle-autosave" @click="(itemInstance) => appSettings.toggleAutoSave()" :title="isEffectivelyCollapsedForTitle ? ('自动保存: ' + (appSettings.isAutoSaveEnabled ? '开启' : '关闭')) : ''">
              <ElIcon :size="22" class="text-blue-500">
                <Icon v-if="appSettings.isAutoSaveEnabled" icon="ph:floppy-disk-back-light" />
                <Icon v-else icon="ph:power-light" />
@@ -105,7 +105,7 @@
              </template>
            </ElMenuItem>
 
-           <ElMenuItem @click="appSettings.cycleSafeMode()" :title="isEffectivelyCollapsedForTitle ? ('安全模式: ' + safeModeTitle(appSettings.safeModeLevel)) : ''">
+           <ElMenuItem index="action:cycle-safemode" @click="(itemInstance) => appSettings.cycleSafeMode()" :title="isEffectivelyCollapsedForTitle ? ('安全模式: ' + safeModeTitle(appSettings.safeModeLevel)) : ''">
              <ElIcon :size="22" class="text-orange-500">
                <Icon v-if="appSettings.safeModeLevel === 'forbidden'" icon="ph:shield-checkered-light" />
                <Icon v-else-if="appSettings.safeModeLevel === 'double'" icon="ph:shield-warning-light" />
@@ -118,7 +118,7 @@
              </template>
            </ElMenuItem>
 
-           <ElMenuItem @click="toggleDark()" :title="isEffectivelyCollapsedForTitle ? (isDark ? '切换到浅色模式' : '切换到深色模式') : ''">
+           <ElMenuItem index="action:toggle-darkmode" @click="toggleDark" :title="isEffectivelyCollapsedForTitle ? (isDark ? '切换到浅色模式' : '切换到深色模式') : ''">
              <ElIcon :size="22">
                <Icon v-if="isDark" icon="ph:moon-light" />
                <Icon v-else icon="ph:sun-light" />
@@ -195,6 +195,7 @@ import { useAppSettingsStore, type SafeModeLevel } from '@/stores/appSettings';
 
 
 const appSettings = useAppSettingsStore();
+const router = useRouter();
 
 const screenWidth = ref(0)
 const updateScreenWidth = () => {
@@ -208,7 +209,11 @@ const isDark = useDark({
   valueDark: 'dark',
   valueLight: 'light',
 })
-const toggleDark = useToggle(isDark)
+const toggleDarkOriginal = useToggle(isDark)
+const toggleDark = (itemInstance?: any) => {
+  toggleDarkOriginal()
+}
+
 
 const isSidebarOpen = ref(true)
 const toggleSidebar = () => {
@@ -225,6 +230,17 @@ const handleClickOutside = (event: MouseEvent) => {
     }
   }
 }
+
+const handleMenuNavigation = (index: string, indexPath: string[], item: any) => {
+  if (index && index.startsWith('/') && !index.startsWith('action:')) {
+    router.push(index).catch(err => {
+      if (err.name !== 'NavigationDuplicated' && err.name !== 'NavigationCancelled') {
+        console.error('Router push failed:', err);
+      }
+    });
+  }
+};
+
 
 watch(isMobileView, (newIsMobile, oldIsMobile) => {
   if (newIsMobile === false && (oldIsMobile === true || oldIsMobile === undefined)) {
@@ -245,7 +261,6 @@ onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside, true)
 })
 
-const router = useRouter()
 let loadingInstance: any
 router.beforeEach(() => {
   loadingInstance = ElLoading.service({
@@ -365,8 +380,6 @@ const safeModeTitle = (level: SafeModeLevel): string => {
 
 .app-title-container {
   transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  /* 背景色应与 .menu-bar 一致或透明以显示 .menu-bar 的背景 */
-  /* 如果 .menu-bar 有背景，这里可以不需要单独设置背景 */
 }
 
 .app-logo {
@@ -413,10 +426,6 @@ const safeModeTitle = (level: SafeModeLevel): string => {
   display: none;
 }
 
-/* 确保 .pc-toggle-container 在折叠时，其 sticky 行为的背景能匹配菜单栏 */
-.pc-toggle-container.bg-inherit { /* bg-inherit 确保它继承 .menu-bar 的背景 */
-    /* 在深色模式下，如果 .menu-bar 是 dark:bg-neutral-800，那么这里也是 */
-    /* 如果需要特别指定，可以像这样： */
-    /* @apply dark:bg-neutral-800; */
+.pc-toggle-container.bg-inherit {
 }
 </style>

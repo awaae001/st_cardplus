@@ -8,12 +8,12 @@
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
+    "compile:electron": "tsc -p electron/tsconfig.json",
     "build": "vite build",
     "preview": "vite preview",
-    "electron": "electron .",
-    "start": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && electron .\"",
-    "build:electron": "cross-env NODE_ENV=production vite build && tsc -p electron/tsconfig.json && electron-builder",
-    "electron:serve": "cross-env NODE_ENV=development vite build && tsc -p electron/tsconfig.json && electron ."
+    "start": "pnpm run dev",
+    "build:electron": "cross-env NODE_ENV=production vite build && pnpm run compile:electron && electron-builder",
+    "electron:serve": "cross-env NODE_ENV=production vite build && pnpm run compile:electron && electron ."
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
@@ -21,6 +21,7 @@
     "element-plus": "^2.9.10",
     "exifreader": "^4.30.1",
     "file-saver": "^2.0.5",
+    "gsap": "^3.13.0",
     "js-base64": "^3.7.7",
     "nanoid": "^5.1.5",
     "pinia": "^3.0.2",

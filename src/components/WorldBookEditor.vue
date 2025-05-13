@@ -130,14 +130,13 @@
                   <Icon icon="ph:clipboard-text-duotone" class="text-md sm:text-lg group-hover:scale-110 transition-transform"/>
                 </button>
               </el-tooltip>
-              <el-tooltip content="保存当前条目" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
-                <button v-if="selectedEntry" @click="saveCurrentEntry" class="btn-primary-adv !p-1.5 sm:!p-2 aspect-square group" aria-label="保存当前条目">
+              <el-tooltip v-if="selectedEntry" content="保存当前条目" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
+                <button @click="saveCurrentEntry" class="btn-primary-adv !p-1.5 sm:!p-2 aspect-square group" aria-label="保存当前条目">
                   <Icon icon="ph:floppy-disk-duotone" class="text-md sm:text-lg group-hover:scale-110 transition-transform"/>
                 </button>
               </el-tooltip>
-              <el-tooltip content="删除当前条目" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
+              <el-tooltip v-if="selectedEntry" content="删除当前条目" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
                 <button
-                  v-if="selectedEntry"
                   @click="deleteSelectedEntry"
                   class="btn-danger-adv !p-1.5 sm:!p-2 aspect-square group disabled:opacity-50 disabled:cursor-not-allowed"
                   aria-label="删除当前条目"
@@ -290,14 +289,13 @@
                 <Icon icon="ph:clipboard-text-duotone" class="text-lg group-hover:scale-110 transition-transform"/>
               </button>
             </el-tooltip>
-            <el-tooltip content="保存当前条目" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
-              <button v-if="selectedEntry" @click="saveCurrentEntry" class="btn-primary-adv !p-2.5 aspect-square group" aria-label="保存当前条目">
+            <el-tooltip v-if="selectedEntry" content="保存当前条目" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
+              <button @click="saveCurrentEntry" class="btn-primary-adv !p-2.5 aspect-square group" aria-label="保存当前条目">
                 <Icon icon="ph:floppy-disk-duotone" class="text-lg group-hover:scale-110 transition-transform"/>
               </button>
             </el-tooltip>
-            <el-tooltip content="删除当前条目" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
+            <el-tooltip v-if="selectedEntry" content="删除当前条目" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
               <button
-                v-if="selectedEntry"
                 @click="deleteSelectedEntry"
                 class="btn-danger-adv !p-2.5 aspect-square group disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="删除当前条目"
