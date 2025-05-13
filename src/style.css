@@ -1,12 +1,32 @@
+/* 
+  style.css
+  ============================================
+  主样式文件，集成了 Tailwind CSS 及其自定义配置。
+  使用 Tailwind v4 Beta 的 @variant 和 @theme 特性。
+*/
+
+/* 
+  1. 导入 Tailwind CSS 基础、组件和工具类
+  --------------------------------------------
+*/
 @import "tailwindcss";
 
+/* 
+  2. 定义暗黑模式变体 (Tailwind v4 Beta)
+  --------------------------------------------
+*/
 @variant dark (&:where(.dark, .dark *));
 
+/* 
+  3. @layer base: 基础样式和 HTML 元素重置
+  --------------------------------------------
+*/
 @layer base {
   body {
     @apply bg-neutral-100 dark:bg-gradient-to-br dark:from-neutral-900 dark:to-neutral-800 text-neutral-800 dark:text-neutral-300;
     @apply font-sans antialiased;
   }
+
   html, body, #app { @apply h-full; }
 
   ::-webkit-scrollbar { @apply w-1.5 h-1.5; }
@@ -15,7 +35,12 @@
   ::-webkit-scrollbar-thumb:hover { @apply bg-neutral-400 dark:bg-neutral-600; }
 }
 
+/* 
+  4. @theme: 自定义设计令牌 (Design Tokens)
+  --------------------------------------------
+*/
 @theme {
+  /* 强调色 (Accent Colors) */
   --color-accent-50: oklch(0.95 0.08 260);
   --color-accent-100: oklch(0.92 0.12 260);
   --color-accent-200: oklch(0.88 0.16 260);
@@ -28,6 +53,7 @@
   --color-accent-900: oklch(0.4 0.29 260);
   --color-accent-950: oklch(0.3 0.3 260);
 
+  /* 中性色 (Neutral Colors) */
   --color-neutral-50: oklch(0.984 0.003 240);
   --color-neutral-100: oklch(0.961 0.006 240);
   --color-neutral-200: oklch(0.929 0.009 240);
@@ -35,16 +61,18 @@
   --color-neutral-400: oklch(0.816 0.014 240);
   --color-neutral-500: oklch(0.749 0.015 240);
   --color-neutral-600: oklch(0.647 0.016 240);
-  --color-neutral-700: oklch(0.549 0.017 240);
+  --color-neutral-700: oklch(0.549 0.017 240); /* 原本 hover 用的这个，现在调整 */
   --color-neutral-750: oklch(0.47 0.0175 240);
   --color-neutral-800: oklch(0.392 0.018 240);
-  --color-neutral-850: oklch(0.30 0.018 240);
+  --color-neutral-850: oklch(0.30 0.018 240);  /* 列表的背景色基准 */
   --color-neutral-900: oklch(0.22 0.018 240);
   --color-neutral-950: oklch(0.149 0.018 240);
 
+  /* 基础色 */
   --color-white: oklch(1 0 0);
   --color-black: oklch(0 0 0);
 
+  /* 特定语义色 - 天蓝色 (Sky) */
   --color-sky-50: oklch(0.97 0.05 230);
   --color-sky-100: oklch(0.93 0.09 230);
   --color-sky-200: oklch(0.89 0.12 230);
@@ -54,23 +82,27 @@
   --color-sky-600: oklch(0.65 0.24 230);
   --color-sky-800: oklch(0.5 0.28 230);
 
+  /* 特定语义色 - 绿色 (Green) */
   --color-green-50: oklch(0.96 0.08 130);
   --color-green-300: oklch(0.85 0.18 133);
   --color-green-500: oklch(0.7 0.22 135);
   --color-green-600: oklch(0.63 0.24 135);
   --color-green-700: oklch(0.58 0.25 135);
 
+  /* 特定语义色 - 红色 (Red) */
   --color-red-50: oklch(0.95 0.07 28);
   --color-red-300: oklch(0.8 0.19 27);
   --color-red-500: oklch(0.65 0.25 25);
   --color-red-600: oklch(0.6 0.27 25);
   --color-red-700: oklch(0.55 0.28 25);
 
+  /* 特定语义色 - 琥珀色/黄色 (Amber) */
   --color-amber-50: oklch(0.97 0.06 82);
   --color-amber-300: oklch(0.88 0.15 81);
   --color-amber-500: oklch(0.75 0.2 80);
   --color-amber-600: oklch(0.7 0.21 80);
 
+  /* 圆角半径 (Radius) */
   --radius-DEFAULT: 0.25rem;
   --radius-sm: 0.125rem;
   --radius-md: 0.375rem;
@@ -80,10 +112,27 @@
   --radius-3xl: 1.5rem;
   --radius-full: 9999px;
   
+  /* 毛玻璃效果背景 (Glassmorphism) */
   --bg-glass-light: oklch(0.98 0.005 240 / 0.5);
   --bg-glass-dark: oklch(0.25 0.015 240 / 0.5);
+
+  /* 
+    特定于菜单项的颜色变量
+  */
+  /* 深色模式 - 选中菜单项 */
+  --color-dark-active-menu-bg: #374151;                 /* 背景 (Tailwind gray-700) */
+  --color-dark-active-menu-text: #F9FAFB;               /* 文本 (Tailwind gray-50) */
+  --color-dark-active-menu-indicator: var(--color-accent-400); /* 指示器 */
+
+  /* 深色模式 - 普通菜单项悬停 (NEW) */
+  --color-dark-menu-item-hover-bg: oklch(0.36 0.018 240 / 0.65); /* 示例：亮度0.36, 透明度65%. 比列表背景 (neutral-850 at L=0.30) 稍亮，但比之前的 neutral-700/70 (L=0.549) 暗很多 */
+                                                                 /* 请在浏览器中微调此值以达到最佳效果 */
 }
 
+/* 
+  5. @layer components: 可复用的组件样式类
+  --------------------------------------------
+*/
 @layer components {
   .content-panel {
     @apply bg-white dark:bg-neutral-850 rounded-xl shadow-xl dark:shadow-black/30 
@@ -120,7 +169,7 @@
   .command-palette-list-item {
     @apply px-4 py-2.5 text-sm cursor-pointer flex items-center gap-x-3
            text-neutral-600 dark:text-neutral-300
-           hover:bg-neutral-100 dark:hover:bg-neutral-700/70
+           hover:bg-neutral-100 dark:hover:bg-neutral-700/70 /* 这个列表项的hover可能也需要检查深色模式下的对比度 */
            transition-colors duration-100 ease-in-out;
   }
   .command-palette-list-item-active {
@@ -137,7 +186,7 @@
     @apply inline-flex items-center justify-center px-3.5 py-1.5 rounded-lg text-sm font-medium shadow-sm 
            transform transition-all duration-150 ease-in-out active:scale-[0.97]
            focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-neutral-900;
-    @apply bg-white dark:bg-neutral-700 border-neutral-300 dark:border-neutral-600 
+    @apply bg-white dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 
            text-neutral-700 dark:text-neutral-200
            hover:bg-neutral-50 dark:hover:bg-neutral-600/80 focus:ring-accent-500;
   }
@@ -167,11 +216,63 @@
   .form-section-title { @apply text-base font-medium text-accent-600 dark:text-accent-400 mb-4; }
   .form-label { @apply block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5; }
   .form-help-text { @apply text-xs text-neutral-500 dark:text-neutral-400 mt-1.5; }
-  .entry-menu .el-menu-item { @apply text-neutral-600 dark:text-neutral-300 transition-colors duration-150; }
-  .entry-menu .el-menu-item:not(.is-disabled):hover { @apply bg-neutral-100 dark:bg-neutral-700/70 text-neutral-800 dark:text-neutral-100; }
-  .entry-menu .el-menu-item.is-active { @apply bg-accent-500/10 dark:bg-accent-600/20 text-accent-600 dark:text-accent-400 font-semibold; }
+
+  /* 
+    .entry-menu (Element Plus el-menu 的自定义样式)
+  */
+  .entry-menu .el-menu-item {
+    /* 基础文本颜色和过渡 */
+    @apply text-neutral-600 dark:text-neutral-300 transition-colors duration-150;
+  }
+
+  /* 普通菜单项的悬停样式 */
+  .entry-menu .el-menu-item:not(.is-disabled):hover {
+    /* 亮色模式 */
+    background-color: var(--color-neutral-100);
+    color: var(--color-neutral-800);
+  }
+  .dark .entry-menu .el-menu-item:not(.is-disabled):hover {
+    /* 深色模式 - 使用新定义的、更柔和的悬停背景色 */
+    background-color: var(--color-dark-menu-item-hover-bg); /* MODIFIED */
+    color: var(--color-neutral-100); /* 文本颜色保持亮色以确保可读性 */
+  }
+
+  /* 激活(选中)的菜单项样式 */
+  .entry-menu .el-menu-item.is-active {
+    @apply font-semibold; /* 字体加粗 */
+    /* 亮色模式 */
+    background-color: oklch(from var(--color-accent-500) l c h / 0.1); /* accent-500 的 10% 透明度 */
+    color: var(--color-accent-600);
+  }
+  .dark .entry-menu .el-menu-item.is-active {
+    /* 深色模式 - 使用特定变量以获得更好对比度和协调性 */
+    background-color: var(--color-dark-active-menu-bg) !important;
+    color: var(--color-dark-active-menu-text) !important;
+  }
+
+  /* 激活菜单项的左侧竖条指示器 */
+  .entry-menu .el-menu-item.is-active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 20%;
+    bottom: 20%;
+    width: 3px;
+    border-top-right-radius: var(--radius-sm);
+    border-bottom-right-radius: var(--radius-sm);
+    /* 亮色模式指示器颜色 */
+    background-color: var(--color-accent-500);
+  }
+  .dark .entry-menu .el-menu-item.is-active::before {
+    /* 深色模式指示器颜色 */
+    background-color: var(--color-dark-active-menu-indicator);
+  }
 }
 
+/* 
+  6. Element Plus 组件深度定制样式
+  --------------------------------------------
+*/
 :deep(.el-input__wrapper), 
 :deep(.el-textarea__inner), 
 :deep(.el-select .el-input__wrapper),
@@ -193,7 +294,6 @@
   @apply border-accent-500 dark:border-accent-500 ring-2 ring-accent-500/30 dark:ring-accent-500/30 
          bg-white dark:bg-neutral-700;
 }
-
 :deep(.el-input-number__decrease),
 :deep(.el-input-number__increase) {
   @apply bg-neutral-100 dark:bg-neutral-700 border-neutral-300 dark:border-neutral-600 
@@ -203,16 +303,13 @@
 :deep(.el-input-number__increase:hover) {
    @apply bg-neutral-200 dark:bg-neutral-600/70;
 }
-
 :deep(.el-checkbox__label) { @apply text-sm text-neutral-700 dark:text-neutral-300; }
 :deep(.el-checkbox__inner) { @apply bg-white dark:bg-neutral-700 border border-neutral-400 dark:border-neutral-500 rounded; }
 :deep(.el-checkbox.is-checked .el-checkbox__inner) { @apply bg-accent-500 border-accent-500; }
 :deep(.el-checkbox__input.is-focus .el-checkbox__inner) { @apply ring-2 ring-accent-500/40 ring-offset-1 dark:ring-offset-neutral-850; }
-
 :deep(.el-switch.is-checked .el-switch__core) { @apply bg-accent-500 border-accent-500; }
 :deep(.el-switch .el-switch__core) { @apply bg-neutral-200 dark:bg-neutral-600 border border-neutral-300 dark:border-neutral-500 rounded-full; }
 :deep(.el-switch__input:focus-visible ~ .el-switch__core) { @apply ring-2 ring-accent-500/40 ring-offset-1 dark:ring-offset-neutral-850; }
-
 :deep(.el-slider__bar) { @apply bg-accent-500; }
 :deep(.el-slider__button) {
   @apply border-2 border-accent-500 bg-white dark:bg-neutral-100;
@@ -223,17 +320,14 @@
 :deep(.el-slider.is-disabled .el-slider__bar) { @apply bg-neutral-400 dark:bg-neutral-500/60; }
 :deep(.el-slider.is-disabled .el-slider__button) { @apply border-neutral-400 dark:border-neutral-500; }
 :deep(.el-slider__input .el-input__wrapper) { @apply w-24 text-xs; }
-
 :deep(.el-tag) { @apply rounded-md text-xs px-2 py-0.5 border; }
 :deep(.el-tag--info) { @apply bg-neutral-100 dark:bg-neutral-600/80 text-neutral-500 dark:text-neutral-300 border-neutral-300 dark:border-neutral-500/70; }
 :deep(.el-tag--success) { @apply bg-green-50 dark:bg-green-500/20 text-green-600 dark:text-green-300 border-green-300/70 dark:border-green-500/40; }
 :deep(.el-tag--primary) { @apply bg-accent-50 dark:bg-accent-500/20 text-accent-600 dark:text-accent-300 border-accent-300/70 dark:border-accent-500/40; }
 :deep(.el-tag--warning) { @apply bg-amber-50 dark:bg-amber-500/20 text-amber-600 dark:text-amber-300 border-amber-300/70 dark:border-amber-500/40; }
 :deep(.el-tag--danger) { @apply bg-red-50 dark:bg-red-500/20 text-red-600 dark:text-red-300 border-red-300/70 dark:border-red-500/40; }
-
 :deep(.el-empty__description p) { @apply text-sm text-neutral-500 dark:text-neutral-400; }
 :deep(.el-empty__image svg) { @apply text-neutral-300 dark:text-neutral-600 w-28 h-28 opacity-70; }
-
 :deep(.el-input-number .el-input__inner) { @apply text-left text-sm; }
 :deep(.el-slider__input .el-input__inner) { @apply text-center text-sm; }
 
@@ -241,14 +335,6 @@
 .el-select-dropdown__item { @apply text-neutral-700 dark:text-neutral-200 px-3 py-1.5; }
 .el-select-dropdown__item.hover, .el-select-dropdown__item:hover { @apply bg-neutral-100 dark:bg-neutral-700/70; }
 .el-select-dropdown__item.selected { @apply text-accent-600 dark:text-accent-400 font-medium bg-accent-50 dark:bg-accent-600/25; }
-
-.palette-overlay-fade-enter-active, .palette-overlay-fade-leave-active { transition: opacity 0.15s ease-out; }
-.palette-overlay-fade-enter-from, .palette-overlay-fade-leave-to { opacity: 0; }
-.palette-slide-fade-enter-active, .palette-slide-fade-leave-active { transition: opacity 0.2s ease-out, transform 0.2s ease-out; }
-.palette-slide-fade-enter-from, .palette-slide-fade-leave-to { opacity: 0; transform: translateY(-20px) scale(0.95); }
-.module-fade-enter-active, .module-fade-leave-active { transition: opacity 0.2s ease-out, transform 0.2s ease-out; }
-.module-fade-enter-from { opacity: 0; transform: translateY(10px) scale(0.98); }
-.module-fade-leave-to { opacity: 0; transform: translateY(-10px) scale(0.98); }
 
 html.dark .el-message-box { @apply bg-neutral-800 rounded-lg shadow-xl border border-neutral-700; }
 html.dark .el-message-box__header { @apply border-b border-neutral-700; }
@@ -266,6 +352,74 @@ html.dark .app-dialog .el-dialog__body { @apply bg-neutral-800 text-neutral-200;
 html.dark .app-dialog .el-dialog__footer { @apply bg-neutral-800 border-t border-neutral-700 py-3 px-5; }
 html.dark .app-dialog .el-dialog__headerbtn .el-dialog__close { @apply text-neutral-400 hover:text-accent-500; }
 
+/* --- Element Plus 深色模式覆盖 --- */
+
+/* el-alert (Info 类型) 背景透明化 */
+html.dark .el-alert--info.is-light,
+html.dark .el-alert--info.is-dark,
+html.dark .el-alert--info {
+  background-color: transparent !important;
+  /* 可选: 调整边框颜色以适应透明背景 */
+  /* border-color: var(--color-neutral-700) !important; */
+  /* 可选: 如果文本颜色在透明背景下不可读，可以取消注释并调整下面的规则 */
+}
+
+/* 可选: 调整 el-alert (Info 类型) 在深色透明背景下的文本颜色 */
+/*
+html.dark .el-alert--info .el-alert__title {
+  color: var(--color-neutral-200) !important;
+}
+html.dark .el-alert--info .el-alert__description {
+  color: var(--color-neutral-400) !important;
+}
+*/
+
+
+/* el-table 表头背景调整 (深色模式) */
+html.dark .el-table th.el-table__cell,
+html.dark .el-table .el-table__header-wrapper th {
+  /* 
+    MODIFIED: 将背景色设置为与 .content-panel 在深色模式下一致的颜色 
+    假设 var(--color-neutral-850) 是 content-panel 的深色背景
+  */
+  background-color: var(--color-neutral-850) !important; 
+  
+  /* 
+    表头底边框颜色：
+    确保它在新的背景色上仍然合适，或者与 content-panel 的边框/内部线条协调。
+    var(--color-neutral-700) 或 var(--color-neutral-750) 可能是合适的选择。
+    之前是 var(--color-neutral-700)，如果 content-panel 的 header 边框是 var(--color-neutral-700)，
+    那么保持一致或者使用一个稍深/稍浅的协调色。
+  */
+  border-bottom: 1px solid var(--color-neutral-700) !important; /* 示例值，请根据您的视觉需求调整 */
+  /* 如果表头之间有竖直分隔线，也可能需要调整它们的颜色 */
+  /* border-right: 1px solid var(--color-neutral-700) !important; */ /* 示例，如果需要 */
+}
+
+/* el-table 表头文本颜色调整 (深色模式) */
+html.dark .el-table th.el-table__cell .cell,
+html.dark .el-table .el-table__header-wrapper th .cell {
+  /* 
+    确保文本颜色在 var(--color-neutral-850) 的背景上清晰可读。
+    var(--color-neutral-300) 或 var(--color-neutral-200) 应该是不错的选择。
+  */
+  color: var(--color-neutral-200) !important; /* 示例：使用 neutral-200，比 neutral-300 更亮一些 */
+}
+
+/* --- End of Element Plus 深色模式覆盖 --- */
+
+/* 
+  7. 动画过渡和自定义滚动条 (特定区域)
+  --------------------------------------------
+*/
+.palette-overlay-fade-enter-active, .palette-overlay-fade-leave-active { transition: opacity 0.15s ease-out; }
+.palette-overlay-fade-enter-from, .palette-overlay-fade-leave-to { opacity: 0; }
+.palette-slide-fade-enter-active, .palette-slide-fade-leave-active { transition: opacity 0.2s ease-out, transform 0.2s ease-out; }
+.palette-slide-fade-enter-from, .palette-slide-fade-leave-to { opacity: 0; transform: translateY(-20px) scale(0.95); }
+.module-fade-enter-active, .module-fade-leave-active { transition: opacity 0.2s ease-out, transform 0.2s ease-out; }
+.module-fade-enter-from { opacity: 0; transform: translateY(10px) scale(0.98); }
+.module-fade-leave-to { opacity: 0; transform: translateY(-10px) scale(0.98); }
+
 .command-palette-scrollbar ::-webkit-scrollbar { @apply w-1.5 h-1.5; }
 .command-palette-scrollbar ::-webkit-scrollbar-track { @apply bg-transparent; }
 .command-palette-scrollbar ::-webkit-scrollbar-thumb { @apply bg-neutral-300 dark:bg-neutral-600 rounded-full; }
@@ -279,6 +433,10 @@ html.dark .command-palette-scrollbar { scrollbar-color: var(--color-neutral-600)
 .editor-main-scroll-area { scrollbar-width: thin; scrollbar-color: var(--color-neutral-400) var(--color-neutral-100); }
 html.dark .editor-main-scroll-area { scrollbar-color: var(--color-neutral-600) oklch(from var(--color-neutral-800) l c h / 0.5); }
 
+/* 
+  8. @layer utilities: 自定义工具类和动画
+  --------------------------------------------
+*/
 @layer utilities {
   @keyframes shake {
     0%, 100% { transform: translateX(0); }
@@ -288,7 +446,6 @@ html.dark .editor-main-scroll-area { scrollbar-color: var(--color-neutral-600) o
   .animate-shake {
     animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
   }
-
   @keyframes flyInsideBox {
     0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
     30% { transform: translate(5px, -60px) rotate(-15deg) scale(0.9); opacity: 0.8; }
@@ -298,7 +455,6 @@ html.dark .editor-main-scroll-area { scrollbar-color: var(--color-neutral-600) o
   .animate-fly-inside-box {
     animation: flyInsideBox 0.8s cubic-bezier(0.550, 0.085, 0.680, 0.530) forwards;
   }
-
   @keyframes fallIn {
     0% { transform: translateY(-150%) scale(1.5) rotateX(-60deg); opacity: 0; filter: blur(5px); }
     60% { transform: translateY(10%) scale(0.9) rotateX(10deg); opacity: 0.9; filter: blur(1px); }
@@ -308,7 +464,6 @@ html.dark .editor-main-scroll-area { scrollbar-color: var(--color-neutral-600) o
   .animate-fall-in {
     animation: fallIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   }
-
   @keyframes spinOnce {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }

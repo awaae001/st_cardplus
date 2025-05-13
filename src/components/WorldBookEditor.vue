@@ -38,8 +38,8 @@
                 class="!h-auto !px-3 !py-2.5 !leading-normal group"
               >
                 <div class="flex-grow overflow-hidden w-full">
-                  <div class="text-sm font-medium text-neutral-700 dark:text-neutral-100 group-[.is-active]:text-accent-600 dark:group-[.is-active]:text-accent-300 truncate">{{ entry.comment || `条目 ${index + 1}` }}</div>
-                  <div class="text-xs text-neutral-500 dark:text-neutral-400 mt-1.5 flex items-center flex-wrap gap-1 group-[.is-active]:text-accent-500 dark:group-[.is-active]:text-accent-400/90">
+                  <div class="text-sm font-medium text-neutral-700 dark:text-neutral-100 group-[.is-active]:text-accent-600 dark:group-[.is-active]:text-white truncate">{{ entry.comment || `条目 ${index + 1}` }}</div>
+                  <div class="text-xs text-neutral-500 dark:text-neutral-400 mt-1.5 flex items-center flex-wrap gap-1 group-[.is-active]:text-accent-500 dark:group-[.is-active]:text-accent-300/90">
                     <el-tag v-if="entry.disable" type="info" size="small" effect="dark">已禁用</el-tag>
                     <el-tag v-if="entry.constant" type="success" size="small" effect="dark">常驻</el-tag>
                     <span v-if="!entry.disable && !entry.constant" class="inline-block h-[18px]"></span>
@@ -204,8 +204,8 @@
               class="!h-auto !px-3 !py-2.5 !leading-normal group"
             >
               <div class="flex-grow overflow-hidden w-full">
-                <div class="text-sm font-medium text-neutral-700 dark:text-neutral-100 group-[.is-active]:text-accent-600 dark:group-[.is-active]:text-accent-300 truncate">{{ entry.comment || `条目 ${index + 1}` }}</div>
-                <div class="text-xs text-neutral-500 dark:text-neutral-400 mt-1.5 flex items-center flex-wrap gap-1 group-[.is-active]:text-accent-500 dark:group-[.is-active]:text-accent-400/90">
+                <div class="text-sm font-medium text-neutral-700 dark:text-neutral-100 group-[.is-active]:text-accent-600 dark:group-[.is-active]:text-white truncate">{{ entry.comment || `条目 ${index + 1}` }}</div>
+                <div class="text-xs text-neutral-500 dark:text-neutral-400 mt-1.5 flex items-center flex-wrap gap-1 group-[.is-active]:text-accent-500 dark:group-[.is-active]:text-accent-300/90">
                   <el-tag v-if="entry.disable" type="info" size="small" effect="dark">已禁用</el-tag>
                   <el-tag v-if="entry.constant" type="success" size="small" effect="dark">常驻</el-tag>
                   <span v-if="!entry.disable && !entry.constant" class="inline-block h-[18px]"></span>
@@ -507,14 +507,14 @@ const addNewEntry = () => {
   newEntryData.comment = `新条目 ${worldBookEntries.value.length + 1}`;
   worldBookEntries.value.unshift(newEntryData);
   selectedEntryIndex.value = 0;
-  activeTab.value = 'editor'; // Switch to editor tab on mobile
+  activeTab.value = 'editor';
 };
 
 const handleSelectEntry = (indexStr: string) => {
   const index = parseInt(indexStr, 10);
   if (index >= 0 && index < worldBookEntries.value.length) {
     selectedEntryIndex.value = index;
-    activeTab.value = 'editor'; // Switch to editor tab on mobile
+    activeTab.value = 'editor';
   }
 };
 
@@ -546,7 +546,7 @@ const deleteSelectedEntry = async () => {
         }
       } else {
         selectedEntryIndex.value = null;
-        activeTab.value = 'list'; // Go back to list if no entries left on mobile
+        activeTab.value = 'list';
       }
       saveWorldBookToLocalStorage();
     }).catch(err => { if(err !== 'cancel' && err !== 'forbidden') console.warn('删除条目操作未成功完成:', err);});
@@ -691,7 +691,7 @@ const exportToJson = () => {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
   ElMessage.success('已导出为 world_info.json');
-  saveWorldBookToLocalStorage(); // Also save to LS on export
+  saveWorldBookToLocalStorage();
 };
 
 const handleLoadFromJsonFile = (file: File): boolean => {
@@ -789,12 +789,8 @@ const clearAllEntries = async () => {
 
 const saveWorldBookToLocalStorage = () => {
   if (appSettings.isAutoSaveEnabled && autoSaveTimer) {
-     // Auto-save will handle this. Or force save if needed for specific actions.
-     // For now, rely on auto-save interval or manual save by user.
-     // Explicit save on critical changes:
     saveToLS(formatWorldBookForExport(), LOCAL_STORAGE_KEY_WORLDBOOK);
   } else if (!appSettings.isAutoSaveEnabled) {
-    // If auto-save is off, these actions should still persist immediately
     saveToLS(formatWorldBookForExport(), LOCAL_STORAGE_KEY_WORLDBOOK);
   }
 };
@@ -816,7 +812,7 @@ onMounted(() => {
   if (appSettings.isAutoSaveEnabled) {
     autoSaveTimer = initWorldBookAutoSave(
       () => saveToLS(formatWorldBookForExport(), LOCAL_STORAGE_KEY_WORLDBOOK),
-      () => worldBookEntries.value.length > 0 // Condition for auto-save
+      () => worldBookEntries.value.length > 0
     );
   }
 });
@@ -852,8 +848,7 @@ watch(worldBookEntries, () => {
 
 </script>
 
-<style scoped> /* <--- 添加 scoped */
-/* --- 针对 Element Plus 组件内部结构的样式，使用 :deep() --- */
+<style scoped>
 :deep(.worldbook-tabs-mobile.el-tabs--border-card > .el-tabs__header .el-tabs__item) {
   padding: 0;
 }
@@ -863,21 +858,17 @@ watch(worldBookEntries, () => {
   display: flex;
 }
 
-/* 对 el-tab-pane 本身添加的类，不需要 :deep() */
 .worldbook-tabs-mobile .el-tab-pane {
   width: 100%;
-  /* 确保 flex 布局在 pane 内部生效 */
   display: flex;
   flex-direction: column;
 }
 
-/* 对 el-scrollbar 本身添加的类，不需要 :deep()，但其父级是 .el-tab-pane */
 .worldbook-tabs-mobile .el-tab-pane > .el-scrollbar {
   flex-grow: 1;
-  height: 0; /* 这个依赖于父级 flex 容器，确保父级有高度或能 flex grow */
+  height: 0;
 }
 
-/* --- 组件内部的自定义样式，scoped 会自动处理 --- */
 .content-panel {
   background-color: var(--color-white);
   border-radius: var(--radius-xl);
@@ -924,47 +915,38 @@ watch(worldBookEntries, () => {
 }
 
 .content-panel-body {
-  padding: 1rem; /* 调整为仅在桌面版编辑器应用内边距，或者确保移动版滚动区域正确 */
+  padding: 1rem;
   flex-grow: 1;
   display: flex;
   flex-direction: column;
 }
 
-/* 移动端 el-tabs 内的 el-scrollbar 不需要额外的 padding，由内部的 form 处理 */
 .worldbook-tabs-mobile .el-tab-pane > .el-scrollbar > .el-scrollbar__view {
- /* padding for scrollbar content if needed, e.g., padding: 1rem; */
- /* But the form already has padding */
+
 }
 
-/* --- 针对 el-menu 和 el-menu-item 的样式，使用 :deep() --- */
 :deep(.entry-menu.el-menu) {
-  background-color: transparent !important; /* !important 可能需要保留以覆盖 Element Plus 默认 */
-  border: none !important; /* 确保没有边框 */
+  background-color: transparent !important;
+  border: none !important;
 }
 :deep(.entry-menu .el-menu-item) {
   transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
-  height: auto !important; /* 覆盖默认高度 */
-  /* 从模板中的 !px-3 !py-2.5 推断内边距 */
+  height: auto !important;
   padding: 0.625rem 0.75rem !important;
-  line-height: normal !important; /* 覆盖默认行高 */
-  /* !leading-normal 在模板中，这里也设置一下 */
+  line-height: normal !important;
 }
-:deep(.entry-menu .el-menu-item:hover) {
-  background-color: var(--color-neutral-100) !important;
-}
-.dark :deep(.entry-menu .el-menu-item:hover) {
-  background-color: var(--color-neutral-700) !important;
-}
+
 :deep(.entry-menu .el-menu-item.is-active) {
   background-color: var(--color-accent-50) !important;
   color: var(--color-accent-600) !important;
   position: relative;
 }
+
 .dark :deep(.entry-menu .el-menu-item.is-active) {
-  background-color: var(--color-accent-800) !important;
-  color: var(--color-accent-300) !important;
+  background-color: var(--color-dark-active-menu-bg, #374151) !important; 
+  color: var(--color-dark-active-menu-text, #F9FAFB) !important; 
 }
-/* ::before 是伪元素，也需要 :deep() */
+
 :deep(.entry-menu .el-menu-item.is-active::before) {
   content: '';
   position: absolute;
@@ -977,10 +959,9 @@ watch(worldBookEntries, () => {
   border-bottom-right-radius: 2px;
 }
 .dark :deep(.entry-menu .el-menu-item.is-active::before) {
-  background-color: var(--color-accent-400);
+  background-color: var(--color-dark-active-menu-indicator, var(--color-accent-400)); 
 }
 
-/* --- 其他自定义样式，scoped 会处理 --- */
 .form-section {
   padding: 1.25rem;
   border: 1px solid var(--color-neutral-200);
