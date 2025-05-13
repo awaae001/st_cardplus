@@ -1,8 +1,6 @@
 <template>
-  <div
-    class="about-page-container p-3 md:p-5 h-full flex flex-col items-center
-              text-neutral-800 dark:text-neutral-300
-              bg-neutral-50 dark:bg-gradient-to-br dark:from-neutral-900 dark:to-neutral-800"
+<div
+    class="about-page-container p-3 md:p-5 h-full flex flex-col items-center"
   >
     <el-scrollbar class="w-full max-w-3xl flex-grow" view-class="p-1">
       <div class="space-y-6 md:space-y-8">

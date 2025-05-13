@@ -155,7 +155,7 @@
     </div>
 
     <main
-      class="flex-1 flex flex-col overflow-hidden"
+      class="flex-1 flex flex-col overflow-hidden dark:bg-gradient-to-br dark:from-neutral-900 dark:to-neutral-800 text-neutral-800 dark:text-neutral-300"
       :class="{
         'pt-14 lg:pt-0': true
       }"
@@ -363,6 +363,8 @@ const safeModeTitle = (level: SafeModeLevel): string => {
 
 .app-title-container {
   transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* 背景色应与 .menu-bar 一致或透明以显示 .menu-bar 的背景 */
+  /* 如果 .menu-bar 有背景，这里可以不需要单独设置背景 */
 }
 
 .app-logo {
@@ -407,5 +409,12 @@ const safeModeTitle = (level: SafeModeLevel): string => {
 .el-menu--collapse .el-sub-menu__icon-arrow,
 .menu-bar .el-sub-menu__icon-arrow {
   display: none;
+}
+
+/* 确保 .pc-toggle-container 在折叠时，其 sticky 行为的背景能匹配菜单栏 */
+.pc-toggle-container.bg-inherit { /* bg-inherit 确保它继承 .menu-bar 的背景 */
+    /* 在深色模式下，如果 .menu-bar 是 dark:bg-neutral-800，那么这里也是 */
+    /* 如果需要特别指定，可以像这样： */
+    /* @apply dark:bg-neutral-800; */
 }
 </style>

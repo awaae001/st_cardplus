@@ -1,7 +1,6 @@
 <template>
   <div class="landmark-editor p-3 md:p-5 h-full flex flex-col
-              bg-neutral-100 dark:bg-gradient-to-br dark:from-neutral-900 dark:to-neutral-800
-              text-neutral-800 dark:text-neutral-300 print:p-0 print:bg-white print:text-black">
+print:p-0 print:bg-white print:text-black">
 
     <header class="flex flex-col sm:flex-row justify-between items-center mb-4 md:mb-6 print:hidden flex-shrink-0 px-1 gap-y-3">
       <h1 class="text-xl md:text-2xl font-bold text-neutral-700 dark:text-neutral-100">

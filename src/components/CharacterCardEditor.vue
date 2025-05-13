@@ -1,7 +1,6 @@
 <template>
   <div class="character-card-editor p-3 md:p-5 h-full flex flex-col
-              bg-neutral-100 dark:bg-gradient-to-br dark:from-neutral-900 dark:to-neutral-800
-              text-neutral-800 dark:text-neutral-300 print:p-0 print:bg-white print:text-black">
+              print:p-0 print:bg-white print:text-black">
 
 
     <header class="flex justify-between items-center mb-4 md:mb-6 print:hidden flex-shrink-0 px-1">

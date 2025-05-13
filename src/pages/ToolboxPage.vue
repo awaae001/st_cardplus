@@ -1,7 +1,6 @@
 <template>
-  <div class="toolbox-page p-3 md:p-5 h-full flex flex-col
-              text-neutral-800 dark:text-neutral-300
-              bg-neutral-50 dark:bg-gradient-to-br dark:from-neutral-900 dark:to-neutral-800">
+<div class="toolbox-page p-3 md:p-5 h-full flex flex-col">
+
 
     <header class="flex justify-between items-center mb-4 md:mb-6 flex-shrink-0 px-1">
       <h1 class="text-xl md:text-2xl font-bold text-neutral-700 dark:text-neutral-100">
