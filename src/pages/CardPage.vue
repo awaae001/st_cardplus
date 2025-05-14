@@ -11,6 +11,5 @@ import CharacterCardEditor from '../components/CharacterCardEditor.vue'
 <style scoped>
 .card-page {
   width: 100%;
-  height: 100%;
 }
 </style>

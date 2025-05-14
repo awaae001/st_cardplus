@@ -250,9 +250,8 @@ print:p-0 print:bg-white print:text-black">
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
-import type { Ref } from 'vue'
 import draggable from 'vuedraggable'
-import { ElMessage, ElMessageBox, ElScrollbar, ElTooltip, ElForm, ElFormItem, ElInput, ElInputNumber, ElSelect, ElOption } from 'element-plus'
+import { ElMessage, ElMessageBox, ElScrollbar, ElTooltip, ElForm, ElFormItem, ElInput } from 'element-plus'
 import { saveAs } from 'file-saver'
 import { Icon } from "@iconify/vue"
 import { nanoid } from 'nanoid'
@@ -264,6 +263,8 @@ import {
   initAutoSave,
   clearAutoSave
 } from '../utils/localStorageUtils'
+import { performSafeAction } from '@/utils/safeAction';
+
 
 interface Landmark {
   id: string
@@ -306,68 +307,6 @@ const panelClasses = computed(() => ['content-panel']);
 
 const textToArray = (text: string | undefined): string[] => text ? text.split('\n').map(s => s.trim()).filter(line => line !== '') : [];
 const arrayToText = (arr: string[] | undefined): string => (arr && Array.isArray(arr) ? arr.join('\n') : '');
-
-async function performSafeAction(
-    safeModeLevel: SafeModeLevel,
-    actionName: string,
-    itemName: string = '',
-    actionFn: () => void | Promise<void>
-) {
-    if (safeModeLevel === 'forbidden') {
-        ElMessage.warning(`当前处于禁止模式，无法${actionName}。`);
-        return Promise.reject('forbidden');
-    }
-
-    const confirmTitle = itemName ? `确认${actionName}` : `确认${actionName}`;
-    const confirmMessage = itemName ? `确定要${actionName} "${itemName}" 吗？` : `确定要${actionName}吗？`;
-    const confirmButtonText = itemName ? `确定${actionName}` : '确定';
-
-    if (safeModeLevel === 'double') {
-        try {
-            await ElMessageBox.confirm(confirmMessage, confirmTitle, {
-                confirmButtonText: confirmButtonText,
-                cancelButtonText: '取消',
-                type: 'warning',
-                draggable: true,
-                customClass: 'app-dialog'
-            });
-            await actionFn();
-            ElMessage.success(`${actionName}成功！`);
-            return Promise.resolve();
-        } catch (e) {
-            if (e === 'cancel' || e?.message?.includes('cancel') || (e instanceof Error && e.message === 'cancel')) {
-                ElMessage.info(`已取消${actionName}操作。`);
-                 return Promise.reject('cancel');
-            } else if (e) {
-                console.error(`${actionName}时出错:`, e);
-                ElMessage.error(`${actionName}操作失败: ${e instanceof Error ? e.message : '未知错误'}`);
-                 return Promise.reject(e);
-            }
-             return Promise.reject('unknown');
-        }
-    } else if (safeModeLevel === 'single') {
-        try {
-            await actionFn();
-            ElMessage.success(`${actionName}成功！`);
-            return Promise.resolve();
-        } catch (e) {
-            console.error(`${actionName}时出错 (single mode):`, e);
-            ElMessage.error(`${actionName}操作失败: ${e instanceof Error ? e.message : '未知错误'}`);
-            return Promise.reject(e);
-        }
-    } else {
-         console.warn(`Unhandled safeModeLevel: ${safeModeLevel}. Performing action directly.`);
-         try {
-             await actionFn();
-             ElMessage.success(`${actionName}成功！`);
-             return Promise.resolve();
-         } catch (e) {
-             console.error(`${actionName}时出错 (unhandled mode):`, e);
-             ElMessage.error(`${actionName}操作失败: ${e instanceof Error ? e.message : '未知错误'}`);
-             return Promise.reject(e);
-         }
-    }
-}
 
 const processLoadedData = (parsedData: any): WorldForm => {
   const defaults = createDefaultWorldForm();

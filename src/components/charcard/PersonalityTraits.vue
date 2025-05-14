@@ -49,7 +49,7 @@
               <el-input v-model="trait.description" type="textarea" :autosize="{ minRows: 2, maxRows: 6 }" placeholder="特质描述 (详细说明该特质的表现和影响)" size="small"></el-input>
               <div class="space-y-2">
                 <label class="form-label-adv text-xs block mb-1">对话示例</label>
-                <div v-for="(dialogue, dialogueIndex) in trait.dialogueExamples" :key="`dialogue-${trait.id}-${dialogueIndex}`" class="flex items-start gap-x-2">
+                <div v-for="(_dialogue, dialogueIndex) in trait.dialogueExamples" :key="`dialogue-${trait.id}-${dialogueIndex}`" class="flex items-start gap-x-2">
                   <el-input v-model="trait.dialogueExamples[dialogueIndex]" type="textarea" :autosize="{minRows: 1, maxRows: 4}" :placeholder="`示例 ${dialogueIndex + 1}`" size="small" class="flex-grow"></el-input>
                   <button
                     @click="removeDialogueExample(traitIndex, dialogueIndex)"
@@ -66,7 +66,7 @@
               </div>
               <div class="space-y-2">
                 <label class="form-label-adv text-xs block mb-1">行为示例</label>
-                <div v-for="(behavior, behaviorIndex) in trait.behaviorExamples" :key="`behavior-${trait.id}-${behaviorIndex}`" class="flex items-start gap-x-2">
+                <div v-for="(_behavior, behaviorIndex) in trait.behaviorExamples" :key="`behavior-${trait.id}-${behaviorIndex}`" class="flex items-start gap-x-2">
                   <el-input v-model="trait.behaviorExamples[behaviorIndex]" type="textarea" :autosize="{minRows: 1, maxRows: 4}" :placeholder="`示例 ${behaviorIndex + 1}`" size="small" class="flex-grow"></el-input>
                   <button
                     @click="removeBehaviorExample(traitIndex, behaviorIndex)"
@@ -97,10 +97,12 @@
 
 <script setup lang="ts">
 import { ref, watch, defineProps, defineEmits } from 'vue';
-import { ElInput, ElMessage, ElMessageBox } from 'element-plus';
+import { ElInput} from 'element-plus';
 import { Icon } from "@iconify/vue";
 import draggable from 'vuedraggable';
-import { useAppSettingsStore, type SafeModeLevel } from '../../stores/appSettings';
+import { useAppSettingsStore} from '../../stores/appSettings';
+import { performSafeAction } from '@/utils/safeAction';
+
 
 interface Trait {
   id: string;
@@ -123,67 +125,6 @@ const props = defineProps<Props>();
 const emit = defineEmits(['update:form']);
 const localTraits = ref<Trait[]>([]);
 const appSettings = useAppSettingsStore();
-
-async function performSafeAction(
-    safeModeLevel: SafeModeLevel,
-    actionName: string,
-    itemName: string = '',
-    actionFn: () => void | Promise<void>
-) {
-    if (safeModeLevel === 'forbidden') {
-        ElMessage.warning(`当前处于禁止模式，无法${actionName}。`);
-        return Promise.reject('forbidden');
-    }
-    const confirmTitle = itemName ? `确认${actionName} "${itemName}"` : `确认${actionName}`;
-    const confirmMessage = itemName ? `确定要${actionName} "${itemName}" 吗？` : `确定要${actionName}吗？`;
-    const confirmButtonText = itemName ? `确定${actionName}` : '确定';
-
-    if (safeModeLevel === 'double') {
-        try {
-            await ElMessageBox.confirm(confirmMessage, confirmTitle, {
-                confirmButtonText: confirmButtonText,
-                cancelButtonText: '取消',
-                type: 'warning',
-                draggable: true,
-                customClass: 'app-dialog'
-            });
-            await actionFn();
-            ElMessage.success(`${actionName}成功！`);
-            return Promise.resolve();
-        } catch (e) {
-            if (e === 'cancel' || e?.message?.includes('cancel') || (e instanceof Error && e.message === 'cancel')) {
-                ElMessage.info(`已取消${actionName}操作。`);
-                 return Promise.reject('cancel');
-            } else if (e) {
-                console.error(`${actionName}时出错:`, e);
-                ElMessage.error(`${actionName}操作失败: ${e instanceof Error ? e.message : '未知错误'}`);
-                 return Promise.reject(e);
-            }
-             return Promise.reject('unknown');
-        }
-    } else if (safeModeLevel === 'single') {
-        try {
-            await actionFn();
-            ElMessage.success(`${actionName}成功！`);
-            return Promise.resolve();
-        } catch (e) {
-            console.error(`${actionName}时出错 (single mode):`, e);
-            ElMessage.error(`${actionName}操作失败: ${e instanceof Error ? e.message : '未知错误'}`);
-            return Promise.reject(e);
-        }
-    } else {
-         console.warn(`Unhandled safeModeLevel: ${safeModeLevel}. Performing action directly.`);
-         try {
-             await actionFn();
-             ElMessage.success(`${actionName}成功！`);
-             return Promise.resolve();
-         } catch (e) {
-             console.error(`${actionName}时出错 (unhandled mode):`, e);
-             ElMessage.error(`${actionName}操作失败: ${e instanceof Error ? e.message : '未知错误'}`);
-             return Promise.reject(e);
-         }
-    }
-}
 
 watch(() => props.form.traits, (newTraitsFromProp) => {
   if (JSON.stringify(newTraitsFromProp) !== JSON.stringify(localTraits.value)) {
@@ -237,7 +178,15 @@ const removeBehaviorExample = async (traitIndex: number, exampleIndex: number) =
       }
   }).catch(err => { if(err !== 'cancel' && err !== 'forbidden') console.warn('移除行为示例操作未成功完成:', err);});
 };
-const handleDraggableChange = (event: any) => {};
+const handleDraggableChange = (event: { moved?: { oldIndex: number; newIndex: number } }) => {
+  if (event.moved) {
+    console.log(
+      `关系 "${localTraits.value[event.moved.newIndex].name}" 移动: ${event.moved.oldIndex} → ${event.moved.newIndex}`
+    );
+
+  }
+};
+
 </script>
 
 <style scoped>
