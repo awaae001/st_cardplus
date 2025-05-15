@@ -197,11 +197,11 @@ import {
   ElDivider,
   ElRadioGroup,
   ElRadioButton,
+  ElMenu,
   ElMenuItem,
 } from "element-plus";
 import { Icon } from "@iconify/vue";
 import { saveAs } from "file-saver";
-import { VueDraggableNext as draggable } from "vue-draggable-next";
 import MarkdownIt from "markdown-it";
 import { useAppSettingsStore } from "../../stores/appSettings";
 import { performSafeAction } from "@/utils/safeAction";
@@ -254,7 +254,6 @@ const ScriptListManager = defineComponent({
     "updateScriptOrder",
     "update:scripts",
   ],
-  components: { draggable },
   setup(props, { emit }) {
     const appSettings = useAppSettingsStore();
     const editingOrderId = ref<string | null>(null);
@@ -262,27 +261,24 @@ const ScriptListManager = defineComponent({
 
     watch(
       () => props.scripts,
-      (newVal) => {
+      (newVal, oldVal) => {
         console.log(
-          "[ScriptListManager] props.scripts received. Length:",
-          newVal?.length,
-          "Is Array:",
-          Array.isArray(newVal)
+          `[ScriptListManager props.scripts WATCHER] Received ${
+            newVal?.length
+          } scripts. Old length: ${oldVal?.length}. Is Array: ${Array.isArray(
+            newVal
+          )}`
         );
-        if (Array.isArray(newVal) && newVal.length > 0) {
-          console.log(
-            "[ScriptListManager] First script:",
-            JSON.parse(JSON.stringify(newVal[0]))
-          );
+        if (Array.isArray(newVal)) {
           newVal.forEach((item, index) => {
             if (
               !item ||
               typeof item.id !== "string" ||
-              item.id === "" ||
+              item.id.trim() === "" ||
               typeof item.order !== "number"
             ) {
               console.error(
-                `[ScriptListManager] Invalid script at index ${index} in props.scripts:`,
+                `[ScriptListManager props.scripts WATCHER] Invalid script at index ${index}:`,
                 JSON.parse(JSON.stringify(item))
               );
             }
@@ -290,6 +286,16 @@ const ScriptListManager = defineComponent({
         }
       },
       { deep: true, immediate: true }
+    );
+
+    watch(
+      () => props.selectedId,
+      (newVal) => {
+        console.log(
+          `[ScriptListManager props.selectedId WATCHER] New selectedId: ${newVal}`
+        );
+      },
+      { immediate: true }
     );
 
     const handleOrderInput = (scriptId: string, currentOrder: number) => {
@@ -312,285 +318,291 @@ const ScriptListManager = defineComponent({
     const cancelOrderEdit = () => {
       editingOrderId.value = null;
     };
-    const onDragEnd = (event: any) => {
-      const { oldIndex, newIndex } = event;
-      if (
-        oldIndex === undefined ||
-        newIndex === undefined ||
-        oldIndex === newIndex
-      )
-        return;
 
-      const currentScripts = [...props.scripts]; // Work with a copy
-      const [movedItem] = currentScripts.splice(oldIndex, 1);
-      currentScripts.splice(newIndex, 0, movedItem);
+    return () => {
+      console.log(
+        `[ScriptListManager RENDER - V-FOR TEST] Rendering. Scripts count: ${props.scripts?.length}. Selected ID: ${props.selectedId}`
+      );
 
-      const finalScripts = currentScripts.map((script, index) => ({
-        ...script,
-        order: index,
-      }));
-      emit("update:scripts", finalScripts);
-    };
-    return () => [
-      h("div", { class: "content-panel-header" }, [
-        h("h2", { class: "content-panel-title flex items-center gap-2" }, [
-          h(Icon, {
-            icon: "ph:list-bullets-duotone",
-            class: "text-xl text-accent-500 dark:text-accent-400",
-          }),
-          "脚本列表",
-        ]),
-      ]),
-      h(ElScrollbar, { class: "flex-grow" }, () => {
-        if (!props.scripts || !props.scripts.length)
-          return h(ElEmpty, {
-            description: "暂无已保存脚本",
-            imageSize: 80,
-            class: "p-6 text-center",
-          });
-        return h(
-          draggable as any,
-          {
-            list: props.scripts,
-            itemKey: "id",
-            animation: 200,
-            ghostClass: "ghost-item",
-            class: "entry-menu !border-none !bg-transparent py-1 el-menu",
-            tag: "ul",
-            onEnd: onDragEnd,
-          },
-          {
-            item: ({ element: script }: { element: RegexScript }) => {
-              if (
-                !script ||
-                typeof script.id !== "string" ||
-                script.id.trim() === ""
-              ) {
-                console.error(
-                  "[ScriptListManager Render] Skipping rendering of invalid script:",
-                  script
+      const menuItems =
+        props.scripts && props.scripts.length > 0
+          ? props.scripts
+              .map((script, index) => {
+                console.log(
+                  `[ScriptListManager RENDER - V-FOR TEST] Mapping script for ElMenuItem: ID=${script.id}, Name=${script.scriptName}, Index=${index}, Order=${script.order}`
                 );
-                return null; // Do not render if script or ID is invalid
-              }
-              return h(
-                ElMenuItem,
-                {
-                  index: script.id,
-                  onClick: () => emit("load", script),
-                  class:
-                    "!h-auto !px-3 !py-2.5 !leading-normal group flex items-center cursor-grab" +
-                    (props.selectedId === script.id ? " is-active" : ""),
-                },
-                () => [
-                  h(ElCheckboxComp, {
-                    modelValue: props.checkedScriptIds.includes(script.id),
-                    "onUpdate:modelValue": (val: string | number | boolean) => {
-                      const checked = Boolean(val);
-                      const newIds = [...props.checkedScriptIds];
-                      if (checked) {
-                        if (!newIds.includes(script.id)) newIds.push(script.id);
-                      } else {
-                        const idx = newIds.indexOf(script.id);
-                        if (idx > -1) newIds.splice(idx, 1);
-                      }
-                      emit("update:checkedScriptIds", newIds);
-                    },
-                    onClick: (e: Event) => e.stopPropagation(),
-                    class: "mr-2 shrink-0",
-                  }),
-                  h("div", { class: "flex-grow overflow-hidden w-full" }, [
+                if (
+                  !script ||
+                  typeof script.id !== "string" ||
+                  script.id.trim() === "" ||
+                  typeof script.order !== "number"
+                ) {
+                  console.error(
+                    `[ScriptListManager RENDER - V-FOR TEST] Invalid script data at index ${index}, skipping ElMenuItem render:`,
+                    JSON.parse(JSON.stringify(script))
+                  );
+                  return null;
+                }
+                return h(
+                  ElMenuItem,
+                  {
+                    index: script.id,
+                    key: script.id,
+                    onClick: () => emit("load", script),
+                    class:
+                      "!h-auto !px-3 !py-2.5 !leading-normal group flex items-center" +
+                      (props.selectedId === script.id ? " is-active" : ""),
+                  },
+                  () => [
+                    h(ElCheckboxComp, {
+                      modelValue: props.checkedScriptIds.includes(script.id),
+                      "onUpdate:modelValue": (
+                        val: string | number | boolean
+                      ) => {
+                        const checked = Boolean(val);
+                        const newIds = [...props.checkedScriptIds];
+                        if (checked) {
+                          if (!newIds.includes(script.id))
+                            newIds.push(script.id);
+                        } else {
+                          const idx = newIds.indexOf(script.id);
+                          if (idx > -1) newIds.splice(idx, 1);
+                        }
+                        emit("update:checkedScriptIds", newIds);
+                      },
+                      onClick: (e: Event) => e.stopPropagation(),
+                      class: "mr-2 shrink-0",
+                    }),
+                    h("div", { class: "flex-grow overflow-hidden w-full" }, [
+                      h(
+                        "div",
+                        {
+                          class:
+                            "text-sm font-medium text-neutral-700 dark:text-neutral-100 group-[.is-active]:text-accent-600 dark:group-[.is-active]:text-white truncate",
+                          title: script.scriptName || "未命名脚本",
+                        },
+                        script.scriptName || "未命名脚本"
+                      ),
+                      h(
+                        "p",
+                        {
+                          class:
+                            "text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 truncate group-[.is-active]:text-accent-500 dark:group-[.is-active]:text-accent-300/90",
+                          title: script.findRegex,
+                        },
+                        script.findRegex || "空模式"
+                      ),
+                    ]),
                     h(
                       "div",
                       {
                         class:
-                          "text-sm font-medium text-neutral-700 dark:text-neutral-100 group-[.is-active]:text-accent-600 dark:group-[.is-active]:text-white truncate",
-                        title: script.scriptName || "未命名脚本",
+                          "w-10 text-center text-xs text-neutral-400 dark:text-neutral-500 shrink-0 ml-2 select-none flex items-center justify-center",
+                        title: `顺序: ${script.order}`,
+                        onDblclick: (e: Event) => {
+                          e.stopPropagation();
+                          handleOrderInput(script.id, script.order);
+                        },
                       },
-                      script.scriptName || "未命名脚本"
+                      editingOrderId.value === script.id
+                        ? h(ElInput, {
+                            id: `order-input-${script.id}`,
+                            modelValue: tempOrder.value,
+                            "onUpdate:modelValue": (val: string | number) =>
+                              (tempOrder.value = Number(val)),
+                            type: "number",
+                            size: "small",
+                            class: "!w-10 text-center hide-arrows",
+                            onClick: (e: Event) => e.stopPropagation(),
+                            onBlur: () => submitOrderChange(script.id),
+                            onKeydown: (e: Event | KeyboardEvent) => {
+                              if (e instanceof KeyboardEvent) {
+                                if (e.key === "Enter")
+                                  submitOrderChange(script.id);
+                                if (e.key === "Escape") cancelOrderEdit();
+                                e.stopPropagation();
+                              }
+                            },
+                          })
+                        : h(
+                            "span",
+                            { class: "cursor-text" },
+                            `#${script.order ?? "N/A"}`
+                          )
                     ),
                     h(
-                      "p",
+                      ElTooltip,
                       {
-                        class:
-                          "text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 truncate group-[.is-active]:text-accent-500 dark:group-[.is-active]:text-accent-300/90",
-                        title: script.findRegex,
+                        content: "删除此脚本",
+                        placement: "left",
+                        showArrow: false,
+                        offset: 8,
+                        hideAfter: 0,
                       },
-                      script.findRegex || "空模式"
+                      () =>
+                        h(
+                          "button",
+                          {
+                            class:
+                              "btn-danger-adv !p-1 !aspect-square group/btn shrink-0 ml-1 opacity-0 group-hover:opacity-100 !shadow-none",
+                            ariaLabel: "删除脚本",
+                            onClick: (e: Event) => {
+                              e.stopPropagation();
+                              emit("delete", script.id);
+                            },
+                          },
+                          h(Icon, {
+                            icon: "ph:trash-duotone",
+                            class:
+                              "text-sm group-hover/btn:scale-110 transition-transform",
+                          })
+                        )
                     ),
-                  ]),
+                  ]
+                );
+              })
+              .filter((item) => item !== null)
+          : [];
+
+      const elMenuProps: Record<string, any> = {
+        class: "entry-menu !border-none !bg-transparent py-1",
+      };
+      if (props.selectedId !== null) {
+        elMenuProps.defaultActive = props.selectedId;
+      }
+
+      return [
+        h("div", { class: "content-panel-header" }, [
+          h("h2", { class: "content-panel-title flex items-center gap-2" }, [
+            h(Icon, {
+              icon: "ph:list-bullets-duotone",
+              class: "text-xl text-accent-500 dark:text-accent-400",
+            }),
+            "脚本列表",
+          ]),
+        ]),
+        h(ElScrollbar, { class: "flex-grow" }, () => {
+          if (!props.scripts || !props.scripts.length) {
+            console.log(
+              "[ScriptListManager RENDER ElScrollbar - V-FOR TEST] No scripts, showing ElEmpty."
+            );
+            return h(ElEmpty, {
+              description: "暂无已保存脚本",
+              imageSize: 80,
+              class: "p-6 text-center",
+            });
+          }
+          console.log(
+            `[ScriptListManager RENDER ElScrollbar - V-FOR TEST] Rendering ElMenu with ${menuItems.length} items. defaultActive prop:`,
+            elMenuProps.defaultActive
+          );
+          return h(ElMenu, elMenuProps, () => menuItems);
+        }),
+        h(
+          "div",
+          { class: "content-panel-header !border-t !border-b-0" },
+          h(
+            "div",
+            {
+              class:
+                "flex flex-wrap items-center gap-1.5 sm:gap-2 justify-start",
+            },
+            [
+              h(
+                ElTooltip,
+                {
+                  content: "导出所有脚本为JSON",
+                  placement: "top",
+                  showArrow: false,
+                  offset: 8,
+                  hideAfter: 0,
+                },
+                () =>
                   h(
-                    "div",
+                    "button",
                     {
                       class:
-                        "w-10 text-center text-xs text-neutral-400 dark:text-neutral-500 shrink-0 ml-2 select-none flex items-center justify-center",
-                      title: `顺序: ${script.order}`,
-                      onDblclick: (e: Event) => {
-                        e.stopPropagation();
-                        handleOrderInput(script.id, script.order);
-                      },
+                        "btn-secondary-adv !p-1.5 sm:!p-2 aspect-square group",
+                      disabled: !props.scripts.length,
+                      onClick: () => emit("exportAll"),
                     },
-                    editingOrderId.value === script.id
-                      ? h(ElInput, {
-                          id: `order-input-${script.id}`,
-                          modelValue: tempOrder.value,
-                          "onUpdate:modelValue": (val: string | number) =>
-                            (tempOrder.value = Number(val)),
-                          type: "number",
-                          size: "small",
-                          class: "!w-10 text-center hide-arrows",
-                          onClick: (e: Event) => e.stopPropagation(),
-                          onBlur: () => submitOrderChange(script.id),
-                          onKeydown: (e: Event | KeyboardEvent) => {
-                            if (e instanceof KeyboardEvent) {
-                              if (e.key === "Enter")
-                                submitOrderChange(script.id);
-                              if (e.key === "Escape") cancelOrderEdit();
-                              e.stopPropagation();
-                            }
-                          },
-                        })
-                      : h(
-                          "span",
-                          { class: "cursor-text" },
-                          `#${script.order ?? "N/A"}`
-                        ) // Display N/A if order is missing
-                  ),
+                    h(Icon, {
+                      icon: "ph:export-duotone",
+                      class:
+                        "text-md sm:text-lg group-hover:scale-110 transition-transform",
+                    })
+                  )
+              ),
+              h(
+                ElTooltip,
+                {
+                  content: "从JSON导入脚本 (将替换现有)",
+                  placement: "top",
+                  showArrow: false,
+                  offset: 8,
+                  hideAfter: 0,
+                },
+                () =>
                   h(
-                    ElTooltip,
+                    ElUpload,
                     {
-                      content: "删除此脚本",
-                      placement: "left",
-                      showArrow: false,
-                      offset: 8,
-                      hideAfter: 0,
+                      action: "#",
+                      beforeUpload: (file: File) => {
+                        emit("import", file);
+                        return false;
+                      },
+                      showFileList: false,
+                      accept: ".json",
+                      disabled: appSettings.safeModeLevel === "forbidden",
                     },
                     () =>
                       h(
                         "button",
                         {
                           class:
-                            "btn-danger-adv !p-1 !aspect-square group/btn shrink-0 ml-1 opacity-0 group-hover:opacity-100 !shadow-none",
-                          ariaLabel: "删除脚本",
-                          onClick: (e: Event) => {
-                            e.stopPropagation();
-                            emit("delete", script.id);
-                          },
+                            "btn-warning-adv !p-1.5 sm:!p-2 aspect-square group",
+                          disabled: appSettings.safeModeLevel === "forbidden",
                         },
                         h(Icon, {
-                          icon: "ph:trash-duotone",
+                          icon: "ph:download-simple-duotone",
                           class:
-                            "text-sm group-hover/btn:scale-110 transition-transform",
+                            "text-md sm:text-lg group-hover:scale-110 transition-transform",
                         })
                       )
-                  ),
-                ]
-              );
-            },
-          }
-        );
-      }),
-      h(
-        "div",
-        { class: "content-panel-header !border-t !border-b-0" },
-        h(
-          "div",
-          {
-            class: "flex flex-wrap items-center gap-1.5 sm:gap-2 justify-start",
-          },
-          [
-            h(
-              ElTooltip,
-              {
-                content: "导出所有脚本为JSON",
-                placement: "top",
-                showArrow: false,
-                offset: 8,
-                hideAfter: 0,
-              },
-              () =>
-                h(
-                  "button",
-                  {
-                    class:
-                      "btn-secondary-adv !p-1.5 sm:!p-2 aspect-square group",
-                    disabled: !props.scripts.length,
-                    onClick: () => emit("exportAll"),
-                  },
-                  h(Icon, {
-                    icon: "ph:export-duotone",
-                    class:
-                      "text-md sm:text-lg group-hover:scale-110 transition-transform",
-                  })
-                )
-            ),
-            h(
-              ElTooltip,
-              {
-                content: "从JSON导入脚本 (将替换现有)",
-                placement: "top",
-                showArrow: false,
-                offset: 8,
-                hideAfter: 0,
-              },
-              () =>
-                h(
-                  ElUpload,
-                  {
-                    action: "#",
-                    beforeUpload: (file: File) => {
-                      emit("import", file);
-                      return false;
+                  )
+              ),
+              h(
+                ElTooltip,
+                {
+                  content: "清空所有脚本",
+                  placement: "top",
+                  showArrow: false,
+                  offset: 8,
+                  hideAfter: 0,
+                },
+                () =>
+                  h(
+                    "button",
+                    {
+                      class:
+                        "btn-danger-adv !p-1.5 sm:!p-2 aspect-square group",
+                      disabled:
+                        !props.scripts.length ||
+                        appSettings.safeModeLevel === "forbidden",
+                      onClick: () => emit("clearAll"),
                     },
-                    showFileList: false,
-                    accept: ".json",
-                    disabled: appSettings.safeModeLevel === "forbidden",
-                  },
-                  () =>
-                    h(
-                      "button",
-                      {
-                        class:
-                          "btn-warning-adv !p-1.5 sm:!p-2 aspect-square group",
-                        disabled: appSettings.safeModeLevel === "forbidden",
-                      },
-                      h(Icon, {
-                        icon: "ph:download-simple-duotone",
-                        class:
-                          "text-md sm:text-lg group-hover:scale-110 transition-transform",
-                      })
-                    )
-                )
-            ),
-            h(
-              ElTooltip,
-              {
-                content: "清空所有脚本",
-                placement: "top",
-                showArrow: false,
-                offset: 8,
-                hideAfter: 0,
-              },
-              () =>
-                h(
-                  "button",
-                  {
-                    class: "btn-danger-adv !p-1.5 sm:!p-2 aspect-square group",
-                    disabled:
-                      !props.scripts.length ||
-                      appSettings.safeModeLevel === "forbidden",
-                    onClick: () => emit("clearAll"),
-                  },
-                  h(Icon, {
-                    icon: "ph:trash-simple-duotone",
-                    class:
-                      "text-md sm:text-lg group-hover:rotate-[15deg] transition-transform",
-                  })
-                )
-            ),
-          ]
-        )
-      ),
-    ];
+                    h(Icon, {
+                      icon: "ph:trash-simple-duotone",
+                      class:
+                        "text-md sm:text-lg group-hover:rotate-[15deg] transition-transform",
+                    })
+                  )
+              ),
+            ]
+          )
+        ),
+      ];
+    };
   },
 });
 
@@ -629,7 +641,6 @@ const EditorForm = defineComponent({
     };
     return () => {
       if (!props.editableScript || !props.editableScript.id)
-        // Check for valid editable script
         return h("div", { class: "p-4 text-center content-panel-title" }, [
           h(Icon, {
             icon: "ph:pencil-simple-line-duotone",
@@ -1109,7 +1120,7 @@ And lose the name of action.
       if (testMode.value === "current") {
         if (
           !props.currentEditableScript ||
-          !props.currentEditableScript.id || // Also check for valid ID
+          !props.currentEditableScript.id ||
           (!props.currentEditableScript.findRegex &&
             !props.currentEditableScript.scriptName &&
             !(
@@ -1135,7 +1146,7 @@ And lose the name of action.
         scriptsToRun.every(
           (s) =>
             !s ||
-            !s.id || // Ensure script and ID are valid
+            !s.id ||
             (!s.findRegex &&
               !s.scriptName &&
               !(s.findRegex && s.findRegex.startsWith("/")))
@@ -1707,17 +1718,18 @@ const isCreatingNew = ref(false);
 watch(
   savedScripts,
   (newValue, oldValue) => {
-    console.log("[PARENT] savedScripts changed. Length:", newValue.length);
-    // console.log('[PARENT] savedScripts changed. Length:', newValue.length, 'Content:', JSON.parse(JSON.stringify(newValue)));
+    console.log(
+      `[PARENT savedScripts WATCHER] SavedScripts changed. New Length: ${newValue.length}, Old Length: ${oldValue?.length}`
+    );
     newValue.forEach((item, index) => {
       if (
         !item ||
         typeof item.id !== "string" ||
-        item.id === "" ||
+        item.id.trim() === "" ||
         typeof item.order !== "number"
       ) {
         console.error(
-          `[PARENT] Invalid script at index ${index} in savedScripts:`,
+          `[PARENT savedScripts WATCHER] Invalid script at index ${index} in savedScripts:`,
           JSON.parse(JSON.stringify(item))
         );
       }
@@ -1728,9 +1740,12 @@ watch(
 
 const createDefaultScriptData = (id?: string, order?: number): RegexScript => {
   const newId =
-    id || Date.now().toString() + Math.random().toString(36).substring(2, 7);
+    id && id.trim() !== ""
+      ? id.trim()
+      : Date.now().toString() +
+        Math.random().toString(36).substring(2, 7) +
+        "_default";
   const newOrder = typeof order === "number" && !isNaN(order) ? order : 0;
-  // console.log(`[createDefaultScriptData] ID: ${newId}, Order: ${newOrder}`);
   return {
     id: newId,
     order: newOrder,
@@ -1739,7 +1754,7 @@ const createDefaultScriptData = (id?: string, order?: number): RegexScript => {
     replaceString: "",
     regexFlags: "g",
     trimStrings: [],
-    placement: [2], // Default to AI Reply
+    placement: [2],
     disabled: false,
     markdownOnly: false,
     promptOnly: false,
@@ -1749,7 +1764,7 @@ const createDefaultScriptData = (id?: string, order?: number): RegexScript => {
     maxDepth: null,
   };
 };
-const editableScript = ref<RegexScript>(createDefaultScriptData()); // Initialize with a default valid script
+const editableScript = ref<RegexScript>(createDefaultScriptData());
 const trimStringsInput = ref("");
 
 watch(
@@ -1767,9 +1782,10 @@ watch(trimStringsInput, (newVal = "") => {
   }
 });
 
-const sortedSavedScripts = computed(() =>
-  [...savedScripts.value].sort((a, b) => a.order - b.order)
-);
+const sortedSavedScripts = computed(() => {
+  const sorted = [...savedScripts.value].sort((a, b) => a.order - b.order);
+  return sorted;
+});
 
 const selectedScriptsForTesting = computed(() => {
   return checkedScriptIds.value
@@ -1793,7 +1809,6 @@ const loadScriptsFromLocalStorage = () => {
           parsed.length
         );
         let tempScripts = parsed.map((s: any, idx: number) => {
-          // 使用 tempScripts 临时存储
           let currentId =
             s && typeof s.id === "string" && s.id.trim() !== ""
               ? s.id.trim()
@@ -1807,11 +1822,8 @@ const loadScriptsFromLocalStorage = () => {
               Math.random().toString(36).substring(2, 7) +
               `_load${idx}`;
           }
-
-          // 如果文件中存在有效的 order，则使用它；否则使用索引作为初步的排序依据
           let preliminaryOrder =
             s && typeof s.order === "number" && !isNaN(s.order) ? s.order : idx;
-
           const defaultData = createDefaultScriptData(
             currentId,
             preliminaryOrder
@@ -1820,12 +1832,11 @@ const loadScriptsFromLocalStorage = () => {
             ...defaultData,
             ...s,
             id: currentId,
-            order: preliminaryOrder, //暂时保留初步的 order
+            order: preliminaryOrder,
           };
           return loadedScript;
         });
 
-        // 根据 ID 去重
         const idMap = new Map<string, RegexScript>();
         tempScripts.forEach((script) => {
           if (!script.id) {
@@ -1840,19 +1851,13 @@ const loadScriptsFromLocalStorage = () => {
           } else {
             const existing = idMap.get(script.id)!;
             if (script.order < existing.order) {
-              // 使用 preliminaryOrder 进行比较
               idMap.set(script.id, script);
             }
           }
         });
         tempScripts = Array.from(idMap.values());
-
-        // 根据 'order' 属性（即 preliminaryOrder）排序
         tempScripts.sort((a, b) => a.order - b.order);
-
-        // 现在，基于排序后的数组位置，重新分配连续的 'order' 属性
         newScripts = tempScripts.map((s, i) => {
-          // console.log(`[loadScripts Mapping] Script: ${s.scriptName}, Original Order: ${s.order}, New Order: ${i}`);
           return { ...s, order: i };
         });
       } else {
@@ -1868,39 +1873,47 @@ const loadScriptsFromLocalStorage = () => {
   }
   savedScripts.value = newScripts;
   console.log(
-    "[loadScripts] Final savedScripts.value assigned. Length:",
-    savedScripts.value.length
+    `[loadScripts] Final savedScripts.value assigned. Length: ${savedScripts.value.length}.`
   );
   if (savedScripts.value.length > 0) {
-    console.log(
-      "[loadScripts] First final script:",
-      JSON.parse(JSON.stringify(savedScripts.value[0]))
-    );
-    if (savedScripts.value.length > 1) {
+    savedScripts.value.forEach((s, i) =>
       console.log(
-        "[loadScripts] Second final script:",
-        JSON.parse(JSON.stringify(savedScripts.value[1]))
-      );
-    }
+        `[loadScripts] Final Script ${i}: ID=${s.id}, Order=${s.order}, Name=${s.scriptName}`
+      )
+    );
   }
 };
 
 const saveScriptsToLocalStorage = () => {
   const key = LOCAL_STORAGE_KEY_REGEX_SCRIPTS_V5;
   try {
-    // Ensure all scripts have valid IDs and orders before saving
-    const scriptsToSave = savedScripts.value.map((s, idx) => ({
-      ...createDefaultScriptData(s.id, s.order), // Ensure all fields present
-      ...s, // Override with actual data
-      id:
-        s.id ||
-        Date.now().toString() +
-          Math.random().toString(36).substring(2, 7) +
-          `_save${idx}`, // Re-ensure ID
-      order: typeof s.order === "number" ? s.order : idx, // Re-ensure order
-    }));
+    const scriptsToSave = savedScripts.value.map((s, idx) => {
+      const id =
+        s.id && s.id.trim() !== ""
+          ? s.id.trim()
+          : Date.now().toString() +
+            Math.random().toString(36).substring(2, 7) +
+            `_save${idx}`;
+      const order =
+        typeof s.order === "number" && !isNaN(s.order) ? s.order : idx;
+      return {
+        ...createDefaultScriptData(id, order),
+        ...s,
+        id: id,
+        order: order,
+      };
+    });
     localStorage.setItem(key, JSON.stringify(scriptsToSave));
-    console.log("[saveToStorage] Scripts saved. Count:", scriptsToSave.length);
+    console.log(
+      `[saveToStorage] Scripts saved. Count: ${scriptsToSave.length}. Data:`,
+      JSON.stringify(
+        scriptsToSave.map((s) => ({
+          id: s.id,
+          order: s.order,
+          name: s.scriptName,
+        }))
+      )
+    );
   } catch (e) {
     console.error("[saveToStorage] Error saving scripts to localStorage:", e);
     ElMessage.error("保存脚本到本地存储失败。");
@@ -1912,23 +1925,28 @@ onMounted(() => {
     "[PARENT onMounted] Component mounted. Attempting to load scripts..."
   );
   loadScriptsFromLocalStorage();
+
   console.log(
-    "[PARENT onMounted] After loadScriptsFromLocalStorage, savedScripts.length:",
-    savedScripts.value.length
+    `[PARENT onMounted] After loadScriptsFromLocalStorage, savedScripts.length: ${savedScripts.value.length}`
   );
-  // console.log('[PARENT onMounted] After loadScriptsFromLocalStorage, Content:', JSON.parse(JSON.stringify(savedScripts.value)));
+  if (savedScripts.value.length > 0) {
+    savedScripts.value.forEach((s, i) =>
+      console.log(
+        `[PARENT onMounted] Initial Script ${i}: ID=${s.id}, Order=${s.order}, Name=${s.scriptName}`
+      )
+    );
+  }
 
   if (sortedSavedScripts.value.length > 0) {
     console.log(
-      "[PARENT onMounted] Scripts found, loading first one to editor:",
-      sortedSavedScripts.value[0].id
+      `[PARENT onMounted] Scripts found (count: ${sortedSavedScripts.value.length}), loading first one to editor. First script ID: ${sortedSavedScripts.value[0].id}, Order: ${sortedSavedScripts.value[0].order}`
     );
     loadScriptToEdit(sortedSavedScripts.value[0]);
   } else {
     console.log(
-      "[PARENT onMounted] No scripts found, preparing new script editor."
+      "[PARENT onMounted] No scripts found after load, preparing new script editor."
     );
-    prepareNewScript(false); // Pass false to avoid "prepared new" message if it's initial load
+    prepareNewScript(false);
   }
 
   watch(
@@ -1940,7 +1958,6 @@ onMounted(() => {
           saveCurrentScript(true);
       } else if (nv === false && ov === true) ElMessage.info("自动保存已关闭");
     }
-    // { immediate: true } // Removed immediate: true to avoid message on initial load if already enabled
   );
 });
 
@@ -1964,23 +1981,21 @@ watch(
 
 const prepareNewScript = (showMessage = true) => {
   console.log(
-    "[prepareNewScript] Called. Current savedScripts count:",
-    savedScripts.value.length
+    `[prepareNewScript] Called. Current savedScripts count: ${savedScripts.value.length}`
   );
   const newOrder =
     savedScripts.value.length > 0
       ? Math.max(0, ...savedScripts.value.map((s) => s.order)) + 1
       : 0;
-  editableScript.value = createDefaultScriptData(undefined, newOrder); // ID will be generated by createDefaultScriptData
+  editableScript.value = createDefaultScriptData(undefined, newOrder);
   console.log(
     "[prepareNewScript] New editableScript prepared:",
     JSON.parse(JSON.stringify(editableScript.value))
   );
   trimStringsInput.value = "";
-  selectedScriptId.value = null; // No script is selected from the list
+  selectedScriptId.value = null;
   isCreatingNew.value = true;
   if (showMessage) ElMessage.success("已准备新建脚本");
-  // Ensure mobile tab switches if editor becomes "empty"
   if (
     mobileActiveTab.value === "editor" &&
     !editableScript.value.id &&
@@ -1992,7 +2007,7 @@ const prepareNewScript = (showMessage = true) => {
 
 const saveCurrentScript = async (isAutoSave = false) => {
   console.log(
-    "[saveCurrentScript] Attempting to save:",
+    "[saveCurrentScript] Attempting to save script:",
     JSON.parse(JSON.stringify(editableScript.value))
   );
   if (!editableScript.value.scriptName.trim()) {
@@ -2002,14 +2017,13 @@ const saveCurrentScript = async (isAutoSave = false) => {
 
   const scriptToSave = JSON.parse(JSON.stringify(editableScript.value));
 
-  // Ensure ID if it's somehow missing (e.g. if prepareNewScript wasn't called correctly or id was cleared)
   if (!scriptToSave.id) {
     scriptToSave.id =
       Date.now().toString() +
       Math.random().toString(36).substring(2, 7) +
       "_save_ensure";
     console.warn(
-      "[saveCurrentScript] editableScript had no ID, generated new one:",
+      "[saveCurrentScript] EditableScript had no ID during save, generated new one:",
       scriptToSave.id
     );
   }
@@ -2019,36 +2033,36 @@ const saveCurrentScript = async (isAutoSave = false) => {
   );
 
   if (existingScriptIndex > -1) {
-    // Update existing script
-    // Ensure order is preserved or correctly updated if necessary
-    scriptToSave.order = savedScripts.value[existingScriptIndex].order; // Keep original order unless specifically changed
+    scriptToSave.order = savedScripts.value[existingScriptIndex].order;
     savedScripts.value[existingScriptIndex] = scriptToSave;
     console.log(
-      `[saveCurrentScript] Updated script ID ${scriptToSave.id} at index ${existingScriptIndex}`
+      `[saveCurrentScript] Updated script ID ${scriptToSave.id} at index ${existingScriptIndex}. Order kept: ${scriptToSave.order}`
     );
   } else {
-    // Add new script
-    // Assign a new order if not set or if it conflicts
+    let newOrder = scriptToSave.order;
     if (
-      scriptToSave.order === undefined ||
-      savedScripts.value.some((s) => s.order === scriptToSave.order)
+      typeof newOrder !== "number" ||
+      savedScripts.value.some(
+        (s) => s.order === newOrder && s.id !== scriptToSave.id
+      )
     ) {
-      scriptToSave.order =
+      newOrder =
         savedScripts.value.length > 0
           ? Math.max(0, ...savedScripts.value.map((s) => s.order)) + 1
           : 0;
+      console.log(
+        `[saveCurrentScript] Assigned new order ${newOrder} to new script ID ${scriptToSave.id}`
+      );
     }
+    scriptToSave.order = newOrder;
     savedScripts.value.push(scriptToSave);
+    savedScripts.value.sort((a, b) => a.order - b.order);
     console.log(
-      `[saveCurrentScript] Added new script ID ${scriptToSave.id} with order ${scriptToSave.order}`
+      `[saveCurrentScript] Added new script ID ${scriptToSave.id} with order ${scriptToSave.order}. List sorted by order.`
     );
   }
 
-  // Sort by order after any addition or if orders might have been manually changed
-  // This ensures the visual list matches the 'order' property if draggable isn't the only source of reordering.
-  // savedScripts.value.sort((a, b) => a.order - b.order); // This might be too aggressive if order is meant to be stable unless dragged.
-
-  selectedScriptId.value = scriptToSave.id; // Select the saved/updated script
+  selectedScriptId.value = scriptToSave.id;
   isCreatingNew.value = false;
   saveScriptsToLocalStorage();
 
@@ -2063,26 +2077,23 @@ const saveCurrentScript = async (isAutoSave = false) => {
 };
 
 const loadScriptToEdit = (script: RegexScript) => {
-  if (!script || !script.id) {
+  if (!script || !script.id || typeof script.order !== "number") {
     console.error(
-      "[loadScriptToEdit] Attempted to load invalid script:",
-      script
+      "[loadScriptToEdit] Attempted to load invalid script data:",
+      JSON.parse(JSON.stringify(script))
     );
-    ElMessage.error("无法加载脚本：脚本数据无效。");
-    prepareNewScript(false); // Fallback to new script state
+    ElMessage.error("无法加载脚本：脚本数据无效或不完整。");
+    prepareNewScript(false);
     return;
   }
   console.log(
-    "[loadScriptToEdit] Loading script to editor:",
-    JSON.parse(JSON.stringify(script))
+    `[loadScriptToEdit] Loading script to editor. ID: ${script.id}, Order: ${script.order}, Name: ${script.scriptName}`
   );
-  editableScript.value = JSON.parse(JSON.stringify(script)); // Deep copy
+  editableScript.value = JSON.parse(JSON.stringify(script));
   selectedScriptId.value = script.id;
   mobileActiveTab.value = "editor";
   isCreatingNew.value = false;
-  nextTick(() => {
-    console.log("[loadScriptToEdit] Editor updated and DOM refreshed.");
-  });
+  nextTick(() => {});
 };
 
 const deleteScript = async (id: string) => {
@@ -2095,7 +2106,7 @@ const deleteScript = async (id: string) => {
     () => {
       savedScripts.value = savedScripts.value.filter((s) => s.id !== id);
       console.log(
-        `[deleteScript] Deleted script ID ${id}. Remaining: ${savedScripts.value.length}`
+        `[deleteScript] Deleted script ID ${id}. Remaining count: ${savedScripts.value.length}`
       );
       if (selectedScriptId.value === id) {
         console.log(
@@ -2141,13 +2152,11 @@ const handleImportFromJsonFile = (file: File): boolean => {
       const data = JSON.parse(fileContent);
       if (
         !Array.isArray(data) ||
-        !data.every(
-          // Basic check, more thorough validation in loadScriptsFromLocalStorage
-          (i: any) =>
-            typeof i === "object" && i.id && i.scriptName !== undefined
-        )
+        !data.every((i: any) => typeof i === "object" && i.id)
       ) {
-        ElMessage.error("文件格式不正确。应为脚本对象数组。");
+        ElMessage.error(
+          "文件格式不正确。应为脚本对象数组，且每个对象必须有 id。"
+        );
         return;
       }
       await performSafeAction(
@@ -2155,36 +2164,46 @@ const handleImportFromJsonFile = (file: File): boolean => {
         `从文件导入 ${data.length} 个脚本`,
         "这将替换当前所有条目",
         async () => {
-          // Use the robust loading logic by temporarily setting localStorage
-          // This is a bit of a hack but reuses the validation.
-          // A better way would be to refactor loadScripts to accept data.
-          const oldStorage = localStorage.getItem(
+          const tempKey = `temp_import_data_${Date.now()}`;
+          localStorage.setItem(tempKey, JSON.stringify(data));
+
+          const currentRealStorage = localStorage.getItem(
             LOCAL_STORAGE_KEY_REGEX_SCRIPTS_V5
           );
           localStorage.setItem(
             LOCAL_STORAGE_KEY_REGEX_SCRIPTS_V5,
-            JSON.stringify(data)
+            localStorage.getItem(tempKey)!
           );
-          loadScriptsFromLocalStorage(); // This will process 'data'
-          if (oldStorage)
+          localStorage.removeItem(tempKey);
+
+          loadScriptsFromLocalStorage();
+
+          if (
+            currentRealStorage !== null &&
+            !confirm(
+              "导入操作会替换现有所有脚本，是否确定要将导入的数据作为最终数据保存？如果取消，将尝试恢复导入前的数据。"
+            )
+          ) {
             localStorage.setItem(
               LOCAL_STORAGE_KEY_REGEX_SCRIPTS_V5,
-              oldStorage
+              currentRealStorage
             );
-          // Restore if needed, though we usually replace
-          else localStorage.removeItem(LOCAL_STORAGE_KEY_REGEX_SCRIPTS_V5); // Or clear if it was empty
+            loadScriptsFromLocalStorage();
+            ElMessage.info("导入操作已取消，数据已恢复。");
+            return;
+          }
 
           console.log(
-            `[handleImport] Imported ${savedScripts.value.length} scripts from file.`
+            `[handleImport] Imported ${savedScripts.value.length} scripts from file after processing.`
           );
           if (savedScripts.value.length > 0) {
             loadScriptToEdit(sortedSavedScripts.value[0]);
           } else {
             prepareNewScript(false);
           }
-          saveScriptsToLocalStorage(); // Save the newly processed imported scripts
+          saveScriptsToLocalStorage();
           ElMessage.success(
-            `成功导入 ${data.length} 个脚本 (处理后 ${savedScripts.value.length} 个)。`
+            `成功导入 ${data.length} 个脚本 (处理后得到 ${savedScripts.value.length} 个有效脚本)。`
           );
         }
       );
@@ -2213,7 +2232,7 @@ const clearAllScripts = async () => {
       savedScripts.value = [];
       console.log("[clearAllScripts] All scripts cleared.");
       prepareNewScript(false);
-      saveScriptsToLocalStorage(); // This will save an empty array
+      saveScriptsToLocalStorage();
       ElMessage.success("所有脚本已清空。");
       checkedScriptIds.value = [];
     }
@@ -2222,39 +2241,33 @@ const clearAllScripts = async () => {
   });
 };
 
-const updateScriptOrder = (scriptId: string, newOrderInput: number) => {
+const updateScriptOrder = (scriptId: string, newOrderInputValue: number) => {
+  console.log(
+    `[updateScriptOrder] Called for scriptId: ${scriptId}, newOrderInputValue: ${newOrderInputValue}`
+  );
   const scriptsCopy = [...savedScripts.value];
   const targetScriptIndex = scriptsCopy.findIndex((s) => s.id === scriptId);
 
   if (targetScriptIndex === -1) {
-    console.error(`[updateScriptOrder] Script ID ${scriptId} not found.`);
+    console.error(
+      `[updateScriptOrder] Script ID ${scriptId} not found in savedScripts.`
+    );
     return;
   }
 
   const scriptToMove = scriptsCopy.splice(targetScriptIndex, 1)[0];
+  scriptToMove.order = newOrderInputValue;
 
-  // newOrderInput is the desired *order value*, not necessarily the target index.
-  // We should insert based on this desired order value relative to others.
-  // For simplicity if draggable handles visual reordering and then calls this
-  // with an index-like newOrderInput, we can treat it as a target index.
-  // But the draggable onEnd already provides newIndex.
-  // This function is more for the manual input field.
-
-  // Let's assume newOrderInput is the desired final 'order' property.
-  // We'll re-sort and re-assign all orders.
-  scriptToMove.order = newOrderInput;
-
-  // Add it back, then sort all by 'order', then re-index 'order'
   scriptsCopy.push(scriptToMove);
   scriptsCopy.sort((a, b) => a.order - b.order);
 
   savedScripts.value = scriptsCopy.map((script, index) => ({
     ...script,
-    order: index, // Re-assign sequential order properties
+    order: index,
   }));
 
   console.log(
-    `[updateScriptOrder] Script ID ${scriptId} order updated. New list order assigned.`
+    `[updateScriptOrder] Script ID ${scriptId} order updated. Full list re-ordered and re-indexed.`
   );
   saveScriptsToLocalStorage();
   ElMessage.success(`脚本顺序已更新。`);
@@ -2270,16 +2283,17 @@ watch(
   ([newSelectedId, newIsCreating, newName, newEditableId]) => {
     if (
       mobileActiveTab.value === "editor" &&
-      !newSelectedId && // No script is selected from the list
-      !newIsCreating && // Not in the process of creating a new one (i.e. form was not cleared by prepareNewScript)
-      (!newEditableId || !newName.trim()) // And the editor form is effectively empty or for a non-existent script
+      !newSelectedId &&
+      !newIsCreating &&
+      (!newEditableId || !newName?.trim())
     ) {
       console.log(
-        "[MobileTabWatch] Switching to list tab due to empty editor state."
+        "[MobileTabWatch] Switching to list tab due to effectively empty editor state."
       );
       mobileActiveTab.value = "list";
     }
-  }
+  },
+  { immediate: true }
 );
 </script>
 
