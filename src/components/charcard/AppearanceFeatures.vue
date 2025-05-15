@@ -444,6 +444,14 @@ watch(
   { deep: true }
 );
 
+watch(
+  localForm,
+  (newVal) => {
+    emit("update:form", { ...newVal });
+  },
+  { deep: true }
+);
+
 const addCustomField = async () => {
   try {
     const { value: inputText } = await ElMessageBox.prompt(
