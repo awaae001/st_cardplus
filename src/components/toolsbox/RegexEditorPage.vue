@@ -203,8 +203,9 @@ import {
 import { Icon } from "@iconify/vue";
 import { saveAs } from "file-saver";
 import MarkdownIt from "markdown-it";
+import draggable from "vuedraggable";
 import { useAppSettingsStore } from "../../stores/appSettings";
-import { performSafeAction } from "@/utils/safeAction";
+import { performSafeAction } from "@/utils/safeAction"; // Предполагается, что путь будет работать после настройки tsconfig
 
 interface RegexScript {
   id: string;
@@ -261,14 +262,7 @@ const ScriptListManager = defineComponent({
 
     watch(
       () => props.scripts,
-      (newVal, oldVal) => {
-        console.log(
-          `[ScriptListManager props.scripts WATCHER] Received ${
-            newVal?.length
-          } scripts. Old length: ${oldVal?.length}. Is Array: ${Array.isArray(
-            newVal
-          )}`
-        );
+      (newVal) => {
         if (Array.isArray(newVal)) {
           newVal.forEach((item, index) => {
             if (
@@ -290,11 +284,7 @@ const ScriptListManager = defineComponent({
 
     watch(
       () => props.selectedId,
-      (newVal) => {
-        console.log(
-          `[ScriptListManager props.selectedId WATCHER] New selectedId: ${newVal}`
-        );
-      },
+      () => {},
       { immediate: true }
     );
 
@@ -320,17 +310,54 @@ const ScriptListManager = defineComponent({
     };
 
     return () => {
-      console.log(
-        `[ScriptListManager RENDER - V-FOR TEST] Rendering. Scripts count: ${props.scripts?.length}. Selected ID: ${props.selectedId}`
-      );
+      const elMenuProps: Record<string, any> = {
+        class: "entry-menu !border-none !bg-transparent py-1",
+      };
+      if (props.selectedId !== null) {
+        elMenuProps.defaultActive = props.selectedId;
+      }
 
-      const menuItems =
-        props.scripts && props.scripts.length > 0
-          ? props.scripts
-              .map((script, index) => {
-                console.log(
-                  `[ScriptListManager RENDER - V-FOR TEST] Mapping script for ElMenuItem: ID=${script.id}, Name=${script.scriptName}, Index=${index}, Order=${script.order}`
-                );
+      const draggableOptions = {
+        modelValue: props.scripts,
+        "onUpdate:modelValue": (newList: RegexScript[]) => {
+          const reIndexedList = newList.map((item, idx) => ({
+            ...item,
+            order: idx,
+          }));
+          emit("update:scripts", reIndexedList);
+        },
+        itemKey: "id",
+        animation: 200,
+        ghostClass: "ghost-item",
+      };
+
+      return [
+        h("div", { class: "content-panel-header" }, [
+          h("h2", { class: "content-panel-title flex items-center gap-2" }, [
+            h(Icon, {
+              icon: "ph:list-bullets-duotone",
+              class: "text-xl text-accent-500 dark:text-accent-400",
+            }),
+            "脚本列表",
+          ]),
+        ]),
+        h(ElScrollbar, { class: "flex-grow" }, () => {
+          if (!props.scripts || !props.scripts.length) {
+            return h(ElEmpty, {
+              description: "暂无已保存脚本",
+              imageSize: 80,
+              class: "p-6 text-center",
+            });
+          }
+          return h(ElMenu, elMenuProps, () => [
+            h(draggable, draggableOptions, {
+              item: ({
+                element: script,
+                index: scriptIndex,
+              }: {
+                element: RegexScript;
+                index: number;
+              }) => {
                 if (
                   !script ||
                   typeof script.id !== "string" ||
@@ -338,7 +365,7 @@ const ScriptListManager = defineComponent({
                   typeof script.order !== "number"
                 ) {
                   console.error(
-                    `[ScriptListManager RENDER - V-FOR TEST] Invalid script data at index ${index}, skipping ElMenuItem render:`,
+                    `[ScriptListManager RENDER - DRAGGABLE ITEM] Invalid script data for item at index ${scriptIndex}, skipping ElMenuItem render:`,
                     JSON.parse(JSON.stringify(script))
                   );
                   return null;
@@ -460,43 +487,9 @@ const ScriptListManager = defineComponent({
                     ),
                   ]
                 );
-              })
-              .filter((item) => item !== null)
-          : [];
-
-      const elMenuProps: Record<string, any> = {
-        class: "entry-menu !border-none !bg-transparent py-1",
-      };
-      if (props.selectedId !== null) {
-        elMenuProps.defaultActive = props.selectedId;
-      }
-
-      return [
-        h("div", { class: "content-panel-header" }, [
-          h("h2", { class: "content-panel-title flex items-center gap-2" }, [
-            h(Icon, {
-              icon: "ph:list-bullets-duotone",
-              class: "text-xl text-accent-500 dark:text-accent-400",
+              },
             }),
-            "脚本列表",
-          ]),
-        ]),
-        h(ElScrollbar, { class: "flex-grow" }, () => {
-          if (!props.scripts || !props.scripts.length) {
-            console.log(
-              "[ScriptListManager RENDER ElScrollbar - V-FOR TEST] No scripts, showing ElEmpty."
-            );
-            return h(ElEmpty, {
-              description: "暂无已保存脚本",
-              imageSize: 80,
-              class: "p-6 text-center",
-            });
-          }
-          console.log(
-            `[ScriptListManager RENDER ElScrollbar - V-FOR TEST] Rendering ElMenu with ${menuItems.length} items. defaultActive prop:`,
-            elMenuProps.defaultActive
-          );
-          return h(ElMenu, elMenuProps, () => menuItems);
+          ]);
         }),
         h(
           "div",
@@ -1035,7 +1028,9 @@ And lose the name of action.
       const collectedMatches: TestUnitResult["matches"] = [];
       let outputText = text;
       try {
-        const allMatchesIterator = text.matchAll(regex);
+        // String.prototype.matchAll requires ES2020 or later in tsconfig.json's "lib" option
+        const allMatchesIterator: IterableIterator<RegExpMatchArray> =
+          text.matchAll(regex);
         for (const match of allMatchesIterator) {
           collectedMatches.push({
             index: match.index!,
@@ -1717,10 +1712,7 @@ const isCreatingNew = ref(false);
 
 watch(
   savedScripts,
-  (newValue, oldValue) => {
-    console.log(
-      `[PARENT savedScripts WATCHER] SavedScripts changed. New Length: ${newValue.length}, Old Length: ${oldValue?.length}`
-    );
+  (newValue) => {
     newValue.forEach((item, index) => {
       if (
         !item ||
@@ -1799,24 +1791,16 @@ const loadScriptsFromLocalStorage = () => {
   let newScripts: RegexScript[] = [];
   try {
     const storedData = localStorage.getItem(key);
-    console.log("[loadScripts] Raw storedData from localStorage:", storedData);
 
     if (storedData) {
       const parsed = JSON.parse(storedData);
       if (Array.isArray(parsed)) {
-        console.log(
-          "[loadScripts] Parsed data is array. Length:",
-          parsed.length
-        );
         let tempScripts = parsed.map((s: any, idx: number) => {
           let currentId =
             s && typeof s.id === "string" && s.id.trim() !== ""
               ? s.id.trim()
               : "";
           if (!currentId) {
-            console.warn(
-              `[loadScripts] Script at index ${idx} (Loaded Name: ${s?.scriptName}) had missing/empty ID. Generating new one.`
-            );
             currentId =
               Date.now().toString() +
               Math.random().toString(36).substring(2, 7) +
@@ -1840,10 +1824,6 @@ const loadScriptsFromLocalStorage = () => {
         const idMap = new Map<string, RegexScript>();
         tempScripts.forEach((script) => {
           if (!script.id) {
-            console.error(
-              "[loadScripts] Deduplication: Found script with no ID:",
-              script
-            );
             return;
           }
           if (!idMap.has(script.id)) {
@@ -1861,27 +1841,13 @@ const loadScriptsFromLocalStorage = () => {
           return { ...s, order: i };
         });
       } else {
-        console.error("[loadScripts] Stored data is not an array:", parsed);
         ElMessage.error("存储的脚本数据格式错误。");
       }
-    } else {
-      console.log("[loadScripts] No data in localStorage for key:", key);
     }
   } catch (e: any) {
-    console.error("[loadScripts] Failed to load or parse scripts:", e);
     ElMessage.error(`加载脚本失败: ${e.message}`);
   }
   savedScripts.value = newScripts;
-  console.log(
-    `[loadScripts] Final savedScripts.value assigned. Length: ${savedScripts.value.length}.`
-  );
-  if (savedScripts.value.length > 0) {
-    savedScripts.value.forEach((s, i) =>
-      console.log(
-        `[loadScripts] Final Script ${i}: ID=${s.id}, Order=${s.order}, Name=${s.scriptName}`
-      )
-    );
-  }
 };
 
 const saveScriptsToLocalStorage = () => {
@@ -1904,16 +1870,6 @@ const saveScriptsToLocalStorage = () => {
       };
     });
     localStorage.setItem(key, JSON.stringify(scriptsToSave));
-    console.log(
-      `[saveToStorage] Scripts saved. Count: ${scriptsToSave.length}. Data:`,
-      JSON.stringify(
-        scriptsToSave.map((s) => ({
-          id: s.id,
-          order: s.order,
-          name: s.scriptName,
-        }))
-      )
-    );
   } catch (e) {
     console.error("[saveToStorage] Error saving scripts to localStorage:", e);
     ElMessage.error("保存脚本到本地存储失败。");
@@ -1921,31 +1877,11 @@ const saveScriptsToLocalStorage = () => {
 };
 
 onMounted(() => {
-  console.log(
-    "[PARENT onMounted] Component mounted. Attempting to load scripts..."
-  );
   loadScriptsFromLocalStorage();
 
-  console.log(
-    `[PARENT onMounted] After loadScriptsFromLocalStorage, savedScripts.length: ${savedScripts.value.length}`
-  );
-  if (savedScripts.value.length > 0) {
-    savedScripts.value.forEach((s, i) =>
-      console.log(
-        `[PARENT onMounted] Initial Script ${i}: ID=${s.id}, Order=${s.order}, Name=${s.scriptName}`
-      )
-    );
-  }
-
   if (sortedSavedScripts.value.length > 0) {
-    console.log(
-      `[PARENT onMounted] Scripts found (count: ${sortedSavedScripts.value.length}), loading first one to editor. First script ID: ${sortedSavedScripts.value[0].id}, Order: ${sortedSavedScripts.value[0].order}`
-    );
     loadScriptToEdit(sortedSavedScripts.value[0]);
   } else {
-    console.log(
-      "[PARENT onMounted] No scripts found after load, preparing new script editor."
-    );
     prepareNewScript(false);
   }
 
@@ -1980,18 +1916,11 @@ watch(
 );
 
 const prepareNewScript = (showMessage = true) => {
-  console.log(
-    `[prepareNewScript] Called. Current savedScripts count: ${savedScripts.value.length}`
-  );
   const newOrder =
     savedScripts.value.length > 0
       ? Math.max(0, ...savedScripts.value.map((s) => s.order)) + 1
       : 0;
   editableScript.value = createDefaultScriptData(undefined, newOrder);
-  console.log(
-    "[prepareNewScript] New editableScript prepared:",
-    JSON.parse(JSON.stringify(editableScript.value))
-  );
   trimStringsInput.value = "";
   selectedScriptId.value = null;
   isCreatingNew.value = true;
@@ -2006,10 +1935,6 @@ const prepareNewScript = (showMessage = true) => {
 };
 
 const saveCurrentScript = async (isAutoSave = false) => {
-  console.log(
-    "[saveCurrentScript] Attempting to save script:",
-    JSON.parse(JSON.stringify(editableScript.value))
-  );
   if (!editableScript.value.scriptName.trim()) {
     if (!isAutoSave) ElMessage.error("脚本名称不能为空！");
     return;
@@ -2022,10 +1947,6 @@ const saveCurrentScript = async (isAutoSave = false) => {
       Date.now().toString() +
       Math.random().toString(36).substring(2, 7) +
       "_save_ensure";
-    console.warn(
-      "[saveCurrentScript] EditableScript had no ID during save, generated new one:",
-      scriptToSave.id
-    );
   }
 
   const existingScriptIndex = savedScripts.value.findIndex(
@@ -2035,9 +1956,6 @@ const saveCurrentScript = async (isAutoSave = false) => {
   if (existingScriptIndex > -1) {
     scriptToSave.order = savedScripts.value[existingScriptIndex].order;
     savedScripts.value[existingScriptIndex] = scriptToSave;
-    console.log(
-      `[saveCurrentScript] Updated script ID ${scriptToSave.id} at index ${existingScriptIndex}. Order kept: ${scriptToSave.order}`
-    );
   } else {
     let newOrder = scriptToSave.order;
     if (
@@ -2050,16 +1968,10 @@ const saveCurrentScript = async (isAutoSave = false) => {
         savedScripts.value.length > 0
           ? Math.max(0, ...savedScripts.value.map((s) => s.order)) + 1
           : 0;
-      console.log(
-        `[saveCurrentScript] Assigned new order ${newOrder} to new script ID ${scriptToSave.id}`
-      );
     }
     scriptToSave.order = newOrder;
     savedScripts.value.push(scriptToSave);
     savedScripts.value.sort((a, b) => a.order - b.order);
-    console.log(
-      `[saveCurrentScript] Added new script ID ${scriptToSave.id} with order ${scriptToSave.order}. List sorted by order.`
-    );
   }
 
   selectedScriptId.value = scriptToSave.id;
@@ -2078,17 +1990,10 @@ const saveCurrentScript = async (isAutoSave = false) => {
 
 const loadScriptToEdit = (script: RegexScript) => {
   if (!script || !script.id || typeof script.order !== "number") {
-    console.error(
-      "[loadScriptToEdit] Attempted to load invalid script data:",
-      JSON.parse(JSON.stringify(script))
-    );
     ElMessage.error("无法加载脚本：脚本数据无效或不完整。");
     prepareNewScript(false);
     return;
   }
-  console.log(
-    `[loadScriptToEdit] Loading script to editor. ID: ${script.id}, Order: ${script.order}, Name: ${script.scriptName}`
-  );
   editableScript.value = JSON.parse(JSON.stringify(script));
   selectedScriptId.value = script.id;
   mobileActiveTab.value = "editor";
@@ -2105,13 +2010,7 @@ const deleteScript = async (id: string) => {
     script.scriptName || "未命名",
     () => {
       savedScripts.value = savedScripts.value.filter((s) => s.id !== id);
-      console.log(
-        `[deleteScript] Deleted script ID ${id}. Remaining count: ${savedScripts.value.length}`
-      );
       if (selectedScriptId.value === id) {
-        console.log(
-          "[deleteScript] Deleted script was selected. Preparing new or loading next."
-        );
         if (sortedSavedScripts.value.length > 0) {
           loadScriptToEdit(sortedSavedScripts.value[0]);
         } else {
@@ -2193,9 +2092,6 @@ const handleImportFromJsonFile = (file: File): boolean => {
             return;
           }
 
-          console.log(
-            `[handleImport] Imported ${savedScripts.value.length} scripts from file after processing.`
-          );
           if (savedScripts.value.length > 0) {
             loadScriptToEdit(sortedSavedScripts.value[0]);
           } else {
@@ -2230,7 +2126,6 @@ const clearAllScripts = async () => {
     "此操作不可恢复！",
     () => {
       savedScripts.value = [];
-      console.log("[clearAllScripts] All scripts cleared.");
       prepareNewScript(false);
       saveScriptsToLocalStorage();
       ElMessage.success("所有脚本已清空。");
@@ -2242,16 +2137,10 @@ const clearAllScripts = async () => {
 };
 
 const updateScriptOrder = (scriptId: string, newOrderInputValue: number) => {
-  console.log(
-    `[updateScriptOrder] Called for scriptId: ${scriptId}, newOrderInputValue: ${newOrderInputValue}`
-  );
   const scriptsCopy = [...savedScripts.value];
   const targetScriptIndex = scriptsCopy.findIndex((s) => s.id === scriptId);
 
   if (targetScriptIndex === -1) {
-    console.error(
-      `[updateScriptOrder] Script ID ${scriptId} not found in savedScripts.`
-    );
     return;
   }
 
@@ -2266,9 +2155,6 @@ const updateScriptOrder = (scriptId: string, newOrderInputValue: number) => {
     order: index,
   }));
 
-  console.log(
-    `[updateScriptOrder] Script ID ${scriptId} order updated. Full list re-ordered and re-indexed.`
-  );
   saveScriptsToLocalStorage();
   ElMessage.success(`脚本顺序已更新。`);
 };
@@ -2287,9 +2173,6 @@ watch(
       !newIsCreating &&
       (!newEditableId || !newName?.trim())
     ) {
-      console.log(
-        "[MobileTabWatch] Switching to list tab due to effectively empty editor state."
-      );
       mobileActiveTab.value = "list";
     }
   },

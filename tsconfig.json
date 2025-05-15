@@ -1,9 +1,14 @@
 {
   "files": [],
   "compilerOptions": {
-      "typeRoots": ["./node_modules/@types", "./node_modules/element-plus/types", "./node_modules"],
-      "types": ["element-plus"]
+    "typeRoots": ["./node_modules/@types", "./node_modules/element-plus/types", "./node_modules"],
+    "types": ["element-plus"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
     },
+    "lib": ["es2024", "dom", "esnext"]
+  },
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }

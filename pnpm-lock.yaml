@@ -41,9 +41,6 @@ importers:
       vue:
         specifier: ^3.5.13
         version: 3.5.13(typescript@5.8.3)
-      vue-draggable-next:
-        specifier: ^2.2.1
-        version: 2.2.1(sortablejs@1.14.0)(vue@3.5.13(typescript@5.8.3))
       vue-router:
         specifier: ^4.5.1
         version: 4.5.1(vue@3.5.13(typescript@5.8.3))
@@ -2476,12 +2473,6 @@ packages:
     peerDependenciesMeta:
       '@vue/composition-api':
         optional: true
-
-  vue-draggable-next@2.2.1:
-    resolution: {integrity: sha512-EAMS1IRHF0kZO0o5PMOinsQsXIqsrKT1hKmbICxG3UEtn7zLFkLxlAtajcCcUTisNvQ6TtCB5COjD9a1raNADw==}
-    peerDependencies:
-      sortablejs: ^1.14.0
-      vue: ^3.2.2
 
   vue-router@4.5.1:
     resolution: {integrity: sha512-ogAF3P97NPm8fJsE4by9dwSYtDwXIY1nFY9T6DyQnGHd1E2Da94w9JIolpe42LJGIl0DwOHBi8TcRPlPGwbTtw==}
@@ -5068,11 +5059,6 @@ snapshots:
 
   vue-demi@0.14.10(vue@3.5.13(typescript@5.8.3)):
     dependencies:
-      vue: 3.5.13(typescript@5.8.3)
-
-  vue-draggable-next@2.2.1(sortablejs@1.14.0)(vue@3.5.13(typescript@5.8.3)):
-    dependencies:
-      sortablejs: 1.14.0
       vue: 3.5.13(typescript@5.8.3)
 
   vue-router@4.5.1(vue@3.5.13(typescript@5.8.3)):
