@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 const router = createRouter({
-  //设置URL为history模式
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
@@ -27,7 +26,7 @@ const router = createRouter({
     {
       path:'/worldbook',
       name:'worldbook',
-      component: () => import('../pages/WorldBook.vue')
+      component: () => import('../pages/WorldBook.vue') // 假设这个是你的世界书编辑器
     },
     {
       path: '/about',
@@ -47,19 +46,14 @@ const router = createRouter({
     {
       path: '/toolbox/separator',
       name: 'separator',
-      component: () => import('../components/toolsbox/separator.vue')
+      component: () => import('../components/toolsbox/separator.vue') // 注意这里文件名是小写 separator.vue
+    },
+    {
+      path: '/toolbox/regex-editor',
+      name: 'regexEditor',
+      component: () => import('../components/toolsbox/RegexEditorPage.vue')
     }
   ]
 })
-
-// router.beforeEach((to, from, next) => {
-//   if (from.name) { // 如果不是首次加载
-//     const confirmLeave = window.confirm('确定离开？离开后数据清空')
-//     if (!confirmLeave) {
-//       return false
-//     }
-//   }
-//   next()
-// })
 
 export default router

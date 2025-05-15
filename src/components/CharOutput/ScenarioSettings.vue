@@ -3,7 +3,10 @@
     <div class="content-panel-header -mx-4 md:-mx-5 -mt-4 md:-mt-5 mb-5">
       <h3 class="content-panel-title flex items-center gap-2">
         <!-- MODIFIED: Added Icon -->
-        <Icon icon="ph:map-trifold-duotone" class="text-xl text-accent-500 dark:text-accent-400"/>
+        <Icon
+          icon="ph:map-trifold-duotone"
+          class="text-xl text-accent-500 dark:text-accent-400"
+        />
         情景设定
       </h3>
       <!-- 如果有对此模块的操作按钮，可以放在这里 -->
@@ -22,36 +25,46 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, defineProps, defineEmits, nextTick } from 'vue';
+import { ref, watch, defineProps, defineEmits, nextTick } from "vue";
 import { Icon } from "@iconify/vue"; // Icon 已经导入
-import type { ElInput } from 'element-plus';
 
-interface ScenarioSettingsFormData { scenario: string; data?: { scenario?: string; [key: string]: any; }; }
-interface Props { form: ScenarioSettingsFormData; }
+interface ScenarioSettingsFormData {
+  scenario: string;
+  data?: { scenario?: string; [key: string]: any };
+}
+interface Props {
+  form: ScenarioSettingsFormData;
+}
 
 const props = defineProps<Props>();
-const emit = defineEmits(['update:form']);
+const emit = defineEmits(["update:form"]);
 
-const localScenario = ref<string>('');
+const localScenario = ref<string>("");
 let internalUpdateFlag_Scen = false;
 
-watch(() => props.form.scenario, (newVal) => {
-  const currentPropVal = newVal || '';
-  if (currentPropVal !== localScenario.value) {
-    internalUpdateFlag_Scen = true;
-    localScenario.value = currentPropVal;
-    nextTick(() => { internalUpdateFlag_Scen = false; });
-  }
-}, { immediate: true });
+watch(
+  () => props.form.scenario,
+  (newVal) => {
+    const currentPropVal = newVal || "";
+    if (currentPropVal !== localScenario.value) {
+      internalUpdateFlag_Scen = true;
+      localScenario.value = currentPropVal;
+      nextTick(() => {
+        internalUpdateFlag_Scen = false;
+      });
+    }
+  },
+  { immediate: true }
+);
 
 watch(localScenario, (newVal) => {
   if (internalUpdateFlag_Scen) {
     return;
   }
-  if (newVal !== (props.form.scenario || '')) {
-    emit('update:form', { 
+  if (newVal !== (props.form.scenario || "")) {
+    emit("update:form", {
       scenario: newVal,
-      data: { ...(props.form.data || {}), scenario: newVal }
+      data: { ...(props.form.data || {}), scenario: newVal },
     });
   }
 });

@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import WorldEditor from '../components/WorldEditor.vue'
+import WorldEditor from "../components/WorldEditor.vue";
 </script>
 
 <style scoped>

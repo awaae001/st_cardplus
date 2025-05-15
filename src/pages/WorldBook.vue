@@ -6,7 +6,7 @@
 </template>
 
 <script setup lang="ts">
-import WorldBookEditor from '../components/WorldBookEditor.vue';
+import WorldBookEditor from "../components/WorldBookEditor.vue";
 </script>
 
 <style scoped>
