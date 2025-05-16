@@ -143,17 +143,15 @@ import {
   ElTabPane,
   ElEmpty,
 } from "element-plus";
-import { extractAndDecodeCcv3 } from "@/utils/metadataSeparator";
-
-interface ParsedFileInfo {
-  filename: string;
-  size?: number;
-  type: string;
-  lastModified: number;
-}
+import { extractAndDecodeCcv3 } from "@character/utils/metadataSeparator.utils";
+import type { IParsedFileInfo } from "@core/types/common.types";
+import {
+  generateRandomNumericString,
+  saveDataToFile,
+} from "@core/utils/fileUtils";
 
 const imageUrl = ref("");
-const parsedData = ref<ParsedFileInfo | null>(null);
+const parsedData = ref<IParsedFileInfo | null>(null);
 const characterData = ref<any>(null);
 
 const charCount = computed(() => {
@@ -170,19 +168,13 @@ const dataSize = computed(() => {
 const saveJson = () => {
   if (!characterData.value) return;
 
-  const generateRandomNumber = () =>
-    Math.floor(10000000 + Math.random() * 90000000).toString();
-  const randomNumber = generateRandomNumber();
-
+  const randomNumber = generateRandomNumericString(8);
   const jsonStr = JSON.stringify(characterData.value, null, 2);
-  const blob = new Blob([jsonStr], { type: "application/json" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = `character_card_v3_${
+  const filename = `character_card_v3_${
     characterData.value.name || randomNumber
   }.json`;
-  link.click();
-  URL.revokeObjectURL(link.href);
+
+  saveDataToFile(jsonStr, filename, "application/json");
   ElMessage.success("角色卡JSON文件已保存");
 };
 

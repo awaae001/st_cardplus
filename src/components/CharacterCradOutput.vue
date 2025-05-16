@@ -117,8 +117,8 @@
 import { ref, onMounted, onBeforeUnmount, computed, watch } from "vue";
 import { ElMessage, ElScrollbar } from "element-plus";
 import { saveAs } from "file-saver";
-import { useAppSettingsStore } from "../stores/appSettings";
-import { performSafeAction } from "@/utils/safeAction";
+import { useAppSettingsStore } from "@core/store/appSettings.store";
+import { performSafeAction } from "@core/utils/safeAction.utils";
 
 import {
   saveToLocalStorage as saveToLS,
@@ -126,7 +126,7 @@ import {
   clearLocalStorage as clearLS,
   initAutoSave,
   clearAutoSave,
-} from "../utils/localStorageUtils";
+} from "@core/utils/localStorage.utils";
 
 import Buttons from "./CharOutput/Buttons.vue";
 import BasicInfo from "./CharOutput/BasicInfo.vue";
@@ -390,7 +390,7 @@ const resetData = async () => {
       clearLS(LOCAL_STORAGE_KEY);
       form.value = createDefaultForm();
     }
-  ).catch((err) => {
+  ).catch((err: unknown) => {
     if (err !== "cancel" && err !== "forbidden")
       console.warn("重置数据操作未成功完成:", err);
   });
@@ -457,7 +457,7 @@ const loadData = async () => {
         input.click();
       });
     }
-  ).catch((err) => {
+  ).catch((err: unknown) => {
     if (err !== "cancel" && err !== "forbidden")
       console.warn("加载角色数据操作未成功完成:", err);
   });
@@ -506,7 +506,7 @@ const handleCharacterNotesUpload = async () => {
         input.click();
       });
     }
-  ).catch((err) => {
+  ).catch((err: unknown) => {
     if (err !== "cancel" && err !== "forbidden")
       console.warn("导入角色备注操作未成功完成:", err);
   });
@@ -550,7 +550,7 @@ const openCharacterDescriptionImport = async () => {
         input.click();
       });
     }
-  ).catch((err) => {
+  ).catch((err: unknown) => {
     if (err !== "cancel" && err !== "forbidden")
       console.warn("导入角色描述操作未成功完成:", err);
   });

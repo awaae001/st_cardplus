@@ -43,10 +43,17 @@
 <script setup lang="ts">
 import { reactive, watch, defineProps, defineEmits, nextTick } from "vue";
 import { Icon } from "@iconify/vue";
+import type {
+  ICharacterMetadata,
+  ICharacterOutputSettings,
+} from "@character/types/character.types";
 
 interface BasicInfoFormData {
-  name: string;
+  /** Corresponds to ICharacterMetadata['name'] */
+  name: ICharacterMetadata["name"];
+  /** Corresponds to ICharacterMetadata['avatarUrl'], with "none" as a common value */
   avatar: string;
+  /** Corresponds to ICharacterOutputSettings['greeting'] */
   first_mes: string;
   data?: { [key: string]: any }; // To carry over other data fields
 }

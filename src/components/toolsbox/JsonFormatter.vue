@@ -160,6 +160,8 @@ import {
   ElTooltip,
 } from "element-plus";
 import { Icon } from "@iconify/vue";
+import { copyTextToClipboard } from "@core/utils/clipboard.utils";
+import { replaceWhitespaceWithSingleSpace } from "@core/utils/stringUtils";
 
 const inputJson = ref("");
 const outputJson = ref("");
@@ -214,19 +216,17 @@ const deleteRecord = async (id: string) => {
   } catch {}
 };
 
-const copyToClipboard = () => {
+const copyToClipboard = async () => {
   if (!outputJson.value) return;
-  navigator.clipboard
-    .writeText(outputJson.value)
-    .then(() => ElMessage.success("已复制到剪贴板"))
-    .catch(() => ElMessage.error("复制失败"));
+  await copyTextToClipboard(outputJson.value, "处理结果已复制到剪贴板");
 };
 
 const formatJson = () => {
   try {
-    const trimmed = inputJson.value.replace(/\s+/g, " ");
-    JSON.parse(trimmed);
-    outputJson.value = trimmed;
+    // 使用新的工具函数替换原有的 replace 逻辑
+    const processedJson = replaceWhitespaceWithSingleSpace(inputJson.value);
+    JSON.parse(processedJson); // 仍然需要验证JSON的有效性
+    outputJson.value = processedJson;
     saveToHistory();
     ElMessage.success("处理完成！");
   } catch (error) {

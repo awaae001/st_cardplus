@@ -195,21 +195,15 @@ import { ref, watch, defineProps, defineEmits } from "vue";
 import { ElInput } from "element-plus";
 import { Icon } from "@iconify/vue";
 import draggable from "vuedraggable";
-import { useAppSettingsStore } from "../../stores/appSettings";
-import { performSafeAction } from "@/utils/safeAction";
-
-interface Trait {
-  id: string;
-  name: string;
-  description: string;
-  dialogueExamples: string[];
-  behaviorExamples: string[];
-}
+import { useAppSettingsStore } from "@core/store/appSettings.store";
+import { performSafeAction } from "@core/utils/safeAction.utils";
+import type {
+  IEditorCharacterCard,
+  IEditorTrait,
+} from "@character/types/character.types";
 
 interface Props {
-  form: {
-    traits: Trait[];
-  };
+  form: Pick<IEditorCharacterCard, "traits">; // Use Pick from IEditorCharacterCard
   addTrait: () => void;
   removeTrait: (traitId: string) => void;
   exportTraits: () => Promise<void>;
@@ -217,7 +211,7 @@ interface Props {
 
 const props = defineProps<Props>();
 const emit = defineEmits(["update:form"]);
-const localTraits = ref<Trait[]>([]);
+const localTraits = ref<IEditorTrait[]>([]); // Update to use IEditorTrait
 const appSettings = useAppSettingsStore();
 
 watch(
@@ -284,7 +278,7 @@ const removeDialogueExample = async (
         throw new Error("对话示例未找到，可能已被移除。");
       }
     }
-  ).catch((err) => {
+  ).catch((err: unknown) => {
     if (err !== "cancel" && err !== "forbidden")
       console.warn("移除对话示例操作未成功完成:", err);
   });
@@ -321,7 +315,7 @@ const removeBehaviorExample = async (
         throw new Error("行为示例未找到，可能已被移除。");
       }
     }
-  ).catch((err) => {
+  ).catch((err: unknown) => {
     if (err !== "cancel" && err !== "forbidden")
       console.warn("移除行为示例操作未成功完成:", err);
   });

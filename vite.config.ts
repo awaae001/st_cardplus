@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 // vite.config.ts
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
@@ -33,6 +34,15 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
+      '@assets': path.resolve(__dirname, 'src/assets'),
+      '@modules': path.resolve(__dirname, 'src/modules'),
+      '@core': path.resolve(__dirname, 'src/modules/core'),
+      '@character': path.resolve(__dirname, 'src/modules/character'),
+      '@world': path.resolve(__dirname, 'src/modules/world'),
+      '@toolbox': path.resolve(__dirname, 'src/modules/toolbox'),
+      '@pages': path.resolve(__dirname, 'src/pages'),
+      '@router': path.resolve(__dirname, 'src/router'),
+      '@styles': path.resolve(__dirname, 'src/styles'),
     },
   },
   define: {
@@ -49,7 +59,7 @@ export default defineConfig({
             if (id.includes('element-plus')) {
               return 'element-plus';
             }
-            if (id.includes('lodash-es')) { 
+            if (id.includes('lodash-es')) {
               return 'lodash';
             }
             return 'vendor';
@@ -67,4 +77,11 @@ export default defineConfig({
     },
   },
   assetsInclude: ['src/image/**/*'],
+test: {
+    globals: true,
+    environment: 'jsdom',
+    include: ['src/**/*.spec.ts'], // 注意这里是双星号以匹配任意子目录
+    // 如果需要，可以添加对 @vue/test-utils 的设置
+    // setupFiles: ['./vitest.setup.ts'], // 如果有全局设置文件
+  },
 });

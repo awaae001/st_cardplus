@@ -5,7 +5,16 @@
     "types": ["element-plus"],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@assets/*": ["src/assets/*"],
+      "@modules/*": ["src/modules/*"],
+      "@core/*": ["src/modules/core/*"],
+      "@character/*": ["src/modules/character/*"],
+      "@world/*": ["src/modules/world/*"],
+      "@toolbox/*": ["src/modules/toolbox/*"],
+      "@pages/*": ["src/pages/*"],
+      "@router/*": ["src/router/*"],
+      "@styles/*": ["src/styles/*"]
     },
     "lib": ["es2024", "dom", "esnext"]
   },

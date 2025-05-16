@@ -204,28 +204,12 @@ import { Icon } from "@iconify/vue";
 import { saveAs } from "file-saver";
 import MarkdownIt from "markdown-it";
 import draggable from "vuedraggable";
-import { useAppSettingsStore } from "../../stores/appSettings";
-import { performSafeAction } from "@/utils/safeAction";
+import { useAppSettingsStore } from "@core/store/appSettings.store";
+import { performSafeAction } from "@core/utils/safeAction.utils";
 import "/src/style/tools/regex-page.css";
-import { performSafeAction } from "@/utils/safeAction"; // Предполагается, что путь будет работать после настройки tsconfig
+// Removed duplicate performSafeAction import
+import type { RegexScript } from "@/modules/toolbox/types/regex.types"; // Adjusted path
 
-interface RegexScript {
-  id: string;
-  order: number;
-  scriptName: string;
-  findRegex: string;
-  replaceString: string;
-  regexFlags: string;
-  trimStrings: string[];
-  placement: number[];
-  disabled: boolean;
-  markdownOnly: boolean;
-  promptOnly: boolean;
-  runOnEdit: boolean;
-  substituteRegex: number;
-  minDepth: number | null;
-  maxDepth: number | null;
-}
 const escapeHtml = (unsafe: string): string => {
   if (typeof unsafe !== "string") return "";
   return unsafe

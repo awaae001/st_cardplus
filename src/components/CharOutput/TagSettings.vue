@@ -39,11 +39,12 @@
 <script setup lang="ts">
 import { ref, watch, defineProps, defineEmits, nextTick } from "vue";
 import { Icon } from "@iconify/vue";
+import type { ICharacterMetadata } from "@character/types/character.types";
 
 interface TagSettingsFormData {
-  tags: string[];
+  tags: ICharacterMetadata["tags"];
   data?: {
-    tags?: string[];
+    tags?: ICharacterMetadata["tags"];
     [key: string]: any;
   };
 }

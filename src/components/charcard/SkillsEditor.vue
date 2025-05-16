@@ -134,20 +134,14 @@ import { ref, watch, defineProps, defineEmits } from "vue";
 import { ElInput } from "element-plus";
 import { Icon } from "@iconify/vue";
 import draggable from "vuedraggable";
-import { useAppSettingsStore } from "../../stores/appSettings";
-
-interface Skill {
-  id: string;
-  name: string;
-  description: string;
-  dialogExample: string;
-  behaviorExample: string;
-}
+import { useAppSettingsStore } from "@core/store/appSettings.store";
+import type {
+  IEditorCharacterCard,
+  IEditorSkill,
+} from "@character/types/character.types";
 
 interface Props {
-  form: {
-    skills: Skill[];
-  };
+  form: Pick<IEditorCharacterCard, "skills">; // Use Pick from IEditorCharacterCard
   addSkill: () => void;
   removeSkill: (skillId: string) => void;
   exportSkills: () => Promise<void>;
@@ -155,7 +149,7 @@ interface Props {
 
 const props = defineProps<Props>();
 const emit = defineEmits(["update:form"]);
-const localSkills = ref<Skill[]>([]);
+const localSkills = ref<IEditorSkill[]>([]); // Update to use IEditorSkill
 const appSettings = useAppSettingsStore();
 
 watch(

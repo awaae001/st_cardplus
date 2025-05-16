@@ -1,9 +1,18 @@
 {
   "extends": "@vue/tsconfig/tsconfig.dom.json",
   "compilerOptions": {
-    "baseUrl": ".", // 添加 baseUrl
-    "paths": { // 添加 paths 配置
-      "@/*": ["src/*"]
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@assets/*": ["src/assets/*"],
+      "@modules/*": ["src/modules/*"],
+      "@core/*": ["src/modules/core/*"],
+      "@character/*": ["src/modules/character/*"],
+      "@world/*": ["src/modules/world/*"],
+      "@toolbox/*": ["src/modules/toolbox/*"],
+      "@pages/*": ["src/pages/*"],
+      "@router/*": ["src/router/*"],
+      "@styles/*": ["src/styles/*"]
     },
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
 
@@ -14,5 +23,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue "]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]
 }

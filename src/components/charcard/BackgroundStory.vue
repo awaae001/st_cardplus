@@ -1,111 +1,116 @@
 <template>
-  <div class="content-panel-body space-y-5 flex flex-col h-full">
-    <div class="flex flex-col flex-grow">
-      <!-- 背景故事文本域占据剩余空间 -->
-      <div class="content-panel-header -mx-5 md:-mx-6 -mt-5 md:-mt-6 mb-4">
-        <h3 class="content-panel-title flex items-center gap-2">
-          <Icon
-            icon="ph:book-open-text-duotone"
-            class="text-xl text-accent-500 dark:text-accent-400"
-          />
-          背景故事
-        </h3>
-      </div>
-      <el-input
-        v-model="localForm.background"
-        type="textarea"
-        :autosize="{ minRows: 8, maxRows: 15 }"
-        placeholder="请输入角色的背景故事、世界观设定等（建议每行一个段落或关键信息）"
-        class="flex-grow custom-textarea"
-        :input-style="{ resize: 'none', height: '100%' }"
-      />
-      <!-- ********** 确保这里是自闭合的 ********** -->
-    </div>
+  <PanelSection title="背景与性格" icon="ph:scroll-duotone">
+    <el-form :model="localForm" label-position="top" class="space-y-5">
+      <StyledFormItem label="背景故事" prop="background">
+        <el-input
+          v-model="localForm.background"
+          type="textarea"
+          :autosize="{ minRows: 8, maxRows: 15 }"
+          placeholder="请输入角色的背景故事、世界观设定等（建议每行一个段落或关键信息）"
+          class="flex-grow custom-textarea"
+          :input-style="{ resize: 'none', height: '100%' }"
+        />
+      </StyledFormItem>
 
-    <div
-      class="pt-5 border-t border-neutral-200 dark:border-neutral-700/60 shrink-0"
-    >
-      <div class="flex justify-between items-center mb-2">
-        <h4
-          class="text-base font-medium text-neutral-700 dark:text-neutral-200 flex items-center gap-2"
-        >
-          <Icon
-            icon="ph:brain-duotone"
-            class="text-lg text-sky-500 dark:text-sky-400"
+      <div> <!-- Wrapper for MBTI section -->
+        <StyledFormItem prop="mbti" help-text="必须是有效的MBTI数值 (4个字母，如 INFJ) 或者是 'none'">
+          <template #label>
+            <div class="flex justify-between items-center w-full mb-1">
+              <h4 class="text-base font-medium text-neutral-700 dark:text-neutral-200 flex items-center gap-2">
+                <Icon icon="ph:brain-duotone" class="text-lg text-sky-500 dark:text-sky-400" />
+                MBTI 性格
+                <span class="text-xs text-neutral-400 dark:text-neutral-500">(可选)</span>
+              </h4>
+              <el-button
+                @click="validateMBTI"
+                size="small"
+                class="px-3 py-1 text-xs font-medium rounded-md shadow-sm transition-colors duration-150 ease-in-out bg-sky-600 hover:bg-sky-700 border border-sky-600 hover:border-sky-700 text-white dark:bg-sky-500 dark:hover:bg-sky-400 dark:border-sky-500 dark:hover:border-sky-400 dark:text-neutral-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800"
+              >
+                <Icon icon="material-symbols:question-exchange-rounded" width="16" height="16" class="mr-1" />
+                验证
+              </el-button>
+            </div>
+          </template>
+          <el-input
+            v-model="localForm.mbti"
+            placeholder="请输入MBTI性格，例如：INFJ 或 none"
+            clearable
           />
-          MBTI 性格
-          <span class="text-xs text-neutral-400 dark:text-neutral-500"
-            >(可选)</span
-          >
-        </h4>
-        <el-button
-          @click="validateMBTI"
-          size="small"
-          class="px-3 py-1 text-xs font-medium rounded-md shadow-sm transition-colors duration-150 ease-in-out bg-sky-600 hover:bg-sky-700 border border-sky-600 hover:border-sky-700 text-white dark:bg-sky-500 dark:hover:bg-sky-400 dark:border-sky-500 dark:hover:border-sky-400 dark:text-neutral-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800"
-        >
-          <Icon
-            icon="material-symbols:question-exchange-rounded"
-            width="16"
-            height="16"
-            class="mr-1"
-          />
-          验证
-        </el-button>
+        </StyledFormItem>
       </div>
-      <p class="form-help-text mb-1.5">
-        必须是有效的MBTI数值 (4个字母，如 INFJ) 或者是 "none"。
-      </p>
-      <el-input
-        v-model="localForm.mbti"
-        placeholder="请输入MBTI性格，例如：INFJ 或 none"
-        clearable
-      />
-      <!-- ********** 确保这里是自闭合的 ********** -->
-    </div>
-  </div>
+    </el-form>
+  </PanelSection>
 </template>
 
 <script setup lang="ts">
-// ... (脚本部分保持不变)
 import { ref, watch, defineProps, defineEmits } from "vue";
-import { ElMessageBox, ElInput, ElButton } from "element-plus";
+import { ElMessageBox, ElInput, ElButton, ElForm } from "element-plus"; // ElForm added
 import { Icon } from "@iconify/vue";
 
-interface BackgroundStoryForm {
-  background: string;
-  mbti: string;
+import PanelSection from "@core/components/ui/PanelSection.vue";
+import StyledFormItem from "@core/components/forms/StyledFormItem.vue";
+import type { IEditorCharacterCard } from "@character/types/character.types";
+
+type LocalBackgroundStoryForm = Pick<
+  IEditorCharacterCard,
+  "background" | "mbti"
+>;
+
+// This interface can be moved to a constants file or a dedicated MBTI utility if used elsewhere.
+// For now, keeping it local as it's specific to the validation logic here.
+interface MBTIDescriptions {
+  [key: string]: string;
 }
-const props = defineProps<{ form: BackgroundStoryForm }>();
+
+const props = defineProps<{
+  form: IEditorCharacterCard; // Parent passes the whole character card form
+}>();
+
 const emit = defineEmits(["update:form"]);
-const localForm = ref<BackgroundStoryForm>({ ...props.form });
+
+const getLocalFormFromProps = (
+  formProps: IEditorCharacterCard
+): LocalBackgroundStoryForm => ({
+  background: formProps.background,
+  mbti: formProps.mbti,
+});
+
+const localForm = ref<LocalBackgroundStoryForm>(
+  getLocalFormFromProps(props.form)
+);
 
 watch(
   () => props.form,
   (newVal) => {
-    if (JSON.stringify(newVal) !== JSON.stringify(localForm.value)) {
-      localForm.value = { ...newVal };
+    const newLocalData = getLocalFormFromProps(newVal);
+    if (JSON.stringify(newLocalData) !== JSON.stringify(localForm.value)) {
+      localForm.value = newLocalData;
     }
   },
   { deep: true }
 );
+
 watch(
   localForm,
   (newVal) => {
-    emit("update:form", { ...newVal });
+    // Emit only the fields this component is responsible for
+    emit("update:form", {
+      background: newVal.background,
+      mbti: newVal.mbti,
+    });
   },
   { deep: true }
 );
 
 const isValidMBTI = (mbti: string): boolean => {
   if (!mbti) return false;
+  const trimmedMbti = mbti.trim();
   return (
-    mbti.trim().toLowerCase() === "none" ||
-    /^[EI][SN][TF][JP]$/i.test(mbti.trim())
+    trimmedMbti.toLowerCase() === "none" ||
+    /^[EI][SN][TF][JP]$/i.test(trimmedMbti)
   );
 };
-interface MBTIDescriptions {
-  [key: string]: string;
-}
+
 const mbtiDescriptions: MBTIDescriptions = {
   INTP: "逻辑学家 (Architect)",
   INTJ: "战略家 (Mastermind)",
@@ -125,6 +130,7 @@ const mbtiDescriptions: MBTIDescriptions = {
   ESFP: "表演者 (Entertainer)",
   NONE: "未指定或不适用",
 };
+
 const validateMBTI = () => {
   const currentMbti = localForm.value.mbti ? localForm.value.mbti.trim() : "";
   if (!currentMbti) {
@@ -139,7 +145,7 @@ const validateMBTI = () => {
   if (isValidMBTI(currentMbti)) {
     const descriptionKey = type === "NONE" ? "NONE" : type;
     const description =
-      mbtiDescriptions[descriptionKey] || "此特定组合无官方描述，但格式正确";
+      mbtiDescriptions[descriptionKey] || "此特定组合无官方描述，但格式正确。";
     ElMessageBox.alert(
       `MBTI格式有效！\n类型：${type}\n描述：${description}`,
       "验证成功",
@@ -164,8 +170,11 @@ const validateMBTI = () => {
 </script>
 
 <style scoped>
+@reference "../../style.css";
+/* Styles for .custom-textarea can be kept if still needed, or adapted */
 .custom-textarea :deep(.el-textarea__inner) {
   height: 100% !important;
+  /* Consider if this min-height is still appropriate or can be handled by :autosize */
   min-height: calc(theme("spacing.8") * 2 + theme("lineHeight.normal") * 8);
 }
 </style>

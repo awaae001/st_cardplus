@@ -1,48 +1,26 @@
 <template>
-  <div class="content-panel-body space-y-5">
-    <div class="content-panel-header -mx-5 md:-mx-6 -mt-5 md:-mt-6 mb-6">
-      <h3 class="content-panel-title flex items-center gap-2">
-        <Icon
-          icon="ph:identification-card-duotone"
-          class="text-xl text-accent-500 dark:text-accent-400"
-        />
-        基础信息
-      </h3>
-    </div>
-
+  <PanelSection title="基础信息" icon="ph:identification-card-duotone">
     <el-form :model="localForm" label-position="top" class="space-y-1">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-        <el-form-item class="mb-0">
-          <template #label>
-            <span class="form-label-adv"
-              >中文名
-              <span class="text-red-500 dark:text-red-400 ml-1">*</span></span
-            >
-          </template>
+        <StyledFormItem label="中文名" :required="true" prop="chineseName">
           <el-input
             v-model="localForm.chineseName"
             placeholder="角色的中文名称"
             clearable
           />
-        </el-form-item>
+        </StyledFormItem>
 
-        <el-form-item class="mb-0">
-          <template #label>
-            <span class="form-label-adv">日文名 (可选)</span>
-          </template>
+        <StyledFormItem label="日文名 (可选)" prop="japaneseName">
           <el-input
             v-model="localForm.japaneseName"
             placeholder="角色的日文名称"
             clearable
           />
-        </el-form-item>
+        </StyledFormItem>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 items-start">
-        <el-form-item class="mb-0">
-          <template #label>
-            <span class="form-label-adv">性别</span>
-          </template>
+        <StyledFormItem label="性别" prop="gender">
           <el-select
             v-model="localForm.gender"
             placeholder="请选择性别"
@@ -58,11 +36,14 @@
             <el-option label="其他(自定义)" value="other" />
             <el-option label="无" value="none" />
           </el-select>
-        </el-form-item>
+        </StyledFormItem>
 
-        <el-form-item
+        <StyledFormItem
           v-if="localForm.gender === 'other'"
-          class="mb-0 sm:mt-[27px]"
+          label="自定义性别"
+          prop="customGender"
+          class="sm:mt-[33px]"
+          :show-required-asterisk="false"
         >
           <template #label>
             <span class="form-label-adv sm:opacity-0 sm:pointer-events-none"
@@ -73,14 +54,11 @@
             v-model="localForm.customGender"
             placeholder="输入自定义性别"
           />
-        </el-form-item>
+        </StyledFormItem>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-        <el-form-item class="mb-0">
-          <template #label>
-            <span class="form-label-adv">年龄</span>
-          </template>
+        <StyledFormItem label="年龄" prop="age" help-text="请输入整数。">
           <el-input-number
             v-model="localForm.age"
             controls-position="right"
@@ -90,41 +68,31 @@
             class="w-full"
             placeholder="角色年龄"
           />
-          <p class="form-help-text">请输入整数。</p>
-        </el-form-item>
+        </StyledFormItem>
 
-        <el-form-item
-          class="mb-0"
+        <StyledFormItem
+          label="MBTI 性格 (可选)"
+          prop="mbti"
           v-if="'mbti' in localForm && localForm.mbti !== undefined"
         >
-          <template #label>
-            <span class="form-label-adv">MBTI 性格 (可选)</span>
-          </template>
           <el-input
             v-model="localForm.mbti"
             placeholder="例如：INFJ, ENTP"
             clearable
           />
-        </el-form-item>
+        </StyledFormItem>
       </div>
 
-      <el-form-item class="mb-0">
-        <template #label>
-          <span class="form-label-adv">身份/称呼</span>
-        </template>
+      <StyledFormItem label="身份/称呼" prop="identity" help-text="可以使用 {{user}} (用户) 和 {{char}} (角色自身) 占位符。">
         <el-input
           v-model="localForm.identity"
           type="textarea"
           :autosize="{ minRows: 3, maxRows: 6 }"
           placeholder="角色的主要身份、职业或他人对TA的称呼。例如：学生, 老师, {{user}}。一行一条。"
         />
-
-        <p class="form-help-text" v-pre>
-          可以使用 {{ user }} (用户) 和 {{ char }} (角色自身) 占位符。
-        </p>
-      </el-form-item>
+      </StyledFormItem>
     </el-form>
-  </div>
+  </PanelSection>
 </template>
 
 <script setup lang="ts">
@@ -135,33 +103,53 @@ import {
   ElOption,
   ElInputNumber,
   ElForm,
-  ElFormItem,
+  // ElFormItem, // No longer directly used in template
 } from "element-plus";
-import { Icon } from "@iconify/vue";
+// import { Icon } from "@iconify/vue"; // Icon is now handled by PanelSection
 
-interface BasicInfoForm {
-  chineseName: string;
-  japaneseName: string;
-  gender: string;
-  customGender: string;
-  age: number;
-  identity: string;
-  mbti?: string;
-}
+import PanelSection from "@core/components/ui/PanelSection.vue";
+import StyledFormItem from "@core/components/forms/StyledFormItem.vue";
+import type { IEditorCharacterCard } from "@character/types/character.types";
+
+type LocalBasicInfoForm = Pick<
+  IEditorCharacterCard,
+  | "chineseName"
+  | "japaneseName"
+  | "gender"
+  | "customGender"
+  | "age"
+  | "identity"
+  | "mbti"
+>;
 
 const props = defineProps<{
-  form: BasicInfoForm;
+  form: IEditorCharacterCard; // Parent passes the whole character card form
 }>();
 
 const emit = defineEmits(["update:form"]);
 
-const localForm = ref<BasicInfoForm>({ ...props.form });
+// Initialize localForm with only the relevant fields from the prop
+const getLocalFormFromProps = (
+  formProps: IEditorCharacterCard
+): LocalBasicInfoForm => ({
+  chineseName: formProps.chineseName,
+  japaneseName: formProps.japaneseName,
+  gender: formProps.gender,
+  customGender: formProps.customGender,
+  age: formProps.age,
+  identity: formProps.identity,
+  mbti: formProps.mbti,
+});
+
+const localForm = ref<LocalBasicInfoForm>(getLocalFormFromProps(props.form));
 
 watch(
   () => props.form,
   (newVal) => {
-    if (JSON.stringify(newVal) !== JSON.stringify(localForm.value)) {
-      localForm.value = { ...newVal };
+    const newLocalData = getLocalFormFromProps(newVal);
+    // Compare only the relevant subset of data
+    if (JSON.stringify(newLocalData) !== JSON.stringify(localForm.value)) {
+      localForm.value = newLocalData;
     }
   },
   { deep: true }

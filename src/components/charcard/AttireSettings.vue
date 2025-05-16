@@ -1,14 +1,7 @@
 <template>
-  <div class="content-panel-body space-y-5">
-    <div class="content-panel-header -mx-5 md:-mx-6 -mt-5 md:-mt-6 mb-6">
-      <h3 class="content-panel-title flex items-center gap-2">
-        <Icon
-          icon="ph:person-simple-run-duotone"
-          class="text-xl text-accent-500 dark:text-accent-400"
-        />
-        服装设定
-      </h3>
-      <div class="flex gap-x-3 ml-auto">
+  <PanelSection title="服装设定" icon="ph:person-simple-run-duotone">
+    <template #actions>
+      <div class="flex gap-x-3">
         <button
           @click="props.addAttire"
           class="btn-primary-adv text-sm !py-1.5 !px-3 whitespace-nowrap"
@@ -22,19 +15,16 @@
           />
           添加套装
         </button>
-        <button
+        <TooltipIconButton
+          tooltip-content="导出所有服装配置 (JSON)"
+          icon="material-symbols:ios-share-rounded"
+          label-text="导出所有服装配置"
+          button-class="btn-secondary-adv text-sm !py-1.5 !px-3"
+          icon-class="text-[18px]"
           @click="props.exportAttires"
-          title="导出所有服装配置 (JSON)"
-          class="btn-secondary-adv text-sm !py-1.5 !px-3"
-        >
-          <Icon
-            icon="material-symbols:ios-share-rounded"
-            width="18"
-            height="18"
-          />
-        </button>
+        />
       </div>
-    </div>
+    </template>
 
     <draggable
       v-if="
@@ -83,16 +73,17 @@
                       $event.target as HTMLTextAreaElement
                     )
                   "
-                ></el-input>
+                />
               </div>
-              <button
-                @click="() => props.removeAttire(attire.id)"
-                class="btn-danger-adv !p-1 !aspect-square shrink-0 !rounded-full !text-xs ml-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="删除此套装"
+              <TooltipIconButton
+                tooltip-content="删除此套装"
+                icon="ph:x-bold"
+                :label-text="`删除套装 ${attire.name}`"
+                button-class="btn-danger-adv !p-1 !aspect-square shrink-0 !rounded-full !text-xs ml-2"
+                icon-class="text-[12px]"
                 :disabled="appSettings.safeModeLevel === 'forbidden'"
-              >
-                <Icon icon="ph:x-bold" width="12" height="12" />
-              </button>
+                @click="() => props.removeAttire(attire.id)"
+              />
             </div>
 
             <div class="p-3 flex flex-col gap-y-3 flex-grow">
@@ -110,7 +101,7 @@
                     $event.target as HTMLTextAreaElement
                   )
                 "
-              ></el-input>
+              />
 
               <div :class="getFieldGroupLayoutClass(attire)">
                 <el-input
@@ -128,7 +119,7 @@
                       true
                     )
                   "
-                ></el-input>
+                />
                 <el-input
                   v-model="attire.bottoms"
                   type="textarea"
@@ -144,7 +135,7 @@
                       true
                     )
                   "
-                ></el-input>
+                />
                 <el-input
                   v-model="attire.shoes"
                   type="textarea"
@@ -160,7 +151,7 @@
                       true
                     )
                   "
-                ></el-input>
+                />
                 <el-input
                   v-model="attire.socks"
                   type="textarea"
@@ -176,7 +167,7 @@
                       true
                     )
                   "
-                ></el-input>
+                />
               </div>
 
               <el-input
@@ -193,7 +184,7 @@
                     $event.target as HTMLTextAreaElement
                   )
                 "
-              ></el-input>
+              />
               <el-input
                 type="textarea"
                 :autosize="{ minRows: 2, maxRows: 5 }"
@@ -208,7 +199,7 @@
                     $event.target as HTMLTextAreaElement
                   )
                 "
-              ></el-input>
+              />
             </div>
           </div>
         </div>
@@ -230,14 +221,21 @@
         点击“添加套装”开始创建时尚造型吧！
       </p>
     </div>
-  </div>
+  </PanelSection>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, defineProps, defineEmits, reactive, nextTick } from "vue";
-import { Icon } from "@iconify/vue";
+import { Icon } from "@iconify/vue"; // Icon is still used for "添加套装" button and empty state
 import draggable from "vuedraggable";
-import { useAppSettingsStore } from "../../stores/appSettings";
+import { ElInput } from "element-plus"; // ElTooltip removed, ElMessageBox might be needed by parent for removeAttire confirmation
+import { useAppSettingsStore } from "@core/store/appSettings.store";
+import PanelSection from "@core/components/ui/PanelSection.vue";
+import TooltipIconButton from "@core/components/ui/TooltipIconButton.vue";
+import type {
+  IEditorCharacterCard,
+  IEditorAttire,
+} from "@character/types/character.types";
 
 type LayoutFieldKey = "tops" | "bottoms" | "shoes" | "socks";
 type OtherFieldKey = "name" | "description" | "underwears" | "accessories";
@@ -257,23 +255,14 @@ interface AttireInternalLayoutState {
   fieldHeights: FieldHeights;
 }
 
-interface AttireItem {
-  id: string;
-  name: string;
-  description: string;
-  tops: string;
-  bottoms: string;
-  shoes: string;
-  socks: string;
-  underwears: string;
-  accessories: string;
+// Local interface that combines shared IEditorAttire with component-specific layout state
+interface LocalAttireItemWithLayout extends IEditorAttire {
   _internalLayoutState: AttireInternalLayoutState;
 }
 
 interface Props {
-  form: {
-    attires: Omit<AttireItem, "_internalLayoutState">[];
-  };
+  // Parent passes the attires part of the main form
+  form: Pick<IEditorCharacterCard, "attires">;
   addAttire: () => void;
   removeAttire: (attireId: string) => void;
   exportAttires: () => Promise<void>;
@@ -283,20 +272,14 @@ const HEIGHT_THRESHOLD_FOR_STACKING = 75;
 
 const props = defineProps<Props>();
 const emit = defineEmits(["update:form"]);
-const localAttiresReactive = ref<AttireItem[]>([]);
+const localAttiresReactive = ref<LocalAttireItemWithLayout[]>([]);
 const appSettings = useAppSettingsStore();
 
 const createDefaultLayoutState = (): AttireInternalLayoutState => ({
   fieldGroupMode: "grid",
   fieldHeights: reactive({
-    name: 0,
-    description: 0,
-    tops: 0,
-    bottoms: 0,
-    shoes: 0,
-    socks: 0,
-    underwears: 0,
-    accessories: 0,
+    name: 0, description: 0, tops: 0, bottoms: 0, shoes: 0,
+    socks: 0, underwears: 0, accessories: 0,
   }),
 });
 
@@ -316,20 +299,20 @@ watch(
       try {
         const processedAttires = (
           newAttiresFromProp && Array.isArray(newAttiresFromProp)
-            ? JSON.parse(JSON.stringify(newAttiresFromProp))
+            ? JSON.parse(JSON.stringify(newAttiresFromProp)) // Deep clone
             : []
-        ).map((attireData: Omit<AttireItem, "_internalLayoutState">) => {
+        ).map((attireData: IEditorAttire) => { // attireData is now IEditorAttire
           const existingItem = localAttiresReactive.value.find(
             (item) => item.id === attireData.id
           );
           return {
-            ...attireData,
+            ...attireData, // Spread IEditorAttire fields
             _internalLayoutState: existingItem
               ? existingItem._internalLayoutState
-              : reactive(createDefaultLayoutState()),
+              : reactive(createDefaultLayoutState()), // Add internal layout state
           };
         });
-        localAttiresReactive.value = processedAttires;
+        localAttiresReactive.value = processedAttires as LocalAttireItemWithLayout[];
         nextTick(async () => {
           await initializeAllTextareaLayouts();
         });
@@ -365,7 +348,7 @@ watch(
 
 const initializeAllTextareaLayouts = async () => {
   for (const attire of localAttiresReactive.value) {
-    await nextTick();
+    await nextTick(); // Ensure DOM is updated
     const attireCardElement = document.querySelector(
       `.attire-item-card-outer-wrapper div[key="${attire.id}"] .attire-item-card`
     );
@@ -374,17 +357,14 @@ const initializeAllTextareaLayouts = async () => {
         ".expanding-textarea textarea, .attire-name-input-in-handle textarea"
       ) as NodeListOf<HTMLTextAreaElement>;
       textareas.forEach((textarea) => {
-        if (textarea.value) {
+        if (textarea.value) { // Only update if there's content, to avoid issues with placeholders
           const placeholder = textarea.placeholder.toLowerCase();
           const isNameInput =
-            textarea.classList.contains("el-textarea__inner") &&
-            textarea.parentElement?.parentElement?.classList.contains(
-              "attire-name-input-in-handle"
-            );
+            textarea.classList.contains("el-textarea__inner") && // Check specific el-input textarea
+            textarea.parentElement?.parentElement?.classList.contains("attire-name-input-in-handle");
 
           let fieldKey: LayoutFieldKey | OtherFieldKey | null = null;
-          if (isNameInput || placeholder.includes("套装名称"))
-            fieldKey = "name";
+          if (isNameInput || placeholder.includes("套装名称")) fieldKey = "name";
           else if (placeholder.includes("套装描述")) fieldKey = "description";
           else if (placeholder.includes("上衣")) fieldKey = "tops";
           else if (placeholder.includes("下装")) fieldKey = "bottoms";
@@ -393,9 +373,7 @@ const initializeAllTextareaLayouts = async () => {
           else if (placeholder.includes("内衣")) fieldKey = "underwears";
           else if (placeholder.includes("配饰")) fieldKey = "accessories";
 
-          const isDynamicGroupMember = fieldKey
-            ? ["tops", "bottoms", "shoes", "socks"].includes(fieldKey)
-            : false;
+          const isDynamicGroupMember = fieldKey ? ["tops", "bottoms", "shoes", "socks"].includes(fieldKey) : false;
 
           if (fieldKey) {
             updateFieldHeight(attire, fieldKey, textarea, isDynamicGroupMember);
@@ -407,128 +385,75 @@ const initializeAllTextareaLayouts = async () => {
 };
 
 const updateFieldHeight = (
-  attire: AttireItem,
+  attire: LocalAttireItemWithLayout,
   fieldKey: LayoutFieldKey | OtherFieldKey,
   textareaElement: HTMLTextAreaElement | null,
   partOfDynamicGroup: boolean = false
 ) => {
   if (!textareaElement) return;
+  // Ensure the element calculates its scrollHeight correctly before reading it
+  textareaElement.style.height = 'auto'; // Temporarily reset height
   const currentScrollHeight = textareaElement.scrollHeight;
+  textareaElement.style.height = ''; // Restore original height behavior (or let :autosize handle it)
+
   if (attire._internalLayoutState.fieldHeights.hasOwnProperty(fieldKey)) {
-    (attire._internalLayoutState.fieldHeights as any)[fieldKey] =
-      currentScrollHeight;
+    (attire._internalLayoutState.fieldHeights as any)[fieldKey] = currentScrollHeight;
   }
+
   if (partOfDynamicGroup) {
     const groupFields: LayoutFieldKey[] = ["tops", "bottoms", "shoes", "socks"];
     let shouldStack = false;
     for (const key of groupFields) {
-      if (
-        (attire._internalLayoutState.fieldHeights[key] || 0) >
-        HEIGHT_THRESHOLD_FOR_STACKING
-      ) {
+      if ((attire._internalLayoutState.fieldHeights[key] || 0) > HEIGHT_THRESHOLD_FOR_STACKING) {
         shouldStack = true;
         break;
       }
     }
-    if (shouldStack) {
-      if (attire._internalLayoutState.fieldGroupMode !== "stacked")
-        attire._internalLayoutState.fieldGroupMode = "stacked";
-    } else {
-      if (attire._internalLayoutState.fieldGroupMode !== "grid")
-        attire._internalLayoutState.fieldGroupMode = "grid";
-    }
+    attire._internalLayoutState.fieldGroupMode = shouldStack ? "stacked" : "grid";
   }
 };
 
-const getFieldGroupLayoutClass = (attire: AttireItem): string => {
-  if (attire._internalLayoutState?.fieldGroupMode === "stacked")
-    return "grid grid-cols-1 gap-y-2.5";
-  return "grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-2.5";
+const getFieldGroupLayoutClass = (
+  attire: LocalAttireItemWithLayout
+): string => {
+  return attire._internalLayoutState?.fieldGroupMode === "stacked"
+    ? "grid grid-cols-1 gap-y-2.5"
+    : "grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-2.5";
 };
 
-const handleDraggableChange = () => {};
+const handleDraggableChange = () => {
+  // This event can be used to persist the new order if needed,
+  // but v-model on localAttiresReactive already updates the order.
+  // The parent component will receive the updated order via the watch on localAttiresReactive.
+};
 </script>
 
 <style scoped>
+@reference "../../style.css";
 .attire-ghost {
-  opacity: 0.6;
-  border-radius: var(--radius-lg);
-  background-color: var(--color-sky-100);
-  outline: 2px dashed var(--color-sky-400);
-  box-shadow: none;
-}
-:where(.dark, .dark *) .attire-ghost {
-  background-color: oklch(from var(--color-sky-800) l c h / 0.4);
+  @apply opacity-60 rounded-lg bg-sky-100 dark:bg-sky-800/40 outline-2 outline-dashed outline-sky-400 shadow-none;
 }
 .attire-chosen .attire-item-card {
-  --chosen-ring-width: 2px;
-  --chosen-ring-offset-width: 2px;
-  --chosen-ring-color-light: var(--color-accent-500);
-  --chosen-ring-offset-color-light: var(--color-white);
-  --chosen-ring-color-dark: var(--color-accent-400);
-  --chosen-ring-offset-color-dark: var(--color-neutral-850);
-  box-shadow: 0 0 0 var(--chosen-ring-offset-width)
-      var(--chosen-ring-offset-color-light),
-    0 0 0 calc(var(--chosen-ring-offset-width) + var(--chosen-ring-width))
-      var(--chosen-ring-color-light),
-    var(--shadow-xl);
-}
-:where(.dark, .dark *) .attire-chosen .attire-item-card {
-  box-shadow: 0 0 0 var(--chosen-ring-offset-width)
-      var(--chosen-ring-offset-color-dark),
-    0 0 0 calc(var(--chosen-ring-offset-width) + var(--chosen-ring-width))
-      var(--chosen-ring-color-dark),
-    var(--shadow-xl);
-}
-.attire-chosen {
+  @apply ring-2 ring-accent-500 dark:ring-accent-400 ring-offset-2 ring-offset-white dark:ring-offset-neutral-850 shadow-xl;
   transform: scale(1.02);
   z-index: 10;
 }
 
 .attire-card-drag-handle:hover {
-  background-color: var(--color-neutral-200);
-}
-:where(.dark, .dark *) .attire-card-drag-handle:hover {
-  background-color: var(--color-neutral-600);
+  @apply bg-neutral-200 dark:bg-neutral-600;
 }
 
-.attire-card-drag-handle
-  :deep(.attire-name-input-in-handle.el-textarea .el-textarea__inner) {
-  background-color: transparent;
-  border: none;
-  box-shadow: none;
-  padding: 2px 4px;
-  font-weight: 500;
+.attire-card-drag-handle :deep(.attire-name-input-in-handle.el-textarea .el-textarea__inner) {
+  @apply bg-transparent border-none shadow-none p-0.5 text-center font-medium text-neutral-700 dark:text-neutral-300 resize-none;
   line-height: 1.4;
-  font-size: 0.875rem;
-  color: var(--color-neutral-700);
-  resize: none;
-  text-align: center;
+  font-size: 0.875rem; /* 14px */
 }
-:where(.dark, .dark *)
-  .attire-card-drag-handle
-  :deep(.attire-name-input-in-handle.el-textarea .el-textarea__inner) {
-  color: var(--color-neutral-300);
-}
-.attire-card-drag-handle
-  :deep(.attire-name-input-in-handle.el-textarea.is-focus .el-textarea__inner) {
-  background-color: var(--color-white);
-}
-:where(.dark, .dark *)
-  .attire-card-drag-handle
-  :deep(.attire-name-input-in-handle.el-textarea.is-focus .el-textarea__inner) {
-  background-color: var(--color-neutral-700);
+.attire-card-drag-handle :deep(.attire-name-input-in-handle.el-textarea.is-focus .el-textarea__inner) {
+  @apply bg-white dark:bg-neutral-700;
 }
 
-.attire-item-card
-  .p-3
-  :deep(.expanding-textarea.el-textarea .el-textarea__inner) {
-  font-size: 0.8125rem;
-  line-height: 1.5;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  resize: none;
-  border-radius: var(--el-input-border-radius, var(--radius-base));
+.attire-item-card .p-3 :deep(.expanding-textarea.el-textarea .el-textarea__inner) {
+  @apply text-xs leading-normal py-1 resize-none rounded; /* Adjusted from 13px to text-xs for consistency */
 }
 .attire-item-card :deep(.grid .expanding-textarea.el-textarea) {
   width: 100%;

@@ -177,21 +177,15 @@ import { ref, watch, defineProps, defineEmits } from "vue";
 import { ElInput } from "element-plus"; // ElPopconfirm is no longer needed here
 import { Icon } from "@iconify/vue";
 import draggable from "vuedraggable";
-import { useAppSettingsStore } from "../../stores/appSettings";
-import { performSafeAction } from "@/utils/safeAction";
-
-interface Relationship {
-  id: string;
-  name: string;
-  description: string;
-  features: string;
-  dialogueExamples: string[];
-}
+import { useAppSettingsStore } from "@core/store/appSettings.store";
+import { performSafeAction } from "@core/utils/safeAction.utils";
+import type {
+  IEditorCharacterCard,
+  IEditorRelationship,
+} from "@character/types/character.types";
 
 interface Props {
-  form: {
-    relationships: Relationship[];
-  };
+  form: Pick<IEditorCharacterCard, "relationships">;
   addRelationship: () => void;
   removeRelationship: (relationshipId: string) => void;
   exportRelationships: () => Promise<void>;
@@ -199,7 +193,7 @@ interface Props {
 
 const props = defineProps<Props>();
 const emit = defineEmits(["update:form"]);
-const localRelationships = ref<Relationship[]>([]);
+const localRelationships = ref<IEditorRelationship[]>([]);
 const appSettings = useAppSettingsStore();
 
 watch(

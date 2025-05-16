@@ -99,15 +99,20 @@ import { Icon } from "@iconify/vue";
 import draggable from "vuedraggable";
 import { nanoid } from "nanoid";
 import { ElInput } from "element-plus";
-import { useAppSettingsStore } from "../../stores/appSettings";
-import { performSafeAction } from "@/utils/safeAction";
+import { useAppSettingsStore } from "@core/store/appSettings.store";
+import { performSafeAction } from "@core/utils/safeAction.utils";
+import type { ICharacterOutputSettings } from "@character/types/character.types";
 
 interface GreetingItem {
   id: string;
   text: string;
 }
 interface AlternateGreetingsFormData {
-  data: { alternate_greetings: string[]; [key: string]: any };
+  data: {
+    /** Corresponds to ICharacterOutputSettings['alternateGreetings'] */
+    alternate_greetings: string[];
+    [key: string]: any;
+  };
 }
 interface Props {
   form: AlternateGreetingsFormData;

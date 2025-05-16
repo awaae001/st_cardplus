@@ -24,9 +24,11 @@
 <script setup lang="ts">
 import { ref, watch, defineProps, defineEmits, nextTick } from "vue";
 import { Icon } from "@iconify/vue";
+import type { IPersonalityTraits } from "@character/types/character.types";
 
 interface PersonalitySettingsFormData {
-  personality: string;
+  /** Corresponds to IPersonalityTraits['summary'] */
+  personality: string; // Kept as string, component logic handles undefined/null to ""
   data?: { personality?: string; [key: string]: any };
 }
 interface Props {

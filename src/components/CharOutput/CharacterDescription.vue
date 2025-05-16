@@ -41,10 +41,11 @@
 import { ref, watch, defineProps, defineEmits, nextTick } from "vue";
 import { Icon } from "@iconify/vue";
 import { ElInput } from "element-plus"; // Corrected import - only ElInput is used
-import { type SafeModeLevel } from "../../stores/appSettings"; // Assuming path from src/components/CharOutput/
+import type { SafeModeLevel } from "@core/store/appSettings.store";
+import type { ICharacterMetadata } from "@character/types/character.types";
 
 interface CharacterDescriptionFormData {
-  description: string;
+  description: ICharacterMetadata["description"];
   data?: { description?: string; [key: string]: any };
 }
 

@@ -1,202 +1,167 @@
 <template>
-  <div class="content-panel-body space-y-5">
-    <div class="content-panel-header -mx-5 md:-mx-6 -mt-5 md:-mt-6 mb-6">
-      <h3 class="content-panel-title flex items-center gap-2">
-        <Icon
-          icon="ph:person-duotone"
-          class="text-xl text-accent-500 dark:text-accent-400"
-        />
-        外貌特征
-      </h3>
-    </div>
-
-    <div
-      class="flex items-center gap-2 p-3 rounded-md bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/30 text-sky-700 dark:text-sky-300 text-xs mb-4"
-    >
-      <Icon icon="ph:info-duotone" class="text-lg shrink-0" />
-      <span>当输入框留空时，该位置不会被导出，即："不用全部填写"。</span>
-    </div>
+  <PanelSection title="外貌特征" icon="ph:person-duotone">
+    <InfoAlert message="当输入框留空时，该位置不会被导出，即：“不用全部填写”。" />
 
     <el-form
       :model="localForm.appearance"
       :label-width="labelWidth"
       label-position="top"
-      class="space-y-1"
+      class="space-y-1 mt-4"
     >
       <div
         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-x-6 gap-y-4"
       >
-        <el-form-item class="mb-0">
-          <template #label><span class="form-label-adv">身高</span></template>
+        <StyledFormItem label="身高">
           <el-input
             type="textarea"
             :autosize="{ minRows: 1, maxRows: 5 }"
             v-model="localForm.appearance.height"
             placeholder="例如：测量值 175cm"
-          ></el-input>
-        </el-form-item>
-        <el-form-item class="mb-0">
-          <template #label><span class="form-label-adv">发色</span></template>
+          />
+        </StyledFormItem>
+        <StyledFormItem label="发色">
           <el-input
             type="textarea"
             :autosize="{ minRows: 1, maxRows: 5 }"
             v-model="localForm.appearance.hairColor"
             placeholder="例如：深棕色，接近Pantone 19-1118 TPX"
-          ></el-input>
-        </el-form-item>
-        <el-form-item class="mb-0">
-          <template #label><span class="form-label-adv">发型</span></template>
+          />
+        </StyledFormItem>
+        <StyledFormItem label="发型">
           <el-input
             type="textarea"
             :autosize="{ minRows: 1, maxRows: 5 }"
             v-model="localForm.appearance.hairstyle"
             placeholder="例如：自然垂顺，长度至肩胛骨下缘"
-          ></el-input>
-        </el-form-item>
-        <el-form-item class="mb-0">
-          <template #label><span class="form-label-adv">眼睛</span></template>
+          />
+        </StyledFormItem>
+        <StyledFormItem label="眼睛">
           <el-input
             type="textarea"
             :autosize="{ minRows: 1, maxRows: 5 }"
             v-model="localForm.appearance.eyes"
             placeholder="例如：虹膜呈浅褐色，瞳孔对光反射正常"
-          ></el-input>
-        </el-form-item>
-        <el-form-item class="mb-0">
-          <template #label><span class="form-label-adv">鼻子</span></template>
+          />
+        </StyledFormItem>
+        <StyledFormItem label="鼻子">
           <el-input
             type="textarea"
             :autosize="{ minRows: 1, maxRows: 5 }"
             v-model="localForm.appearance.nose"
             placeholder="例如：鼻梁直，鼻翼对称，无明显偏曲"
-          ></el-input>
-        </el-form-item>
-        <el-form-item class="mb-0">
-          <template #label><span class="form-label-adv">嘴唇</span></template>
+          />
+        </StyledFormItem>
+        <StyledFormItem label="嘴唇">
           <el-input
             type="textarea"
             :autosize="{ minRows: 1, maxRows: 5 }"
             v-model="localForm.appearance.lips"
             placeholder="例如：唇红缘清晰，厚度适中"
-          ></el-input>
-        </el-form-item>
-        <el-form-item class="mb-0">
-          <template #label><span class="form-label-adv">皮肤</span></template>
+          />
+        </StyledFormItem>
+        <StyledFormItem label="皮肤">
           <el-input
             type="textarea"
             :autosize="{ minRows: 1, maxRows: 5 }"
             v-model="localForm.appearance.skin"
             placeholder="例如：Fitzpatrick皮肤分型II型，无明显瘢痕或色素沉着"
-          ></el-input>
-        </el-form-item>
-        <el-form-item class="mb-0">
-          <template #label><span class="form-label-adv">身材</span></template>
+          />
+        </StyledFormItem>
+        <StyledFormItem label="身材">
           <el-input
             type="textarea"
             :autosize="{ minRows: 1, maxRows: 5 }"
             v-model="localForm.appearance.body"
             placeholder="例如：体型匀称，肌肉组织发育良好"
-          ></el-input>
-        </el-form-item>
-        <el-form-item class="mb-0">
-          <template #label><span class="form-label-adv">胸部</span></template>
+          />
+        </StyledFormItem>
+        <StyledFormItem label="胸部">
           <el-input
             type="textarea"
             :autosize="{ minRows: 1, maxRows: 5 }"
             v-model="localForm.appearance.breasts"
             placeholder="例如：乳腺组织发育对称，Tanner分期V期"
-          ></el-input>
-        </el-form-item>
-        <el-form-item class="mb-0">
-          <template #label><span class="form-label-adv">生殖器</span></template>
+          />
+        </StyledFormItem>
+        <StyledFormItem label="生殖器">
           <el-input
             type="textarea"
             :autosize="{ minRows: 1, maxRows: 5 }"
             v-model="localForm.appearance.genitals"
             placeholder="例如：外生殖器发育正常，符合生理性别特征"
-          ></el-input>
-        </el-form-item>
-        <el-form-item class="mb-0">
-          <template #label><span class="form-label-adv">肛门</span></template>
+          />
+        </StyledFormItem>
+        <StyledFormItem label="肛门">
           <el-input
             type="textarea"
             :autosize="{ minRows: 1, maxRows: 5 }"
             v-model="localForm.appearance.anus"
             placeholder="例如：肛周皮肤完整，无异常赘生物"
-          ></el-input>
-        </el-form-item>
-        <el-form-item class="mb-0">
-          <template #label><span class="form-label-adv">阴毛</span></template>
+          />
+        </StyledFormItem>
+        <StyledFormItem label="阴毛">
           <el-input
             type="textarea"
             :autosize="{ minRows: 1, maxRows: 5 }"
             v-model="localForm.appearance.pubes"
             placeholder="例如：耻骨联合区毛发分布呈倒三角形"
-          ></el-input>
-        </el-form-item>
-        <el-form-item class="mb-0">
-          <template #label><span class="form-label-adv">胸围</span></template>
+          />
+        </StyledFormItem>
+        <StyledFormItem label="胸围">
           <el-input
             type="textarea"
             :autosize="{ minRows: 1, maxRows: 5 }"
             v-model="localForm.appearance.bust"
             placeholder="例如：经乳头点水平周长90cm"
-          ></el-input>
-        </el-form-item>
-        <el-form-item class="mb-0">
-          <template #label><span class="form-label-adv">腰围</span></template>
+          />
+        </StyledFormItem>
+        <StyledFormItem label="腰围">
           <el-input
             type="textarea"
             :autosize="{ minRows: 1, maxRows: 5 }"
             v-model="localForm.appearance.waist"
             placeholder="例如：脐水平周长60cm"
-          ></el-input>
-        </el-form-item>
-        <el-form-item class="mb-0">
-          <template #label><span class="form-label-adv">臀围</span></template>
+          />
+        </StyledFormItem>
+        <StyledFormItem label="臀围">
           <el-input
             type="textarea"
             :autosize="{ minRows: 1, maxRows: 5 }"
             v-model="localForm.appearance.hips"
             placeholder="例如：臀部最突出点水平周长90cm"
-          ></el-input>
-        </el-form-item>
-        <el-form-item class="mb-0">
-          <template #label><span class="form-label-adv">大腿</span></template>
+          />
+        </StyledFormItem>
+        <StyledFormItem label="大腿">
           <el-input
             type="textarea"
             :autosize="{ minRows: 1, maxRows: 5 }"
             v-model="localForm.appearance.thighs"
             placeholder="例如：股四头肌轮廓清晰，无萎缩"
-          ></el-input>
-        </el-form-item>
-        <el-form-item class="mb-0">
-          <template #label><span class="form-label-adv">屁股</span></template>
+          />
+        </StyledFormItem>
+        <StyledFormItem label="屁股">
           <el-input
             type="textarea"
             :autosize="{ minRows: 1, maxRows: 5 }"
             v-model="localForm.appearance.butt"
             placeholder="例如：臀大肌饱满，形态圆隆"
-          ></el-input>
-        </el-form-item>
-        <el-form-item class="mb-0">
-          <template #label><span class="form-label-adv">足部</span></template>
+          />
+        </StyledFormItem>
+        <StyledFormItem label="足部">
           <el-input
             type="textarea"
             :autosize="{ minRows: 1, maxRows: 5 }"
             v-model="localForm.appearance.feet"
             placeholder="例如：双足对称，足弓形态正常，无畸形"
-          ></el-input>
-        </el-form-item>
+          />
+        </StyledFormItem>
 
-        <el-form-item
+        <StyledFormItem
           v-for="(field, index) in customFields"
           :key="field.label + '-' + index"
-          class="mb-0 col-span-1"
+          :label="field.label"
+          class="col-span-1"
         >
-          <template #label
-            ><span class="form-label-adv">{{ field.label }}</span></template
-          >
           <div class="flex items-center gap-2">
             <el-input
               type="textarea"
@@ -204,34 +169,31 @@
               v-model="field.value"
               :placeholder="`请输入 ${field.label} 特征`"
               class="flex-grow"
-            ></el-input>
-            <button
-              @click.prevent="requestRemoveCustomField(index)"
+            />
+            <TooltipIconButton
+              tooltip-content="移除此字段"
+              icon="ph:trash-simple-duotone"
+              :label-text="`移除字段 ${field.label}`"
+              button-class="btn-danger-adv !p-1.5 !aspect-square shrink-0"
+              icon-class="text-base"
               :disabled="appSettings.safeModeLevel === 'forbidden'"
-              :class="{
-                'opacity-50 cursor-not-allowed':
-                  appSettings.safeModeLevel === 'forbidden',
-              }"
-              class="btn-danger-adv !p-1.5 !aspect-square shrink-0"
-              aria-label="移除此字段"
-            >
-              <Icon icon="ph:trash-simple-duotone" class="text-base" />
-            </button>
+              @click.prevent="requestRemoveCustomField(index)"
+            />
           </div>
-        </el-form-item>
+        </StyledFormItem>
       </div>
     </el-form>
 
-    <div class="mt-4">
-      <button
+    <div class="mt-6">
+      <el-button
         @click="addCustomField"
         class="btn-secondary-adv !py-1.5 !px-3 text-xs"
       >
         <Icon icon="ph:plus-circle-duotone" class="mr-1.5 text-base" />
         添加自定义外貌字段
-      </button>
+      </el-button>
     </div>
-  </div>
+  </PanelSection>
 </template>
 
 <script setup lang="ts">
@@ -246,51 +208,70 @@ import {
 } from "vue";
 import {
   ElInput,
-  ElFormItem,
   ElForm,
   ElMessageBox,
   ElMessage,
+  ElButton, // Added ElButton
 } from "element-plus";
 import { Icon } from "@iconify/vue";
-import { useAppSettingsStore } from "../../stores/appSettings";
+import { useAppSettingsStore } from "@core/store/appSettings.store";
+import { performSafeAction } from "@core/utils/safeAction.utils";
+
+import PanelSection from "@core/components/ui/PanelSection.vue";
+import StyledFormItem from "@core/components/forms/StyledFormItem.vue";
+import InfoAlert from "@core/components/ui/InfoAlert.vue";
+import TooltipIconButton from "@core/components/ui/TooltipIconButton.vue";
+import type {
+  IEditorCharacterCard,
+  IEditorAppearance,
+} from "@character/types/character.types";
 
 interface CustomField {
   label: string;
   value: string;
 }
 
-interface AppearanceForm {
-  appearance: {
-    height: string;
-    hairColor: string;
-    hairstyle: string;
-    eyes: string;
-    nose: string;
-    lips: string;
-    skin: string;
-    body: string;
-    bust: string;
-    waist: string;
-    hips: string;
-    breasts: string;
-    genitals: string;
-    anus: string;
-    pubes: string;
-    thighs: string;
-    butt: string;
-    feet: string;
-    [key: string]: string;
-  };
-}
-
-const props = defineProps<{ form: AppearanceForm }>();
+// The prop 'form' will be the entire character card, but this component only manages the 'appearance' part.
+const props = defineProps<{ form: IEditorCharacterCard }>();
 const emit = defineEmits(["update:form", "remove-custom-field"]);
 const appSettings = useAppSettingsStore();
 
-const defaultAppearance: AppearanceForm["appearance"] = {
+const defaultAppearance: IEditorAppearance = {
   height: "",
   hairColor: "",
   hairstyle: "",
+>>>>>>> REPLACE
+<<<<<<< SEARCH
+:start_line:279
+-------
+const localForm = ref<AppearanceForm>({
+  appearance: {
+    ...defaultAppearance,
+    ...(props.form.appearance || {}),
+  },
+});
+
+const customFields = ref<CustomField[]>([]);
+=======
+const localForm = ref<{ appearance: IEditorAppearance }>({
+  appearance: {
+    ...defaultAppearance,
+    ...(props.form.appearance || {}), // Initialize with appearance from IEditorCharacterCard
+  },
+});
+
+const customFields = ref<CustomField[]>([]);
+>>>>>>> REPLACE
+<<<<<<< SEARCH
+:start_line:304
+-------
+  appearanceData: AppearanceForm["appearance"] | undefined
+) => {
+  const newCustomFields: CustomField[] = [];
+=======
+  appearanceData: IEditorAppearance | undefined
+) => {
+  const newCustomFields: CustomField[] = [];
   eyes: "",
   nose: "",
   lips: "",
@@ -327,24 +308,9 @@ const updateScreenWidth = () => {
 };
 
 const STANDARD_APPEARANCE_KEYS = new Set([
-  "height",
-  "hairColor",
-  "hairstyle",
-  "eyes",
-  "nose",
-  "lips",
-  "skin",
-  "body",
-  "bust",
-  "waist",
-  "hips",
-  "breasts",
-  "genitals",
-  "anus",
-  "pubes",
-  "thighs",
-  "butt",
-  "feet",
+  "height", "hairColor", "hairstyle", "eyes", "nose", "lips", "skin",
+  "body", "bust", "waist", "hips", "breasts", "genitals", "anus",
+  "pubes", "thighs", "butt", "feet",
 ]);
 
 const initializeCustomFields = (
@@ -438,19 +404,15 @@ watch(
         JSON.stringify(newLocalAppearance)
       ) {
         localForm.value.appearance = newLocalAppearance;
+        // The watch on localForm.value.appearance will handle emitting the update
       }
     }
   },
   { deep: true }
 );
 
-watch(
-  localForm,
-  (newVal) => {
-    emit("update:form", { ...newVal });
-  },
-  { deep: true }
-);
+// Removed the direct watch on localForm for emitting, as the combined watch on
+// localForm.value.appearance should cover updates from both standard and custom fields.
 
 const addCustomField = async () => {
   try {
@@ -484,7 +446,6 @@ const addCustomField = async () => {
     if (inputText) {
       const lines = inputText.split("\n").filter((line) => line.trim());
       let addedCount = 0;
-
       const newFieldsToAdd: CustomField[] = [];
 
       for (const line of lines) {
@@ -515,76 +476,51 @@ const addCustomField = async () => {
         ElMessage.success(`成功添加 ${addedCount} 个自定义字段。`);
       }
     }
-  } catch (e: any) {
-    if (
-      e === "cancel" ||
-      (typeof e === "object" &&
-        "message" in e &&
-        e.message.includes("cancel")) ||
-      (e instanceof Error && e.message === "cancel")
-    ) {
-      ElMessage.info("已取消添加");
+  } catch (e: unknown) { // Updated to unknown
+    if (typeof e === 'string' && e.toLowerCase() === 'cancel') {
+        ElMessage.info("已取消添加");
+    } else if (e instanceof Error && e.message.toLowerCase().includes('cancel')) {
+        ElMessage.info("已取消添加");
+    } else if (typeof e === 'object' && e !== null && 'message' in e && typeof (e as { message: string }).message === 'string' && (e as { message: string }).message.toLowerCase().includes('cancel')) {
+        ElMessage.info("已取消添加");
     } else if (e) {
-      console.error("添加自定义字段时出错:", e);
-      ElMessage.error("添加自定义字段操作失败。");
+        console.error("添加自定义字段时出错:", e);
+        ElMessage.error(`添加自定义字段操作失败: ${e instanceof Error ? e.message : String(e)}`);
     }
+    // If not a cancel, the error is re-thrown by performSafeAction or handled here if not wrapped
   }
 };
 
 const requestRemoveCustomField = async (index: number) => {
   const fieldToRemove = customFields.value[index];
   if (!fieldToRemove) return;
-
   const fieldLabel = fieldToRemove.label;
 
-  if (appSettings.safeModeLevel === "forbidden") {
-    ElMessage.warning({
-      message: "当前处于禁止删除模式，无法移除字段。",
-      duration: 2000,
-    });
-    return;
-  }
-
-  if (appSettings.safeModeLevel === "double") {
-    try {
-      await ElMessageBox.confirm(
-        `确定要移除自定义字段 "${fieldLabel}" 吗？`,
-        "确认删除",
-        {
-          confirmButtonText: "确定移除",
-          cancelButtonText: "取消",
-          type: "warning",
-          draggable: true,
-          customClass: "app-dialog",
-        }
-      );
-      emit("remove-custom-field", fieldLabel);
-    } catch (e: any) {
-      if (
-        e === "cancel" ||
-        (typeof e === "object" &&
-          "message" in e &&
-          e.message.includes("cancel")) ||
-        (e instanceof Error && e.message === "cancel")
-      ) {
-        ElMessage.info("已取消移除操作。");
-      } else if (e) {
-        console.error("请求移除自定义字段时出错 (double mode):", e);
-        ElMessage.error("移除操作失败。");
+  try {
+    await performSafeAction(
+      appSettings.safeModeLevel,
+      "移除自定义字段",
+      fieldLabel,
+      () => {
+        // The actual removal is handled by the parent component via the emitted event.
+        // The parent component will then update the `form.appearance` prop,
+        // which in turn will trigger the `watch` on `props.form.appearance`
+        // and `initializeCustomFields` to update `customFields.value`.
+        // This also means the `performSafeAction` might show "success" before
+        // the UI fully reflects the change if the parent handles the emit asynchronously.
+        // Alternatively, we could directly manipulate customFields.value here IF
+        // performSafeAction confirms the action.
+        // For now, we rely on the event emission.
+        emit("remove-custom-field", fieldLabel);
       }
-    }
-  } else if (appSettings.safeModeLevel === "single") {
-    try {
-      emit("remove-custom-field", fieldLabel);
-    } catch (e) {
-      console.error("请求移除自定义字段时出错 (single mode):", e);
-      ElMessage.error("请求移除字段失败。");
-    }
-  } else {
-    console.warn(
-      `Unhandled safeModeLevel: ${appSettings.safeModeLevel}. Requesting removal directly.`
     );
-    emit("remove-custom-field", fieldLabel);
+    // No need for ElMessage.success here, as performSafeAction handles it if actionFn doesn't throw.
+  } catch (err: unknown) {
+    // performSafeAction's internal handleError already shows messages for 'cancel' or other errors.
+    // We only log if it's an unexpected error not handled as 'cancel' or 'forbidden' by performSafeAction.
+    if (err !== 'cancel' && err !== 'forbidden') {
+      console.warn("移除自定义字段操作未成功完成或被取消:", err);
+    }
   }
 };
 
@@ -598,7 +534,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .el-form-item :deep(.el-textarea__inner) {
-  font-size: 0.8125rem;
+  font-size: 0.8125rem; /* 13px */
   line-height: 1.5;
   padding-top: 4px;
   padding-bottom: 4px;

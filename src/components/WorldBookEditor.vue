@@ -1305,60 +1305,28 @@ import {
 } from "element-plus";
 import { Icon } from "@iconify/vue";
 // import { saveAs } from 'file-saver';
-import { useAppSettingsStore } from "../stores/appSettings";
+import { useAppSettingsStore } from "@core/store/appSettings.store";
 import {
   saveToLocalStorage as saveToLS,
   loadFromLocalStorage as loadFromLS,
   // clearLocalStorage as clearLS,
   initAutoSave as initWorldBookAutoSave,
   clearAutoSave as clearWorldBookAutoSave,
-} from "../utils/localStorageUtils";
-import { performSafeAction } from "@/utils/safeAction";
-
-interface WorldBookEntry {
-  uid?: number;
-  comment: string;
-  key: string[];
-  content: string;
-  addMemo: boolean;
-  order: number;
-  constant: boolean;
-  disable: boolean;
-  keysecondary: string[];
-  selectiveLogic: number;
-  selective: boolean;
-  excludeRecursion: boolean;
-  preventRecursion: boolean;
-  delayUntilRecursion: boolean;
-  probability: number;
-  useProbability: boolean;
-  position: number;
-  role: number;
-  depth: number;
-  caseSensitive: boolean;
-  matchWholeWords: boolean;
-  vectorized: boolean;
-  group: string;
-  groupPriority: number;
-  groupOverride: boolean;
-  useGroupScoring: boolean;
-  sticky: number;
-  cooldown: number;
-  delay: number;
-  automationId: string;
-}
+} from "@core/utils/localStorage.utils";
+import { performSafeAction } from "@core/utils/safeAction.utils";
+import type { IWorldBookEntry } from "../modules/world/types/world.types"; // Corrected path
 
 const LOCAL_STORAGE_KEY_WORLDBOOK = "worldBookEditorData";
 const appSettings = useAppSettingsStore();
 
-const worldBookEntries = ref<WorldBookEntry[]>([]);
+const worldBookEntries = ref<IWorldBookEntry[]>([]);
 const selectedEntryIndex = ref<number | null>(null);
-const editableEntry = ref<Partial<WorldBookEntry>>({});
+const editableEntry = ref<Partial<IWorldBookEntry>>({});
 const entryFormRef = ref<InstanceType<typeof ElForm> | null>(null);
 const activeTab = ref<"list" | "editor">("list");
 let autoSaveTimer: number | null = null;
 
-const selectedEntry = computed<WorldBookEntry | null>(() => {
+const selectedEntry = computed<IWorldBookEntry | null>(() => {
   if (
     selectedEntryIndex.value !== null &&
     worldBookEntries.value[selectedEntryIndex.value]
@@ -1417,7 +1385,7 @@ watch(
   { deep: true, immediate: true }
 );
 
-function createDefaultEntryData(uid: number): WorldBookEntry {
+function createDefaultEntryData(uid: number): IWorldBookEntry {
   return {
     uid: uid,
     comment: "",
@@ -1484,7 +1452,7 @@ const saveCurrentEntry = () => {
       ? entryToSave.keysecondary
       : [];
     worldBookEntries.value[selectedEntryIndex.value] = JSON.parse(
-      JSON.stringify(entryToSave as WorldBookEntry)
+      JSON.stringify(entryToSave as IWorldBookEntry)
     );
     ElMessage.success("条目已保存！");
     saveWorldBookToLocalStorage();
@@ -1578,7 +1546,7 @@ const showImportEntryDialog = async () => {
         const parsedEntryData = JSON.parse(value);
         const newUid = Date.now();
         const baseEntry = createDefaultEntryData(newUid);
-        const newEntry: WorldBookEntry = {
+        const newEntry: IWorldBookEntry = {
           ...baseEntry,
           ...parsedEntryData,
           uid: newUid,
@@ -1606,9 +1574,9 @@ const showImportEntryDialog = async () => {
 };
 
 const formatWorldBookForExport = (): {
-  entries: Record<string, Omit<WorldBookEntry, "uid">>;
+  entries: Record<string, Omit<IWorldBookEntry, "uid">>;
 } => {
-  const exportData: { entries: Record<string, Omit<WorldBookEntry, "uid">> } = {
+  const exportData: { entries: Record<string, Omit<IWorldBookEntry, "uid">> } = {
     entries: {},
   };
   worldBookEntries.value.forEach((entry) => {
@@ -1620,13 +1588,13 @@ const formatWorldBookForExport = (): {
 
 const processImportedWorldBookData = (
   jsonData: any
-): WorldBookEntry[] | null => {
+): IWorldBookEntry[] | null => {
   if (
     jsonData &&
     typeof jsonData.entries === "object" &&
     jsonData.entries !== null
   ) {
-    const loadedEntries: WorldBookEntry[] = [];
+    const loadedEntries: IWorldBookEntry[] = [];
     let uidCounter = Date.now();
     Object.keys(jsonData.entries).forEach((entryKey) => {
       const entryFromFile = jsonData.entries[entryKey];
@@ -1641,7 +1609,7 @@ const processImportedWorldBookData = (
       }
 
       const baseEntry = createDefaultEntryData(currentUid);
-      const newEntry: WorldBookEntry = {
+      const newEntry: IWorldBookEntry = {
         ...baseEntry,
         ...entryFromFile,
         uid: currentUid,

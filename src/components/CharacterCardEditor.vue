@@ -116,8 +116,8 @@ import { ref, onMounted, onBeforeUnmount, computed, watch } from "vue";
 import { ElMessage, ElScrollbar } from "element-plus";
 import { saveAs } from "file-saver";
 import { nanoid } from "nanoid";
-import { useAppSettingsStore } from "../stores/appSettings";
-import { performSafeAction } from "@/utils/safeAction";
+import { useAppSettingsStore } from "@core/store/appSettings.store";
+import { performSafeAction } from "@core/utils/safeAction.utils";
 
 import CharacterCardButtons from "./charcard/CharacterCardButtons.vue";
 import BasicInfo from "./charcard/BasicInfo.vue";
@@ -135,93 +135,20 @@ import {
   clearLocalStorage,
   initAutoSave,
   clearAutoSave,
-} from "../utils/localStorageUtils";
-
-interface Appearance {
-  height: string;
-  hairColor: string;
-  hairstyle: string;
-  eyes: string;
-  nose: string;
-  lips: string;
-  skin: string;
-  body: string;
-  bust: string;
-  waist: string;
-  hips: string;
-  breasts: string;
-  genitals: string;
-  anus: string;
-  pubes: string;
-  thighs: string;
-  butt: string;
-  feet: string;
-  [key: string]: string;
-}
-interface Attire {
-  id: string;
-  name: string;
-  description: string;
-  tops: string;
-  bottoms: string;
-  shoes: string;
-  socks: string;
-  underwears: string;
-  accessories: string;
-}
-interface Trait {
-  id: string;
-  name: string;
-  description: string;
-  dialogueExamples: string[];
-  behaviorExamples: string[];
-}
-interface Relationship {
-  id: string;
-  name: string;
-  description: string;
-  features: string;
-  dialogueExamples: string[];
-}
-interface DailyRoutine {
-  earlyMorning: string;
-  morning: string;
-  afternoon: string;
-  evening: string;
-  night: string;
-  lateNight: string;
-}
-interface Skill {
-  id: string;
-  name: string;
-  description: string;
-  dialogExample: string;
-  behaviorExample: string;
-}
-
-interface CharacterCard {
-  name?: string;
-  chineseName: string;
-  japaneseName: string;
-  gender: string;
-  customGender: string;
-  age: number;
-  identity: string;
-  background: string;
-  appearance: Appearance;
-  attires: Attire[];
-  mbti: string;
-  traits: Trait[];
-  relationships: Relationship[];
-  likes: string;
-  dislikes: string;
-  dailyRoutine: DailyRoutine;
-  skills: Skill[];
-}
+} from "@core/utils/localStorage.utils";
+import type {
+  IEditorCharacterCard,
+  IEditorAppearance,
+  IEditorAttire,
+  IEditorTrait,
+  IEditorRelationship,
+  IEditorDailyRoutine,
+  IEditorSkill,
+} from "@character/types/character.types";
 
 const appSettings = useAppSettingsStore();
 
-const createDefaultCharacterCard = (): CharacterCard => ({
+const createDefaultCharacterCard = (): IEditorCharacterCard => ({
   chineseName: "",
   japaneseName: "",
   gender: "",
@@ -248,11 +175,11 @@ const createDefaultCharacterCard = (): CharacterCard => ({
     thighs: "",
     butt: "",
     feet: "",
-  },
-  attires: [],
+  } as IEditorAppearance,
+  attires: [] as IEditorAttire[],
   mbti: "",
-  traits: [],
-  relationships: [],
+  traits: [] as IEditorTrait[],
+  relationships: [] as IEditorRelationship[],
   likes: "",
   dislikes: "",
   dailyRoutine: {
@@ -262,11 +189,11 @@ const createDefaultCharacterCard = (): CharacterCard => ({
     evening: "",
     night: "",
     lateNight: "",
-  },
-  skills: [],
+  } as IEditorDailyRoutine,
+  skills: [] as IEditorSkill[],
 });
 
-const form = ref<CharacterCard>(createDefaultCharacterCard());
+const form = ref<IEditorCharacterCard>(createDefaultCharacterCard());
 let autoSaveTimer: number | null = null;
 
 const panelClasses = computed(() => [
@@ -320,11 +247,11 @@ watch(
   }
 );
 
-const handleFormUpdate = (updatedPart: Partial<CharacterCard>) => {
+const handleFormUpdate = (updatedPart: Partial<IEditorCharacterCard>) => {
   form.value = { ...form.value, ...updatedPart };
 };
 
-const ensureArrayExists = <K extends keyof CharacterCard>(arrayKey: K) => {
+const ensureArrayExists = <K extends keyof IEditorCharacterCard>(arrayKey: K) => {
   if (!(form.value[arrayKey] && Array.isArray(form.value[arrayKey]))) {
     (form.value[arrayKey] as any) = [];
   }
@@ -356,7 +283,7 @@ const removeTraitById = async (traitId: string): Promise<void> => {
         form.value.traits.splice(currentIndex, 1);
       }
     }
-  ).catch((err) => {
+  ).catch((err: unknown) => {
     if (err !== "cancel" && err !== "forbidden")
       console.warn("移除特质操作未成功完成:", err);
   });
@@ -388,7 +315,7 @@ const removeSkillById = async (skillId: string): Promise<void> => {
         form.value.skills.splice(currentIndex, 1);
       }
     }
-  ).catch((err) => {
+  ).catch((err: unknown) => {
     if (err !== "cancel" && err !== "forbidden")
       console.warn("移除技能操作未成功完成:", err);
   });
@@ -426,7 +353,7 @@ const removeRelationshipById = async (
         form.value.relationships.splice(currentIndex, 1);
       }
     }
-  ).catch((err) => {
+  ).catch((err: unknown) => {
     if (err !== "cancel" && err !== "forbidden")
       console.warn("移除关系操作未成功完成:", err);
   });
@@ -464,7 +391,7 @@ const removeAttireById = async (attireId: string): Promise<void> => {
         form.value.attires.splice(currentIndex, 1);
       }
     }
-  ).catch((err) => {
+  ).catch((err: unknown) => {
     if (err !== "cancel" && err !== "forbidden")
       console.warn("移除套装操作未成功完成:", err);
   });
@@ -488,7 +415,7 @@ const handleRemoveCustomField = async (fieldLabel: string) => {
         throw new Error("字段未找到。");
       }
     }
-  ).catch((err) => {
+  ).catch((err: unknown) => {
     if (err !== "cancel" && err !== "forbidden")
       console.warn("移除自定义字段操作未成功完成:", err);
   });
@@ -587,14 +514,14 @@ const saveCharacterCard = async (): Promise<void> => {
   }
 };
 
-const processLoadedData = (parsedData: any): CharacterCard => {
+const processLoadedData = (parsedData: any): IEditorCharacterCard => {
   const defaultCard = createDefaultCharacterCard();
-  const tempForm: CharacterCard = { ...defaultCard };
+  const tempForm: IEditorCharacterCard = { ...defaultCard };
 
-  const assignField = <K extends keyof CharacterCard>(
+  const assignField = <K extends keyof IEditorCharacterCard>(
     key: K,
-    defaultValue: CharacterCard[K],
-    processor?: (val: any) => CharacterCard[K]
+    defaultValue: IEditorCharacterCard[K],
+    processor?: (val: any) => IEditorCharacterCard[K]
   ) => {
     const valueFromParsed = parsedData[key];
     const valueToProcess =
@@ -657,7 +584,7 @@ const processLoadedData = (parsedData: any): CharacterCard => {
     delete (tempForm.appearance as any).thihes;
   }
 
-  tempForm.attires = processArrayWithId<Attire>(
+  tempForm.attires = processArrayWithId<IEditorAttire>(
     parsedData.attires,
     {
       name: "",
@@ -678,7 +605,7 @@ const processLoadedData = (parsedData: any): CharacterCard => {
         : "",
     })
   );
-  tempForm.traits = processArrayWithId<Trait>(
+  tempForm.traits = processArrayWithId<IEditorTrait>(
     parsedData.traits,
     {
       name: "",
@@ -696,7 +623,7 @@ const processLoadedData = (parsedData: any): CharacterCard => {
         : [""],
     })
   );
-  tempForm.relationships = processArrayWithId<Relationship>(
+  tempForm.relationships = processArrayWithId<IEditorRelationship>(
     parsedData.relationships,
     { name: "", description: "", features: "", dialogueExamples: [""] },
     (item) => ({
@@ -706,7 +633,7 @@ const processLoadedData = (parsedData: any): CharacterCard => {
         : [""],
     })
   );
-  tempForm.skills = processArrayWithId<Skill>(parsedData.skills, {
+  tempForm.skills = processArrayWithId<IEditorSkill>(parsedData.skills, {
     name: "",
     description: "",
     dialogExample: "",
@@ -716,7 +643,7 @@ const processLoadedData = (parsedData: any): CharacterCard => {
   tempForm.dailyRoutine = {
     ...defaultCard.dailyRoutine,
     ...(parsedData.dailyRoutine || {}),
-  };
+  } as IEditorDailyRoutine;
 
   return tempForm;
 };
@@ -758,7 +685,7 @@ const loadCharacterCard = async (): Promise<void> => {
         input.click();
       });
     }
-  ).catch((err) => {
+  ).catch((err: unknown) => {
     if (err !== "cancel" && err !== "forbidden")
       console.warn("加载角色卡操作未成功完成:", err);
   });
@@ -768,7 +695,7 @@ const resetForm = async (): Promise<void> => {
   await performSafeAction(appSettings.safeModeLevel, "重置表单", "", () => {
     clearLocalStorage("characterCardData");
     form.value = createDefaultCharacterCard();
-  }).catch((err) => {
+  }).catch((err: unknown) => {
     if (err !== "cancel" && err !== "forbidden")
       console.warn("重置表单操作未成功完成:", err);
   });
@@ -816,7 +743,7 @@ const importFromClipboard = async (data: string): Promise<void> => {
         );
       }
     }
-  ).catch((err) => {
+  ).catch((err: unknown) => {
     if (err !== "cancel" && err !== "forbidden")
       console.warn("从剪贴板导入操作未成功完成:", err);
   });

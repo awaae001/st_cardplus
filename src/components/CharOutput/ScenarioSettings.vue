@@ -27,9 +27,11 @@
 <script setup lang="ts">
 import { ref, watch, defineProps, defineEmits, nextTick } from "vue";
 import { Icon } from "@iconify/vue"; // Icon 已经导入
+import type { ICharacterOutputSettings } from "@character/types/character.types";
 
 interface ScenarioSettingsFormData {
-  scenario: string;
+  /** Corresponds to ICharacterOutputSettings['scenario'] */
+  scenario: string; // Kept as string, component logic handles undefined/null to ""
   data?: { scenario?: string; [key: string]: any };
 }
 interface Props {
