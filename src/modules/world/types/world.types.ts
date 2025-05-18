@@ -281,3 +281,72 @@ export interface IWorldBookEntry {
    */
   automationId: string;
 }
+/**
+ * @description 地标数据结构，用于 WorldEditor.vue
+ */
+export interface ILandmark {
+  /**
+   * @description 地标唯一ID
+   */
+  id: string;
+  /**
+   * @description 地标名称
+   */
+  name: string;
+  /**
+   * @description 地标描述
+   */
+  description: string;
+}
+
+/**
+ * @description 势力数据结构，用于 WorldEditor.vue
+ */
+export interface IForce {
+  /**
+   * @description 势力唯一ID
+   */
+  id: string;
+  /**
+   * @description 势力名称
+   */
+  name: string;
+  /**
+   * @description 势力成员 (多行文本)
+   */
+  members: string;
+  /**
+   * @description 势力描述
+   */
+  description: string;
+}
+
+/**
+ * @description WorldEditor.vue 表单的整体数据结构
+ */
+export interface IWorldEditorForm {
+  /**
+   * @description 地标集合名称
+   */
+  name: string;
+  /**
+   * @description 所属空间/世界
+   */
+  space: string;
+  /**
+   * @description 关键词 (多行文本)
+   */
+  keywords: string;
+  /**
+   * @description 介绍 (多行文本)
+   */
+  info: string;
+  /**
+   * @description 地标列表
+   */
+  landmarks: ILandmark[];
+  /**
+   * @description 势力列表
+   */
+  forces: IForce[];
+}

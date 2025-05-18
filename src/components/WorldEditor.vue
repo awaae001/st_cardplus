@@ -122,80 +122,55 @@
         <div
           class="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-8 items-stretch"
         >
-          <div :class="[panelClasses, 'lg:col-span-1', 'flex flex-col']">
-            <div class="content-panel-header">
-              <h3 class="content-panel-title flex items-center gap-2">
-                <Icon
-                  icon="ph:info-duotone"
-                  class="text-xl text-accent-500 dark:text-accent-400"
-                />
-                基本信息
-              </h3>
-            </div>
-            <div class="content-panel-body space-y-4 flex-grow">
+          <PanelSection
+            title="基本信息"
+            icon="ph:info-duotone"
+            class="lg:col-span-1"
+          >
+            <div class="space-y-4">
               <el-form :model="form" label-position="top">
-                <el-form-item>
-                  <template #label
-                    ><span class="form-label-adv">地标集合名称</span></template
-                  >
+                <StyledFormItem label="地标集合名称">
                   <el-input
                     v-model="form.name"
                     placeholder="例如：艾尔登法环地区设定"
                   />
-                </el-form-item>
-                <el-form-item>
-                  <template #label
-                    ><span class="form-label-adv">所属空间/世界</span></template
-                  >
+                </StyledFormItem>
+                <StyledFormItem label="所属空间/世界">
                   <el-input v-model="form.space" placeholder="例如：交界地" />
-                </el-form-item>
+                </StyledFormItem>
               </el-form>
             </div>
-          </div>
+          </PanelSection>
 
-          <div :class="[panelClasses, 'lg:col-span-2', 'flex flex-col']">
-            <div class="content-panel-header">
-              <h3 class="content-panel-title flex items-center gap-2">
-                <Icon
-                  icon="ph:text-aa-duotone"
-                  class="text-xl text-accent-500 dark:text-accent-400"
-                />
-                描述与关键词
-              </h3>
-            </div>
-            <div class="content-panel-body space-y-4 flex-grow">
-              <div>
-                <label class="form-label-adv">介绍 (每行一段)</label>
+          <PanelSection
+            title="描述与关键词"
+            icon="ph:text-aa-duotone"
+            class="lg:col-span-2"
+          >
+            <div class="space-y-4">
+              <StyledFormItem label="介绍 (每行一段)">
                 <el-input
                   v-model="form.info"
                   type="textarea"
                   :autosize="{ minRows: 5, maxRows: 15 }"
                   placeholder="关于这个地标集合的整体介绍..."
                 />
-              </div>
-              <div>
-                <label class="form-label-adv">关键词 (每行一条)</label>
+              </StyledFormItem>
+              <StyledFormItem label="关键词 (每行一条)">
                 <el-input
                   v-model="form.keywords"
                   type="textarea"
                   :autosize="{ minRows: 3, maxRows: 8 }"
                   placeholder="相关的关键词，方便检索或生成..."
                 />
-              </div>
+              </StyledFormItem>
             </div>
-          </div>
+          </PanelSection>
         </div>
 
-        <div :class="panelClasses">
-          <div class="content-panel-header">
-            <h3 class="content-panel-title flex items-center gap-2">
-              <Icon
-                icon="ph:map-pin-duotone"
-                class="text-xl text-accent-500 dark:text-accent-400"
-              />
-              地标
-            </h3>
-            <div class="flex gap-x-3 ml-auto">
+        <PanelSection title="地标" icon="ph:map-pin-duotone">
+          <template #actions>
+            <div class="flex gap-x-3">
               <button
                 @click="importLandmarks"
                 title="导入地标 (JSON, 将替换现有地标)"
@@ -234,74 +209,65 @@
                 />
               </button>
             </div>
-          </div>
-          <div class="content-panel-body">
-            <draggable
-              v-if="form.landmarks.length > 0"
-              v-model="form.landmarks"
-              item-key="id"
-              animation="200"
-              ghost-class="item-ghost"
-              chosen-class="item-chosen"
-              handle=".item-drag-handle"
-              class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-5"
-            >
-              <template #item="{ element: landmark }">
-                <div class="item-card-outer-wrapper">
-                  <div class="item-card">
-                    <div class="item-drag-handle">
-                      <Icon
-                        icon="material-symbols:drag-indicator-rounded"
-                        class="text-lg flex-shrink-0"
-                      />
-                      <el-input
-                        v-model="landmark.name"
-                        placeholder="地标名称"
-                        size="small"
-                        class="item-name-input-in-handle flex-grow min-w-0"
-                        :autosize="{ minRows: 1, maxRows: 2 }"
-                        type="textarea"
-                      />
-                      <button
-                        @click="removeLandmark(landmark.id)"
-                        class="btn-danger-adv !p-1 !aspect-square shrink-0 !rounded-full !text-xs ml-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                        title="删除此地标"
-                        :disabled="appSettings.safeModeLevel === 'forbidden'"
-                      >
-                        <Icon icon="ph:x-bold" />
-                      </button>
-                    </div>
-                    <div class="p-3 space-y-3">
-                      <el-input
-                        v-model="landmark.description"
-                        type="textarea"
-                        :autosize="{ minRows: 2, maxRows: 6 }"
-                        placeholder="地标介绍"
-                        size="small"
-                      />
-                    </div>
+          </template>
+          <draggable
+            v-if="form.landmarks.length > 0"
+            v-model="form.landmarks"
+            item-key="id"
+            animation="200"
+            ghost-class="item-ghost"
+            chosen-class="item-chosen"
+            handle=".item-drag-handle"
+            class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-5"
+          >
+            <template #item="{ element: landmark }">
+              <div class="item-card-outer-wrapper">
+                <div class="item-card">
+                  <div class="item-drag-handle">
+                    <Icon
+                      icon="material-symbols:drag-indicator-rounded"
+                      class="text-lg flex-shrink-0"
+                    />
+                    <el-input
+                      v-model="landmark.name"
+                      placeholder="地标名称"
+                      size="small"
+                      class="item-name-input-in-handle flex-grow min-w-0"
+                      :autosize="{ minRows: 1, maxRows: 2 }"
+                      type="textarea"
+                    />
+                    <button
+                      @click="removeLandmark(landmark.id)"
+                      class="btn-danger-adv !p-1 !aspect-square shrink-0 !rounded-full !text-xs ml-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="删除此地标"
+                      :disabled="appSettings.safeModeLevel === 'forbidden'"
+                    >
+                      <Icon icon="ph:x-bold" />
+                    </button>
+                  </div>
+                  <div class="p-3 space-y-3">
+                    <el-input
+                      v-model="landmark.description"
+                      type="textarea"
+                      :autosize="{ minRows: 2, maxRows: 6 }"
+                      placeholder="地标介绍"
+                      size="small"
+                    />
                   </div>
                 </div>
-              </template>
-            </draggable>
-            <div v-else class="empty-state-placeholder">
-              <Icon icon="ph:map-trifold-duotone" class="empty-state-icon" />
-              <p class="empty-state-title">暂无地标</p>
-              <p class="empty-state-description">点击“添加地标”开始创建。</p>
-            </div>
+              </div>
+            </template>
+          </draggable>
+          <div v-else class="empty-state-placeholder">
+            <Icon icon="ph:map-trifold-duotone" class="empty-state-icon" />
+            <p class="empty-state-title">暂无地标</p>
+            <p class="empty-state-description">点击“添加地标”开始创建。</p>
           </div>
-        </div>
+        </PanelSection>
 
-        <div :class="panelClasses">
-          <div class="content-panel-header">
-            <h3 class="content-panel-title flex items-center gap-2">
-              <Icon
-                icon="ph:shield-checkered-duotone"
-                class="text-xl text-accent-500 dark:text-accent-400"
-              />
-              势力
-            </h3>
-            <div class="flex gap-x-3 ml-auto">
+        <PanelSection title="势力" icon="ph:shield-checkered-duotone">
+          <template #actions>
+            <div class="flex gap-x-3">
               <button
                 @click="importForces"
                 title="导入势力 (JSON, 将替换现有势力)"
@@ -340,70 +306,68 @@
                 />
               </button>
             </div>
-          </div>
-          <div class="content-panel-body">
-            <draggable
-              v-if="form.forces.length > 0"
-              v-model="form.forces"
-              item-key="id"
-              animation="200"
-              ghost-class="item-ghost"
-              chosen-class="item-chosen"
-              handle=".item-drag-handle"
-              class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-5"
-            >
-              <template #item="{ element: force }">
-                <div class="item-card-outer-wrapper">
-                  <div class="item-card">
-                    <div class="item-drag-handle">
-                      <Icon
-                        icon="material-symbols:drag-indicator-rounded"
-                        class="text-lg flex-shrink-0"
-                      />
-                      <el-input
-                        v-model="force.name"
-                        placeholder="势力名称"
-                        size="small"
-                        class="item-name-input-in-handle flex-grow min-w-0"
-                        :autosize="{ minRows: 1, maxRows: 2 }"
-                        type="textarea"
-                      />
-                      <button
-                        @click="removeForce(force.id)"
-                        class="btn-danger-adv !p-1 !aspect-square shrink-0 !rounded-full !text-xs ml-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                        title="删除此势力"
-                        :disabled="appSettings.safeModeLevel === 'forbidden'"
-                      >
-                        <Icon icon="ph:x-bold" />
-                      </button>
-                    </div>
-                    <div class="p-3 space-y-3">
-                      <el-input
-                        v-model="force.members"
-                        type="textarea"
-                        :autosize="{ minRows: 2, maxRows: 5 }"
-                        placeholder="成员 (每行一个)"
-                        size="small"
-                      />
-                      <el-input
-                        v-model="force.description"
-                        type="textarea"
-                        :autosize="{ minRows: 2, maxRows: 5 }"
-                        placeholder="势力描述"
-                        size="small"
-                      />
-                    </div>
+          </template>
+          <draggable
+            v-if="form.forces.length > 0"
+            v-model="form.forces"
+            item-key="id"
+            animation="200"
+            ghost-class="item-ghost"
+            chosen-class="item-chosen"
+            handle=".item-drag-handle"
+            class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-5"
+          >
+            <template #item="{ element: force }">
+              <div class="item-card-outer-wrapper">
+                <div class="item-card">
+                  <div class="item-drag-handle">
+                    <Icon
+                      icon="material-symbols:drag-indicator-rounded"
+                      class="text-lg flex-shrink-0"
+                    />
+                    <el-input
+                      v-model="force.name"
+                      placeholder="势力名称"
+                      size="small"
+                      class="item-name-input-in-handle flex-grow min-w-0"
+                      :autosize="{ minRows: 1, maxRows: 2 }"
+                      type="textarea"
+                    />
+                    <button
+                      @click="removeForce(force.id)"
+                      class="btn-danger-adv !p-1 !aspect-square shrink-0 !rounded-full !text-xs ml-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="删除此势力"
+                      :disabled="appSettings.safeModeLevel === 'forbidden'"
+                    >
+                      <Icon icon="ph:x-bold" />
+                    </button>
+                  </div>
+                  <div class="p-3 space-y-3">
+                    <el-input
+                      v-model="force.members"
+                      type="textarea"
+                      :autosize="{ minRows: 2, maxRows: 5 }"
+                      placeholder="成员 (每行一个)"
+                      size="small"
+                    />
+                    <el-input
+                      v-model="force.description"
+                      type="textarea"
+                      :autosize="{ minRows: 2, maxRows: 5 }"
+                      placeholder="势力描述"
+                      size="small"
+                    />
                   </div>
                 </div>
-              </template>
-            </draggable>
-            <div v-else class="empty-state-placeholder">
-              <Icon icon="ph:users-three-duotone" class="empty-state-icon" />
-              <p class="empty-state-title">暂无势力</p>
-              <p class="empty-state-description">点击“添加势力”开始创建。</p>
-            </div>
+              </div>
+            </template>
+          </draggable>
+          <div v-else class="empty-state-placeholder">
+            <Icon icon="ph:users-three-duotone" class="empty-state-icon" />
+            <p class="empty-state-title">暂无势力</p>
+            <p class="empty-state-description">点击“添加势力”开始创建。</p>
           </div>
-        </div>
+        </PanelSection>
       </div>
     </el-scrollbar>
   </div>
@@ -424,42 +388,25 @@ import {
 import { saveAs } from "file-saver";
 import { Icon } from "@iconify/vue";
 import { nanoid } from "nanoid";
-import { useAppSettingsStore } from "../stores/appSettings";
+import { useAppSettingsStore } from "@core/store/appSettings.store";
 import {
   saveToLocalStorage as saveToLS,
   loadFromLocalStorage as loadFromLS,
   clearLocalStorage as clearLS,
   initAutoSave,
   clearAutoSave,
-} from "../utils/localStorageUtils";
-import { performSafeAction } from "@/utils/safeAction";
-
-interface Landmark {
-  id: string;
-  name: string;
-  description: string;
-}
-
-interface Force {
-  id: string;
-  name: string;
-  members: string;
-  description: string;
-}
-
-interface WorldForm {
-  name: string;
-  space: string;
-  keywords: string;
-  info: string;
-  landmarks: Landmark[];
-  forces: Force[];
-}
+} from "@core/utils/localStorage.utils";
+import { performSafeAction } from "@core/utils/safeAction.utils";
+import type {
+  ILandmark,
+  IForce,
+  IWorldEditorForm,
+} from "../modules/world/types/world.types";
 
 const LOCAL_STORAGE_KEY = "worldEditorData_v2";
 const appSettings = useAppSettingsStore();
 
-const createDefaultWorldForm = (): WorldForm => ({
+const createDefaultWorldForm = (): IWorldEditorForm => ({
   name: "",
   space: "",
   keywords: "",
@@ -468,10 +415,8 @@ const createDefaultWorldForm = (): WorldForm => ({
   forces: [],
 });
 
-const form = ref<WorldForm>(createDefaultWorldForm());
+const form = ref<IWorldEditorForm>(createDefaultWorldForm());
 let autoSaveTimer: number | null = null;
-
-const panelClasses = computed(() => ["content-panel"]);
 
 const textToArray = (text: string | undefined): string[] =>
   text
@@ -483,7 +428,7 @@ const textToArray = (text: string | undefined): string[] =>
 const arrayToText = (arr: string[] | undefined): string =>
   arr && Array.isArray(arr) ? arr.join("\n") : "";
 
-const processLoadedData = (parsedData: any): WorldForm => {
+const processLoadedData = (parsedData: any): IWorldEditorForm => {
   const defaults = createDefaultWorldForm();
   if (typeof parsedData !== "object" || parsedData === null) {
     ElMessage.error("加载的数据格式无效，已使用默认值。");
@@ -638,7 +583,7 @@ const removeForce = async (id: string) => {
 };
 
 const exportListAsJson = async (
-  list: Landmark[] | Force[],
+  list: ILandmark[] | IForce[],
   listName: string
 ) => {
   if (!list || list.length === 0) {
@@ -648,7 +593,7 @@ const exportListAsJson = async (
   try {
     let dataToExport = list;
     if (listName === "势力") {
-      dataToExport = (list as Force[]).map((f) => ({
+      dataToExport = (list as IForce[]).map((f) => ({
         ...f,
         members: textToArray(f.members),
       }));
@@ -663,11 +608,11 @@ const exportListAsJson = async (
 const exportLandmarks = () => exportListAsJson(form.value.landmarks, "地标");
 const exportForces = () => exportListAsJson(form.value.forces, "势力");
 
-const importListFromFile = async <T extends { id: string }>(
+const importListFromFile = async <T extends { id: string; name: string; description: string }>(
   listName: string,
-  _unused: T[], // 已移除未使用参数 targetArrayRefValue
+  _unused: T[],
   itemProcessor: (item: any) => T,
-  updateTargetArray: (newArray: T[]) => void // Callback to update the reactive array
+  updateTargetArray: (newArray: T[]) => void
 ) => {
   await performSafeAction(
     appSettings.safeModeLevel,
@@ -717,7 +662,7 @@ const importListFromFile = async <T extends { id: string }>(
 };
 
 const importLandmarks = () => {
-  importListFromFile<Landmark>(
+  importListFromFile<ILandmark>(
     "地标",
     form.value.landmarks,
     (item: any) => ({
@@ -732,7 +677,7 @@ const importLandmarks = () => {
 };
 
 const importForces = () => {
-  importListFromFile<Force>(
+  importListFromFile<IForce>(
     "势力",
     form.value.forces,
     (item: any) => ({
@@ -1074,56 +1019,5 @@ defineExpose({
 :global(.el-form-item__label) {
   line-height: normal !important;
   padding-bottom: 0 !important;
-}
-
-.content-panel {
-  background-color: var(--color-white);
-  border-radius: var(--radius-xl);
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  border-width: 1px;
-  border-color: var(--color-neutral-200);
-  overflow: hidden;
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
-  display: flex;
-  flex-direction: column;
-}
-.dark .content-panel {
-  background-color: var(--color-neutral-850);
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
-  border-color: var(--color-neutral-750);
-}
-.content-panel:hover {
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  transform: translateY(-0.25rem);
-}
-.dark .content-panel:hover {
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
-}
-
-.content-panel-header {
-  display: flex;
-  align-items: center;
-  padding: 1rem 1.25rem;
-  border-bottom-width: 1px;
-  border-color: var(--color-neutral-200);
-}
-.dark .content-panel-header {
-  border-color: var(--color-neutral-700);
-}
-.content-panel-title {
-  font-size: 1rem;
-  line-height: 1.5rem;
-  font-weight: 600;
-  color: var(--color-neutral-800);
-}
-.dark .content-panel-title {
-  color: var(--color-neutral-200);
-}
-
-.content-panel-body {
-  padding: 1.25rem;
-  flex-grow: 1;
 }
 </style>

@@ -30,32 +30,32 @@
         <div
           class="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-8 items-stretch"
         >
-          <div :class="panelClasses">
+          <CardContainer>
             <BasicInfo
               :form="form"
               @update:form="handleFormUpdate"
               class="flex flex-col h-full"
             ></BasicInfo>
-          </div>
-          <div :class="panelClasses">
+          </CardContainer>
+          <CardContainer>
             <BackgroundStory
               :form="form"
               @update:form="handleFormUpdate"
               class="flex flex-col h-full"
             ></BackgroundStory>
-          </div>
+          </CardContainer>
         </div>
 
-        <div :class="panelClasses">
+        <CardContainer>
           <AppearanceFeatures
             :form="form"
             @update:form="handleFormUpdate"
             @remove-custom-field="handleRemoveCustomField"
             class="flex flex-col h-full"
           ></AppearanceFeatures>
-        </div>
+        </CardContainer>
 
-        <div :class="panelClasses">
+        <CardContainer>
           <AttireSettings
             :form="form"
             :addAttire="addAttire"
@@ -64,9 +64,9 @@
             @update:form="handleFormUpdate"
             class="flex flex-col h-full"
           ></AttireSettings>
-        </div>
+        </CardContainer>
 
-        <div :class="panelClasses">
+        <CardContainer>
           <PersonalityTraits
             :form="form"
             :addTrait="addTrait"
@@ -75,9 +75,9 @@
             @update:form="handleFormUpdate"
             class="flex flex-col h-full"
           ></PersonalityTraits>
-        </div>
+        </CardContainer>
 
-        <div :class="panelClasses">
+        <CardContainer>
           <Relationships
             :form="form"
             :addRelationship="addRelationship"
@@ -86,9 +86,9 @@
             @update:form="handleFormUpdate"
             class="flex flex-col h-full"
           ></Relationships>
-        </div>
+        </CardContainer>
 
-        <div :class="panelClasses">
+        <CardContainer>
           <SkillsEditor
             :form="form"
             :addSkill="addSkill"
@@ -97,9 +97,9 @@
             @update:form="handleFormUpdate"
             class="flex flex-col h-full"
           ></SkillsEditor>
-        </div>
+        </CardContainer>
 
-        <div :class="panelClasses">
+        <CardContainer>
           <LikesDislikesRoutine
             :form="form"
             @update:form="handleFormUpdate"
@@ -118,6 +118,7 @@ import { saveAs } from "file-saver";
 import { nanoid } from "nanoid";
 import { useAppSettingsStore } from "@core/store/appSettings.store";
 import { performSafeAction } from "@core/utils/safeAction.utils";
+import CardContainer from "@core/components/ui/CardContainer.vue";
 
 import CharacterCardButtons from "./charcard/CharacterCardButtons.vue";
 import BasicInfo from "./charcard/BasicInfo.vue";
@@ -196,14 +197,6 @@ const createDefaultCharacterCard = (): IEditorCharacterCard => ({
 const form = ref<IEditorCharacterCard>(createDefaultCharacterCard());
 let autoSaveTimer: number | null = null;
 
-const panelClasses = computed(() => [
-  "bg-white dark:bg-neutral-850",
-  "rounded-xl shadow-lg dark:shadow-black/30",
-  "border border-neutral-200 dark:border-neutral-750",
-  "overflow-hidden",
-  "transition-all duration-300 ease-out",
-  "hover:shadow-xl dark:hover:shadow-black/50 hover:-translate-y-1",
-]);
 const scrollbarClass = computed(() => ["main-content-scrollbar"]);
 
 onMounted(() => {

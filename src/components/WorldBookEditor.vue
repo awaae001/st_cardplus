@@ -22,24 +22,17 @@
               />
               <span class="truncate">世界书条目</span>
             </h2>
-            <el-tooltip
-              content="新增条目"
-              placement="top"
-              :show-arrow="false"
-              :offset="8"
-              :hide-after="0"
-            >
-              <button
-                @click="addNewEntry"
-                class="btn-primary-adv !p-1.5 sm:!p-2 aspect-square group shrink-0"
-                aria-label="新增条目"
-              >
-                <Icon
-                  icon="ph:plus-circle-duotone"
-                  class="text-md sm:text-lg group-hover:scale-110 transition-transform"
-                />
-              </button>
-            </el-tooltip>
+            <TooltipIconButton
+              icon="ph:plus-circle-duotone"
+              tooltipContent="新增条目"
+              labelText="新增条目"
+              tooltipPlacement="top"
+              :tooltipOffset="8"
+              :tooltipHideAfter="0"
+              buttonClass="btn-primary-adv !p-1.5 sm:!p-2 shrink-0"
+              iconClass="text-md sm:text-lg"
+              @click="addNewEntry"
+            />
           </div>
           <el-scrollbar class="flex-grow">
             <div v-if="!worldBookEntries.length" class="p-6 text-center">
@@ -98,43 +91,29 @@
             <div
               class="flex flex-wrap items-center gap-1.5 sm:gap-2 justify-start"
             >
-              <el-tooltip
-                content="复制整个世界书 (到剪贴板)"
-                placement="top"
-                :show-arrow="false"
-                :offset="8"
-                :hide-after="0"
-              >
-                <button
-                  @click="copyWorldBookToClipboard"
-                  class="btn-secondary-adv !p-1.5 sm:!p-2 aspect-square group"
-                  aria-label="复制整个世界书"
-                >
-                  <Icon
-                    icon="ph:books-duotone"
-                    class="text-md sm:text-lg group-hover:scale-110 transition-transform"
-                  />
-                </button>
-              </el-tooltip>
-              <el-tooltip
-                content="从剪贴板导入整个世界书 (将替换现有)"
-                placement="top"
-                :show-arrow="false"
-                :offset="8"
-                :hide-after="0"
-              >
-                <button
-                  @click="showImportWorldBookDialog"
-                  class="btn-warning-adv !p-1.5 sm:!p-2 aspect-square group disabled:opacity-50 disabled:cursor-not-allowed"
-                  aria-label="从剪贴板导入整个世界书"
-                  :disabled="appSettings.safeModeLevel === 'forbidden'"
-                >
-                  <Icon
-                    icon="ph:clipboard-text-duotone"
-                    class="text-md sm:text-lg group-hover:scale-110 transition-transform"
-                  />
-                </button>
-              </el-tooltip>
+              <TooltipIconButton
+                icon="ph:books-duotone"
+                tooltipContent="复制整个世界书 (到剪贴板)"
+                labelText="复制整个世界书"
+                tooltipPlacement="top"
+                :tooltipOffset="8"
+                :tooltipHideAfter="0"
+                buttonClass="btn-secondary-adv !p-1.5 sm:!p-2"
+                iconClass="text-md sm:text-lg"
+                @click="copyWorldBookToClipboard"
+              />
+              <TooltipIconButton
+                icon="ph:clipboard-text-duotone"
+                tooltipContent="从剪贴板导入整个世界书 (将替换现有)"
+                labelText="从剪贴板导入整个世界书"
+                tooltipPlacement="top"
+                :tooltipOffset="8"
+                :tooltipHideAfter="0"
+                buttonClass="btn-warning-adv !p-1.5 sm:!p-2"
+                iconClass="text-md sm:text-lg"
+                :disabled="appSettings.safeModeLevel === 'forbidden'"
+                @click="showImportWorldBookDialog"
+              />
               <span
                 class="border-l border-neutral-300 dark:border-neutral-600 h-5 mx-0.5 sm:mx-1"
               ></span>
@@ -240,83 +219,55 @@
               >
             </h2>
             <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
-              <el-tooltip
-                content="复制当前条目 (到剪贴板)"
-                placement="bottom"
-                :show-arrow="false"
-                :offset="8"
-                :hide-after="0"
-              >
-                <button
-                  @click="copySelectedEntry"
-                  :disabled="!selectedEntry"
-                  class="btn-secondary-adv !p-1.5 sm:!p-2 aspect-square group"
-                  aria-label="复制当前条目"
-                >
-                  <Icon
-                    icon="ph:copy-simple-duotone"
-                    class="text-md sm:text-lg group-hover:scale-110 transition-transform"
-                  />
-                </button>
-              </el-tooltip>
-              <el-tooltip
-                content="从剪贴板粘贴为新条目"
-                placement="bottom"
-                :show-arrow="false"
-                :offset="8"
-                :hide-after="0"
-              >
-                <button
-                  @click="showImportEntryDialog"
-                  class="btn-warning-adv !p-1.5 sm:!p-2 aspect-square group disabled:opacity-50 disabled:cursor-not-allowed"
-                  aria-label="从剪贴板粘贴为新条目"
-                  :disabled="appSettings.safeModeLevel === 'forbidden'"
-                >
-                  <Icon
-                    icon="ph:clipboard-text-duotone"
-                    class="text-md sm:text-lg group-hover:scale-110 transition-transform"
-                  />
-                </button>
-              </el-tooltip>
-              <el-tooltip
+              <TooltipIconButton
+                icon="ph:copy-simple-duotone"
+                tooltipContent="复制当前条目 (到剪贴板)"
+                labelText="复制当前条目"
+                tooltipPlacement="bottom"
+                :tooltipOffset="8"
+                :tooltipHideAfter="0"
+                buttonClass="btn-secondary-adv !p-1.5 sm:!p-2"
+                iconClass="text-md sm:text-lg"
+                :disabled="!selectedEntry"
+                @click="copySelectedEntry"
+              />
+              <TooltipIconButton
+                icon="ph:clipboard-text-duotone"
+                tooltipContent="从剪贴板粘贴为新条目"
+                labelText="从剪贴板粘贴为新条目"
+                tooltipPlacement="bottom"
+                :tooltipOffset="8"
+                :tooltipHideAfter="0"
+                buttonClass="btn-warning-adv !p-1.5 sm:!p-2"
+                iconClass="text-md sm:text-lg"
+                :disabled="appSettings.safeModeLevel === 'forbidden'"
+                @click="showImportEntryDialog"
+              />
+              <TooltipIconButton
                 v-if="selectedEntry"
-                content="保存当前条目"
-                placement="bottom"
-                :show-arrow="false"
-                :offset="8"
-                :hide-after="0"
-              >
-                <button
-                  @click="saveCurrentEntry"
-                  class="btn-primary-adv !p-1.5 sm:!p-2 aspect-square group"
-                  aria-label="保存当前条目"
-                >
-                  <Icon
-                    icon="ph:floppy-disk-duotone"
-                    class="text-md sm:text-lg group-hover:scale-110 transition-transform"
-                  />
-                </button>
-              </el-tooltip>
-              <el-tooltip
+                icon="ph:floppy-disk-duotone"
+                tooltipContent="保存当前条目"
+                labelText="保存当前条目"
+                tooltipPlacement="bottom"
+                :tooltipOffset="8"
+                :tooltipHideAfter="0"
+                buttonClass="btn-primary-adv !p-1.5 sm:!p-2"
+                iconClass="text-md sm:text-lg"
+                @click="saveCurrentEntry"
+              />
+              <TooltipIconButton
                 v-if="selectedEntry"
-                content="删除当前条目"
-                placement="bottom"
-                :show-arrow="false"
-                :offset="8"
-                :hide-after="0"
-              >
-                <button
-                  @click="deleteSelectedEntry"
-                  class="btn-danger-adv !p-1.5 sm:!p-2 aspect-square group disabled:opacity-50 disabled:cursor-not-allowed"
-                  aria-label="删除当前条目"
-                  :disabled="appSettings.safeModeLevel === 'forbidden'"
-                >
-                  <Icon
-                    icon="ph:trash-duotone"
-                    class="text-md sm:text-lg group-hover:rotate-[15deg] transition-transform"
-                  />
-                </button>
-              </el-tooltip>
+                icon="ph:trash-duotone"
+                tooltipContent="删除当前条目"
+                labelText="删除当前条目"
+                tooltipPlacement="bottom"
+                :tooltipOffset="8"
+                :tooltipHideAfter="0"
+                buttonClass="btn-danger-adv !p-1.5 sm:!p-2"
+                iconClass="text-md sm:text-lg group-hover:rotate-[15deg]"
+                :disabled="appSettings.safeModeLevel === 'forbidden'"
+                @click="deleteSelectedEntry"
+              />
             </div>
           </div>
           <el-scrollbar class="flex-grow">
