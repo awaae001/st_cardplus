@@ -122,7 +122,7 @@
         <div
           class="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-8 items-stretch"
         >
-          <PanelSection
+          <CardContainer
             title="基本信息"
             icon="ph:info-duotone"
             class="lg:col-span-1"
@@ -140,9 +140,9 @@
                 </StyledFormItem>
               </el-form>
             </div>
-          </PanelSection>
+          </CardContainer>
 
-          <PanelSection
+          <CardContainer
             title="描述与关键词"
             icon="ph:text-aa-duotone"
             class="lg:col-span-2"
@@ -165,10 +165,10 @@
                 />
               </StyledFormItem>
             </div>
-          </PanelSection>
+          </CardContainer>
         </div>
 
-        <PanelSection title="地标" icon="ph:map-pin-duotone">
+        <CardContainer title="地标" icon="ph:map-pin-duotone">
           <template #actions>
             <div class="flex gap-x-3">
               <button
@@ -263,9 +263,9 @@
             <p class="empty-state-title">暂无地标</p>
             <p class="empty-state-description">点击“添加地标”开始创建。</p>
           </div>
-        </PanelSection>
+        </CardContainer>
 
-        <PanelSection title="势力" icon="ph:shield-checkered-duotone">
+        <CardContainer title="势力" icon="ph:shield-checkered-duotone">
           <template #actions>
             <div class="flex gap-x-3">
               <button
@@ -367,7 +367,7 @@
             <p class="empty-state-title">暂无势力</p>
             <p class="empty-state-description">点击“添加势力”开始创建。</p>
           </div>
-        </PanelSection>
+        </CardContainer>
       </div>
     </el-scrollbar>
   </div>
@@ -385,6 +385,8 @@ import {
   ElFormItem,
   ElInput,
 } from "element-plus";
+import PanelSection from "@core/components/ui/PanelSection.vue"; // Will be removed if not used
+import CardContainer from "@core/components/ui/CardContainer.vue";
 import { saveAs } from "file-saver";
 import { Icon } from "@iconify/vue";
 import { nanoid } from "nanoid";
@@ -397,6 +399,7 @@ import {
   clearAutoSave,
 } from "@core/utils/localStorage.utils";
 import { performSafeAction } from "@core/utils/safeAction.utils";
+// import PanelSection from "@core/components/ui/PanelSection.vue"; // PanelSection is replaced by CardContainer
 import type {
   ILandmark,
   IForce,

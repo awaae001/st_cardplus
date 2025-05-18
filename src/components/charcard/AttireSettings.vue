@@ -1,5 +1,5 @@
 <template>
-  <PanelSection title="服装设定" icon="ph:person-simple-run-duotone">
+  <CardContainer title="服装设定" icon="ph:person-simple-run-duotone">
     <template #actions>
       <div class="flex gap-x-3">
         <button
@@ -221,7 +221,7 @@
         点击“添加套装”开始创建时尚造型吧！
       </p>
     </div>
-  </PanelSection>
+  </CardContainer>
 </template>
 
 <script setup lang="ts">
@@ -230,7 +230,7 @@ import { Icon } from "@iconify/vue"; // Icon is still used for "添加套装" bu
 import draggable from "vuedraggable";
 import { ElInput } from "element-plus"; // ElTooltip removed, ElMessageBox might be needed by parent for removeAttire confirmation
 import { useAppSettingsStore } from "@core/store/appSettings.store";
-import PanelSection from "@core/components/ui/PanelSection.vue";
+import CardContainer from "@core/components/ui/CardContainer.vue";
 import TooltipIconButton from "@core/components/ui/TooltipIconButton.vue";
 import type {
   IEditorCharacterCard,

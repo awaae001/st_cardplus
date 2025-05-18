@@ -27,14 +27,14 @@
         <div
           class="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-8 items-stretch"
         >
-          <div :class="panelClasses">
+          <CardContainer>
             <BasicInfo
               :form="form"
               @update:form="handleFormUpdate"
               class="flex flex-col h-full"
             />
-          </div>
-          <div :class="panelClasses">
+          </CardContainer>
+          <CardContainer>
             <CharacterDescription
               :form="form"
               @update:form="handleFormUpdate"
@@ -42,20 +42,20 @@
               :safe-mode-level="appSettings.safeModeLevel"
               class="flex flex-col h-full"
             />
-          </div>
+          </CardContainer>
         </div>
 
         <div
           class="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-8 items-stretch"
         >
-          <div :class="panelClasses">
+          <CardContainer>
             <AlternateGreetings
               :form="form"
               @update:form="handleFormUpdate"
               class="flex flex-col h-full"
             />
-          </div>
-          <div :class="panelClasses">
+          </CardContainer>
+          <CardContainer>
             <CharacterNotes
               :form="form"
               @update:form="handleFormUpdate"
@@ -63,50 +63,50 @@
               :safe-mode-level="appSettings.safeModeLevel"
               class="flex flex-col h-full"
             />
-          </div>
+          </CardContainer>
         </div>
 
-        <div :class="panelClasses">
+        <CardContainer>
           <PersonalitySettings
             :form="form"
             @update:form="handleFormUpdate"
             class="flex flex-col h-full"
           />
-        </div>
+        </CardContainer>
 
-        <div :class="panelClasses">
+        <CardContainer>
           <ScenarioSettings
             :form="form"
             @update:form="handleFormUpdate"
             class="flex flex-col h-full"
           />
-        </div>
+        </CardContainer>
 
-        <div :class="panelClasses">
+        <CardContainer>
           <DialogueExample
             :form="form"
             @update:form="handleFormUpdate"
             class="flex flex-col h-full"
           />
-        </div>
+        </CardContainer>
 
         <div
           class="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-8 items-stretch"
         >
-          <div :class="panelClasses">
+          <CardContainer>
             <OtherSettings
               :form="form"
               @update:form="handleFormUpdate"
               class="flex flex-col h-full"
             />
-          </div>
-          <div :class="panelClasses">
+          </CardContainer>
+          <CardContainer>
             <TagSettings
               :form="form"
               @update:form="handleFormUpdate"
               class="flex flex-col h-full"
             />
-          </div>
+          </CardContainer>
         </div>
       </div>
     </el-scrollbar>
@@ -118,6 +118,7 @@ import { ref, onMounted, onBeforeUnmount, computed, watch } from "vue";
 import { ElMessage, ElScrollbar } from "element-plus";
 import { saveAs } from "file-saver";
 import { useAppSettingsStore } from "@core/store/appSettings.store";
+import CardContainer from "@core/components/ui/CardContainer.vue";
 import { performSafeAction } from "@core/utils/safeAction.utils";
 
 import {
@@ -233,15 +234,6 @@ const createDefaultForm = (): CharacterOutputForm => ({
 
 const form = ref<CharacterOutputForm>(createDefaultForm());
 let autoSaveTimer: number | null = null;
-
-const panelClasses = computed(() => [
-  "bg-white dark:bg-neutral-850",
-  "rounded-xl shadow-lg dark:shadow-black/30",
-  "border border-neutral-200 dark:border-neutral-750",
-  "overflow-hidden",
-  "transition-all duration-300 ease-out",
-  "hover:shadow-xl dark:hover:shadow-black/50 hover:-translate-y-1",
-]);
 
 onMounted(() => {
   const loadedData = loadFromLS(LOCAL_STORAGE_KEY, processLoadedData);

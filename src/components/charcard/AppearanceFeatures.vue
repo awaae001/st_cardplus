@@ -1,5 +1,5 @@
 <template>
-  <PanelSection title="外貌特征" icon="ph:person-duotone">
+  <CardContainer title="外貌特征" icon="ph:person-duotone">
     <InfoAlert message="当输入框留空时，该位置不会被导出，即：“不用全部填写”。" />
 
     <el-form
@@ -193,7 +193,7 @@
         添加自定义外貌字段
       </el-button>
     </div>
-  </PanelSection>
+  </CardContainer>
 </template>
 
 <script setup lang="ts">
@@ -217,7 +217,7 @@ import { Icon } from "@iconify/vue";
 import { useAppSettingsStore } from "@core/store/appSettings.store";
 import { performSafeAction } from "@core/utils/safeAction.utils";
 
-import PanelSection from "@core/components/ui/PanelSection.vue";
+import CardContainer from "@core/components/ui/CardContainer.vue";
 import StyledFormItem from "@core/components/forms/StyledFormItem.vue";
 import InfoAlert from "@core/components/ui/InfoAlert.vue";
 import TooltipIconButton from "@core/components/ui/TooltipIconButton.vue";

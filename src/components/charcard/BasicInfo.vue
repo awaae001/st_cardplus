@@ -1,5 +1,5 @@
 <template>
-  <PanelSection title="基础信息" icon="ph:identification-card-duotone">
+  <CardContainer title="基础信息" icon="ph:identification-card-duotone">
     <el-form :model="localForm" label-position="top" class="space-y-1">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
         <StyledFormItem label="中文名" :required="true" prop="chineseName">
@@ -92,7 +92,7 @@
         />
       </StyledFormItem>
     </el-form>
-  </PanelSection>
+  </CardContainer>
 </template>
 
 <script setup lang="ts">
@@ -105,9 +105,9 @@ import {
   ElForm,
   // ElFormItem, // No longer directly used in template
 } from "element-plus";
-// import { Icon } from "@iconify/vue"; // Icon is now handled by PanelSection
+// import { Icon } from "@iconify/vue"; // Icon is now handled by CardContainer
 
-import PanelSection from "@core/components/ui/PanelSection.vue";
+import CardContainer from "@core/components/ui/CardContainer.vue";
 import StyledFormItem from "@core/components/forms/StyledFormItem.vue";
 import type { IEditorCharacterCard } from "@character/types/character.types";
 

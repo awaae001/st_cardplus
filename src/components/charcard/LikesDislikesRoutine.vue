@@ -1,6 +1,6 @@
 <template>
   <div class="space-y-6"> <!-- Existing root div for spacing between sections -->
-    <PanelSection title="喜好与厌恶" icon="ph:heart-duotone">
+    <CardContainer title="喜好与厌恶" icon="ph:heart-duotone">
       <el-form :model="localForm" label-position="top" class="space-y-4">
         <StyledFormItem
           label="喜欢的事物 / 人"
@@ -28,9 +28,9 @@
           />
         </StyledFormItem>
       </el-form>
-    </PanelSection>
+    </CardContainer>
 
-    <PanelSection title="日常作息" icon="ph:clock-countdown-duotone">
+    <CardContainer title="日常作息" icon="ph:clock-countdown-duotone">
       <el-form
         :model="localForm.dailyRoutine"
         label-position="top"
@@ -89,7 +89,7 @@
           </StyledFormItem>
         </div>
       </el-form>
-    </PanelSection>
+    </CardContainer>
   </div>
 </template>
 
@@ -98,7 +98,7 @@ import { ref, watch, defineProps, defineEmits } from "vue";
 import { ElInput, ElForm } from "element-plus"; // ElFormItem removed
 // Icon removed as PanelSection handles its icon
 
-import PanelSection from "@core/components/ui/PanelSection.vue";
+import CardContainer from "@core/components/ui/CardContainer.vue";
 import StyledFormItem from "@core/components/forms/StyledFormItem.vue";
 import type {
   IEditorCharacterCard,

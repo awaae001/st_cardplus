@@ -1,5 +1,5 @@
 <template>
-  <PanelSection title="背景与性格" icon="ph:scroll-duotone">
+  <CardContainer title="背景与性格" icon="ph:scroll-duotone">
     <el-form :model="localForm" label-position="top" class="space-y-5">
       <StyledFormItem label="背景故事" prop="background">
         <el-input
@@ -39,7 +39,7 @@
         </StyledFormItem>
       </div>
     </el-form>
-  </PanelSection>
+  </CardContainer>
 </template>
 
 <script setup lang="ts">
@@ -47,7 +47,7 @@ import { ref, watch, defineProps, defineEmits } from "vue";
 import { ElMessageBox, ElInput, ElButton, ElForm } from "element-plus"; // ElForm added
 import { Icon } from "@iconify/vue";
 
-import PanelSection from "@core/components/ui/PanelSection.vue";
+import CardContainer from "@core/components/ui/CardContainer.vue";
 import StyledFormItem from "@core/components/forms/StyledFormItem.vue";
 import type { IEditorCharacterCard } from "@character/types/character.types";
 

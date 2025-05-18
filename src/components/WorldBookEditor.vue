@@ -288,13 +288,12 @@
                 ref="entryFormRef"
                 class="space-y-5 flex-grow p-3 sm:p-4"
               >
-                <section class="form-section">
-                  <h3 class="form-section-title flex items-center gap-2">
-                    <Icon
-                      icon="ph:info-duotone"
-                      class="text-lg text-inherit"
-                    />基本信息
-                  </h3>
+                <CardContainer
+                  title="基本信息"
+                  icon="ph:info-duotone"
+                  headerClass="form-section-title flex items-center gap-2"
+                  iconClass="text-lg text-inherit"
+                >
                   <div class="space-y-5">
                     <div>
                       <label class="form-label">标题/备注 (Comment)</label
@@ -336,14 +335,13 @@
                       />
                     </div>
                   </div>
-                </section>
-                <section class="form-section">
-                  <h3 class="form-section-title flex items-center gap-2">
-                    <Icon
-                      icon="ph:radio-button-duotone"
-                      class="text-lg text-inherit"
-                    />触发与激活
-                  </h3>
+                </CardContainer>
+                <CardContainer
+                  title="触发与激活"
+                  icon="ph:radio-button-duotone"
+                  headerClass="form-section-title flex items-center gap-2"
+                  iconClass="text-lg text-inherit"
+                >
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
                     <div>
                       <label class="form-label"
@@ -405,14 +403,13 @@
                       </div>
                     </div>
                   </div>
-                </section>
-                <section class="form-section">
-                  <h3 class="form-section-title flex items-center gap-2">
-                    <Icon
-                      icon="ph:arrows-merge-duotone"
-                      class="text-lg text-inherit"
-                    />插入与顺序
-                  </h3>
+                </CardContainer>
+                <CardContainer
+                  title="插入与顺序"
+                  icon="ph:arrows-merge-duotone"
+                  headerClass="form-section-title flex items-center gap-2"
+                  iconClass="text-lg text-inherit"
+                >
                   <div
                     class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5 items-end"
                   >
@@ -456,14 +453,13 @@
                       /></el-select>
                     </div>
                   </div>
-                </section>
-                <section class="form-section">
-                  <h3 class="form-section-title flex items-center gap-2">
-                    <Icon
-                      icon="ph:scan-duotone"
-                      class="text-lg text-inherit"
-                    />扫描与匹配
-                  </h3>
+                </CardContainer>
+                <CardContainer
+                  title="扫描与匹配"
+                  icon="ph:scan-duotone"
+                  headerClass="form-section-title flex items-center gap-2"
+                  iconClass="text-lg text-inherit"
+                >
                   <div
                     class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5 items-start"
                   >
@@ -492,14 +488,13 @@
                       ><el-switch v-model="editableEntry.vectorized" />
                     </div>
                   </div>
-                </section>
-                <section class="form-section">
-                  <h3 class="form-section-title flex items-center gap-2">
-                    <Icon
-                      icon="ph:graph-duotone"
-                      class="text-lg text-inherit"
-                    />递归与分组
-                  </h3>
+                </CardContainer>
+                <CardContainer
+                  title="递归与分组"
+                  icon="ph:graph-duotone"
+                  headerClass="form-section-title flex items-center gap-2"
+                  iconClass="text-lg text-inherit"
+                >
                   <div
                     class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5 items-start"
                   >
@@ -541,14 +536,13 @@
                       <p class="form-help-text">匹配关键词更多者优先</p>
                     </div>
                   </div>
-                </section>
-                <section class="form-section">
-                  <h3 class="form-section-title flex items-center gap-2">
-                    <Icon
-                      icon="ph:timer-duotone"
-                      class="text-lg text-inherit"
-                    />定时效果
-                  </h3>
+                </CardContainer>
+                <CardContainer
+                  title="定时效果"
+                  icon="ph:timer-duotone"
+                  headerClass="form-section-title flex items-center gap-2"
+                  iconClass="text-lg text-inherit"
+                >
                   <div
                     class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5 items-end"
                   >
@@ -583,14 +577,13 @@
                       <p class="form-help-text">需N条消息后激活, 0无延迟</p>
                     </div>
                   </div>
-                </section>
-                <section class="form-section">
-                  <h3 class="form-section-title flex items-center gap-2">
-                    <Icon
-                      icon="ph:puzzle-piece-duotone"
-                      class="text-lg text-inherit"
-                    />其他
-                  </h3>
+                </CardContainer>
+                <CardContainer
+                  title="其他"
+                  icon="ph:puzzle-piece-duotone"
+                  headerClass="form-section-title flex items-center gap-2"
+                  iconClass="text-lg text-inherit"
+                >
                   <div>
                     <label class="form-label">自动化ID (Automation ID)</label
                     ><el-input
@@ -598,7 +591,7 @@
                       placeholder="用于Quick Replies扩展"
                     />
                   </div>
-                </section>
+                </CardContainer>
               </el-form>
             </div>
           </el-scrollbar>
@@ -1255,6 +1248,7 @@ import {
   ElTabPane,
 } from "element-plus";
 import { Icon } from "@iconify/vue";
+import CardContainer from "@core/components/ui/CardContainer.vue";
 // import { saveAs } from 'file-saver';
 import { useAppSettingsStore } from "@core/store/appSettings.store";
 import {

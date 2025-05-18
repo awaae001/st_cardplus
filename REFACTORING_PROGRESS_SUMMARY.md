@@ -77,6 +77,9 @@
         *   在 [`src/components/WorldBookEditor.vue`](src/components/WorldBookEditor.vue:1) 中，使用共享组件 [`TooltipIconButton.vue`](src/modules/core/components/ui/TooltipIconButton.vue:1) 替换了6个内联的 `<el-tooltip>` 包裹的图标按钮。
     *   **创建新的共享UI组件:**
         *   创建 [`src/modules/core/components/ui/FormSection.vue`](src/modules/core/components/ui/FormSection.vue:1) 用于表单区块的通用结构。
+        *   创建 [`src/modules/core/components/ui/CardContainer.vue`](src/modules/core/components/ui/CardContainer.vue:1) 作为通用的卡片式容器。
+    *   **组件重构以使用共享组件:**
+        *   重构 [`src/components/CharacterCardEditor.vue`](src/components/CharacterCardEditor.vue:1) 以使用 `CardContainer.vue` 替换原有的 `panelClasses`。
 
 #### **4. 定义核心 TypeScript 类型** ([`PROJECT_REFACTOR_PLAN.md:131`](PROJECT_REFACTOR_PLAN.md:131))
 
@@ -145,6 +148,15 @@
     *   重构 [`src/components/WorldEditor.vue`](src/components/WorldEditor.vue:1) 以使用共享组件 `PanelSection.vue` 和 `StyledFormItem.vue`，并移除了相关的本地CSS及其中的 `panelClasses` 计算属性。
     *   在 [`src/components/WorldBookEditor.vue`](src/components/WorldBookEditor.vue:1) 中，使用共享组件 [`TooltipIconButton.vue`](src/modules/core/components/ui/TooltipIconButton.vue:1) 替换了多个内联的图标按钮。
     *   创建了新的共享 UI 组件 [`src/modules/core/components/ui/FormSection.vue`](src/modules/core/components/ui/FormSection.vue:1)。
+    *   创建了新的共享 UI 组件 [`src/modules/core/components/ui/CardContainer.vue`](src/modules/core/components/ui/CardContainer.vue:1) (已增强支持标题和内边距) 并应用于 [`src/components/CharacterCardEditor.vue`](src/components/CharacterCardEditor.vue:1)。
+    *   重构 [`src/components/WorldBookEditor.vue`](src/components/WorldBookEditor.vue:1) 以使用增强后的 `CardContainer.vue`，将所有 `form-section` 替换为 `CardContainer`。
+    *   重构 [`src/components/CharacterCradOutput.vue`](src/components/CharacterCradOutput.vue:1) 以使用 `CardContainer.vue` 替换了所有 `panelClasses` 的 `div` 容器，并移除了 `panelClasses` 计算属性。
+    *   重构 [`src/components/WorldEditor.vue`](src/components/WorldEditor.vue:1) 以使用 `CardContainer.vue` 替换了所有 `PanelSection.vue` 组件，并更新了相关导入。
+    *   重构 [`src/components/charcard/BasicInfo.vue`](src/components/charcard/BasicInfo.vue:1) 以使用 `CardContainer.vue` 替换了 `PanelSection.vue` 组件，并更新了相关导入。
+    *   重构 [`src/components/charcard/BackgroundStory.vue`](src/components/charcard/BackgroundStory.vue:1) 以使用 `CardContainer.vue` 替换了 `PanelSection.vue` 组件，并更新了相关导入。
+    *   重构 [`src/components/charcard/AppearanceFeatures.vue`](src/components/charcard/AppearanceFeatures.vue:1) 以使用 `CardContainer.vue` 替换了 `PanelSection.vue` 组件，并更新了相关导入。
+    *   重构 [`src/components/charcard/AttireSettings.vue`](src/components/charcard/AttireSettings.vue:1) 以使用 `CardContainer.vue` 替换了 `PanelSection.vue` 组件，并更新了相关导入。
+    *   重构 [`src/components/charcard/LikesDislikesRoutine.vue`](src/components/charcard/LikesDislikesRoutine.vue:1) 以使用 `CardContainer.vue` 替换了所有 `PanelSection.vue` 组件，并更新了相关导入。
 *   **4. 定义核心 TypeScript 类型：**
     *   继续在代码中（尤其是在新模块和重构的组件中）尽可能使用已定义的共享 TypeScript 类型。
     *   ~~为 [`src/components/WorldBookEditor.vue`](src/components/WorldBookEditor.vue:1) 更新以使用 `IWorldBookEntry` 类型并修正其导入路径。~~ (已完成)
@@ -193,6 +205,15 @@
 *   为所有现存的 Pinia store 文件 ([`appSettings.store.ts`](src/modules/core/store/appSettings.store.ts:1), [`characterEditor.store.ts`](src/modules/character/store/characterEditor.store.ts:1), [`characterOutput.store.ts`](src/modules/character/store/characterOutput.store.ts:1), [`worldBook.store.ts`](src/modules/world/store/worldBook.store.ts:1)) 添加了 JSDoc 中文注释。
 *   在 [`src/components/WorldBookEditor.vue`](src/components/WorldBookEditor.vue:1) 中使用 [`TooltipIconButton.vue`](src/modules/core/components/ui/TooltipIconButton.vue:1) 替换了所有6个符合条件的图标按钮。
 *   创建了新的共享UI组件 [`src/modules/core/components/ui/FormSection.vue`](src/modules/core/components/ui/FormSection.vue:1)。
-
+*   创建了新的共享UI组件 [`src/modules/core/components/ui/CardContainer.vue`](src/modules/core/components/ui/CardContainer.vue:1) 并更新 [`src/components/CharacterCardEditor.vue`](src/components/CharacterCardEditor.vue:1) 以使用它。
+*   增强了共享组件 [`src/modules/core/components/ui/CardContainer.vue`](src/modules/core/components/ui/CardContainer.vue:1) 以支持标题、图标和内边距。
+*   完成了对 [`src/components/WorldBookEditor.vue`](src/components/WorldBookEditor.vue:1) 的重构，使其使用增强后的 [`CardContainer.vue`](src/modules/core/components/ui/CardContainer.vue:1) 组件替换了所有内部的 `form-section` 结构。
+*   完成了对 [`src/components/CharacterCradOutput.vue`](src/components/CharacterCradOutput.vue:1) 的重构，使其使用 [`CardContainer.vue`](src/modules/core/components/ui/CardContainer.vue:1) 组件替换了其内部的 `panelClasses` 容器。
+*   完成了对 [`src/components/WorldEditor.vue`](src/components/WorldEditor.vue:1) 的重构，使其使用 [`CardContainer.vue`](src/modules/core/components/ui/CardContainer.vue:1) 组件替换了所有 `PanelSection.vue` 的使用。
+*   完成了对 [`src/components/charcard/BasicInfo.vue`](src/components/charcard/BasicInfo.vue:1) 的重构，使其使用 [`CardContainer.vue`](src/modules/core/components/ui/CardContainer.vue:1) 组件替换了 `PanelSection.vue` 的使用。
+*   完成了对 [`src/components/charcard/BackgroundStory.vue`](src/components/charcard/BackgroundStory.vue:1) 的重构，使其使用 [`CardContainer.vue`](src/modules/core/components/ui/CardContainer.vue:1) 组件替换了 `PanelSection.vue` 的使用。
+*   完成了对 [`src/components/charcard/AppearanceFeatures.vue`](src/components/charcard/AppearanceFeatures.vue:1) 的重构，使其使用 [`CardContainer.vue`](src/modules/core/components/ui/CardContainer.vue:1) 组件替换了 `PanelSection.vue` 的使用。
+*   完成了对 [`src/components/charcard/AttireSettings.vue`](src/components/charcard/AttireSettings.vue:1) 的重构，使其使用 [`CardContainer.vue`](src/modules/core/components/ui/CardContainer.vue:1) 组件替换了 `PanelSection.vue` 的使用。
+*   完成了对 [`src/components/charcard/LikesDislikesRoutine.vue`](src/components/charcard/LikesDislikesRoutine.vue:1) 的重构，使其使用 [`CardContainer.vue`](src/modules/core/components/ui/CardContainer.vue:1) 组件替换了所有 `PanelSection.vue` 的使用。
 ---
 这份总结概述了我们已完成的工作和接下来的任务。
