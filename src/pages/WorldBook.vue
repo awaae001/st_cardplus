@@ -1,11 +1,11 @@
 <template>
     <div class="world-page">
-        <el-empty description="此页面还在积极开发中" :image-size="200"/>
+        <WorldBook/>
     </div>
   </template>
   
   <script setup lang="ts">
-
+  import WorldBook  from '../components/WorldBook.vue';
   </script>
   
   <style scoped>
