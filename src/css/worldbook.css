@@ -1,0 +1,329 @@
+/* WorldEditor Styles */
+
+/* 主容器样式 */
+.world-editor-container {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+  padding: 1.5rem;
+}
+
+/* 标题区域 */
+.title-section {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.main-title {
+  color: #2c3e50;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 按钮样式增强 */
+.el-button {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.el-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* 卡片样式 */
+.el-card {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.el-card:hover {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.el-card h2 {
+  color: #34495e;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  position: relative;
+  padding-left: 16px;
+}
+
+.el-card h2::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 2px;
+}
+
+/* 输入框样式 */
+.el-input__wrapper {
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  transition: all 0.3s ease;
+}
+
+.el-input__wrapper:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+}
+
+.el-input__wrapper:focus-within {
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2) !important;
+}
+
+.el-textarea__inner {
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  transition: all 0.3s ease;
+}
+
+.el-textarea__inner:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+}
+
+.el-textarea__inner:focus {
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2) !important;
+}
+
+/* 地标卡片样式 */
+.landmark-card {
+  background: linear-gradient(135deg, #f5f7fa 0%, #99a9bf 100%);
+  position: relative;
+  overflow: hidden;
+  padding: 1.2rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.landmark-card::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  transform: rotate(45deg);
+}
+
+.landmark-card .el-card__body {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.landmark-card .el-input__wrapper,
+.landmark-card .el-textarea__inner {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(5px);
+}
+
+/* 势力卡片样式 */
+.force-card {
+  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+  position: relative;
+  overflow: hidden;
+  padding: 1.2rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.force-card::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+  transform: rotate(-45deg);
+}
+
+.force-card .el-card__body {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.force-card .el-input__wrapper,
+.force-card .el-textarea__inner {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(5px);
+}
+
+/* 标题与按钮容器 */
+.title-Btn-add {
+  background: linear-gradient(to right, rgba(102, 126, 234, 0.1), transparent);
+  padding: 1rem;
+  border-radius: 8px;
+  margin: -1rem -1rem 1rem -1rem;
+}
+
+/* 删除按钮样式 */
+.el-button--danger {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  border: none;
+  color: white;
+}
+
+.el-button--danger:hover {
+  background: linear-gradient(135deg, #ee5a24 0%, #ff6b6b 100%);
+}
+
+/* 拖拽时的样式 */
+.sortable-ghost {
+  opacity: 0.4;
+  transform: scale(0.98);
+}
+
+.sortable-drag {
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2) !important;
+  transform: rotate(2deg);
+}
+
+/* 响应式网格间距 */
+.el-row {
+  margin-left: -8px;
+  margin-right: -8px;
+}
+
+.el-col {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.el-card {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* 滚动条美化 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+/* 图标样式 */
+.iconify {
+  vertical-align: middle;
+}
+
+/* 表单标签样式 */
+.el-form-item__label {
+  font-weight: 600;
+  color: #5a6c7d;
+}
+
+/* 按钮组样式 */
+.btnSL {
+  gap: 0.5rem;
+}
+
+.btnSL2 {
+  gap: 0.5rem;
+}
+
+/* 卡片内部间距 */
+.mb-2 {
+  margin-bottom: 0.75rem;
+}
+
+.mb-4 {
+  margin-bottom: 1.5rem;
+}
+
+/* 全宽按钮 */
+.w-full {
+  width: 100%;
+}
+
+/* 主要按钮渐变 */
+.el-button--primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+}
+
+.el-button--primary:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+/* 成功按钮渐变 */
+.el-button--success {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  border: none;
+  color: white;
+}
+
+.el-button--success:hover {
+  background: linear-gradient(135deg, #38ef7d 0%, #11998e 100%);
+}
+
+/* 信息按钮渐变 */
+.el-button--info {
+  background: linear-gradient(135deg, #2196F3 0%, #21CBF3 100%);
+  border: none;
+  color: white;
+}
+
+.el-button--info:hover {
+  background: linear-gradient(135deg, #21CBF3 0%, #2196F3 100%);
+}
+
+/* 警告按钮渐变 */
+.el-button--warning {
+  background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+  border: none;
+  color: white;
+}
+
+.el-button--warning:hover {
+  background: linear-gradient(135deg, #ffd200 0%, #f7971e 100%);
+}
