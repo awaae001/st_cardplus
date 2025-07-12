@@ -1,0 +1,32 @@
+export interface WorldBookEntry {
+  uid?: number;
+  comment: string;
+  key: string[];
+  content: string;
+  addMemo: boolean;
+  order: number;
+  constant: boolean;
+  disable: boolean;
+  keysecondary: string[];
+  selectiveLogic: number;
+  selective: boolean;
+  excludeRecursion: boolean;
+  preventRecursion: boolean;
+  delayUntilRecursion: boolean;
+  probability: number;
+  useProbability: boolean;
+  position: number;
+  role: number;
+  depth: number;
+  caseSensitive: boolean;
+  matchWholeWords: boolean;
+  vectorized: boolean;
+  group: string;
+  groupPriority: number;
+  groupOverride: boolean;
+  useGroupScoring: boolean;
+  sticky: number;
+  cooldown: number;
+  delay: number;
+  automationId: string;
+}
