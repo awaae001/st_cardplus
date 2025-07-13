@@ -21,10 +21,11 @@
               </button>
             </el-tooltip>
           </div>
-          <WorldBookEntryList 
-            :entries="worldBookEntries" 
-            :selected-index="selectedEntryIndex" 
-            @select-entry="handleSelectEntry" 
+          <WorldBookEntryList
+            :entries="worldBookEntries"
+            :selected-index="selectedEntryIndex"
+            @select-entry="handleSelectEntry"
+            @reorder-entries="handleReorderEntries"
           />
 
           <div class="content-panel-header worldbook-bottom-panel-header">
@@ -87,10 +88,11 @@
             </button>
           </el-tooltip>
         </div>
-        <WorldBookEntryList 
-          :entries="worldBookEntries" 
-          :selected-index="selectedEntryIndex" 
-          @select-entry="handleSelectEntry" 
+        <WorldBookEntryList
+          :entries="worldBookEntries"
+          :selected-index="selectedEntryIndex"
+          @select-entry="handleSelectEntry"
+          @reorder-entries="handleReorderEntries"
         />
         <div class="content-panel-header worldbook-bottom-panel-header-desktop">
           <WorldBookActions 
@@ -247,6 +249,13 @@ const handleSelectEntry = (indexStr: string) => {
     selectedEntryIndex.value = index;
     activeTab.value = "editor";
   }
+};
+
+// 处理拖拽排序
+const handleReorderEntries = (newOrder: WorldBookEntry[]) => {
+  worldBookEntries.value = newOrder;
+  saveWorldBookToLocalStorage();
+  ElMessage.success("条目顺序已更新！");
 };
 
 const saveCurrentEntry = () => {

@@ -178,7 +178,6 @@
 
 /* 条目列表 */
 .worldbook-entry-list-scrollbar {
-  height: 400px;
   border: 1px solid var(--el-border-color-lighter);
   border-radius: 4px;
   background: var(--el-bg-color);
@@ -220,6 +219,74 @@
 
 .entry-menu-item-tag-placeholder {
   height: 20px;
+}
+
+/* 拖拽相关样式 */
+.entry-menu-item-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.entry-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  cursor: grab;
+  color: var(--el-text-color-placeholder);
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+.entry-drag-handle:hover {
+  color: var(--el-text-color-regular);
+}
+
+.entry-drag-handle:active {
+  cursor: grabbing;
+}
+
+.entry-drag-handle-icon {
+  font-size: 16px;
+}
+
+.entry-menu-item-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* vuedraggable 拖拽状态样式 */
+.entry-chosen {
+  opacity: 0.8;
+  transform: scale(1.02);
+  background-color: var(--el-color-primary-light-9) !important;
+  border-color: var(--el-color-primary) !important;
+  transition: all 0.2s;
+}
+
+.entry-drag {
+  opacity: 0.6;
+  transform: rotate(2deg);
+  transition: all 0.2s;
+}
+
+.entry-ghost {
+  opacity: 0.3;
+  background-color: var(--el-color-primary-light-8);
+  border: 2px dashed var(--el-color-primary);
+}
+
+/* 拖拽过程中的视觉反馈 */
+.entry-menu-item:hover .entry-drag-handle {
+  color: var(--el-color-primary);
+}
+
+.sortable-chosen .entry-drag-handle {
+  color: var(--el-color-primary);
+  cursor: grabbing;
 }
 
 /* 底部面板 */

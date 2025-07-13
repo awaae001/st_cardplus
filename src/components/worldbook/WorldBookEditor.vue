@@ -71,7 +71,7 @@
           </h3>
           <div class="form-grid-3-col">
             <div>
-              <label class="form-label">插入顺序 (Order)</label><el-input-number v-model="localModel.order" :min="0"
+              <label class="form-label">顺序</label><el-input-number v-model="localModel.order" :min="0"
                 controls-position="right" class="form-full-width" />
             </div>
             <div>
@@ -80,6 +80,10 @@
                 <el-option label="角色定义之后" :value="1" /><el-option label="作者注释之前" :value="2" />
                 <el-option label="作者注释之后" :value="3" /><el-option label="@D" :value="4" />
                 <el-option label="示例消息之前" :value="5" /><el-option label="示例消息之后" :value="6" /></el-select>
+            </div>
+            <div>
+              <label class="form-label">插入深度 (Depth)</label><el-input-number v-model="localModel.depth" :min="0"
+                :max="999" controls-position="right" class="form-full-width" :disabled="localModel.position !== 4" />
             </div>
             <div v-if="localModel.position === 4">
               <label class="form-label">深度角色 (Role for In-chat)</label><el-select v-model="localModel.role"
@@ -94,11 +98,6 @@
             <Icon icon="ph:scan-duotone" class="form-section-icon" />扫描与匹配
           </h3>
           <div class="form-grid-3-col-top-align">
-            <div>
-              <label class="form-label">扫描深度 (Scan Depth)</label><el-input-number v-model="localModel.depth" :min="0"
-                :max="999" controls-position="right" class="form-full-width" :disabled="localModel.position !== 4" />
-              <p class="form-help-text">0表示可能使用全局设置。</p>
-            </div>
             <div class="form-flex-col-start">
               <label class="form-label">大小写敏感</label><el-switch v-model="localModel.caseSensitive" />
             </div>
