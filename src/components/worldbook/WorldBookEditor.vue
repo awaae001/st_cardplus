@@ -96,7 +96,7 @@
           <div class="form-grid-3-col-top-align">
             <div>
               <label class="form-label">扫描深度 (Scan Depth)</label><el-input-number v-model="localModel.depth" :min="0"
-                :max="999" controls-position="right" class="form-full-width" />
+                :max="999" controls-position="right" class="form-full-width" :disabled="localModel.position !== 4" />
               <p class="form-help-text">0表示可能使用全局设置。</p>
             </div>
             <div class="form-flex-col-start">

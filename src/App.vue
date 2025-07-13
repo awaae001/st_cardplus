@@ -79,10 +79,10 @@ router.afterEach(() => {
         <Icon style="margin-right: 4px;" icon="material-symbols:construction" width="24" height="24" />
         <span>工具箱</span>
       </el-menu-item>
-      <!-- <el-menu-item index="/worldbook">
+      <el-menu-item index="/worldbook">
         <Icon style="margin-right: 4px;" icon="material-symbols:book-2-outline" width="24" height="24" />
-        <span>世界书编辑</span>
-      </el-menu-item> -->
+        <span>世界书 · 测试版</span>
+      </el-menu-item>
     <div style="flex-grow: 1"></div>
     <el-menu-item @click="toggleDark()">
       <el-icon>
