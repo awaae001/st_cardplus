@@ -410,41 +410,9 @@ const filterEmptyValues = (obj: any): any => {
  */
 const processLoadedData = (parsedData: any): CharacterCard => {
   
-  // 处理外观数据，保留所有字段(包括自定义字段)
-  const appearance: Appearance = {
-    height: parsedData.appearance?.height || '',
-    hairColor: parsedData.appearance?.hairColor || '',
-    hairstyle: parsedData.appearance?.hairstyle || '',
-    eyes: parsedData.appearance?.eyes || '',
-    nose: parsedData.appearance?.nose || '',
-    lips: parsedData.appearance?.lips || '',
-    skin: parsedData.appearance?.skin || '',
-    body: parsedData.appearance?.body || '',
-    bust: parsedData.appearance?.bust || '',
-    waist: parsedData.appearance?.waist || '',
-    hips: parsedData.appearance?.hips || '',
-    breasts: parsedData.appearance?.breasts || '',
-    genitals: parsedData.appearance?.genitals || '',
-    anus: parsedData.appearance?.anus || '',
-    pubes: parsedData.appearance?.pubes || '',
-    thighs: parsedData.appearance?.thighs || parsedData.appearance?.thihes || '', // 修复拼写错误
-    butt: parsedData.appearance?.butt || '',
-    feet: parsedData.appearance?.feet || '',
-  };
-
-  // 保留非标准字段(自定义字段)
-  if (parsedData.appearance) {
-    const standardFields = [
-      'height', 'hairColor', 'hairstyle', 'eyes', 'nose', 'lips', 'skin', 'body',
-      'bust', 'waist', 'hips', 'breasts', 'genitals', 'anus', 'pubes', 'thighs', 'butt', 'feet'
-    ];
-    
-    for (const key in parsedData.appearance) {
-      if (!standardFields.includes(key)) {
-        appearance[key] = parsedData.appearance[key];
-      }
-    }
-  }
+  // 简化外观数据处理逻辑
+  // 直接使用导入文件中的 appearance 对象，如果不存在则为空对象
+  const appearance: Appearance = parsedData.appearance || {};
 
   // 处理服装数据
   const attires: Attire[] = Array.isArray(parsedData.attires) 
