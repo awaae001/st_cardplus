@@ -103,16 +103,11 @@ const importImage = async (file: File) => {
     const decodedData = await extractAndDecodeCcv3(file);
 
     if (decodedData) {
-        // 成功解码，更新数据
-        // 假设 extractAndDecodeCcv3 返回的是需要合并到 initialData 的部分或全部数据
-        // 如果返回的是完整数据，可能不需要 ...initialData.value
         characterData.value = { ...initialData.value, ...decodedData };
         ElMessage.success('数据已成功加载');
     } else {
         // 解码失败或未找到 ccv3 标签
         ElMessage.error('无法从图片中加载数据，请检查图片是否包含有效的 ccv3 元数据');
-        // 可选：根据需求决定是否重置 characterData
-        // characterData.value = { ...initialData.value };
     }
 };
 
@@ -151,6 +146,8 @@ const handleFileChange = (file: UploadFile) => {
 
 .image-parser-container {
     padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .card-header {
@@ -175,16 +172,10 @@ const handleFileChange = (file: UploadFile) => {
 
 .json-data {
     white-space: pre-wrap;
-    /* 保留空白符序列，但会自动换行 */
     white-space: -moz-pre-wrap;
-    /* Mozilla浏览器的兼容性 */
     white-space: -pre-wrap;
-    /* 旧版浏览器的兼容性 */
     white-space: -o-pre-wrap;
-    /* Opera浏览器的兼容性 */
     word-wrap: break-word;
-    /* 强制长单词换行 */
-    max-height: 300px;
     overflow: auto;
 }
 
