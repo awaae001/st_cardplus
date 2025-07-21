@@ -146,6 +146,7 @@ import {
   initAutoSave as initWorldBookAutoSave,
   clearAutoSave as clearWorldBookAutoSave,
 } from "../utils/localStorageUtils";
+import { copyToClipboard } from "../utils/clipboard";
 import type { WorldBookEntry } from "./worldbook/types";
 
 interface AppSettings {
@@ -307,15 +308,10 @@ const copySelectedEntry = async (): Promise<void> => {
     ElMessage.warning("请先选择一个条目进行复制。");
     return;
   }
-  try {
-    const entryToCopy = { ...selectedEntry.value };
-    delete entryToCopy.uid;
-    const jsonData = JSON.stringify(entryToCopy, null, 2);
-    await navigator.clipboard.writeText(jsonData);
-    ElMessage.success("当前条目数据已复制到剪贴板！");
-  } catch (error) {
-    ElMessage.error("复制失败: " + (error as Error).message);
-  }
+  const entryToCopy = { ...selectedEntry.value };
+  delete entryToCopy.uid;
+  const jsonData = JSON.stringify(entryToCopy, null, 2);
+  await copyToClipboard(jsonData, "当前条目数据已复制到剪贴板！");
 };
 
 const showImportEntryDialog = async (): Promise<void> => {
@@ -596,14 +592,9 @@ const copyWorldBookToClipboard = async (): Promise<void> => {
     ElMessage.warning("没有条目可以复制。");
     return;
   }
-  try {
-    const exportData = formatWorldBookForExport();
-    const jsonString = JSON.stringify(exportData, null, 2);
-    await navigator.clipboard.writeText(jsonString);
-    ElMessage.success("整个世界书数据已复制到剪贴板！");
-  } catch (error) {
-    ElMessage.error("复制世界书失败: " + (error as Error).message);
-  }
+  const exportData = formatWorldBookForExport();
+  const jsonString = JSON.stringify(exportData, null, 2);
+  await copyToClipboard(jsonString, "整个世界书数据已复制到剪贴板！");
 };
 
 const showImportWorldBookDialog = async (): Promise<void> => {

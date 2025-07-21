@@ -146,6 +146,7 @@ import {
   initAutoSave,
   clearAutoSave
 } from '../utils/localStorageUtils';
+import { copyToClipboard as copyUtil } from '../utils/clipboard';
 
 interface Landmark {
   name: string
@@ -229,31 +230,21 @@ const removeLandmark = (landmark: Landmark) => {
 }
 
 const exportLandmarks = async () => {
-  try {
-    const landmarksData = form.value.landmarks;
-    if (landmarksData.length === 0) {
-      ElMessage.warning('没有可导出的地标');
-      return;
-    }
-    await navigator.clipboard.writeText(JSON.stringify(landmarksData, null, 2));
-    ElMessage.success('地标已复制到剪贴板！');
-  } catch (error) {
-    ElMessage.error("导出失败");
+  const landmarksData = form.value.landmarks;
+  if (landmarksData.length === 0) {
+    ElMessage.warning('没有可导出的地标');
+    return;
   }
+  await copyUtil(JSON.stringify(landmarksData, null, 2), '地标已复制到剪贴板！', '导出失败');
 };
 
 const exportForces = async () => {
-  try {
-    const forcesData = form.value.forces;
-    if (forcesData.length === 0) {
-      ElMessage.warning('没有可导出的势力');
-      return;
-    }
-    await navigator.clipboard.writeText(JSON.stringify(forcesData, null, 2));
-    ElMessage.success('势力已复制到剪贴板！');
-  } catch (error) {
-    ElMessage.error("导出失败");
+  const forcesData = form.value.forces;
+  if (forcesData.length === 0) {
+    ElMessage.warning('没有可导出的势力');
+    return;
   }
+  await copyUtil(JSON.stringify(forcesData, null, 2), '势力已复制到剪贴板！', '导出失败');
 };
 
 const showImportDialog = () => {
@@ -309,22 +300,17 @@ const importFromClipboard = async (data: string) => {
 };
 
 const copyToClipboard = async () => {
-  try {
-    const dataToSave = {
-      ...form.value,
-      keywords: form.value.keywords.split('\n').filter(line => line.trim() !== ''),
-      info: form.value.info.split('\n').filter(line => line.trim() !== ''),
-      forces: form.value.forces.map(force => ({
-        ...force,
-        members: force.members.split('\n').filter(line => line.trim() !== '')
-      }))
-    };
-    const jsonData = JSON.stringify(dataToSave, null, 2);
-    await navigator.clipboard.writeText(jsonData);
-    ElMessage.success('已复制到剪贴板！');
-  } catch (error) {
-    ElMessage.error("复制失败");
-  }
+  const dataToSave = {
+    ...form.value,
+    keywords: form.value.keywords.split('\n').filter(line => line.trim() !== ''),
+    info: form.value.info.split('\n').filter(line => line.trim() !== ''),
+    forces: form.value.forces.map(force => ({
+      ...force,
+      members: force.members.split('\n').filter(line => line.trim() !== '')
+    }))
+  };
+  const jsonData = JSON.stringify(dataToSave, null, 2);
+  await copyUtil(jsonData, '已复制到剪贴板！', '复制失败');
 };
 
 const saveWorld = async () => {

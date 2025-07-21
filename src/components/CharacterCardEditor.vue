@@ -47,6 +47,7 @@ import {
   initAutoSave,
   clearAutoSave
 } from '../utils/localStorageUtils';
+import { copyToClipboard as copyUtil } from '../utils/clipboard';
 import BasicInfo from './charcard/BasicInfo.vue';
 import BackgroundStory from './charcard/BackgroundStory.vue';
 import AppearanceFeatures from './charcard/AppearanceFeatures.vue';
@@ -55,111 +56,14 @@ import PersonalityTraits from './charcard/PersonalityTraits.vue';
 import Relationships from './charcard/Relationships.vue';
 import LikesDislikesRoutine from './charcard/LikesDislikesRoutine.vue';
 import SkillsEditor from './charcard/SkillsEditor.vue';
-
-/**
- * 外观特征接口定义
- * 包含角色的所有外观相关属性
- */
-interface Appearance {
-  height: string;      // 身高
-  hairColor: string;   // 发色
-  hairstyle: string;   // 发型
-  eyes: string;        // 眼睛
-  nose: string;        // 鼻子
-  lips: string;        // 嘴唇
-  skin: string;        // 肤色
-  body: string;        // 体型
-  bust: string;        // 胸围
-  waist: string;       // 腰围
-  hips: string;        // 臀围
-  breasts: string;     // 胸部
-  genitals: string;    // 生殖器
-  anus: string;        // 肛门
-  pubes: string;       // 阴毛
-  thighs: string;      // 大腿
-  butt: string;        // 臀部
-  feet: string;        // 脚
-  [key: string]: string; // 支持动态属性
-}
-
-/**
- * 服装套装接口定义
- */
-interface Attire {
-  name: string;        // 套装名称
-  description: string; // 套装描述
-  tops: string;        // 上衣
-  bottoms: string;     // 下装
-  shoes: string;       // 鞋子
-  socks: string;       // 袜子
-  underwears: string;  // 内衣
-  accessories: string; // 配饰，可以是多行文本
-}
-
-/**
- * 性格特质接口定义
- */
-interface Trait {
-  name: string;                // 特质名称
-  description: string;         // 特质描述
-  dialogueExamples: string[];  // 对话示例
-  behaviorExamples: string[];  // 行为示例
-}
-
-/**
- * 人际关系接口定义
- */
-interface Relationship {
-  name: string;                // 关系人名称
-  description: string;         // 关系描述
-  features: string;            // 关系特点
-  dialogueExamples: string[];  // 对话示例
-}
-
-/**
- * 日常作息接口定义
- */
-interface DailyRoutine {
-  earlyMorning: string;  // 早晨
-  morning: string;       // 上午
-  afternoon: string;     // 下午
-  evening: string;       // 傍晚
-  night: string;         // 夜晚
-  lateNight: string;     // 深夜
-}
-
-/**
- * 技能接口定义
- */
-interface Skill {
-  name: string;           // 技能名称
-  description: string;    // 技能描述
-  dialogExample: string;  // 对话示例
-  behaviorExample: string;// 行为示例
-}
-
-/**
- * 角色卡主接口定义
- * 包含角色的所有信息
- */
-interface CharacterCard {
-  chineseName: string;     // 中文名
-  japaneseName: string;    // 日文名
-  gender: string;          // 性别
-  customGender: string;    // 自定义性别
-  age: number;             // 年龄
-  identity: string;        // 身份
-  background: string;      // 背景故事
-  appearance: Appearance;  // 外观特征
-  attires: Attire[];       // 服装套装
-  mbti: string;            // MBTI性格
-  traits: Trait[];         // 性格特质
-  relationships: Relationship[]; // 人际关系
-  likes: string;           // 喜好
-  dislikes: string;        // 厌恶
-  dailyRoutine: DailyRoutine; // 日常作息
-  skills: Skill[];         // 技能
-}
+import type {
+  Appearance,
+  Attire,
+  Trait,
+  Relationship,
+  Skill,
+  CharacterCard
+} from '../types/character';
 
 /**
  * 创建默认的角色卡数据
@@ -324,7 +228,7 @@ const processAccessories = (accessories: string | string[]): string[] => {
 const saveCharacterCard = async (): Promise<void> => {
   try {
     // 处理服装数据
-    const processedAttires = form.value.attires.map(attire => ({
+    const processedAttires = form.value.attires.map((attire: Attire) => ({
       ...attire,
       accessories: processAccessories(attire.accessories)
     }));
@@ -546,8 +450,6 @@ const resetForm = (): void => {
   clearLocalStorage();
     // 完全重置表单数据，包括自定义字段
     const newForm = createDefaultCharacterCard();
-    
-    // 保留标准字段，清除所有自定义字段
     const standardFields = {
       height: '',
       hairColor: '',
@@ -633,43 +535,37 @@ const exportAttires = async (): Promise<void> => {
  * 将当前表单数据处理后复制到剪贴板
  */
 const copyToClipboard = async (): Promise<void> => {
-  try {
-    // 处理服装数据
-    const processedAttires = form.value.attires.map(attire => ({
-      ...attire,
-      accessories: typeof attire.accessories === 'string'
-        ? attire.accessories.split('\n').filter(a => a.trim() !== '')
-        : attire.accessories || []
-    }));
+  // 处理服装数据
+  const processedAttires = form.value.attires.map(attire => ({
+    ...attire,
+    accessories: typeof attire.accessories === 'string'
+      ? attire.accessories.split('\n').filter(a => a.trim() !== '')
+      : attire.accessories || []
+  }));
 
-    // 处理原始数据
-    const rawData = {
-      ...form.value,
-      attires: processedAttires,
-      gender: form.value.gender === 'other' ? form.value.customGender : form.value.gender,
-      identity: processTextToArray(form.value.identity),
-      background: processTextToArray(form.value.background),
-      likes: processTextToArray(form.value.likes),
-      dislikes: processTextToArray(form.value.dislikes)
-    };
-    
-    // 过滤空值
-    const dataToSave = filterEmptyValues(rawData);
+  // 处理原始数据
+  const rawData = {
+    ...form.value,
+    attires: processedAttires,
+    gender: form.value.gender === 'other' ? form.value.customGender : form.value.gender,
+    identity: processTextToArray(form.value.identity),
+    background: processTextToArray(form.value.background),
+    likes: processTextToArray(form.value.likes),
+    dislikes: processTextToArray(form.value.dislikes)
+  };
+  
+  // 过滤空值
+  const dataToSave = filterEmptyValues(rawData);
 
-    // 验证数据
-    if (!dataToSave || Object.keys(dataToSave).length === 0) {
-      ElMessage.warning('没有可复制的数据，请先填写角色卡信息');
-      return;
-    }
-
-    // 复制到剪贴板
-    const jsonData = JSON.stringify(dataToSave, null, 2);
-    await navigator.clipboard.writeText(jsonData);
-    ElMessage.success('已复制到剪贴板！');
-  } catch (error) {
-    ElMessage.error("复制失败");
-    console.error('复制到剪贴板时出错:', error);
+  // 验证数据
+  if (!dataToSave || Object.keys(dataToSave).length === 0) {
+    ElMessage.warning('没有可复制的数据，请先填写角色卡信息');
+    return;
   }
+
+  // 复制到剪贴板
+  const jsonData = JSON.stringify(dataToSave, null, 2);
+  await copyUtil(jsonData, '已复制到剪贴板！', '复制失败');
 };
 
 /**
@@ -698,63 +594,32 @@ const importFromClipboard = async (data: string): Promise<void> => {
     console.error('从剪贴板导入时出错:', error);
   }
 };
-
-/**
- * 导出技能
- * 将技能数据复制到剪贴板
- */
 const exportSkills = async (): Promise<void> => {
-  try {
-    const skillsData = form.value.skills;
-    if (skillsData.length === 0) {
-      ElMessage.warning('没有可导出的技能');
-      return;
-    }
-    await navigator.clipboard.writeText(JSON.stringify(skillsData, null, 2));
-    ElMessage.success('技能已复制到剪贴板！');
-  } catch (error) {
-    ElMessage.error("导出失败");
-    console.error('导出技能时出错:', error);
+  const skillsData = form.value.skills;
+  if (skillsData.length === 0) {
+    ElMessage.warning('没有可导出的技能');
+    return;
   }
+  await copyUtil(JSON.stringify(skillsData, null, 2), '技能已复制到剪贴板！', '导出失败');
 };
-
-/**
- * 导出性格特质
- * 将性格特质数据复制到剪贴板
- */
 const exportTraits = async (): Promise<void> => {
-  try {
-    const traitsData = form.value.traits;
-    if (traitsData.length === 0) {
-      ElMessage.warning('没有可导出的性格特质');
-      return;
-    }
-    await navigator.clipboard.writeText(JSON.stringify(traitsData, null, 2));
-    ElMessage.success('性格特质已复制到剪贴板！');
-  } catch (error) {
-    ElMessage.error("导出失败");
-    console.error('导出性格特质时出错:', error);
+  const traitsData = form.value.traits;
+  if (traitsData.length === 0) {
+    ElMessage.warning('没有可导出的性格特质');
+    return;
   }
+  await copyUtil(JSON.stringify(traitsData, null, 2), '性格特质已复制到剪贴板！', '导出失败');
 };
 
-/**
- * 导出人际关系
- * 将人际关系数据复制到剪贴板
- */
 const exportRelationships = async (): Promise<void> => {
-  try {
-    const relationshipsData = form.value.relationships;
-    if (relationshipsData.length === 0) {
-      ElMessage.warning('没有可导出的人际关系');
-      return;
-    }
-    await navigator.clipboard.writeText(JSON.stringify(relationshipsData, null, 2));
-    ElMessage.success('人际关系已复制到剪贴板！');
-  } catch (error) {
-    ElMessage.error("导出失败");
-    console.error('导出人际关系时出错:', error);
+  const relationshipsData = form.value.relationships;
+  if (relationshipsData.length === 0) {
+    ElMessage.warning('没有可导出的人际关系');
+    return;
   }
+  await copyUtil(JSON.stringify(relationshipsData, null, 2), '人际关系已复制到剪贴板！', '导出失败');
 };
+
 
 /**
  * 暴露组件方法

@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { ElMessage, ElButton, ElInput, ElTable, ElTableColumn, ElMessageBox } from 'element-plus'
 import { Delete } from '@element-plus/icons-vue'
 import { Icon } from '@iconify/vue'
+import { copyToClipboard } from '../../utils/clipboard'
 
 const inputJson = ref('')
 const outputJson = ref('')
@@ -52,11 +53,9 @@ const deleteRecord = async (id: string) => {
   }
 }
 
-const copyToClipboard = () => {
+const handleCopy = () => {
   if (!outputJson.value) return
-  navigator.clipboard.writeText(outputJson.value)
-    .then(() => ElMessage.success('已复制到剪贴板'))
-    .catch(() => ElMessage.error('复制失败'))
+  copyToClipboard(outputJson.value)
 }
 
 const formatJson = () => {
@@ -92,7 +91,7 @@ const formatJson = () => {
             <Icon icon="material-symbols:autorenew" width="16" height="16" />
             格式化
           </el-button>
-          <el-button type="primary" @click="copyToClipboard" :disabled="!outputJson">
+          <el-button type="primary" @click="handleCopy" :disabled="!outputJson">
             <Icon icon="material-symbols:content-copy" width="16" height="16" />
             复制到剪贴板
           </el-button>
