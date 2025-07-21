@@ -11,66 +11,66 @@
     </p>
     <el-form :model="form.appearance" :label-width="screenWidth > 768 ? '120px' : 'auto'">
       <div id="appearance-form">
-        <el-form-item label="身高">
+        <el-form-item label="身高" style="display: flex;align-items: flex-start;">
           <el-input type="textarea" :rows="1" v-model="form.appearance.height" placeholder="请输入身高" />
         </el-form-item>
-        <el-form-item label="发色">
+        <el-form-item label="发色" style="display: flex;align-items: flex-start;">
           <el-input type="textarea" :rows="1" v-model="form.appearance.hairColor" placeholder="请输入发色" />
         </el-form-item>
-        <el-form-item label="发型">
+        <el-form-item label="发型" style="display: flex;align-items: flex-start;">
           <el-input type="textarea" :rows="1" v-model="form.appearance.hairstyle" placeholder="请输入发型" />
         </el-form-item>
-        <el-form-item label="眼睛">
+        <el-form-item label="眼睛" style="display: flex;align-items: flex-start;">
           <el-input type="textarea" :rows="1" v-model="form.appearance.eyes" placeholder="请输入眼睛特征" />
         </el-form-item>
-        <el-form-item label="鼻子">
+        <el-form-item label="鼻子" style="display: flex;align-items: flex-start;">
           <el-input type="textarea" :rows="1" v-model="form.appearance.nose" placeholder="请输入鼻子特征" />
         </el-form-item>
-        <el-form-item label="嘴唇">
+        <el-form-item label="嘴唇" style="display: flex;align-items: flex-start;">
           <el-input type="textarea" :rows="1" v-model="form.appearance.lips" placeholder="请输入嘴唇特征" />
         </el-form-item>
-        <el-form-item label="皮肤">
+        <el-form-item label="皮肤" style="display: flex;align-items: flex-start;">
           <el-input type="textarea" :rows="1" v-model="form.appearance.skin" placeholder="请输入皮肤特征" />
         </el-form-item>
-        <el-form-item label="身材">
+        <el-form-item label="身材" style="display: flex;align-items: flex-start;">
           <el-input type="textarea" :rows="1" v-model="form.appearance.body" placeholder="请输入身材特征" />
         </el-form-item>
 
-        <el-form-item label="胸部">
+        <el-form-item label="胸部" style="display: flex;align-items: flex-start;">
           <el-input type="textarea" :rows="1" v-model="form.appearance.breasts" placeholder="请输入胸部特征" />
         </el-form-item>
-        <el-form-item label="生殖器">
+        <el-form-item label="生殖器" style="display: flex;align-items: flex-start;">
           <el-input type="textarea" :rows="1" v-model="form.appearance.genitals" placeholder="请输入生殖器特征" />
         </el-form-item>
-        <el-form-item label="屁眼">
+        <el-form-item label="屁眼" style="display: flex;align-items: flex-start;">
           <el-input type="textarea" :rows="1" v-model="form.appearance.anus" placeholder="请输入屁眼特征" />
         </el-form-item>
-        <el-form-item label="阴毛">
+        <el-form-item label="阴毛" style="display: flex;align-items: flex-start;">
           <el-input type="textarea" :rows="1" v-model="form.appearance.pubes" placeholder="请输入阴毛特征" />
         </el-form-item>
-        <el-form-item label="胸围">
+        <el-form-item label="胸围" style="display: flex;align-items: flex-start;">
           <el-input type="textarea" :rows="1" v-model="form.appearance.bust" placeholder="请输入胸围" />
         </el-form-item>
-        <el-form-item label="腰围">
+        <el-form-item label="腰围" style="display: flex;align-items: flex-start;">
           <el-input type="textarea" :rows="1" v-model="form.appearance.waist" placeholder="请输入腰围" />
         </el-form-item>
-        <el-form-item label="臀围">
+        <el-form-item label="臀围" style="display: flex;align-items: flex-start;">
           <el-input type="textarea" :rows="1" v-model="form.appearance.hips" placeholder="请输入臀围" />
         </el-form-item>
-        <el-form-item label="大腿">
+        <el-form-item label="大腿" style="display: flex;align-items: flex-start;">
           <el-input type="textarea" :rows="1" v-model="form.appearance.thighs" placeholder="请输入大腿特征" />
         </el-form-item>
-        <el-form-item label="屁股">
+        <el-form-item label="屁股" style="display: flex;align-items: flex-start;">
           <el-input type="textarea" :rows="1" v-model="form.appearance.butt" placeholder="请输入屁股特征" />
         </el-form-item>
-        <el-form-item label="足部">
+        <el-form-item label="足部" style="display: flex;align-items: flex-start;">
           <el-input type="textarea" :rows="1" v-model="form.appearance.feet" placeholder="请输入足部特征" />
         </el-form-item>
 
         <!-- 自定义字段部分 -->
         <template v-if="customFields.length > 0">
-          <el-form-item v-for="(field, index) in customFields" :key="index" :label="field.label">
-            <div class="custom-field-container">
+          <el-form-item v-for="(field, index) in customFields" :key="index" :label="field.label" style="display: flex;align-items: flex-start;">
+            <div class="custom-field-container"  style="display: flex;align-items: flex-start;">
               <el-input type="textarea" :rows="1" v-model="field.value" :placeholder="`请输入${field.label}特征`" />
               <el-button type="danger" size="small" @click="removeCustomField(index)" class="remove-btn">
                 <Icon icon="material-symbols:delete-outline" width="20" height="20" />
@@ -81,9 +81,9 @@
       </div>
     </el-form>
     <el-button type="primary" size="small" @click="addCustomField">
-        <Icon icon="material-symbols:add" width="20" height="20" />
-        添加自定义字段
-      </el-button>
+      <Icon icon="material-symbols:add" width="20" height="20" />
+      添加自定义字段
+    </el-button>
   </el-card>
 </template>
 
