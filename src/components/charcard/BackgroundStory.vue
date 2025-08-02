@@ -1,13 +1,13 @@
 <template>
   <div>
-    <el-card class="mb-4">
-      <h2 class="text-xl font-semibold mb-2">背景故事</h2>
+    <el-card>
+      <h2 >背景故事</h2>
       <el-input v-model="form.background" type="textarea" :rows="6" placeholder="请输入背景故事（每行一条）" />
     </el-card>
     <div style="margin: 4px;"></div>
-    <el-card class="mb-4">
+    <el-card  >
       <div class="title-Btn">
-        <h2 class="text-xl font-semibold mb-2">MBTI性格</h2>
+        <h2  >MBTI性格</h2>
         <el-button type="primary" @click="validateMBTI" style="margin-right: 26px;">
           <Icon icon="material-symbols:question-exchange" width="18" height="18" style="margin-right: 4px;" />验证
         </el-button>

@@ -1,9 +1,9 @@
 <template>
-  <el-card class="mb-4">
+  <el-card>
     <div class="title-Btn-add">
-      <h2 class="text-xl font-semibold mb-4">服装设定</h2>
+      <h2>服装设定</h2>
       <div style="display: flex; gap: 8px;">
-        <el-button type="primary" @click="addAttire" class="w-full" style="margin-left: 16px;">
+        <el-button type="primary" @click="addAttire"   style="margin-left: 16px;">
           <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
             style="margin-right: 4px;" />
           添加套装（卡片）
@@ -29,16 +29,16 @@
             <Icon icon="material-symbols:drag-handle" width="20" height="20" />
           </div>
           <el-card class="mb-4 attire-card">
-            <el-input v-model="attire.name" placeholder="套装名称" class="mb-2" />
-            <el-input v-model="attire.description" type="textarea" :rows="2" placeholder="套装描述" class="mb-2" />
-            <el-input v-model="attire.tops" placeholder="上衣" class="mb-2" />
-            <el-input v-model="attire.bottoms" placeholder="下装" class="mb-2" />
-            <el-input v-model="attire.shoes" placeholder="鞋子" class="mb-2" />
-            <el-input v-model="attire.socks" placeholder="袜子" class="mb-2" />
-            <el-input v-model="attire.underwears" placeholder="内衣" class="mb-2" />
-            <el-input type="textarea" :rows="5" v-model="attire.accessories" placeholder="配饰 · 自动分组，一行一条" class="mb-2" />
+            <el-input v-model="attire.name" placeholder="套装名称"   />
+            <el-input v-model="attire.description" type="textarea" :rows="2" placeholder="套装描述"   />
+            <el-input v-model="attire.tops" placeholder="上衣"   />
+            <el-input v-model="attire.bottoms" placeholder="下装"   />
+            <el-input v-model="attire.shoes" placeholder="鞋子"   />
+            <el-input v-model="attire.socks" placeholder="袜子"   />
+            <el-input v-model="attire.underwears" placeholder="内衣"   />
+            <el-input type="textarea" :rows="5" v-model="attire.accessories" placeholder="配饰 · 自动分组，一行一条"   />
             <div style="margin: 4px;"></div>
-            <el-button type="danger" @click="removeAttire(index)" class="w-full">
+            <el-button type="danger" @click="removeAttire(index)"  >
               <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
               删除套装
             </el-button>

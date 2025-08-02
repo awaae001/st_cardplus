@@ -1,6 +1,6 @@
 <template>
   <el-card style="width: 45%;">
-    <h2 class="text-xl font-semibold mb-4">基本信息</h2>
+    <h2  >基本信息</h2>
     <span style="margin:8px;">角色名称
       <el-input v-model="characterData.name" placeholder="请输入角色名称" /></span>
     <span style="margin:8px;">头像

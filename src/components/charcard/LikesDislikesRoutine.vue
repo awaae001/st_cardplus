@@ -1,13 +1,13 @@
 <template>
   <div class="section-container">
-    <el-card class="mb-4">
-      <h2 class="text-xl font-semibold mb-2">喜好系统</h2>
-      <el-input v-model="form.likes" type="textarea" :rows="5" placeholder="请输入喜好（每行一条）" class="mb-2" />
+    <el-card  >
+      <h2  >喜好系统</h2>
+      <el-input v-model="form.likes" type="textarea" :rows="5" placeholder="请输入喜好（每行一条）"   />
       <el-input v-model="form.dislikes" type="textarea" :rows="5" placeholder="请输入厌恶（每行一条）" />
     </el-card>
 
-    <el-card class="mb-4">
-      <h2 class="text-xl font-semibold mb-2">日常作息</h2>
+    <el-card  >
+      <h2  >日常作息</h2>
       <el-form :model="form.dailyRoutine" label-width="120px">
         <div id="routine-form">
           <!-- 统一渲染所有字段 -->

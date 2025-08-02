@@ -48,6 +48,11 @@ const router = createRouter({
       path: '/toolbox/separator',
       name: 'separator',
       component: () => import('../components/toolsbox/separator.vue')
+    },
+    {
+      path: '/ejs-editor',
+      name: 'ejsEditor',
+      component: () => import('../pages/EjsTemplateEditor.vue')
     }
   ]
 })

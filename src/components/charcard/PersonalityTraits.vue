@@ -1,9 +1,9 @@
 <template>
-  <el-card class="mb-4">
+  <el-card  >
     <div class="title-Btn-add">
-      <h2 class="text-xl font-semibold mb-4">性格特质</h2>
+      <h2>性格特质</h2>
       <div style="display: flex; gap: 8px;">
-        <el-button type="primary" @click="addTrait" class="w-full" style="margin-left: 16px;">
+        <el-button type="primary" @click="addTrait" style="margin-left: 16px;">
           <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
             style="margin-right: 4px;" />
           添加特质（卡片）
@@ -27,20 +27,20 @@
             <div class="drag-handle" style="cursor: move; margin-bottom: 8px; padding: 4px; border-radius: 4px; ">
               <Icon icon="material-symbols:drag-handle" width="20" height="20" />
             </div>
-            <el-card class="mb-4 trait-card">
-              <el-input v-model="trait.name" placeholder="特质名称" class="mb-2" />
-              <el-input v-model="trait.description" type="textarea" :rows="4" placeholder="描述" class="mb-2" />
+            <el-card class="trait-card">
+              <el-input v-model="trait.name" placeholder="特质名称" />
+              <el-input v-model="trait.description" type="textarea" :rows="4" placeholder="描述"  />
 
               <div style="margin-top: 4px;"></div>
 
               <div v-for="(_, i) in trait.dialogueExamples" :key="i" class="cardInput">
                 <el-input v-model="trait.dialogueExamples[i]" type="textarea" :rows="2"
                   :placeholder="`对话示例 ${i + 1}`" />
-                <el-button @click="removeDialogueExample(index, i)" size="small" class="mt-1">
+                <el-button @click="removeDialogueExample(index, i)" size="small" >
                   <Icon icon="material-symbols:delete-outline" width="18" height="18" />
                 </el-button>
               </div>
-              <el-button type="primary" @click="addDialogueExample(index)" size="small" class="mb-4"
+              <el-button type="primary" @click="addDialogueExample(index)" size="small"  
                 style="width: 100%; margin-top: 4px;">
                 添加对话示例
               </el-button>
@@ -50,17 +50,17 @@
               <div v-for="(_, i) in trait.behaviorExamples" :key="i" class="cardInput">
                 <el-input v-model="trait.behaviorExamples[i]" type="textarea" :rows="2"
                   :placeholder="`行为示例 ${i + 1}`" />
-                <el-button @click="removeBehaviorExample(index, i)" size="small" class="mt-1">
+                <el-button @click="removeBehaviorExample(index, i)" size="small">
                   <Icon icon="material-symbols:delete-outline" width="18" height="18" />
                 </el-button>
               </div>
-              <el-button type="primary" @click="addBehaviorExample(index)" size="small" class="mb-4"
+              <el-button type="primary" @click="addBehaviorExample(index)" size="small"  
                 style="width: 100%; margin-top: 4px;">
                 添加行为示例
               </el-button>
 
               <div style="margin: 4px;"></div>
-              <el-button type="danger" @click="removeTrait(index)" class="w-full">
+              <el-button type="danger" @click="removeTrait(index)">
                 <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
                 删除特质
               </el-button>

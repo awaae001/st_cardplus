@@ -1,6 +1,6 @@
 <template>
-  <el-card class="mb-4">
-    <h2 class="text-xl font-semibold mb-2">基础信息</h2>
+  <el-card  >
+    <h2  >基础信息</h2>
     <el-form :model="form" label-width="120px">
       <el-form-item label="中文名">
         <el-input v-model="form.chineseName" placeholder="请输入中文名" />

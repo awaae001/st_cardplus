@@ -1,7 +1,7 @@
 <template>
-  <el-card class="mb-4" style="width: 55%;">
+  <el-card style="width: 55%;">
     <div class="title-Btn-add">
-      <h2 class="text-xl font-semibold mb-4">角色备注</h2>
+      <h2>角色备注</h2>
       <el-button @click="handleFileUpload" type="primary" style="margin-left: 16px;">
         <Icon icon="material-symbols:file-open-outline" width="18" height="18" style="margin-right: 4px;" />
         打开导入
@@ -9,12 +9,11 @@
     </div>
     <div style="margin-bottom: 8px;">
       <span>备注深度</span>
-      <el-input-number v-model="characterData.data.extensions.depth_prompt.depth" :min="0"
-        style="margin-left: 8px;" />
+      <el-input-number v-model="characterData.data.extensions.depth_prompt.depth" :min="0" style="margin-left: 8px;" />
     </div>
     <el-input type="textarea" v-model="characterData.data.extensions.depth_prompt.prompt" :rows="5"
       placeholder="请输入角色备注" />
-    <div class="flex items-center gap-4">
+    <div>
       <div>
         <span style="
           display: flex;

@@ -1,7 +1,7 @@
 <template>
   <el-card class="mb-4 p-2 md:p-4">
     <div class="title-Btn">
-      <h2 class="text-lg md:text-xl font-semibold mb-2">外貌特征</h2>
+      <h2>外貌特征</h2>
     </div>
     <div style="margin-top: 8px;"></div>
     <p class="whatYouwant">

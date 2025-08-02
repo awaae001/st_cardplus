@@ -1,6 +1,6 @@
 <template>
   <div id="tiltleMain">
-    <h1 class="text-2xl font-bold mb-4">角色信息编辑器</h1>
+    <h1  >角色信息编辑器</h1>
     <div class="btnSL">
       <div class="btnSL2">
         <el-button type="success" @click="loadCharacterCard">

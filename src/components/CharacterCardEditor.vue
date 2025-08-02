@@ -1,5 +1,5 @@
 <template>
-  <div class="p-2 md:p-4 bg-gray-100 min-h-screen">
+  <div class="p-2 md:p-4 min-h-screen">
     <CharacterCardButtons @saveCharacterCard="saveCharacterCard" @loadCharacterCard="loadCharacterCard"
       @resetForm="resetForm" @copyToClipboard="copyToClipboard"
       @importFromClipboard="(data) => importFromClipboard(data)" />

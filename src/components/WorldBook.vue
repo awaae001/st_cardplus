@@ -185,9 +185,10 @@ const selectedEntry = computed<WorldBookEntry | null>(() => {
 });
 
 watch(
-  selectedEntry,
-  (newEntry) => {
-    if (newEntry) {
+  selectedEntryIndex,
+  (newIndex) => {
+    if (newIndex !== null && worldBookEntries.value[newIndex]) {
+      const newEntry = worldBookEntries.value[newIndex];
       const defaultFullEntry = createDefaultEntryData(
         newEntry.uid || Date.now()
       );
@@ -199,7 +200,25 @@ watch(
       editableEntry.value = {};
     }
   },
-  { deep: true, immediate: true }
+  { immediate: true }
+);
+
+watch(
+  editableEntry,
+  (newVal) => {
+    if (selectedEntryIndex.value !== null && newVal && newVal.uid) {
+      const targetIndex = worldBookEntries.value.findIndex(
+        (e) => e.uid === newVal.uid
+      );
+      if (targetIndex !== -1) {
+        worldBookEntries.value[targetIndex] = {
+          ...worldBookEntries.value[targetIndex],
+          ...newVal,
+        };
+      }
+    }
+  },
+  { deep: true }
 );
 
 const createDefaultEntryData = (uid: number): WorldBookEntry => ({

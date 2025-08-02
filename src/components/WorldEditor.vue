@@ -1,7 +1,7 @@
 <template>
-  <div class="p-4 bg-gray-100 min-h-screen">
+  <div class="p-4 min-h-screen">
     <div id="tiltleMain">
-      <h1 class="text-2xl font-bold mb-4">地标编辑器</h1>
+      <h1  >地标编辑器</h1>
       <div class="btnSL">
         <div class="btnSL2">
           <el-button type="success" @click="loadWorld">
@@ -32,7 +32,7 @@
     <div class="section-container">
       <div>
         <el-card>
-          <h2 class="text-xl font-semibold mb-2">基本信息</h2>
+          <h2  >基本信息</h2>
           <el-form :model="form" label-width="80px">
             <el-form-item label="名称">
               <el-input v-model="form.name" placeholder="请输入地标名称" />
@@ -43,12 +43,12 @@
           </el-form>
         </el-card>
         <el-card style="margin-top: 10px;">
-          <h2 class="text-xl font-semibold mb-2">关键词（每行一条）</h2>
+          <h2  >关键词（每行一条）</h2>
           <el-input v-model="form.keywords" type="textarea" :rows="3" placeholder="请输入关键词" />
         </el-card>
       </div>
-      <el-card class="mb-4" style="width: 75%;">
-        <h2 class="text-xl font-semibold mb-2">介绍（每行一段）</h2>
+      <el-card   style="width: 75%;">
+        <h2  >介绍（每行一段）</h2>
         <el-input v-model="form.info" type="textarea" :rows="12" placeholder="请输入介绍" />
       </el-card>
     </div>
@@ -56,11 +56,11 @@
     <div style="margin: 4px;"></div>
 
     <!-- 地标 -->
-    <el-card class="mb-4">
+    <el-card  >
       <div class="title-Btn-add">
-        <h2 class="text-xl font-semibold mb-4">地标</h2>
+        <h2  >地标</h2>
         <div style="display: flex; gap: 8px;">
-          <el-button type="primary" @click="addLandmark" class="w-full" style="margin-left: 16px;">
+          <el-button type="primary" @click="addLandmark"   style="margin-left: 16px;">
             <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
               style="margin-right: 4px;" />
             添加地标（卡片）
@@ -79,10 +79,10 @@
         <template #item="{element}">
           <el-col :xs="24" :sm="12" :md="8" :lg="6">
             <el-card class="mb-4 landmark-card">
-              <el-input v-model="element.name" placeholder="地标名称" class="mb-2" />
-              <el-input v-model="element.description" type="textarea" :rows="3" placeholder="地标介绍" class="mb-2" />
+              <el-input v-model="element.name" placeholder="地标名称"   />
+              <el-input v-model="element.description" type="textarea" :rows="3" placeholder="地标介绍"   />
               <div style="margin: 4px;"></div>
-              <el-button type="danger" @click="removeLandmark(element)" class="w-full">
+              <el-button type="danger" @click="removeLandmark(element)"  >
                 <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
                 删除地标
               </el-button>
@@ -94,11 +94,11 @@
 
     <div style="margin: 4px;"></div>
     <!-- 势力 -->
-    <el-card class="mb-4">
+    <el-card  >
       <div class="title-Btn-add">
-        <h2 class="text-xl font-semibold mb-4">势力</h2>
+        <h2  >势力</h2>
         <div style="display: flex; gap: 8px;">
-          <el-button type="primary" @click="addForce" class="w-full" style="margin-left: 16px;">
+          <el-button type="primary" @click="addForce"   style="margin-left: 16px;">
             <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
               style="margin-right: 4px;" />
             添加势力（卡片）
@@ -117,11 +117,11 @@
         <template #item="{element}">
           <el-col :xs="24" :sm="12" :md="8" :lg="6">
             <el-card class="mb-4 force-card">
-              <el-input v-model="element.name" placeholder="势力名称" class="mb-2" />
-              <el-input v-model="element.members" type="textarea" :rows="2" placeholder="成员（每行一个）" class="mb-2" />
-              <el-input v-model="element.description" type="textarea" :rows="2" placeholder="势力描述" class="mb-2" />
+              <el-input v-model="element.name" placeholder="势力名称"   />
+              <el-input v-model="element.members" type="textarea" :rows="2" placeholder="成员（每行一个）"   />
+              <el-input v-model="element.description" type="textarea" :rows="2" placeholder="势力描述"   />
               <div style="margin: 4px;"></div>
-              <el-button type="danger" @click="removeForce(element)" class="w-full">
+              <el-button type="danger" @click="removeForce(element)"  >
                 <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
                 删除势力
               </el-button>

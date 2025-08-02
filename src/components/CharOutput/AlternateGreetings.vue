@@ -1,7 +1,7 @@
 <template>
-  <el-card class="mb-4" style="width: 45%;">
+  <el-card   style="width: 45%;">
     <div class="title-Btn-add">
-      <h2 class="text-xl font-semibold mb-4">备用问候语</h2>
+      <h2  >备用问候语</h2>
       <el-button @click="addGreeting" type="primary" style="margin-left: 16px;">
         <Icon icon="material-symbols:add-comment-outline" width="18" height="18" style="margin-right: 4px;" />
         添加问候语
@@ -9,7 +9,7 @@
     </div>
     <draggable v-model="characterData.data.alternate_greetings" item-key="index" handle=".drag-handle" @end="onDragEnd">
       <template #item="{ element, index }">
-        <el-card class="mb-2" shadow="hover">
+        <el-card   shadow="hover">
           <div class="card-content">
             <div
             style="
