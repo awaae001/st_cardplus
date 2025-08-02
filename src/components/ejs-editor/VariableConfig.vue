@@ -1,7 +1,7 @@
 <template>
   <div class="variable-config">
     <div class="header mb-4">
-      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+      <h3 class="text-lg font-semibold">
         变量配置
       </h3>
       <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -157,7 +157,7 @@ const formData = reactive<VariableConfig>({
 const rules = {
   path: [
     { required: true, message: '请输入变量路径', trigger: 'blur' },
-    { pattern: /^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$/, message: '变量路径格式不正确', trigger: 'blur' }
+    { pattern: /^[a-zA-Z_\u4e00-\u9fa5][a-zA-Z0-9_\u4e00-\u9fa5]*(\.[a-zA-Z_\u4e00-\u9fa5][a-zA-Z0-9_\u4e00-\u9fa5]*)*$/, message: '变量路径格式不正确', trigger: 'blur' }
   ],
   alias: [
     { required: true, message: '请输入变量别名', trigger: 'blur' },
@@ -217,7 +217,7 @@ const validationStatus = computed(() => {
     return { type: 'warning' as const, title: '提示', message: '请填写变量别名' }
   }
   
-  if (!/^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$/.test(formData.path)) {
+  if (!/^[a-zA-Z_\u4e00-\u9fa5][a-zA-Z0-9_\u4e00-\u9fa5]*(\.[a-zA-Z_\u4e00-\u9fa5][a-zA-Z0-9_\u4e00-\u9fa5]*)*$/.test(formData.path)) {
     return { type: 'error' as const, title: '路径格式错误', message: '变量路径必须使用点号分隔，且每一级都要符合变量命名规则' }
   }
   

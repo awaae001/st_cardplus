@@ -3,10 +3,10 @@
     <div class="header mb-4">
       <div class="flex items-center justify-between">
         <div>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+          <h3 class="text-lg font-semibold">
             阶段管理
           </h3>
-          <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          <p class="text-sm mt-1">
             配置变量的不同数值阶段和对应的条件判断
           </p>
         </div>
@@ -36,7 +36,7 @@
           >
             <!-- 拖拽手柄 -->
             <div class="drag-handle">
-              <i class="iconify mdi:drag-vertical text-gray-400"></i>
+              <i class="iconify mdi:drag-vertical"></i>
             </div>
 
             <!-- 阶段编号 -->
@@ -118,7 +118,7 @@
 
                 <!-- 条件预览 -->
                 <div class="condition-preview mt-1">
-                  <code class="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                  <code class="text-xs px-2 py-1 rounded">
                     {{ generateConditionText(stage) }}
                   </code>
                 </div>
@@ -134,10 +134,10 @@
                       'no-content': !stage.content || !stage.content.trim()
                     }"
                   />
-                  <span class="text-gray-600 dark:text-gray-400">
+                  <span >
                     {{ stage.content && stage.content.trim() ? '已配置内容' : '未配置内容' }}
                   </span>
-                  <span v-if="stage.content" class="text-gray-500">
+                  <span v-if="stage.content" >
                     ({{ stage.content.split('\n').length }} 行)
                   </span>
                 </div>
@@ -159,11 +159,11 @@
     <!-- 空状态 -->
     <div v-else class="empty-state">
       <div class="text-center py-12">
-        <i class="iconify mdi:timeline-text text-6xl text-gray-300 dark:text-gray-600 mb-4"></i>
-        <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
+        <i class="iconify mdi:timeline-text text-6xl"></i>
+        <h4 class="text-lg font-medium">
           还没有阶段
         </h4>
-        <p class="text-gray-600 dark:text-gray-400 mb-4">
+        <p >
           添加第一个阶段来开始配置动态模板
         </p>
         <el-button type="primary" @click="addNewStage" :disabled="!canAddStage">
@@ -175,16 +175,16 @@
 
     <!-- 阶段统计 -->
     <div v-if="sortedStages.length > 0" class="stage-stats mt-6">
-      <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-        <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-3">
+      <div class="0 rounded-lg p-4">
+        <h4 class="text-sm font-medium mb-3">
           阶段统计
         </h4>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
           <div class="stat-item">
-            <div class="stat-value text-lg font-semibold text-blue-600">
+            <div class="stat-value text-lg font-semibold ">
               {{ sortedStages.length }}
             </div>
-            <div class="stat-label text-gray-600 dark:text-gray-400">
+            <div class="stat-label">
               总阶段数
             </div>
           </div>
@@ -192,7 +192,7 @@
             <div class="stat-value text-lg font-semibold text-green-600">
               {{ stagesWithContent }}
             </div>
-            <div class="stat-label text-gray-600 dark:text-gray-400">
+            <div class="stat-label">
               已配置内容
             </div>
           </div>
@@ -200,7 +200,7 @@
             <div class="stat-value text-lg font-semibold text-yellow-600">
               {{ stagesWithErrors }}
             </div>
-            <div class="stat-label text-gray-600 dark:text-gray-400">
+            <div class="stat-label ">
               配置错误
             </div>
           </div>
@@ -208,7 +208,7 @@
             <div class="stat-value text-lg font-semibold text-purple-600">
               {{ coverageRange }}
             </div>
-            <div class="stat-label text-gray-600 dark:text-gray-400">
+            <div class="stat-label ">
               覆盖范围
             </div>
           </div>

@@ -188,11 +188,25 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
   const simulateValue = (inputValue: number): SimulationResult => {
     try {
       const matchedStage = findMatchingStage(inputValue)
+
+      let output = ''
+      if (matchedStage) {
+        if (matchedStage.content.trim()) {
+          output = matchedStage.content
+        } else {
+          output = `${matchedStage.name}:\n  # TODO: 添加阶段内容`
+        }
+      } else {
+        output = `变量值超出预期范围: ${variableConfig.value.alias} = ${inputValue}`
+      }
+
       const result: SimulationResult = {
         inputValue,
         matchedStage,
-        matchedCondition: matchedStage ? generateConditionCode(matchedStage, variableConfig.value.alias) : '无匹配',
-        generatedOutput: matchedStage ? matchedStage.content : '',
+        matchedCondition: matchedStage
+          ? generateConditionCode(matchedStage, variableConfig.value.alias)
+          : '无匹配',
+        generatedOutput: output,
         isValid: true
       }
       simulationResult.value = result
