@@ -4,8 +4,9 @@ import { Icon } from '@iconify/vue'
 import { Menu, Moon, Sunny } from '@element-plus/icons-vue'
 import { ElLoading } from 'element-plus'
 import { useRouter } from 'vue-router'
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useDark, useToggle } from '@vueuse/core'
+import { getBetaFeaturesEnabled } from '@/utils/localStorageUtils'
 
 const isDark = useDark()
 const toggleDark = useToggle(isDark)
@@ -14,6 +15,8 @@ const isSidebarOpen = ref(false)
 const toggleSidebar = () => {
   isSidebarOpen.value = !isSidebarOpen.value
 }
+
+const betaFeaturesEnabled = ref(false)
 
 const handleClickOutside = (event: MouseEvent) => {
   const sidebar = document.querySelector('.menu-bar')
@@ -39,6 +42,20 @@ router.beforeEach(() => {
 // 路由切换完成后隐藏加载动画
 router.afterEach(() => {
   loadingInstance.close()
+})
+
+// 监听测试版功能开关变化
+const handleBetaFeaturesToggle = (event: CustomEvent) => {
+  betaFeaturesEnabled.value = event.detail
+}
+
+onMounted(() => {
+  betaFeaturesEnabled.value = getBetaFeaturesEnabled()
+  window.addEventListener('betaFeaturesToggle', handleBetaFeaturesToggle as EventListener)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('betaFeaturesToggle', handleBetaFeaturesToggle as EventListener)
 })
 </script>
 
@@ -79,11 +96,11 @@ router.afterEach(() => {
         <Icon style="margin-right: 4px;" icon="material-symbols:construction" width="24" height="24" />
         <span>工具箱</span>
       </el-menu-item>
-      <el-menu-item index="/ejs-editor">
+      <el-menu-item v-if="betaFeaturesEnabled" index="/ejs-editor">
         <Icon style="margin-right: 4px;" icon="material-symbols:code-blocks" width="24" height="24" />
-        <span>EJS模板编辑器</span>
+        <span>测试版 · EJS模板</span>
       </el-menu-item>
-      <el-menu-item index="/worldbook">
+      <el-menu-item v-if="betaFeaturesEnabled" index="/worldbook">
         <Icon style="margin-right: 4px;" icon="material-symbols:book-2-outline" width="24" height="24" />
         <span>世界书 · 测试版</span>
       </el-menu-item>

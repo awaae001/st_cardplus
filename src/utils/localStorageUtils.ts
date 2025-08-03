@@ -68,3 +68,30 @@ export const initAutoSave = (
 export const clearAutoSave = (timerId: number) => {
   clearInterval(timerId);
 };
+
+/**
+ * 获取测试版功能开关状态
+ * @returns 测试版功能是否启用
+ */
+export const getBetaFeaturesEnabled = (): boolean => {
+  try {
+    const enabled = localStorage.getItem('betaFeaturesEnabled');
+    return enabled === 'true';
+  } catch (error) {
+    console.error('获取测试版功能设置失败:', error);
+    return false; // 默认关闭
+  }
+};
+
+/**
+ * 设置测试版功能开关状态
+ * @param enabled - 是否启用测试版功能
+ */
+export const setBetaFeaturesEnabled = (enabled: boolean) => {
+  try {
+    localStorage.setItem('betaFeaturesEnabled', enabled.toString());
+    console.log('测试版功能设置已保存:', enabled);
+  } catch (error) {
+    console.error('保存测试版功能设置失败:', error);
+  }
+};
