@@ -210,34 +210,72 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     try {
       errors.value = errors.value.filter(e => e.type !== 'ejs')
       
-      let template = `<%_ const ${variableAlias.value} = getvar('${variablePath.value}'); _%>\n`
+      let template = ''
       
       // 按阶段条件值排序，确保逻辑正确
       const sortedStages = [...stages.value].sort((a, b) => {
-        if (a.condition.type === 'range' && b.condition.type === 'range') {
-          return a.condition.value - b.condition.value
+        const getBounds = (condition: StageCondition) => {
+          let lower = -Infinity
+          let upper = Infinity
+
+          switch (condition.type) {
+            case 'less':
+              upper = condition.value
+              break
+            case 'lessEqual':
+              upper = condition.value
+              break
+            case 'equal':
+              lower = condition.value
+              upper = condition.value
+              break
+            case 'greater':
+              lower = condition.value
+              break
+            case 'greaterEqual':
+              lower = condition.value
+              break
+            case 'range':
+              lower = condition.value
+              upper = condition.endValue ?? Infinity
+              break
+          }
+          return { lower, upper }
         }
-        if (a.condition.type === 'range') return -1
-        if (b.condition.type === 'range') return 1
-        return a.condition.value - b.condition.value
-      })
-      
-      sortedStages.forEach((stage, index) => {
-        const condition = generateCondition(stage.condition, variableAlias.value)
-        const prefix = index === 0 ? 'if' : 'else if'
+
+        const boundsA = getBounds(a.condition)
+        const boundsB = getBounds(b.condition)
+
+        if (boundsA.lower !== boundsB.lower) {
+          return boundsA.lower - boundsB.lower
+        }
         
-        template += `<%_ ${prefix} (${condition}) { _%>\n`
-        // 确保内容不为空且正确格式化
-        const content = stage.content || '// 空内容'
-        template += content
-        if (!content.endsWith('\n')) template += '\n'
-        template += `<%_ } _%>\n`
+        // 如果下限相同，则比较上限
+        return boundsA.upper - boundsB.upper
       })
       
-      // 在所有阶段后添加 else 分支
+      let templateBody = ''
+      sortedStages.forEach((stage, index) => {
+        const condition = generateCondition(stage.condition)
+        const content = stage.content || '// 空内容'
+        // 确保内容末尾有换行符，以分隔 EJS 标签
+        const formattedContent = content.endsWith('\n') ? content : `${content}\n`
+
+        if (index === 0) {
+          templateBody += `<%_ if (${condition}) { _%>\n`
+        } else {
+          templateBody += `<%_ } else if (${condition}) { _%>\n`
+        }
+        templateBody += formattedContent
+      })
+
       if (sortedStages.length > 0) {
-        template += `<%_ else { _%>\n// 默认情况\n<%_ } _%>\n`
+        templateBody += `<%_ } else { _%>\n`
+        templateBody += `// 默认情况\n`
+        templateBody += `<%_ } _%>\n`
       }
+      
+      template += templateBody
 
       // 只有在模板内容真正发生变化时才更新
       if (ejsTemplate.value !== template) {
@@ -252,22 +290,23 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     }
   }
 
-  function generateCondition(condition: StageCondition, variableName: string): string {
+  function generateCondition(condition: StageCondition): string {
+    const varGetter = `getvar('${variablePath.value}')`
     switch (condition.type) {
       case 'less':
-        return `${variableName} < ${condition.value}`
+        return `${varGetter} < ${condition.value}`
       case 'lessEqual':
-        return `${variableName} <= ${condition.value}`
+        return `${varGetter} <= ${condition.value}`
       case 'equal':
-        return `${variableName} == ${condition.value}`
+        return `${varGetter} == ${condition.value}`
       case 'greater':
-        return `${variableName} > ${condition.value}`
+        return `${varGetter} > ${condition.value}`
       case 'greaterEqual':
-        return `${variableName} >= ${condition.value}`
+        return `${varGetter} >= ${condition.value}`
       case 'range':
-        return `${variableName} >= ${condition.value} && ${variableName} < ${condition.endValue}`
+        return `${varGetter} >= ${condition.value} && ${varGetter} < ${condition.endValue}`
       default:
-        return `${variableName} > 0`
+        return `${varGetter} > 0`
     }
   }
 

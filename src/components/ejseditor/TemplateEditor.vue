@@ -287,11 +287,6 @@ async function safeRecreateEditor(content: string) {
   }
 }
 
-// 锁定编辑器并重新创建（保持向后兼容）
-// function lockEditorAndRecreate(content: string) {
-//   safeRecreateEditor(content)
-// }
-
 // 重新创建编辑器的函数
 function recreateEditor(content: string) {
   if (!editorContainer.value) {
