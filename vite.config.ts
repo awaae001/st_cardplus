@@ -20,6 +20,14 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'), // 定义 @ 别名指向 src 目录
     },
   },
+  define: {
+    // 防止 Node.js 模块在浏览器环境中被访问
+    global: 'globalThis',
+  },
+  optimizeDeps: {
+    exclude: ['fs', 'path', 'os'],
+    include: ['js-yaml', 'ejs'],
+  },
   build: {
     outDir: 'dist', // 打包输出目录
     minify: 'terser', // 使用terser进行更严格的minify

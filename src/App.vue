@@ -79,10 +79,10 @@ router.afterEach(() => {
         <Icon style="margin-right: 4px;" icon="material-symbols:construction" width="24" height="24" />
         <span>工具箱</span>
       </el-menu-item>
-      <!-- <el-menu-item index="/ejs-editor">
-        <Icon style="margin-right: 4px;" icon="file-icons:ejs" width="24" height="24" />
+      <el-menu-item index="/ejs-editor">
+        <Icon style="margin-right: 4px;" icon="material-symbols:code-blocks" width="24" height="24" />
         <span>EJS模板编辑器</span>
-      </el-menu-item> -->
+      </el-menu-item>
       <el-menu-item index="/worldbook">
         <Icon style="margin-right: 4px;" icon="material-symbols:book-2-outline" width="24" height="24" />
         <span>世界书 · 测试版</span>

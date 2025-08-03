@@ -52,7 +52,7 @@ const router = createRouter({
     {
       path: '/ejs-editor',
       name: 'ejsEditor',
-      component: () => import('../pages/EjsTemplateEditor.vue')
+      component: () => import('../pages/EjsEditorPage.vue')
     }
   ]
 })
