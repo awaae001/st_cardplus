@@ -51,7 +51,7 @@
             </div>
             <div class="stage-condition">
               <el-tag size="small" type="info">
-                {{ formatCondition(stage.condition) }}
+                {{ formatConditions(stage) }}
               </el-tag>
             </div>
           </div>
@@ -75,38 +75,74 @@
         <!-- 条件设置 -->
         <div class="form-item">
           <label>触发条件</label>
-          <div class="condition-builder">
-            <el-select
-              :model-value="store.selectedStage.condition.type"
-              @change="updateConditionType"
-              style="width: 120px"
-            >
-              <el-option label="小于" value="less" />
-              <el-option label="小于等于" value="lessEqual" />
-              <el-option label="等于" value="equal" />
-              <el-option label="大于" value="greater" />
-              <el-option label="大于等于" value="greaterEqual" />
-              <el-option label="范围" value="range" />
-            </el-select>
-            
-            <el-input-number
-              :model-value="store.selectedStage.condition.value"
-              @change="updateConditionValue"
-              :min="0"
-              :step="1"
-              style="width: 100px"
-            />
-            
-            <template v-if="store.selectedStage.condition.type === 'range'">
-              <span class="range-separator">到</span>
-              <el-input-number
-                :model-value="store.selectedStage.condition.endValue || 0"
-                @change="updateConditionEndValue"
-                :min="store.selectedStage.condition.value + 1"
-                :step="1"
+          <div class="condition-group">
+            <div class="conjunction-selector">
+              <el-radio-group :model-value="store.selectedStage.conjunction" @change="updateConjunction" size="small">
+                <el-radio-button label="and">与 (AND)</el-radio-button>
+                <el-radio-button label="or">或 (OR)</el-radio-button>
+              </el-radio-group>
+            </div>
+
+            <div v-for="(condition) in store.selectedStage.conditions" :key="condition.id" class="condition-builder">
+              <el-select
+                :model-value="condition.variablePath"
+                @change="(val: string) => updateCondition(condition.id, { variablePath: val })"
+                placeholder="选择变量"
+                style="width: 150px"
+                filterable
+              >
+                <el-option
+                  v-for="variable in flatVariables"
+                  :key="variable.path"
+                  :label="variable.path"
+                  :value="variable.path"
+                />
+              </el-select>
+
+              <el-select
+                :model-value="condition.type"
+                @change="(val: Condition['type']) => updateCondition(condition.id, { type: val })"
+                style="width: 120px"
+              >
+                <el-option label="<" value="less" />
+                <el-option label="<=" value="lessEqual" />
+                <el-option label="==" value="equal" />
+                <el-option label=">" value="greater" />
+                <el-option label=">=" value="greaterEqual" />
+                <el-option label="范围" value="range" />
+                <el-option label="是" value="is" />
+                <el-option label="不是" value="isNot" />
+              </el-select>
+
+              <el-input
+                :model-value="condition.value"
+                @input="(val: string) => updateCondition(condition.id, { value: val })"
                 style="width: 100px"
+                placeholder="值"
               />
-            </template>
+
+              <template v-if="condition.type === 'range'">
+                <span class="range-separator">到</span>
+                <el-input
+                  :model-value="condition.endValue"
+                  @input="(val: string) => updateCondition(condition.id, { endValue: val })"
+                  style="width: 100px"
+                  placeholder="结束值"
+                />
+              </template>
+
+              <el-button
+                type="danger"
+                :icon="Delete"
+                circle
+                size="small"
+                @click="removeCondition(condition.id)"
+              />
+            </div>
+
+            <el-button :icon="Plus" @click="addCondition" class="mt-2">
+              添加条件
+            </el-button>
           </div>
         </div>
 
@@ -155,14 +191,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Delete, QuestionFilled } from '@element-plus/icons-vue'
 import { useEjsEditorStore } from '@/stores/ejsEditor'
-import type { StageCondition } from '@/stores/ejsEditor'
+import type { Stage, Condition, VariableNode } from '@/stores/ejsEditor'
 
 const store = useEjsEditorStore()
 const localContent = ref('')
+
+const flatVariables = computed(() => {
+  const result: { path: string; alias: string }[] = []
+  function traverse(nodes: VariableNode[]) {
+    for (const node of nodes) {
+      if (node.children && node.children.length > 0) {
+        traverse(node.children)
+      } else {
+        result.push({ path: node.path, alias: node.key })
+      }
+    }
+  }
+  traverse(store.variableTree)
+  return result
+})
 
 // 当选择的阶段变化时，更新本地内容
 watch(
@@ -210,60 +261,96 @@ function updateStageName(value: string) {
   }
 }
 
-function updateConditionType(type: StageCondition['type']) {
+function updateConjunction(value: 'and' | 'or') {
   if (store.selectedStage) {
-    const condition = { ...store.selectedStage.condition, type }
-    if (type !== 'range') {
-      delete condition.endValue
-    } else if (!condition.endValue) {
-      condition.endValue = condition.value + 10
-    }
-    store.updateStage(store.selectedStageId, { condition })
+    store.updateStage(store.selectedStageId, { conjunction: value })
   }
 }
 
-function updateConditionValue(value: number) {
-  if (store.selectedStage) {
-    const condition = { ...store.selectedStage.condition, value }
-    store.updateStage(store.selectedStageId, { condition })
+function addCondition() {
+  if (!store.selectedStage) return
+  const newCondition: Condition = {
+    id: `cond_${Date.now()}`,
+    variablePath: '',
+    variableAlias: '',
+    type: 'equal',
+    value: ''
   }
+  const conditions = [...store.selectedStage.conditions, newCondition]
+  store.updateStage(store.selectedStageId, { conditions })
 }
 
-function updateConditionEndValue(value: number) {
-  if (store.selectedStage) {
-    const condition = { ...store.selectedStage.condition, endValue: value }
-    store.updateStage(store.selectedStageId, { condition })
-  }
+function removeCondition(conditionId: string) {
+  if (!store.selectedStage) return
+  const conditions = store.selectedStage.conditions.filter(c => c.id !== conditionId)
+  store.updateStage(store.selectedStageId, { conditions })
 }
 
-
-function formatCondition(condition: StageCondition): string {
-  const { type, value, endValue } = condition
+function updateCondition(conditionId: string, updates: Partial<Condition>) {
+  if (!store.selectedStage) return
   
+  const conditions = store.selectedStage.conditions.map(c => {
+    if (c.id === conditionId) {
+      const updatedCondition = { ...c, ...updates }
+      // 如果更新了 variablePath，同步更新 variableAlias
+      if (updates.variablePath) {
+        const foundVar = flatVariables.value.find(v => v.path === updates.variablePath)
+        updatedCondition.variableAlias = foundVar ? foundVar.alias : ''
+      }
+      return updatedCondition
+    }
+    return c
+  })
+  
+  store.updateStage(store.selectedStageId, { conditions })
+}
+
+function formatSingleCondition(condition: Condition): string {
+  const { variableAlias, type, value, endValue } = condition
+  const valStr = typeof value === 'string' ? `'${value}'` : value
+
   switch (type) {
     case 'less':
-      return `< ${value}`
+      return `${variableAlias || '变量'} < ${valStr}`
     case 'lessEqual':
-      return `<= ${value}`
+      return `${variableAlias || '变量'} <= ${valStr}`
     case 'equal':
-      return `= ${value}`
+      return `${variableAlias || '变量'} == ${valStr}`
     case 'greater':
-      return `> ${value}`
+      return `${variableAlias || '变量'} > ${valStr}`
     case 'greaterEqual':
-      return `>= ${value}`
+      return `${variableAlias || '变量'} >= ${valStr}`
     case 'range':
-      return `${value} - ${endValue || value}`
+      const endValStr = typeof endValue === 'string' ? `'${endValue}'` : endValue
+      return `${variableAlias || '变量'} in [${valStr}, ${endValStr})`
+    case 'is':
+      return `${variableAlias || '变量'} is ${valStr}`
+    case 'isNot':
+      return `${variableAlias || '变量'} is not ${valStr}`
     default:
       return '未知条件'
   }
 }
 
+function formatConditions(stage: Stage): string {
+  if (!stage.conditions || stage.conditions.length === 0) {
+    return '无条件 (始终激活)'
+  }
+  const separator = stage.conjunction === 'and' ? ' AND ' : ' OR '
+  return stage.conditions.map(formatSingleCondition).join(separator)
+}
+
 function sortStagesByCondition() {
   const sorted = [...store.stages].sort((a, b) => {
-    return a.condition.value - b.condition.value
+    const valA = a.conditions?.[0]?.value ?? 0
+    const valB = b.conditions?.[0]?.value ?? 0
+    if (typeof valA === 'number' && typeof valB === 'number') {
+      return valA - valB
+    }
+    return 0
   })
   store.stages = sorted
-  ElMessage.success('阶段已按条件值排序')
+  ElMessage.success('阶段已按第一个条件的值排序')
 }
 
 async function clearAllStages() {

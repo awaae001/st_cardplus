@@ -15,14 +15,18 @@ export interface VariableNode {
 export interface Stage {
   id: string
   name: string
-  condition: StageCondition
+  conditions: Condition[]
+  conjunction: 'and' | 'or'
   content: string
 }
 
-export interface StageCondition {
-  type: 'less' | 'lessEqual' | 'equal' | 'greater' | 'greaterEqual' | 'range'
-  value: number
-  endValue?: number // 用于范围条件
+export interface Condition {
+  id: string
+  variablePath: string
+  variableAlias: string
+  type: 'less' | 'lessEqual' | 'equal' | 'greater' | 'greaterEqual' | 'range' | 'is' | 'isNot'
+  value: any
+  endValue?: any // 用于范围条件
 }
 
 export interface EditorError {
@@ -162,10 +166,8 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     const newStage: Stage = {
       id: `stage_${Date.now()}`,
       name: `阶段${stages.value.length + 1}`,
-      condition: {
-        type: 'greater',
-        value: 0
-      },
+      conditions: [],
+      conjunction: 'and',
       content: ''
     }
     stages.value.push(newStage)
@@ -213,50 +215,22 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
       let template = ''
       
       // 按阶段条件值排序，确保逻辑正确
+      // 排序逻辑可能需要根据具体业务需求调整，这里暂时基于第一个条件排序
       const sortedStages = [...stages.value].sort((a, b) => {
-        const getBounds = (condition: StageCondition) => {
-          let lower = -Infinity
-          let upper = Infinity
-
-          switch (condition.type) {
-            case 'less':
-              upper = condition.value
-              break
-            case 'lessEqual':
-              upper = condition.value
-              break
-            case 'equal':
-              lower = condition.value
-              upper = condition.value
-              break
-            case 'greater':
-              lower = condition.value
-              break
-            case 'greaterEqual':
-              lower = condition.value
-              break
-            case 'range':
-              lower = condition.value
-              upper = condition.endValue ?? Infinity
-              break
-          }
-          return { lower, upper }
+        const firstCondA = a.conditions?.[0]
+        const firstCondB = b.conditions?.[0]
+        if (!firstCondA || !firstCondB) return 0
+        if (typeof firstCondA.value === 'number' && typeof firstCondB.value === 'number') {
+          return firstCondA.value - firstCondB.value
         }
-
-        const boundsA = getBounds(a.condition)
-        const boundsB = getBounds(b.condition)
-
-        if (boundsA.lower !== boundsB.lower) {
-          return boundsA.lower - boundsB.lower
-        }
-        
-        // 如果下限相同，则比较上限
-        return boundsA.upper - boundsB.upper
+        return 0
       })
-      
+
       let templateBody = ''
       sortedStages.forEach((stage, index) => {
-        const condition = generateCondition(stage.condition)
+        const condition = (stage.conditions || [])
+          .map(cond => generateSingleCondition(cond))
+          .join(` ${stage.conjunction === 'and' ? '&&' : '||'} `) || 'true'
         const content = stage.content || '// 空内容'
         // 确保内容末尾有换行符，以分隔 EJS 标签
         const formattedContent = content.endsWith('\n') ? content : `${content}\n`
@@ -290,23 +264,30 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     }
   }
 
-  function generateCondition(condition: StageCondition): string {
-    const varGetter = `getvar('${variablePath.value}')`
+  function generateSingleCondition(condition: Condition): string {
+    const varGetter = `getvar('${condition.variablePath}')`
+    const value = typeof condition.value === 'string' ? `'${condition.value}'` : condition.value
+
     switch (condition.type) {
       case 'less':
-        return `${varGetter} < ${condition.value}`
+        return `${varGetter} < ${value}`
       case 'lessEqual':
-        return `${varGetter} <= ${condition.value}`
+        return `${varGetter} <= ${value}`
       case 'equal':
-        return `${varGetter} == ${condition.value}`
+        return `${varGetter} == ${value}`
       case 'greater':
-        return `${varGetter} > ${condition.value}`
+        return `${varGetter} > ${value}`
       case 'greaterEqual':
-        return `${varGetter} >= ${condition.value}`
+        return `${varGetter} >= ${value}`
       case 'range':
-        return `${varGetter} >= ${condition.value} && ${varGetter} < ${condition.endValue}`
+        const endValue = typeof condition.endValue === 'string' ? `'${condition.endValue}'` : condition.endValue
+        return `${varGetter} >= ${value} && ${varGetter} < ${endValue}`
+      case 'is':
+        return `${varGetter} === ${value}`
+      case 'isNot':
+        return `${varGetter} !== ${value}`
       default:
-        return `${varGetter} > 0`
+        return 'true'
     }
   }
 
@@ -331,17 +312,30 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
       
       // 找到匹配的阶段
       const matchedStage = stages.value.find(stage => {
-        const condition = stage.condition
-        const value = simulationValue.value
-        
-        switch (condition.type) {
-          case 'less': return value < condition.value
-          case 'lessEqual': return value <= condition.value
-          case 'equal': return value === condition.value
-          case 'greater': return value > condition.value
-          case 'greaterEqual': return value >= condition.value
-          case 'range': return value >= condition.value && value < (condition.endValue || 0)
-          default: return false
+        const checkCondition = (cond: Condition) => {
+          // 在模拟环境中，我们假设 getvar 总是返回我们正在模拟的值
+          // 注意：这简化了模拟，真实的多变量模拟需要更复杂的 getvar mock
+          const value = simulationValue.value
+          const condValue = cond.value
+          const condEndValue = cond.endValue
+
+          switch (cond.type) {
+            case 'less': return value < condValue
+            case 'lessEqual': return value <= condValue
+            case 'equal': return value == condValue
+            case 'greater': return value > condValue
+            case 'greaterEqual': return value >= condValue
+            case 'range': return value >= condValue && value < condEndValue
+            case 'is': return value === condValue
+            case 'isNot': return value !== condValue
+            default: return false
+          }
+        }
+
+        if (stage.conjunction === 'and') {
+          return stage.conditions.every(checkCondition)
+        } else {
+          return stage.conditions.some(checkCondition)
         }
       })
 
@@ -382,7 +376,31 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
       variablePath.value = config.variablePath || ''
       variableAlias.value = config.variableAlias || ''
       yamlInput.value = config.yamlInput || ''
-      stages.value = config.stages || []
+      
+      // 兼容旧格式的 stages
+      const importedStages = config.stages || []
+      stages.value = importedStages.map((stage: any) => {
+        if (stage.conditions !== undefined) {
+          return stage // 新格式，直接使用
+        }
+        // 旧格式，需要转换
+        const newConditions: Condition[] = []
+        if (stage.condition) {
+          newConditions.push({
+            id: `cond_${Date.now()}_${Math.random()}`,
+            variablePath: config.variablePath || '', // 从全局继承
+            variableAlias: config.variableAlias || '', // 从全局继承
+            type: stage.condition.type,
+            value: stage.condition.value,
+            endValue: stage.condition.endValue
+          })
+        }
+        return {
+          ...stage,
+          conditions: newConditions,
+          conjunction: 'and' // 默认值
+        }
+      })
       
       if (config.yamlInput) {
         importYamlVariables()

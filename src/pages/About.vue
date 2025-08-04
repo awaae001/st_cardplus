@@ -3,7 +3,7 @@
     <h1>关于 SillyTavern 角色卡编辑器</h1>
     <p>这是一个用于创建和管理 SillyTavern 角色卡的在线应用程序。</p>
     <p>访问我们的 GitHub 页面获取更多信息或贡献代码：</p>
-    <p>开发版本：<b>dev_0.1.4(6-1851)</b></p>
+    <p>开发版本：<b>dev_0.1.4(13-2015)</b></p>
     
     <!-- 测试版功能开关 -->
     <div class="beta-features-setting">

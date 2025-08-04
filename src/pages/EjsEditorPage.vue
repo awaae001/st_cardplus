@@ -196,7 +196,7 @@ watch(
     () => store.variableAlias, 
     () => store.yamlInput,
     () => store.stages.length,
-    () => store.stages.map(s => `${s.id}-${s.name}-${s.condition.type}-${s.condition.value}`).join(',')
+    () => store.stages.map(s => `${s.id}-${s.name}-${JSON.stringify(s.conditions)}-${s.conjunction}`).join(',')
   ],
   () => {
     if (saveStateTimer) clearTimeout(saveStateTimer)
