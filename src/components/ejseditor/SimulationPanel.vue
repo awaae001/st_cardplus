@@ -11,37 +11,21 @@
 
       <!-- 模拟控制 -->
       <div class="simulation-controls">
-        <div class="form-item">
-          <label>
-            {{ store.variableAlias || '变量' }} 值
-            <el-text v-if="store.variablePath" type="info" size="small">
-              ({{ store.variablePath }})
-            </el-text>
-          </label>
-          <el-input-number
-            v-model="store.simulationValue"
-            :min="0"
-            :max="1000"
-            :step="1"
-            style="width: 100%"
-            controls-position="right"
-            placeholder="输入测试值"
-          />
+        <div v-if="store.testVariables.length === 0" class="empty-state">
+          <el-text type="info">没有需要模拟的变量</el-text>
+          <el-text type="info" size="small">请先在阶段中设置带变量的条件</el-text>
         </div>
-
-        <div class="quick-values">
-          <label>快速设置:</label>
-          <div class="value-buttons">
-            <el-button
-              v-for="value in quickValues"
-              :key="value"
-              size="small"
-              @click="store.simulationValue = value"
-              :type="store.simulationValue === value ? 'primary' : 'default'"
-            >
-              {{ value }}
-            </el-button>
-          </div>
+        
+        <div v-else v-for="variable in store.testVariables" :key="variable.id" class="form-item">
+          <label>
+            {{ variable.alias || '变量' }}
+            <el-text type="info" size="small">({{ variable.readablePath }})</el-text>
+          </label>
+          <el-input
+            v-model="store.simulationValues[variable.id]"
+            style="width: 100%"
+            :placeholder="`输入 ${variable.alias} 的测试值`"
+          />
         </div>
 
         <el-button
@@ -56,23 +40,6 @@
       </div>
 
       <!-- 匹配的阶段显示 -->
-      <div v-if="matchedStage" class="matched-stage">
-        <h5>匹配阶段</h5>
-        <el-card class="stage-card" shadow="never">
-          <div class="stage-header">
-            <el-tag type="success" size="small">
-              {{ matchedStage.name }}
-            </el-tag>
-            <el-tag type="info" size="small">
-              {{ formatCondition(matchedStage.condition) }}
-            </el-tag>
-          </div>
-          <div class="stage-description">
-            条件: <code>{{ store.variableAlias || '变量' }} {{ formatCondition(matchedStage.condition) }}</code>
-          </div>
-        </el-card>
-      </div>
-
       <!-- 测试结果 -->
       <div class="test-result">
         <h5>输出结果</h5>
@@ -105,182 +72,93 @@
             v-for="(stage, index) in store.stages"
             :key="stage.id"
             class="comparison-row"
-            :class="{ 
-              'is-matched': matchedStage?.id === stage.id,
-              'is-active': isValueInStageRange(stage)
-            }"
+            :class="{ 'is-matched': isStageMatched(stage) }"
           >
             <div class="row-index">{{ index + 1 }}</div>
             <div class="row-name">{{ stage.name }}</div>
-            <div class="row-condition">{{ formatCondition(stage.condition) }}</div>
+            <div class="row-condition">{{ formatConditions(stage) }}</div>
             <div class="row-status">
-              <el-tag
-                v-if="matchedStage?.id === stage.id"
-                type="success"
-                size="small"
-              >
+              <el-tag v-if="isStageMatched(stage)" type="success" size="small">
                 匹配
               </el-tag>
-              <el-tag
-                v-else-if="isValueInStageRange(stage)"
-                type="warning"
-                size="small"
-              >
-                范围内
-              </el-tag>
-              <el-tag
-                v-else
-                type="info"
-                size="small"
-              >
+              <el-tag v-else type="info" size="small">
                 未匹配
               </el-tag>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- 测试建议 -->
-      <div v-if="store.stages.length > 0" class="test-suggestions">
-        <h5>测试建议</h5>
-        <div class="suggestions-list">
-          <div
-            v-for="suggestion in testSuggestions"
-            :key="suggestion.value"
-            class="suggestion-item"
-            @click="store.simulationValue = suggestion.value"
-          >
-            <div class="suggestion-value">{{ suggestion.value }}</div>
-            <div class="suggestion-desc">{{ suggestion.description }}</div>
-          </div>
-        </div>
-      </div>
     </div>
+      <!-- 测试建议 -->
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
 import { QuestionFilled, VideoPlay } from '@element-plus/icons-vue'
 import { useEjsEditorStore } from '@/stores/ejsEditor'
-import type { Stage, StageCondition } from '@/stores/ejsEditor'
+import type { Stage, Condition } from '@/stores/ejsEditor'
 
 const store = useEjsEditorStore()
 
-// 快速值设置
-const quickValues = [0, 10, 25, 50, 75, 100]
+function formatSingleCondition(condition: Condition): string {
+  const { variableAlias, type, value, endValue } = condition
+  const valStr = typeof value === 'string' ? `'${value}'` : value
 
-// 计算匹配的阶段
-const matchedStage = computed(() => {
-  if (!store.stages.length) return null
-  
-  return store.stages.find(stage => {
-    return isValueInStageRange(stage, store.simulationValue)
-  })
-})
-
-// 计算测试建议
-const testSuggestions = computed(() => {
-  if (!store.stages.length) return []
-  
-  const suggestions: Array<{ value: number; description: string }> = []
-  
-  // 为每个阶段生成测试建议
-  store.stages.forEach(stage => {
-    const condition = stage.condition
-    
-    switch (condition.type) {
-      case 'less':
-        suggestions.push({
-          value: Math.max(0, condition.value - 1),
-          description: `测试 ${stage.name} (< ${condition.value})`
-        })
-        break
-      case 'lessEqual':
-        suggestions.push({
-          value: condition.value,
-          description: `测试 ${stage.name} (<= ${condition.value})`
-        })
-        break
-      case 'equal':
-        suggestions.push({
-          value: condition.value,
-          description: `测试 ${stage.name} (= ${condition.value})`
-        })
-        break
-      case 'greater':
-        suggestions.push({
-          value: condition.value + 1,
-          description: `测试 ${stage.name} (> ${condition.value})`
-        })
-        break
-      case 'greaterEqual':
-        suggestions.push({
-          value: condition.value,
-          description: `测试 ${stage.name} (>= ${condition.value})`
-        })
-        break
-      case 'range':
-        const midValue = Math.floor((condition.value + (condition.endValue || condition.value + 10)) / 2)
-        suggestions.push({
-          value: midValue,
-          description: `测试 ${stage.name} (${condition.value}-${condition.endValue})`
-        })
-        break
-    }
-  })
-  
-  // 去重并排序
-  const uniqueSuggestions = suggestions
-    .filter((item, index, arr) => 
-      arr.findIndex(other => other.value === item.value) === index
-    )
-    .sort((a, b) => a.value - b.value)
-  
-  return uniqueSuggestions
-})
-
-// 方法
-function formatCondition(condition: StageCondition): string {
-  const { type, value, endValue } = condition
-  
   switch (type) {
-    case 'less':
-      return `< ${value}`
-    case 'lessEqual':
-      return `<= ${value}`
-    case 'equal':
-      return `= ${value}`
-    case 'greater':
-      return `> ${value}`
-    case 'greaterEqual':
-      return `>= ${value}`
+    case 'less': return `${variableAlias || '变量'} < ${valStr}`
+    case 'lessEqual': return `${variableAlias || '变量'} <= ${valStr}`
+    case 'equal': return `${variableAlias || '变量'} == ${valStr}`
+    case 'greater': return `${variableAlias || '变量'} > ${valStr}`
+    case 'greaterEqual': return `${variableAlias || '变量'} >= ${valStr}`
     case 'range':
-      return `${value} - ${endValue || value}`
-    default:
-      return '未知条件'
+      const endValStr = typeof endValue === 'string' ? `'${endValue}'` : endValue
+      return `${variableAlias || '变量'} in [${valStr}, ${endValStr})`
+    case 'is': return `${variableAlias || '变量'} is ${valStr}`
+    case 'isNot': return `${variableAlias || '变量'} is not ${valStr}`
+    default: return '未知条件'
   }
 }
 
-function isValueInStageRange(stage: Stage, value: number = store.simulationValue): boolean {
-  const { type, value: conditionValue, endValue } = stage.condition
-  
-  switch (type) {
-    case 'less':
-      return value < conditionValue
-    case 'lessEqual':
-      return value <= conditionValue
-    case 'equal':
-      return value === conditionValue
-    case 'greater':
-      return value > conditionValue
-    case 'greaterEqual':
-      return value >= conditionValue
-    case 'range':
-      return value >= conditionValue && value < (endValue || conditionValue)
-    default:
-      return false
+function formatConditions(stage: Stage): string {
+  if (!stage.conditions || stage.conditions.length === 0) {
+    return '无条件'
   }
+  const separator = stage.conjunction === 'and' ? ' AND ' : ' OR '
+  return stage.conditions.map(formatSingleCondition).join(separator)
+}
+
+function isStageMatched(stage: Stage): boolean {
+  const check = (cond: Condition) => {
+    const simValue = store.simulationValues[cond.variableId] ?? 0
+    const condValue = cond.value
+    const condEndValue = cond.endValue
+
+    const numSimValue = Number(simValue)
+    const numCondValue = Number(condValue)
+    const numCondEndValue = Number(condEndValue)
+
+    if (!isNaN(numSimValue) && !isNaN(numCondValue)) {
+      switch (cond.type) {
+        case 'less': return numSimValue < numCondValue
+        case 'lessEqual': return numSimValue <= numCondValue
+        case 'equal': return numSimValue == numCondValue
+        case 'greater': return numSimValue > numCondValue
+        case 'greaterEqual': return numSimValue >= numCondValue
+        case 'range': return numSimValue >= numCondValue && numSimValue < numCondEndValue
+      }
+    }
+
+    switch (cond.type) {
+      case 'equal': return String(simValue) == String(condValue)
+      case 'is': return String(simValue) === String(condValue)
+      case 'isNot': return String(simValue) !== String(condValue)
+      default: return false
+    }
+  }
+
+  if (!stage.conditions || stage.conditions.length === 0) return false
+  if (stage.conjunction === 'and') return stage.conditions.every(check)
+  return stage.conditions.some(check)
 }
 </script>
 
