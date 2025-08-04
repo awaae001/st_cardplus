@@ -109,7 +109,7 @@ async function initializeEditor() {
               } finally {
                 isUpdatingFromEditor.value = false
               }
-            }, 300) // 增加防抖延迟，避免频繁更新
+            },  50) // 增加防抖延迟，避免频繁更新
           }
         })
       ]
@@ -355,7 +355,7 @@ function recreateEditor(content: string) {
               } finally {
                 isUpdatingFromEditor.value = false
               }
-            }, 300) // 增加防抖延迟，避免频繁更新
+            },  50) // 增加防抖延迟，避免频繁更新
           }
         })
       ]

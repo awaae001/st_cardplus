@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import electron from 'vite-plugin-electron';
 import tailwindcss from '@tailwindcss/vite';
-import path from 'path'; // 引入 path 模块
+import path from 'path';
 
 export default defineConfig({
   server: {

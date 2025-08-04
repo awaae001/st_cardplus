@@ -7,6 +7,9 @@
         <el-text type="info" size="small">可视化创建动态模板</el-text>
       </div>
       <div class="toolbar-right">
+        <el-button @click="toggleCenterPanel" :icon="centerPanelVisible ? 'ArrowRightBold' : 'ArrowLeftBold'" size="small">
+          {{ centerPanelVisible ? '隐藏编辑器' : '显示编辑器' }}
+        </el-button>
         <el-button-group>
           <el-button :icon="DocumentAdd" @click="handleImportConfig" size="small">
             导入配置
@@ -29,45 +32,48 @@
 
     <!-- 主内容区域 -->
     <div class="main-content">
-      <!-- 左侧面板 -->
-      <div class="left-panel">
-        <el-tabs v-model="activeLeftTab" class="h-full">
-          <el-tab-pane label="变量配置" name="variables" class="h-full">
-            <VariablePanel />
-          </el-tab-pane>
-          <el-tab-pane label="阶段管理" name="stages" class="h-full">
-            <StagePanel />
-          </el-tab-pane>
-        </el-tabs>
-      </div>
-
-      <!-- 中间编辑器 -->
-      <div class="center-panel">
-        <div class="panel-header">
-          <h3>模板编辑器</h3>
-          <div class="header-actions">
-            <el-button :icon="CopyDocument" @click="copyToClipboard" size="small" type="primary">
-              复制代码
-            </el-button>
-            <el-button :icon="RefreshRight" @click="store.generateEjsTemplate" size="small">
-              重新生成
-            </el-button>
+      <splitpanes class="default-theme" :horizontal="false">
+        <pane min-size="20" size="30">
+          <div class="left-panel">
+            <el-tabs v-model="activeLeftTab" class="h-full">
+              <el-tab-pane label="变量配置" name="variables" class="h-full">
+                <VariablePanel />
+              </el-tab-pane>
+              <el-tab-pane label="阶段管理" name="stages" class="h-full">
+                <StagePanel />
+              </el-tab-pane>
+            </el-tabs>
           </div>
-        </div>
-        <TemplateEditor />
-      </div>
-
-      <!-- 右侧面板 -->
-      <div class="right-panel">
-        <el-tabs v-model="activeRightTab" class="h-full">
-          <el-tab-pane label="代码预览" name="preview" class="h-full">
-            <PreviewPanel />
-          </el-tab-pane>
-          <el-tab-pane label="模拟测试" name="simulation" class="h-full">
-            <SimulationPanel />
-          </el-tab-pane>
-        </el-tabs>
-      </div>
+        </pane>
+        <pane v-if="centerPanelVisible" min-size="30">
+          <div class="center-panel">
+            <div class="panel-header">
+              <h3>模板编辑器</h3>
+              <div class="header-actions">
+                <el-button :icon="CopyDocument" @click="copyToClipboard" size="small" type="primary">
+                  复制代码
+                </el-button>
+                <el-button :icon="RefreshRight" @click="store.generateEjsTemplate" size="small">
+                  重新生成
+                </el-button>
+              </div>
+            </div>
+            <TemplateEditor />
+          </div>
+        </pane>
+        <pane min-size="20" size="40">
+          <div class="right-panel">
+            <el-tabs v-model="activeRightTab" class="h-full">
+              <el-tab-pane label="代码预览" name="preview" class="h-full">
+                <PreviewPanel />
+              </el-tab-pane>
+              <el-tab-pane label="模拟测试" name="simulation" class="h-full">
+                <SimulationPanel />
+              </el-tab-pane>
+            </el-tabs>
+          </div>
+        </pane>
+      </splitpanes>
     </div>
   </div>
 </template>
@@ -84,8 +90,10 @@ import {
 } from '@element-plus/icons-vue'
 import { useEjsEditorStore } from '@/stores/ejsEditor'
 import { saveAs } from 'file-saver'
+import { Splitpanes, Pane } from 'splitpanes'
+import 'splitpanes/dist/splitpanes.css'
 
-// 组件导入 - 这些组件我们接下来会创建
+// 组件导入
 import VariablePanel from '@/components/ejseditor/VariablePanel.vue'
 import StagePanel from '@/components/ejseditor/StagePanel.vue'
 import TemplateEditor from '@/components/ejseditor/TemplateEditor.vue'
@@ -95,6 +103,11 @@ import SimulationPanel from '@/components/ejseditor/SimulationPanel.vue'
 const store = useEjsEditorStore()
 const activeLeftTab = ref('variables')
 const activeRightTab = ref('preview')
+const centerPanelVisible = ref(true)
+
+function toggleCenterPanel() {
+  centerPanelVisible.value = !centerPanelVisible.value
+}
 
 // 工具栏操作
 async function handleImportConfig() {
@@ -233,6 +246,7 @@ watch(
 .toolbar-right {
   display: flex;
   gap: 8px;
+  align-items: center;
 }
 
 .error-banner {
@@ -246,23 +260,16 @@ watch(
   min-height: 0;
 }
 
-.left-panel,
-.right-panel {
-  width: 350px;
-  border-right: 1px solid var(--el-border-color-light);
+.left-panel, .right-panel, .center-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   background: var(--el-bg-color);
-}
-
-.right-panel {
-  border-right: none;
-  border-left: 1px solid var(--el-border-color-light);
+  overflow: hidden;
 }
 
 .center-panel {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  background: var(--el-bg-color);
 }
 
 .panel-header {
@@ -312,29 +319,26 @@ watch(
   padding: 8px 0;
 }
 
-/* 响应式设计 */
-@media (max-width: 1200px) {
-
-  .left-panel,
-  .right-panel {
-    width: 300px;
-  }
+:deep(.splitpanes__splitter) {
+  background-color: var(--el-border-color-light);
+  position: relative;
+  z-index: 1;
 }
 
-@media (max-width: 768px) {
-  .main-content {
-    flex-direction: column;
-  }
+:deep(.splitpanes__splitter:before) {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  transition: opacity 0.4s;
+  background-color: var(--el-color-primary-light-5);
+  opacity: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
 
-  .left-panel,
-  .right-panel {
-    width: 100%;
-    height: 300px;
-  }
-
-  .center-panel {
-    order: -1;
-    min-height: 400px;
-  }
+:deep(.splitpanes__splitter:hover:before) {
+  opacity: 1;
 }
 </style>

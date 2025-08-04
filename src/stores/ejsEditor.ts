@@ -417,7 +417,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
       } finally {
         simulationTimer = null
       }
-    }, 300) // 统一300ms防抖
+    },  50) // 统一 50ms防抖
   })
 
   return {

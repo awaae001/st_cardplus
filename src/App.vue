@@ -98,7 +98,7 @@ onUnmounted(() => {
       </el-menu-item>
       <el-menu-item v-if="betaFeaturesEnabled" index="/ejs-editor">
         <Icon style="margin-right: 4px;" icon="material-symbols:code-blocks" width="24" height="24" />
-        <span>测试版 · EJS模板</span>
+        <span>EJS模板 · 测试版</span>
       </el-menu-item>
       <el-menu-item v-if="betaFeaturesEnabled" index="/worldbook">
         <Icon style="margin-right: 4px;" icon="material-symbols:book-2-outline" width="24" height="24" />

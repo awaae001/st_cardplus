@@ -667,7 +667,7 @@ defineExpose({
 .ps-text {
   font-style: italic;
   color: #373737;
-  font-weight: 300;
+  font-weight:  50;
 }
 
 .title-Btn {

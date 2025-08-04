@@ -5,28 +5,37 @@
           <Icon icon="ph:books-duotone" class="worldbook-bottom-button-icon" />
         </button>
       </el-tooltip>
-      <el-tooltip content="从剪贴板导入整个世界书 (将替换现有)" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
-        <button @click="$emit('import-book')" class="btn-warning-adv worldbook-bottom-button" aria-label="从剪贴板导入整个世界书">
-          <Icon icon="ph:clipboard-text-duotone" class="worldbook-bottom-button-icon" />
-        </button>
-      </el-tooltip>
-      <span class="worldbook-button-divider"></span>
-      <el-tooltip content="导出所有条目为JSON文件" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
-        <button @click="$emit('export-json')" class="btn-success-adv worldbook-bottom-button-text">
-          <Icon icon="ph:export-duotone" width="16" height="16" class="worldbook-button-text-icon" />
-          <span class="worldbook-button-text-short">导出</span>
-          <span class="worldbook-button-text-long">导出JSON</span>
-        </button>
-      </el-tooltip>
-      <el-tooltip content="从JSON文件导入条目 (将替换现有)" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
-        <el-upload action="#" :before-upload="handleUpload" :show-file-list="false" accept=".json">
-          <button class="btn-warning-adv worldbook-bottom-button-text">
-            <Icon icon="ph:download-simple-duotone" width="16" height="16" class="worldbook-button-text-icon" />
-            <span class="worldbook-button-text-short">导入</span>
-            <span class="worldbook-button-text-long">导入JSON</span>
-          </button>
-        </el-upload>
-      </el-tooltip>
+      <el-tooltip content="从剪贴板导入条目 (将替换当前世界书)" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+               <button @click="$emit('import-book')" class="btn-warning-adv worldbook-bottom-button" aria-label="从剪贴板导入条目">
+                 <Icon icon="ph:clipboard-text-duotone" class="worldbook-bottom-button-icon" />
+               </button>
+             </el-tooltip>
+             <span class="worldbook-button-divider"></span>
+             <el-tooltip content="导出当前世界书为JSON文件" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+               <button @click="$emit('export-json')" class="btn-success-adv worldbook-bottom-button-text">
+                 <Icon icon="ph:export-duotone" width="16" height="16" class="worldbook-button-text-icon" />
+                 <span class="worldbook-button-text-short">导出</span>
+                 <span class="worldbook-button-text-long">导出本书</span>
+               </button>
+             </el-tooltip>
+             <el-tooltip content="从文件导入条目 (将替换当前世界书)" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+               <el-upload action="#" :before-upload="handleEntriesUpload" :show-file-list="false" accept=".json">
+                 <button class="btn-warning-adv worldbook-bottom-button-text">
+                   <Icon icon="ph:file-text-duotone" width="16" height="16" class="worldbook-button-text-icon" />
+                   <span class="worldbook-button-text-short">导入</span>
+                   <span class="worldbook-button-text-long">导入条目</span>
+                 </button>
+               </el-upload>
+             </el-tooltip>
+             <el-tooltip content="从文件导入为新世界书" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+              <el-upload action="#" :before-upload="handleBookUpload" :show-file-list="false" accept=".json">
+                <button class="btn-primary-adv worldbook-bottom-button-text">
+                  <Icon icon="ph:book-open-duotone" width="16" height="16" class="worldbook-button-text-icon" />
+                  <span class="worldbook-button-text-short">导入</span>
+                  <span class="worldbook-button-text-long">导入世界书</span>
+                </button>
+              </el-upload>
+            </el-tooltip>
       <el-tooltip content="清空所有条目" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
         <button @click="$emit('clear-all')" class="btn-danger-adv worldbook-bottom-button-text">
           <Icon icon="ph:trash-simple-duotone" width="16" height="16" class="worldbook-button-text-icon" />
@@ -77,15 +86,21 @@ const emit = defineEmits<{
   (e: 'import-book'): void;
   (e: 'export-json'): void;
   (e: 'import-json', file: File): void;
-  (e: 'clear-all'): void;
-  (e: 'copy-entry'): void;
+    (e: 'import-book-file', file: File): void;
+    (e: 'clear-all'): void;
+    (e: 'copy-entry'): void;
   (e: 'import-entry'): void;
   (e: 'save-entry'): void;
   (e: 'delete-entry'): void;
 }>();
 
-const handleUpload = (file: File): boolean => {
+const handleEntriesUpload = (file: File): boolean => {
   emit('import-json', file);
+  return false; // Prevent el-upload's default behavior
+};
+
+const handleBookUpload = (file: File): boolean => {
+  emit('import-book-file', file);
   return false; // Prevent el-upload's default behavior
 };
 </script>

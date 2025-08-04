@@ -30,3 +30,22 @@ export interface WorldBookEntry {
   delay: number;
   automationId: string;
 }
+
+export interface WorldBook {
+  id: string; // 使用UUIDv4确保唯一性
+  name: string;
+  entries: WorldBookEntry[];
+  createdAt: string; // ISO 8601 格式
+  updatedAt: string; // ISO 8601 格式
+  // 可选的元数据
+  description?: string; 
+  // 为将来的功能预留
+  metadata?: Record<string, any>;
+}
+
+export interface WorldBookCollection {
+  books: Record<string, WorldBook>;
+  activeBookId: string | null;
+  // 全局设置，例如默认导入/导出行为等
+  settings?: Record<string, any>;
+}

@@ -62,9 +62,15 @@ importers:
       pinia:
         specifier: ^3.0.3
         version: 3.0.3(typescript@5.7.3)(vue@3.5.13(typescript@5.7.3))
+      splitpanes:
+        specifier: ^4.0.4
+        version: 4.0.4(vue@3.5.13(typescript@5.7.3))
       tailwindcss:
         specifier: ^4.0.17
         version: 4.0.17
+      uuid:
+        specifier: ^11.1.0
+        version: 11.1.0
       vue:
         specifier: ^3.5.13
         version: 3.5.13(typescript@5.7.3)
@@ -90,6 +96,9 @@ importers:
       '@types/node':
         specifier: ^22.13.14
         version: 22.13.14
+      '@types/uuid':
+        specifier: ^10.0.0
+        version: 10.0.0
       '@vitejs/plugin-vue':
         specifier: ^5.2.3
         version: 5.2.3(vite@6.2.3(@types/node@22.13.14)(jiti@2.4.2)(lightningcss@1.29.2)(terser@5.39.0))(vue@3.5.13(typescript@5.7.3))
@@ -761,6 +770,9 @@ packages:
 
   '@types/responselike@1.0.3':
     resolution: {integrity: sha512-H/+L+UkTV33uf49PH5pCAUBVPNj2nDBXTN+qS1dOwyyg24l3CcicicCA7ca+HMvJBZcFgl5r8e+RR6elsb4Lyw==}
+
+  '@types/uuid@10.0.0':
+    resolution: {integrity: sha512-7gqG38EyHgyP1S+7+xomFtL+ZNHcKv6DwNaCZmJmo1vgMugyF3TCnXVg4t1uk89mLNwnLtnY3TpOpCOyp1/xHQ==}
 
   '@types/verror@1.10.11':
     resolution: {integrity: sha512-RlDm9K7+o5stv0Co8i8ZRGxDbrTxhJtgjqjFyVh/tXQyl/rYtTKlnTvZ88oSTeYREWurwx20Js4kTuKCsFkUtg==}
@@ -2208,6 +2220,11 @@ packages:
     resolution: {integrity: sha512-1POYv7uv2gXoyGFpBCmpDVSNV74IfsWlDW216UPjbWufNf+bSU6GdbDsxdcxtfwb4xlI3yxzOTKClUosxARYrQ==}
     engines: {node: '>=0.10.0'}
 
+  splitpanes@4.0.4:
+    resolution: {integrity: sha512-RbysugZhjbCw5fgplvk3hOXr41stahQDtZhHVkhnnJI6H4wlGDhM2kIpbehy7v92duy9GnMa8zIhHigIV1TWtg==}
+    peerDependencies:
+      vue: ^3.2.0
+
   sprintf-js@1.1.3:
     resolution: {integrity: sha512-Oo+0REFV59/rz3gfJNKQiBlwfHaSESl1pcGyABQsnnIfWOFt6JNj5gCog2U6MLZ//IGYD+nA8nI+mTShREReaA==}
 
@@ -2356,6 +2373,10 @@ packages:
 
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
+
+  uuid@11.1.0:
+    resolution: {integrity: sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==}
+    hasBin: true
 
   v8-compile-cache-lib@3.0.1:
     resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}
@@ -3129,6 +3150,8 @@ snapshots:
   '@types/responselike@1.0.3':
     dependencies:
       '@types/node': 22.13.14
+
+  '@types/uuid@10.0.0': {}
 
   '@types/verror@1.10.11':
     optional: true
@@ -4797,6 +4820,10 @@ snapshots:
 
   speakingurl@14.0.1: {}
 
+  splitpanes@4.0.4(vue@3.5.13(typescript@5.7.3)):
+    dependencies:
+      vue: 3.5.13(typescript@5.7.3)
+
   sprintf-js@1.1.3: {}
 
   ssri@9.0.1:
@@ -4948,6 +4975,8 @@ snapshots:
   utf8-byte-length@1.0.5: {}
 
   util-deprecate@1.0.2: {}
+
+  uuid@11.1.0: {}
 
   v8-compile-cache-lib@3.0.1: {}
 

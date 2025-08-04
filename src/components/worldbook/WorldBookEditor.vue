@@ -17,10 +17,19 @@
             </div>
             <div>
               <label class="form-label">主要关键词 (Key) -
-                <span class="form-label-subtext">逗号分隔, 支持 /regex/i</span></label><el-input v-model="keysInput"
-                type="textarea" :autosize="{ minRows: 2, maxRows: 4 }" placeholder="例如: 角色名, /他说了什么/i, 地点A" />
+                <span class="form-label-subtext">支持 /regex/i</span></label>
+              <el-select
+                v-model="localModel.key"
+                multiple
+                filterable
+                allow-create
+                default-first-option
+                placeholder="输入关键词后按回车键添加"
+                class="form-full-width"
+              >
+              </el-select>
               <p class="form-help-text">
-                提示: 普通文本关键词不要包含逗号，逗号被视作分隔符。
+                提示: 正则表达式需以 / 开头和结尾, 例如 /regex/i。
               </p>
             </div>
             <div>
@@ -34,13 +43,21 @@
         </section>
         <section class="form-section">
           <h3 class="form-section-title">
-            <Icon icon="ph:radio-button-duotone" class="form-section-icon" />触发与激活
+            <Icon icon="ph:radio-button-duotone" class="form-section-icon" />触发, 激活, 插入与顺序
           </h3>
-          <div class="form-grid-2-col">
-            <div>
-              <label class="form-label">次要关键词 (Optional Filter) -
-                <span class="form-label-subtext">逗号分隔</span></label><el-input v-model="secondaryKeysInput"
-                type="textarea" :autosize="{ minRows: 2, maxRows: 3 }" placeholder="可选的过滤关键词" />
+          <div class="form-grid-3-col">
+            <div class="form-grid-span-3">
+              <label class="form-label">次要关键词 (Optional Filter)</label>
+              <el-select
+                v-model="localModel.keysecondary"
+                multiple
+                filterable
+                allow-create
+                default-first-option
+                placeholder="输入关键词后按回车键添加"
+                class="form-full-width"
+              >
+              </el-select>
             </div>
             <div>
               <label class="form-label">次要关键词逻辑 (Logic)</label><el-select v-model="localModel.selectiveLogic"
@@ -55,7 +72,7 @@
             <div class="form-flex-col">
               <label class="form-label">禁用 (Disable)</label><el-switch v-model="localModel.disable" />
             </div>
-            <div class="form-grid-span-2">
+            <div class="form-grid-span-3">
               <label class="form-label">触发概率 (Probability %)</label>
               <div class="form-flex-row">
                 <el-slider v-model="localModel.probability" :min="0" :max="100" show-input class="form-slider"
@@ -63,13 +80,9 @@
                   class="form-checkbox-nowrap" />
               </div>
             </div>
-          </div>
-        </section>
-        <section class="form-section">
-          <h3 class="form-section-title">
-            <Icon icon="ph:arrows-merge-duotone" class="form-section-icon" />插入与顺序
-          </h3>
-          <div class="form-grid-3-col">
+            <div class="form-grid-span-3">
+              <hr class="form-divider" />
+            </div>
             <div>
               <label class="form-label">顺序</label><el-input-number v-model="localModel.order" :min="0"
                 controls-position="right" class="form-full-width" />
@@ -93,86 +106,97 @@
             </div>
           </div>
         </section>
-        <section class="form-section">
-          <h3 class="form-section-title">
-            <Icon icon="ph:scan-duotone" class="form-section-icon" />扫描与匹配
-          </h3>
-          <div class="form-grid-3-col-top-align">
-            <div class="form-flex-col-start">
-              <label class="form-label">大小写敏感</label><el-switch v-model="localModel.caseSensitive" />
-            </div>
-            <div class="form-flex-col-start">
-              <label class="form-label">匹配整个单词</label><el-switch v-model="localModel.matchWholeWords" />
-              <p class="form-help-text">非空格分词语言建议关闭。</p>
-            </div>
-            <div class="form-flex-col-start">
-              <label class="form-label">启用向量匹配</label><el-switch v-model="localModel.vectorized" />
-            </div>
+
+        <div class="form-section-title advanced-options-toggle" @click="advancedOptionsVisible = !advancedOptionsVisible">
+          <Icon :icon="advancedOptionsVisible ? 'ph:caret-down-duotone' : 'ph:caret-right-duotone'" class="form-section-icon" />
+          <span>高级选项</span>
+          <span class="advanced-options-hint">{{ advancedOptionsVisible ? '点击折叠' : '点击展开' }}</span>
+        </div>
+
+        <el-collapse-transition>
+          <div v-show="advancedOptionsVisible">
+            <section class="form-section">
+              <h3 class="form-section-title">
+                <Icon icon="ph:scan-duotone" class="form-section-icon" />扫描与匹配
+              </h3>
+              <div class="form-grid-3-col-top-align">
+                <div class="form-flex-col-start">
+                  <label class="form-label">大小写敏感</label><el-switch v-model="localModel.caseSensitive" />
+                </div>
+                <div class="form-flex-col-start">
+                  <label class="form-label">匹配整个单词</label><el-switch v-model="localModel.matchWholeWords" />
+                  <p class="form-help-text">非空格分词语言建议关闭。</p>
+                </div>
+                <div class="form-flex-col-start">
+                  <label class="form-label">启用向量匹配</label><el-switch v-model="localModel.vectorized" />
+                </div>
+              </div>
+            </section>
+            <section class="form-section">
+              <h3 class="form-section-title">
+                <Icon icon="ph:graph-duotone" class="form-section-icon" />递归与分组
+              </h3>
+              <div class="form-grid-3-col-top-align">
+                <div class="form-flex-col">
+                  <label class="form-label">排除递归激活</label><el-switch v-model="localModel.excludeRecursion" />
+                </div>
+                <div class="form-flex-col">
+                  <label class="form-label">阻止后续递归</label><el-switch v-model="localModel.preventRecursion" />
+                </div>
+                <div class="form-flex-col">
+                  <label class="form-label">仅在递归时激活</label><el-switch v-model="localModel.delayUntilRecursion" />
+                </div>
+                <div>
+                  <label class="form-label">所属收录组 (Group)</label><el-input v-model="localModel.group"
+                    placeholder="组名, 多个用逗号分隔" />
+                </div>
+                <div>
+                  <label class="form-label">组内优先级/权重</label><el-input-number v-model="localModel.groupPriority"
+                    controls-position="right" class="form-full-width" />
+                </div>
+                <div class="form-flex-col-start">
+                  <label class="form-label">优先组内选择 (Prioritize)</label><el-switch v-model="localModel.groupOverride" />
+                  <p class="form-help-text">开启后按Order选择</p>
+                </div>
+                <div class="form-flex-col-start">
+                  <label class="form-label">启用组内评分 (Scoring)</label><el-switch v-model="localModel.useGroupScoring" />
+                  <p class="form-help-text">匹配关键词更多者优先</p>
+                </div>
+              </div>
+            </section>
+            <section class="form-section">
+              <h3 class="form-section-title">
+                <Icon icon="ph:timer-duotone" class="form-section-icon" />定时效果
+              </h3>
+              <div class="form-grid-3-col-end-align">
+                <div>
+                  <label class="form-label">粘滞回合数 (Sticky)</label><el-input-number v-model="localModel.sticky" :min="0"
+                    controls-position="right" class="form-full-width" />
+                  <p class="form-help-text">0表示不粘滞</p>
+                </div>
+                <div>
+                  <label class="form-label">冷却回合数 (Cooldown)</label><el-input-number v-model="localModel.cooldown" :min="0"
+                    controls-position="right" class="form-full-width" />
+                  <p class="form-help-text">0表示无冷却</p>
+                </div>
+                <div>
+                  <label class="form-label">延迟激活 (Delay)</label><el-input-number v-model="localModel.delay" :min="0"
+                    controls-position="right" class="form-full-width" />
+                  <p class="form-help-text">需N条消息后激活, 0无延迟</p>
+                </div>
+              </div>
+            </section>
+            <section class="form-section">
+              <h3 class="form-section-title">
+                <Icon icon="ph:puzzle-piece-duotone" class="form-section-icon" />其他
+              </h3>
+              <div>
+                <label class="form-label">自动化ID (Automation ID)</label><el-input v-model="localModel.automationId"
+                  placeholder="用于Quick Replies扩展" />
+              </div>
+            </section>
           </div>
-        </section>
-        <section class="form-section">
-          <h3 class="form-section-title">
-            <Icon icon="ph:graph-duotone" class="form-section-icon" />递归与分组
-          </h3>
-          <div class="form-grid-3-col-top-align">
-            <div class="form-flex-col">
-              <label class="form-label">排除递归激活</label><el-switch v-model="localModel.excludeRecursion" />
-            </div>
-            <div class="form-flex-col">
-              <label class="form-label">阻止后续递归</label><el-switch v-model="localModel.preventRecursion" />
-            </div>
-            <div class="form-flex-col">
-              <label class="form-label">仅在递归时激活</label><el-switch v-model="localModel.delayUntilRecursion" />
-            </div>
-            <div>
-              <label class="form-label">所属收录组 (Group)</label><el-input v-model="localModel.group"
-                placeholder="组名, 多个用逗号分隔" />
-            </div>
-            <div>
-              <label class="form-label">组内优先级/权重</label><el-input-number v-model="localModel.groupPriority"
-                controls-position="right" class="form-full-width" />
-            </div>
-            <div class="form-flex-col-start">
-              <label class="form-label">优先组内选择 (Prioritize)</label><el-switch v-model="localModel.groupOverride" />
-              <p class="form-help-text">开启后按Order选择</p>
-            </div>
-            <div class="form-flex-col-start">
-              <label class="form-label">启用组内评分 (Scoring)</label><el-switch v-model="localModel.useGroupScoring" />
-              <p class="form-help-text">匹配关键词更多者优先</p>
-            </div>
-          </div>
-        </section>
-        <section class="form-section">
-          <h3 class="form-section-title">
-            <Icon icon="ph:timer-duotone" class="form-section-icon" />定时效果
-          </h3>
-          <div class="form-grid-3-col-end-align">
-            <div>
-              <label class="form-label">粘滞回合数 (Sticky)</label><el-input-number v-model="localModel.sticky" :min="0"
-                controls-position="right" class="form-full-width" />
-              <p class="form-help-text">0表示不粘滞</p>
-            </div>
-            <div>
-              <label class="form-label">冷却回合数 (Cooldown)</label><el-input-number v-model="localModel.cooldown" :min="0"
-                controls-position="right" class="form-full-width" />
-              <p class="form-help-text">0表示无冷却</p>
-            </div>
-            <div>
-              <label class="form-label">延迟激活 (Delay)</label><el-input-number v-model="localModel.delay" :min="0"
-                controls-position="right" class="form-full-width" />
-              <p class="form-help-text">需N条消息后激活, 0无延迟</p>
-            </div>
-          </div>
-        </section>
-        <section class="form-section">
-          <h3 class="form-section-title">
-            <Icon icon="ph:puzzle-piece-duotone" class="form-section-icon" />其他
-          </h3>
-          <div>
-            <label class="form-label">自动化ID (Automation ID)</label><el-input v-model="localModel.automationId"
-              placeholder="用于Quick Replies扩展" />
-          </div>
-        </section>
+        </el-collapse-transition>
       </el-form>
     </div>
   </el-scrollbar>
@@ -180,7 +204,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { ElScrollbar, ElForm, ElInput, ElCheckbox, ElSelect, ElOption, ElSwitch, ElSlider, ElInputNumber, ElEmpty } from 'element-plus';
+import { ElScrollbar, ElForm, ElInput, ElCheckbox, ElSelect, ElOption, ElSwitch, ElSlider, ElInputNumber, ElEmpty, ElCollapseTransition } from 'element-plus';
 import { Icon } from '@iconify/vue';
 import type { WorldBookEntry } from './types';
 
@@ -194,35 +218,21 @@ const emit = defineEmits<{
 }>();
 
 const entryFormRef = ref<InstanceType<typeof ElForm> | null>(null);
+const advancedOptionsVisible = ref(false);
 
-const updateModel = (field: keyof WorldBookEntry, value: any) => {
-  if (props.modelValue) {
-    const newModelValue = { ...props.modelValue };
-    (newModelValue as any)[field] = value;
-    emit('update:modelValue', newModelValue);
-  }
-};
+// const updateModel = (field: keyof WorldBookEntry, value: any) => {
+//   if (props.modelValue) {
+//     const newModelValue = { ...props.modelValue };
+//     (newModelValue as any)[field] = value;
+//     emit('update:modelValue', newModelValue);
+//   }
+// };
 
 const localModel = computed({
   get: () => props.modelValue || {},
   set: (value) => emit('update:modelValue', value)
 });
 
-const keysInput = computed({
-  get: () => props.modelValue?.key ? props.modelValue.key.join(', ') : '',
-  set: (value) => {
-    const keys = value.split(',').map(k => k.trim()).filter(k => k);
-    updateModel('key', keys);
-  },
-});
-
-const secondaryKeysInput = computed({
-  get: () => props.modelValue?.keysecondary ? props.modelValue.keysecondary.join(', ') : '',
-  set: (value) => {
-    const keys = value.split(',').map(k => k.trim()).filter(k => k);
-    updateModel('keysecondary', keys);
-  },
-});
 
 watch(() => props.entry, () => {
   entryFormRef.value?.clearValidate();

@@ -119,8 +119,7 @@
             </el-tooltip>
           </label>
           <el-input
-            :model-value="store.selectedStage.content"
-            @input="updateStageContent"
+            v-model="localContent"
             type="textarea"
             :rows="8"
             placeholder="输入该阶段对应的内容（YAML格式）..."
@@ -156,14 +155,38 @@
 </template>
 
 <script setup lang="ts">
+import { ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Delete, QuestionFilled } from '@element-plus/icons-vue'
 import { useEjsEditorStore } from '@/stores/ejsEditor'
 import type { StageCondition } from '@/stores/ejsEditor'
 
 const store = useEjsEditorStore()
+const localContent = ref('')
 
-let contentUpdateDebounceTimer: NodeJS.Timeout | null = null
+// 当选择的阶段变化时，更新本地内容
+watch(
+  () => store.selectedStage,
+  (newStage) => {
+    if (newStage) {
+      localContent.value = newStage.content
+    } else {
+      localContent.value = ''
+    }
+  },
+  { immediate: true }
+)
+
+// 使用防抖更新store
+let debounceTimer: NodeJS.Timeout
+watch(localContent, (newValue) => {
+  clearTimeout(debounceTimer)
+  debounceTimer = setTimeout(() => {
+    if (store.selectedStage && newValue !== store.selectedStage.content) {
+      store.updateStage(store.selectedStageId, { content: newValue })
+    }
+  },  50)
+})
 
 function selectStage(stageId: string) {
   store.selectedStageId = stageId
@@ -213,16 +236,6 @@ function updateConditionEndValue(value: number) {
   }
 }
 
-function updateStageContent(value: string) {
-  if (contentUpdateDebounceTimer) {
-    clearTimeout(contentUpdateDebounceTimer)
-  }
-  contentUpdateDebounceTimer = setTimeout(() => {
-    if (store.selectedStage) {
-      store.updateStage(store.selectedStageId, { content: value })
-    }
-  }, 300)
-}
 
 function formatCondition(condition: StageCondition): string {
   const { type, value, endValue } = condition
