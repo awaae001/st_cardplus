@@ -114,7 +114,7 @@ onUnmounted(() => {
     </el-menu-item>
     <el-menu-item index="/about">
         <Icon style="margin-right: 4px;" icon="material-symbols:info-outline-rounded" width="24" height="24" />
-        <span>关于</span>
+        <span>设置与关于</span>
       </el-menu-item>
     </el-menu>
     <div class="content-container" style="overflow: hidden;" @click="handleClickOutside">
