@@ -38,8 +38,6 @@ export interface EditorError {
 
 export const useEjsEditorStore = defineStore('ejsEditor', () => {
   // 基础状态
-  const variablePath = ref('')
-  const variableAlias = ref('')
   const yamlInput = ref('')
   const variableTree = ref<VariableNode[]>([])
   
@@ -310,8 +308,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
   }
 
   function generateEjsTemplate() {
-    // ... (此函数无需修改)
-    if (!variablePath.value || !variableAlias.value || stages.value.length === 0) {
+    if (stages.value.length === 0) {
       ejsTemplate.value = ''
       previewCode.value = ''
       return
@@ -356,7 +353,9 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
 
   function generateSingleCondition(condition: Condition): string {
     const varGetter = `getvar('${condition.variablePath}')` // 在模板中使用可读路径
-    const value = typeof condition.value === 'string' ? `'${condition.value}'` : condition.value
+    const value = !isNaN(parseFloat(condition.value)) && isFinite(condition.value)
+      ? condition.value
+      : `'${condition.value}'`
     switch (condition.type) {
       case 'less': return `${varGetter} < ${value}`
       case 'lessEqual': return `${varGetter} <= ${value}`
@@ -379,7 +378,13 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
       return
     }
     try {
-      const mockGetvar = (path: string) => simulationValues.value[path] ?? 0
+      const mockGetvar = (path: string) => {
+        const variable = testVariables.value.find(v => v.readablePath === path)
+        if (variable) {
+          return simulationValues.value[variable.id]
+        }
+        return undefined
+      }
       const result = ejs.render(ejsTemplate.value, { getvar: mockGetvar })
       testResult.value = result.trim()
     } catch (error) {
@@ -388,8 +393,6 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
   }
 
   function clearAll() {
-    variablePath.value = ''
-    variableAlias.value = ''
     yamlInput.value = ''
     variableTree.value = []
     stages.value = []
@@ -403,8 +406,6 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
 
   function exportConfig() {
     return {
-      variablePath: variablePath.value,
-      variableAlias: variableAlias.value,
       yamlInput: yamlInput.value,
       stages: stages.value,
       timestamp: new Date().toISOString()
@@ -414,8 +415,6 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
   function importConfig(config: any) {
     // ... (此函数无需修改)
     try {
-      variablePath.value = config.variablePath || ''
-      variableAlias.value = config.variableAlias || ''
       yamlInput.value = config.yamlInput || ''
       stages.value = config.stages || []
       if (config.yamlInput) {
@@ -457,10 +456,10 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
 
   return {
     // 状态
-    variablePath, variableAlias, yamlInput, variableTree, stages, selectedStageId,
+    // 状态
+    yamlInput, variableTree, stages, selectedStageId,
     variableEditMode, ejsTemplate, previewCode, simulationValues, testResult,
     errors, isGenerating,
-    // 计算属性
     selectedStage, hasErrors, testVariables, flatVariables,
     // 方法
     // 方法

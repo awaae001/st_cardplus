@@ -1,29 +1,6 @@
 <template>
   <div class="variable-panel">
     <div class="panel-content">
-      <!-- 基础变量配置 -->
-      <div class="section">
-        <h4 class="section-title">基础配置</h4>
-        <div class="form-grid">
-          <div class="form-item">
-            <label>变量路径</label>
-            <el-input
-              v-model="store.variablePath"
-              placeholder="例如: 角色.狼蛛.好感度"
-              clearable
-            />
-          </div>
-          <div class="form-item">
-            <label>变量别名</label>
-            <el-input
-              v-model="store.variableAlias"
-              placeholder="例如: 好感度"
-              clearable
-            />
-          </div>
-        </div>
-      </div>
-
       <!-- 变量定义 -->
       <div class="section">
         <div class="section-header">
@@ -87,28 +64,6 @@
         </div>
       </div>
 
-      <!-- 快速操作 -->
-      <div class="section">
-        <h4 class="section-title">快速操作</h4>
-        <div class="quick-actions">
-          <el-button-group>
-            <el-button 
-              size="small" 
-              @click="generateFromFirstVariable"
-              :disabled="store.variableTree.length === 0"
-            >
-              使用第一个变量
-            </el-button>
-            <el-button 
-              size="small" 
-              @click="generateExampleStages"
-              :disabled="!store.variablePath || !store.variableAlias"
-            >
-              生成示例阶段
-            </el-button>
-          </el-button-group>
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -154,64 +109,9 @@ function selectVariable(node: VariableNode) {
   if (!node.children) {
     const readablePath = store.getReadablePath(node);
     if (readablePath) {
-      const selectedVar = store.flatVariables.find(v => v.id === node.path);
-      if (selectedVar) {
-        store.variablePath = selectedVar.readablePath;
-        store.variableAlias = selectedVar.alias;
-        ElMessage.success(`已选择变量: ${selectedVar.alias}`);
-      }
+      ElMessage.success(`已选择变量: ${readablePath}`);
     }
   }
-}
-
-function generateFromFirstVariable() {
-  const firstVar = store.findFirstLeafVariable(store.variableTree)
-  if (firstVar) {
-    const readablePath = store.getReadablePath(firstVar);
-    if (readablePath) {
-      const selectedVar = store.flatVariables.find(v => v.id === firstVar.path);
-      if (selectedVar) {
-        store.variablePath = selectedVar.readablePath;
-        store.variableAlias = selectedVar.alias;
-        ElMessage.success(`已使用变量: ${selectedVar.alias}`);
-      }
-    }
-  }
-}
-
-function generateExampleStages() {
-  store.stages = []
-  
-  const exampleStages = [
-    {
-      id: `stage_${Date.now()}_1`,
-      name: '初始阶段',
-      conditions: [{ id: `cond_${Date.now()}_1`, variableId: '', variablePath: store.variablePath, variableAlias: store.variableAlias, type: 'less' as const, value: 20 }],
-      conjunction: 'and',
-      content: `${store.variableAlias}_初始:\n  行为指导:\n    - "保持距离，表现冷淡"`
-    },
-    {
-      id: `stage_${Date.now()}_2`,
-      name: '发展阶段',
-      conditions: [{ id: `cond_${Date.now()}_2`, variableId: '', variablePath: store.variablePath, variableAlias: store.variableAlias, type: 'range' as const, value: 20, endValue: 60 }],
-      conjunction: 'and',
-      content: `${store.variableAlias}_发展:\n  行为指导:\n    - "开始主动交流"`
-    },
-    {
-      id: `stage_${Date.now()}_3`,
-      name: '亲密阶段',
-      conditions: [{ id: `cond_${Date.now()}_3`, variableId: '', variablePath: store.variablePath, variableAlias: store.variableAlias, type: 'greaterEqual' as const, value: 60 }],
-      conjunction: 'and',
-      content: `${store.variableAlias}_亲密:\n  行为指导:\n    - "表现出深度信任"`
-    }
-  ]
-  
-  store.stages = exampleStages as any
-  if (exampleStages.length > 0) {
-    store.selectedStageId = exampleStages[0].id
-  }
-  
-  ElMessage.success('已生成示例阶段')
 }
 </script>
 
@@ -298,7 +198,7 @@ function generateExampleStages() {
   border-radius: 4px;
   padding: 8px;
   background: var(--el-bg-color-page);
-  max-height: 200px;
+  max-height: 720px;
   overflow-y: auto;
 }
 
