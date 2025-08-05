@@ -63,23 +63,20 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
 
   const hasErrors = computed(() => errors.value.length > 0)
 
-  const testVariables = computed(() => {
-    const variables = new Map<string, { readablePath: string; alias: string }>()
-    stages.value.forEach(stage => {
-      (stage.conditions || []).forEach(condition => {
-        if (condition.variableId && !variables.has(condition.variableId)) {
-          variables.set(condition.variableId, {
-            readablePath: condition.variablePath,
-            alias: condition.variableAlias || condition.variablePath
-          })
-        }
-      })
-    })
-    return Array.from(variables, ([id, data]) => ({
-      id,
-      readablePath: data.readablePath,
-      alias: data.alias
-    }))
+  const variableAlias = computed(() => {
+    const stage = selectedStage.value
+    if (!stage || !stage.conditions || stage.conditions.length === 0) {
+      return ''
+    }
+    return stage.conditions[0].variableAlias || ''
+  })
+
+  const variablePath = computed(() => {
+    const stage = selectedStage.value
+    if (!stage || !stage.conditions || stage.conditions.length === 0) {
+      return ''
+    }
+    return stage.conditions[0].variablePath || ''
   })
 
   // --- YAML 和变量树转换 ---
@@ -105,7 +102,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
       const node: VariableNode = {
         key,
         value: null,
-        path: `${currentPath}_${Date.now()}_${Math.random()}` // Ensure unique path for keys
+        path: currentPath // The path itself is the unique ID
       }
 
       if (Array.isArray(value) && value.length <= 2) {
@@ -307,6 +304,49 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     }
   }
 
+  function sortStages() {
+    stages.value.sort((a, b) => {
+      const getSortValue = (stage: Stage): { type: 'number' | 'string' | 'none'; value: any } => {
+        const firstCond = stage.conditions?.[0]
+        if (firstCond?.value === undefined || firstCond?.value === null || firstCond?.value === '') {
+          return { type: 'none', value: null }
+        }
+        
+        const value = firstCond.value
+        const numValue = Number(value)
+
+        if (typeof value === 'number' && isFinite(value)) {
+          return { type: 'number', value: value }
+        }
+        
+        if (typeof value === 'string') {
+          if (value.trim() !== '' && !isNaN(numValue) && isFinite(numValue)) {
+            return { type: 'number', value: numValue }
+          }
+          return { type: 'string', value: value }
+        }
+        
+        return { type: 'string', value: String(value) }
+      }
+
+      const valA = getSortValue(a)
+      const valB = getSortValue(b)
+
+      if (valA.type === 'number' && valB.type === 'number') {
+        return valA.value - valB.value
+      }
+      if (valA.type === 'string' && valB.type === 'string') {
+        return valA.value.localeCompare(valB.value)
+      }
+      
+      if (valA.type === 'number') return -1
+      if (valB.type === 'number') return 1
+
+      return 0
+    })
+    generateEjsTemplate()
+  }
+
   function generateEjsTemplate() {
     if (stages.value.length === 0) {
       ejsTemplate.value = ''
@@ -379,11 +419,8 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     }
     try {
       const mockGetvar = (path: string) => {
-        const variable = testVariables.value.find(v => v.readablePath === path)
-        if (variable) {
-          return simulationValues.value[variable.id]
-        }
-        return undefined
+        // The key of simulationValues is the variable's readablePath (which is its ID now)
+        return simulationValues.value[path]
       }
       const result = ejs.render(ejsTemplate.value, { getvar: mockGetvar })
       testResult.value = result.trim()
@@ -460,10 +497,10 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     yamlInput, variableTree, stages, selectedStageId,
     variableEditMode, ejsTemplate, previewCode, simulationValues, testResult,
     errors, isGenerating,
-    selectedStage, hasErrors, testVariables, flatVariables,
+    selectedStage, hasErrors, flatVariables, variableAlias, variablePath,
     // 方法
     // 方法
-    importYamlVariables, addStage, removeStage, updateStage, generateEjsTemplate,
+    importYamlVariables, addStage, removeStage, updateStage, sortStages, generateEjsTemplate,
     testSimulation, clearAll, exportConfig, importConfig,
     // 节点编辑方法
     addNode, removeNode, updateNodeValue, findFirstLeafVariable, getReadablePath

@@ -6,8 +6,8 @@
         <div class="section-header">
           <h4 class="section-title">变量定义</h4>
           <el-radio-group v-model="store.variableEditMode" size="small">
-            <el-radio-button label="yaml">YAML</el-radio-button>
-            <el-radio-button label="tree">节点树</el-radio-button>
+            <el-radio-button value="yaml">YAML</el-radio-button>
+            <el-radio-button value="tree">节点树</el-radio-button>
           </el-radio-group>
         </div>
 

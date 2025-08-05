@@ -276,22 +276,39 @@ const importFromClipboard = async (data: string) => {
   try {
     const parsedData = JSON.parse(data);
 
-    // 验证并转换数据格式
-    form.value = {
-      name: parsedData.name || '',
-      space: parsedData.space || '',
-      keywords: parsedData.keywords?.join('\n') || '',
-      info: parsedData.info?.join('\n') || '',
-      landmarks: parsedData.landmarks?.map((l: any) => ({
-        name: l.name || '',
-        description: l.description || ''
-      })) || [],
-      forces: parsedData.forces?.map((f: any) => ({
-        name: f.name || '',
-        members: f.members?.join('\n') || '',
-        description: f.description || ''
-      })) || []
-    };
+    // 检查是否是标准的地标/世界书格式
+    if (parsedData.name || parsedData.landmarks || parsedData.forces) {
+      // 保持原有的逻辑，但使其更健壮
+      form.value = {
+        name: parsedData.name || '',
+        space: parsedData.space || '',
+        keywords: Array.isArray(parsedData.keywords) ? parsedData.keywords.join('\n') : (parsedData.keywords || ''),
+        info: Array.isArray(parsedData.info) ? parsedData.info.join('\n') : (parsedData.info || ''),
+        landmarks: parsedData.landmarks?.map((l: any) => ({
+          name: l.name || '',
+          description: l.description || ''
+        })) || [],
+        forces: parsedData.forces?.map((f: any) => ({
+          name: f.name || '',
+          members: Array.isArray(f.members) ? f.members.join('\n') : (f.members || ''),
+          description: f.description || ''
+        })) || []
+      };
+    } else {
+      // 新增逻辑：处理其他类型的JSON对象（例如角色卡）
+      const name = parsedData.chineseName || parsedData.name || '未命名导入';
+      const keywords = parsedData.identity || [];
+      
+      // 将整个对象作为一个新的地标实体导入
+      form.value = {
+        name: name,
+        space: '', // 空间信息在角色卡中不明确
+        keywords: Array.isArray(keywords) ? keywords.join('\n') : '',
+        info: `导入数据：\n${JSON.stringify(parsedData, null, 2)}`,
+        landmarks: [],
+        forces: []
+      };
+    }
 
     ElMessage.success('从剪贴板导入成功！');
   } catch (error) {
@@ -352,15 +369,15 @@ const loadWorld = async () => {
             form.value = {
               name: data.name || '',
               space: data.space || '',
-              keywords: data.keywords?.join('\n') || '',
-              info: data.info?.join('\n') || '',
+              keywords: Array.isArray(data.keywords) ? data.keywords.join('\n') : (data.keywords || ''),
+              info: Array.isArray(data.info) ? data.info.join('\n') : (data.info || ''),
               landmarks: data.landmarks?.map((l: any) => ({
                 name: l.name || '',
                 description: l.description || ''
               })) || [],
               forces: data.forces?.map((f: any) => ({
                 name: f.name || '',
-                members: f.members?.join('\n') || '',
+                members: Array.isArray(f.members) ? f.members.join('\n') : (f.members || ''),
                 description: f.description || ''
               })) || []
             }

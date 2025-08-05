@@ -11,6 +11,20 @@ import { getBetaFeaturesEnabled } from '@/utils/localStorageUtils'
 const isDark = useDark()
 const toggleDark = useToggle(isDark)
 
+// 平滑主题切换函数
+const smoothToggleDark = () => {
+  // 添加过渡类
+  document.documentElement.classList.add('theme-transitioning')
+  
+  // 切换主题
+  toggleDark()
+  
+  // 移除过渡类
+  setTimeout(() => {
+    document.documentElement.classList.remove('theme-transitioning')
+  }, 500) // 与CSS中的过渡时间一致
+}
+
 const isSidebarOpen = ref(false)
 const toggleSidebar = () => {
   isSidebarOpen.value = !isSidebarOpen.value
@@ -105,8 +119,8 @@ onUnmounted(() => {
         <span>世界书 · 测试版</span>
       </el-menu-item>
     <div style="flex-grow: 1"></div>
-    <el-menu-item @click="toggleDark()">
-      <el-icon>
+    <el-menu-item @click="smoothToggleDark()" class="theme-toggle-item">
+      <el-icon class="theme-icon">
         <Moon v-if="!isDark" />
         <Sunny v-else />
       </el-icon>
@@ -245,5 +259,28 @@ onUnmounted(() => {
 .menu-item:hover {
   background-color: #e0e0e0;
   border-radius: 4px;
+}
+
+/* 主题切换按钮样式 */
+.theme-toggle-item {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.theme-toggle-item:hover {
+  background-color: var(--el-fill-color-light);
+  transform: scale(1.02);
+}
+
+.theme-toggle-item:active {
+  transform: scale(0.98);
+}
+
+.theme-icon {
+  transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.theme-toggle-item:hover .theme-icon {
+  transform: rotate(180deg);
 }
 </style>

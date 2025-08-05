@@ -11,18 +11,18 @@
 
       <!-- 模拟控制 -->
       <div class="simulation-controls">
-        <div v-if="store.testVariables.length === 0" class="empty-state">
-          <el-text type="info">没有需要模拟的变量</el-text>
-          <el-text type="info" size="small">请先在阶段中设置带变量的条件</el-text>
+        <div v-if="store.flatVariables.length === 0" class="empty-state">
+          <el-text type="info">没有可模拟的变量</el-text>
+          <el-text type="info" size="small">请先在“变量定义”中添加变量</el-text>
         </div>
         
-        <div v-else v-for="variable in store.testVariables" :key="variable.id" class="form-item">
+        <div v-else v-for="variable in store.flatVariables" :key="variable.id" class="form-item">
           <label>
             {{ variable.alias || '变量' }}
             <el-text type="info" size="small">({{ variable.readablePath }})</el-text>
           </label>
           <el-input
-            v-model="store.simulationValues[variable.id]"
+            v-model="store.simulationValues[variable.readablePath]"
             style="width: 100%"
             :placeholder="`输入 ${variable.alias} 的测试值`"
           />
@@ -129,7 +129,7 @@ function formatConditions(stage: Stage): string {
 
 function isStageMatched(stage: Stage): boolean {
   const check = (cond: Condition) => {
-    const simValue = store.simulationValues[cond.variableId] ?? 0
+    const simValue = store.simulationValues[cond.variablePath] ?? 0
     const condValue = cond.value
     const condEndValue = cond.endValue
 

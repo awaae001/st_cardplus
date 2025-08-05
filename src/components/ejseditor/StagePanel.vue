@@ -78,8 +78,8 @@
           <div class="condition-group">
             <div class="conjunction-selector">
               <el-radio-group :model-value="store.selectedStage.conjunction" @change="updateConjunction" size="small">
-                <el-radio-button label="and">与 (AND)</el-radio-button>
-                <el-radio-button label="or">或 (OR)</el-radio-button>
+                <el-radio-button value="and">与 (AND)</el-radio-button>
+                <el-radio-button value="or">或 (OR)</el-radio-button>
               </el-radio-group>
             </div>
 
@@ -177,7 +177,7 @@
         <h4 class="section-title">批量操作</h4>
         <div class="batch-actions">
           <el-button-group>
-            <el-button size="small" @click="sortStagesByCondition">
+            <el-button size="small" @click="store.sortStages">
               按条件排序
             </el-button>
             <el-button size="small" @click="clearAllStages" type="danger">
@@ -329,18 +329,6 @@ function formatConditions(stage: Stage): string {
   return stage.conditions.map(formatSingleCondition).join(separator)
 }
 
-function sortStagesByCondition() {
-  const sorted = [...store.stages].sort((a, b) => {
-    const valA = a.conditions?.[0]?.value ?? 0
-    const valB = b.conditions?.[0]?.value ?? 0
-    if (typeof valA === 'number' && typeof valB === 'number') {
-      return valA - valB
-    }
-    return 0
-  })
-  store.stages = sorted
-  ElMessage.success('阶段已按第一个条件的值排序')
-}
 
 async function clearAllStages() {
   try {
