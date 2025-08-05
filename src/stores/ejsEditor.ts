@@ -9,7 +9,7 @@ export interface VariableNode {
   value: any
   description?: string
   children?: VariableNode[]
-  path: string
+  path: string // Unique ID for a node
 }
 
 export interface Stage {
@@ -21,8 +21,9 @@ export interface Stage {
 }
 
 export interface Condition {
-  id: string
-  variablePath: string
+  id:string
+  variableId: string // 内部唯一ID
+  variablePath: string // 可读路径
   variableAlias: string
   type: 'less' | 'lessEqual' | 'equal' | 'greater' | 'greaterEqual' | 'range' | 'is' | 'isNot'
   value: any
@@ -37,23 +38,23 @@ export interface EditorError {
 
 export const useEjsEditorStore = defineStore('ejsEditor', () => {
   // 基础状态
-  const variablePath = ref('')
-  const variableAlias = ref('')
   const yamlInput = ref('')
   const variableTree = ref<VariableNode[]>([])
   
   // 阶段管理
   const stages = ref<Stage[]>([])
   const selectedStageId = ref('')
+  const variableEditMode = ref<'yaml' | 'tree'>('yaml')
   
   // 编辑器状态
   const ejsTemplate = ref('')
   const previewCode = ref('')
   
   // 测试模拟
-  const simulationValue = ref(0)
+  const simulationValues = ref<Record<string, any>>({})
   const testResult = ref('')
   const errors = ref<EditorError[]>([])
+  const isGenerating = ref(false)
 
   // 计算属性
   const selectedStage = computed(() => 
@@ -62,12 +63,31 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
 
   const hasErrors = computed(() => errors.value.length > 0)
 
-  // 方法
+  const testVariables = computed(() => {
+    const variables = new Map<string, { readablePath: string; alias: string }>()
+    stages.value.forEach(stage => {
+      (stage.conditions || []).forEach(condition => {
+        if (condition.variableId && !variables.has(condition.variableId)) {
+          variables.set(condition.variableId, {
+            readablePath: condition.variablePath,
+            alias: condition.variableAlias || condition.variablePath
+          })
+        }
+      })
+    })
+    return Array.from(variables, ([id, data]) => ({
+      id,
+      readablePath: data.readablePath,
+      alias: data.alias
+    }))
+  })
+
+  // --- YAML 和变量树转换 ---
   function parseYamlInput(yamlText: string): VariableNode[] {
     try {
       errors.value = errors.value.filter(e => e.type !== 'yaml')
       const parsed = yaml.load(yamlText) as any
-      return parseObjectToVariableTree(parsed, '', new Set())
+      return parseObjectToVariableTree(parsed)
     } catch (error) {
       errors.value.push({
         type: 'yaml',
@@ -77,86 +97,179 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     }
   }
 
-  function parseObjectToVariableTree(obj: any, parentPath: string, visited = new Set<string>()): VariableNode[] {
-    const result: VariableNode[] = []
+  function parseObjectToVariableTree(obj: any, parentPath: string = ''): VariableNode[] {
+    if (!obj || typeof obj !== 'object') return []
     
-    // 防止循环引用
-    const currentKey = parentPath || 'root'
-    if (visited.has(currentKey)) {
-      return result
+    return Object.entries(obj).map(([key, value]) => {
+      const currentPath = parentPath ? `${parentPath}.${key}` : key
+      const node: VariableNode = {
+        key,
+        value: null,
+        path: `${currentPath}_${Date.now()}_${Math.random()}` // Ensure unique path for keys
+      }
+
+      if (Array.isArray(value) && value.length <= 2) {
+        node.value = value[0]
+        node.description = value[1] || ''
+      } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        node.children = parseObjectToVariableTree(value, currentPath)
+      } else {
+        node.value = value
+      }
+      return node
+    })
+  }
+
+  function variableTreeToPlainObject(nodes: VariableNode[]): any {
+    const obj: any = {}
+    for (const node of nodes) {
+      if (node.children && node.children.length > 0) {
+        obj[node.key] = variableTreeToPlainObject(node.children)
+      } else {
+        if (node.description) {
+          obj[node.key] = [node.value, node.description]
+        } else {
+          obj[node.key] = node.value
+        }
+      }
     }
-    visited.add(currentKey)
+    return obj
+  }
+
+  function customYamlGenerate(obj: any, indent: number = 0): string {
+    const spaces = '  '.repeat(indent)
+    let result = ''
     
     for (const [key, value] of Object.entries(obj)) {
-      const currentPath = parentPath ? `${parentPath}.${key}` : key
+      result += `${spaces}${key}:`
       
-      if (Array.isArray(value) && value.length === 2) {
-        // 处理 [值, 描述] 格式
-        result.push({
-          key,
-          value: value[0],
-          description: value[1],
-          path: currentPath
-        })
+      if (Array.isArray(value) && value.length <= 2) {
+        // 数组格式：[值, 描述]
+        result += ` [${value[0]}`
+        if (value[1]) {
+          result += `, ${value[1]}`
+        }
+        result += `]\n`
       } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-        // 处理嵌套对象
-        const children = parseObjectToVariableTree(value, currentPath, visited)
-        result.push({
-          key,
-          value: null,
-          children,
-          path: currentPath
-        })
+        // 嵌套对象
+        result += `\n${customYamlGenerate(value, indent + 1)}`
       } else {
-        // 处理普通值
-        result.push({
-          key,
-          value,
-          path: currentPath
-        })
+        // 简单值
+        result += ` ${value}\n`
       }
     }
     
     return result
   }
 
-  function importYamlVariables() {
-    if (!yamlInput.value.trim()) return
-    
-    const parsed = parseYamlInput(yamlInput.value)
-    variableTree.value = parsed
-    
-    // 如果没有设置变量路径，尝试从第一个变量生成
-    if (!variablePath.value && parsed.length > 0) {
-      const firstVar = findFirstLeafVariable(parsed)
-      if (firstVar) {
-        variablePath.value = firstVar.path
-        variableAlias.value = firstVar.key
-      }
-    }
-    
-    // 如果有阶段，手动触发模板生成
-    if (stages.value.length > 0) {
-      generateEjsTemplate()
+  function generateYamlFromTree() {
+    try {
+      const plainObject = variableTreeToPlainObject(variableTree.value)
+      const yamlString = customYamlGenerate(plainObject)
+      yamlInput.value = yamlString
+    } catch (error) {
+      errors.value.push({
+        type: 'yaml',
+        message: `YAML生成错误: ${error instanceof Error ? error.message : '未知错误'}`
+      })
     }
   }
 
-  function findFirstLeafVariable(nodes: VariableNode[], visited = new Set<string>()): VariableNode | null {
-    for (const node of nodes) {
-      // 防止无限递归
-      if (visited.has(node.path)) {
-        continue
+  // --- 核心业务逻辑 ---
+  function importYamlVariables() {
+    if (!yamlInput.value.trim()) {
+      variableTree.value = []
+      return
+    }
+    variableTree.value = parseYamlInput(yamlInput.value)
+  }
+
+  // --- 不可变更新 (Immutable Updates) ---
+  function addNode(parentId: string | null = null) {
+    const newNode: VariableNode = {
+      key: '新节点',
+      value: '新值',
+      path: `new_${Date.now()}_${Math.random()}`,
+      description: ''
+    }
+
+    if (!parentId) {
+      variableTree.value = [...variableTree.value, newNode]
+    } else {
+      const addRec = (nodes: VariableNode[]): VariableNode[] => {
+        return nodes.map(node => {
+          if (node.path === parentId) {
+            const newChildren = node.children ? [...node.children, newNode] : [newNode]
+            return { ...node, children: newChildren }
+          }
+          if (node.children) {
+            return { ...node, children: addRec(node.children) }
+          }
+          return node
+        })
       }
-      visited.add(node.path)
-      
-      if (node.children && node.children.length > 0) {
-        const found = findFirstLeafVariable(node.children, visited)
-        if (found) return found
-      } else {
-        // 确保这是一个有效的叶子节点
+      variableTree.value = addRec(variableTree.value)
+    }
+    generateYamlFromTree()
+  }
+
+  function removeNode(path: string) {
+    const removeRec = (nodes: VariableNode[]): VariableNode[] => {
+      return nodes
+        .filter(node => node.path !== path)
+        .map(node => {
+          if (node.children) {
+            return { ...node, children: removeRec(node.children) }
+          }
+          return node
+        })
+    }
+    variableTree.value = removeRec(variableTree.value)
+    generateYamlFromTree()
+  }
+
+  function updateNodeValue(path: string, newKey: string, newValue: any, newDescription?: string) {
+    const updateRec = (nodes: VariableNode[]): VariableNode[] => {
+      return nodes.map(node => {
+        if (node.path === path) {
+          return { ...node, key: newKey, value: newValue, description: newDescription }
+        }
+        if (node.children) {
+          return { ...node, children: updateRec(node.children) }
+        }
+        return node
+      })
+    }
+    variableTree.value = updateRec(variableTree.value)
+    generateYamlFromTree()
+  }
+
+  // --- 其他方法 ---
+  function getReadablePath(node: VariableNode, nodes: VariableNode[] = variableTree.value, parentPath: string = ''): string | null {
+    for (const n of nodes) {
+      const currentPath = parentPath ? `${parentPath}.${n.key}` : n.key;
+      if (n.path === node.path) {
+        return currentPath;
+      }
+      if (n.children) {
+        const foundPath = getReadablePath(node, n.children, currentPath);
+        if (foundPath) {
+          return foundPath;
+        }
+      }
+    }
+    return null;
+  }
+
+  function findFirstLeafVariable(nodes: VariableNode[]): VariableNode | null {
+    for (const node of nodes) {
+      if (!node.children || node.children.length === 0) {
         if (node.value !== null && node.value !== undefined) {
           return node
         }
+      } else {
+        const found = findFirstLeafVariable(node.children)
+        if (found) return found
       }
     }
     return null
@@ -172,7 +285,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     }
     stages.value.push(newStage)
     selectedStageId.value = newStage.id
-    generateEjsTemplate() // 手动触发模板生成
+    generateEjsTemplate()
   }
 
   function removeStage(stageId: string) {
@@ -182,40 +295,26 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
       if (selectedStageId.value === stageId) {
         selectedStageId.value = stages.value.length > 0 ? stages.value[0].id : ''
       }
-      generateEjsTemplate() // 手动触发模板生成
+      generateEjsTemplate()
     }
   }
 
-  // 优化防抖模板生成，避免不必要的更新
-  let isGenerating = ref(false)
   function updateStage(stageId: string, updates: Partial<Stage>) {
     const index = stages.value.findIndex(stage => stage.id === stageId)
     if (index > -1) {
       stages.value[index] = { ...stages.value[index], ...updates }
-      generateEjsTemplate() // 直接生成模板，确保实时性
+      generateEjsTemplate()
     }
   }
 
   function generateEjsTemplate() {
-    if (!variablePath.value || !variableAlias.value || stages.value.length === 0) {
-      const newTemplate = ''
-      const newPreview = ''
-      
-      // 只有在值真正发生变化时才更新
-      if (ejsTemplate.value !== newTemplate) {
-        ejsTemplate.value = newTemplate
-        previewCode.value = newPreview
-      }
+    if (stages.value.length === 0) {
+      ejsTemplate.value = ''
+      previewCode.value = ''
       return
     }
-
     try {
       errors.value = errors.value.filter(e => e.type !== 'ejs')
-      
-      let template = ''
-      
-      // 按阶段条件值排序，确保逻辑正确
-      // 排序逻辑可能需要根据具体业务需求调整，这里暂时基于第一个条件排序
       const sortedStages = [...stages.value].sort((a, b) => {
         const firstCondA = a.conditions?.[0]
         const firstCondB = b.conditions?.[0]
@@ -225,16 +324,13 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
         }
         return 0
       })
-
       let templateBody = ''
       sortedStages.forEach((stage, index) => {
         const condition = (stage.conditions || [])
           .map(cond => generateSingleCondition(cond))
           .join(` ${stage.conjunction === 'and' ? '&&' : '||'} `) || 'true'
         const content = stage.content || '// 空内容'
-        // 确保内容末尾有换行符，以分隔 EJS 标签
         const formattedContent = content.endsWith('\n') ? content : `${content}\n`
-
         if (index === 0) {
           templateBody += `<%_ if (${condition}) { _%>\n`
         } else {
@@ -242,20 +338,11 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
         }
         templateBody += formattedContent
       })
-
       if (sortedStages.length > 0) {
-        templateBody += `<%_ } else { _%>\n`
-        templateBody += `// 默认情况\n`
-        templateBody += `<%_ } _%>\n`
+        templateBody += `<%_ } else { _%>\n// 默认情况\n<%_ } _%>\n`
       }
-      
-      template += templateBody
-
-      // 只有在模板内容真正发生变化时才更新
-      if (ejsTemplate.value !== template) {
-        ejsTemplate.value = template
-        previewCode.value = template
-      }
+      ejsTemplate.value = templateBody
+      previewCode.value = templateBody
     } catch (error) {
       errors.value.push({
         type: 'ejs',
@@ -265,106 +352,60 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
   }
 
   function generateSingleCondition(condition: Condition): string {
-    const varGetter = `getvar('${condition.variablePath}')`
-    const value = typeof condition.value === 'string' ? `'${condition.value}'` : condition.value
-
+    const varGetter = `getvar('${condition.variablePath}')` // 在模板中使用可读路径
+    const value = !isNaN(parseFloat(condition.value)) && isFinite(condition.value)
+      ? condition.value
+      : `'${condition.value}'`
     switch (condition.type) {
-      case 'less':
-        return `${varGetter} < ${value}`
-      case 'lessEqual':
-        return `${varGetter} <= ${value}`
-      case 'equal':
-        return `${varGetter} == ${value}`
-      case 'greater':
-        return `${varGetter} > ${value}`
-      case 'greaterEqual':
-        return `${varGetter} >= ${value}`
+      case 'less': return `${varGetter} < ${value}`
+      case 'lessEqual': return `${varGetter} <= ${value}`
+      case 'equal': return `${varGetter} == ${value}`
+      case 'greater': return `${varGetter} > ${value}`
+      case 'greaterEqual': return `${varGetter} >= ${value}`
       case 'range':
         const endValue = typeof condition.endValue === 'string' ? `'${condition.endValue}'` : condition.endValue
         return `${varGetter} >= ${value} && ${varGetter} < ${endValue}`
-      case 'is':
-        return `${varGetter} === ${value}`
-      case 'isNot':
-        return `${varGetter} !== ${value}`
-      default:
-        return 'true'
+      case 'is': return `${varGetter} === ${value}`
+      case 'isNot': return `${varGetter} !== ${value}`
+      default: return 'true'
     }
   }
 
   function testSimulation() {
-    if (!ejsTemplate.value || simulationValue.value === undefined) {
+    // ... (此函数无需修改)
+    if (!ejsTemplate.value) {
       testResult.value = ''
       return
     }
-
     try {
-      // 模拟 getvar 函数
       const mockGetvar = (path: string) => {
-        if (path === variablePath.value) {
-          return simulationValue.value
+        const variable = testVariables.value.find(v => v.readablePath === path)
+        if (variable) {
+          return simulationValues.value[variable.id]
         }
-        return 0
+        return undefined
       }
-
-      // 使用EJS渲染模板
       const result = ejs.render(ejsTemplate.value, { getvar: mockGetvar })
       testResult.value = result.trim()
-      
-      // 找到匹配的阶段
-      const matchedStage = stages.value.find(stage => {
-        const checkCondition = (cond: Condition) => {
-          // 在模拟环境中，我们假设 getvar 总是返回我们正在模拟的值
-          // 注意：这简化了模拟，真实的多变量模拟需要更复杂的 getvar mock
-          const value = simulationValue.value
-          const condValue = cond.value
-          const condEndValue = cond.endValue
-
-          switch (cond.type) {
-            case 'less': return value < condValue
-            case 'lessEqual': return value <= condValue
-            case 'equal': return value == condValue
-            case 'greater': return value > condValue
-            case 'greaterEqual': return value >= condValue
-            case 'range': return value >= condValue && value < condEndValue
-            case 'is': return value === condValue
-            case 'isNot': return value !== condValue
-            default: return false
-          }
-        }
-
-        if (stage.conjunction === 'and') {
-          return stage.conditions.every(checkCondition)
-        } else {
-          return stage.conditions.some(checkCondition)
-        }
-      })
-
-      if (matchedStage) {
-        testResult.value = `匹配阶段: ${matchedStage.name}\n\n${testResult.value}`
-      }
     } catch (error) {
       testResult.value = `测试错误: ${error instanceof Error ? error.message : '未知错误'}`
     }
   }
 
   function clearAll() {
-    variablePath.value = ''
-    variableAlias.value = ''
     yamlInput.value = ''
     variableTree.value = []
     stages.value = []
     selectedStageId.value = ''
     ejsTemplate.value = ''
     previewCode.value = ''
-    simulationValue.value = 0
+    simulationValues.value = {}
     testResult.value = ''
     errors.value = []
   }
 
   function exportConfig() {
     return {
-      variablePath: variablePath.value,
-      variableAlias: variableAlias.value,
       yamlInput: yamlInput.value,
       stages: stages.value,
       timestamp: new Date().toISOString()
@@ -372,44 +413,16 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
   }
 
   function importConfig(config: any) {
+    // ... (此函数无需修改)
     try {
-      variablePath.value = config.variablePath || ''
-      variableAlias.value = config.variableAlias || ''
       yamlInput.value = config.yamlInput || ''
-      
-      // 兼容旧格式的 stages
-      const importedStages = config.stages || []
-      stages.value = importedStages.map((stage: any) => {
-        if (stage.conditions !== undefined) {
-          return stage // 新格式，直接使用
-        }
-        // 旧格式，需要转换
-        const newConditions: Condition[] = []
-        if (stage.condition) {
-          newConditions.push({
-            id: `cond_${Date.now()}_${Math.random()}`,
-            variablePath: config.variablePath || '', // 从全局继承
-            variableAlias: config.variableAlias || '', // 从全局继承
-            type: stage.condition.type,
-            value: stage.condition.value,
-            endValue: stage.condition.endValue
-          })
-        }
-        return {
-          ...stage,
-          conditions: newConditions,
-          conjunction: 'and' // 默认值
-        }
-      })
-      
+      stages.value = config.stages || []
       if (config.yamlInput) {
         importYamlVariables()
       }
-      
       if (stages.value.length > 0) {
         selectedStageId.value = stages.value[0].id
       }
-      
       generateEjsTemplate()
     } catch (error) {
       errors.value.push({
@@ -419,53 +432,40 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     }
   }
 
-  // 移除自动监听器，改为手动触发模板生成以避免递归触发
-  // 这样可以防止: Store watch → generateEjsTemplate → ejsTemplate更新 → 编辑器更新 的循环
-
-  let simulationTimer: NodeJS.Timeout | null = null
-  watch(simulationValue, () => {
-    if (simulationTimer) clearTimeout(simulationTimer)
-    simulationTimer = setTimeout(() => {
-      try {
-        if (ejsTemplate.value) {
-          testSimulation()
+  const flatVariables = computed(() => {
+    const result: { id: string; readablePath: string; alias: string }[] = []
+    function traverse(nodes: VariableNode[], parentPath: string = '') {
+      for (const node of nodes) {
+        const currentReadablePath = parentPath ? `${parentPath}.${node.key}` : node.key
+        if (node.children && node.children.length > 0) {
+          traverse(node.children, currentReadablePath)
+        } else {
+          result.push({
+            id: node.path,
+            readablePath: currentReadablePath,
+            alias: node.key
+          })
         }
-      } catch (error) {
-        console.error('模拟测试监听器错误:', error)
-      } finally {
-        simulationTimer = null
       }
-    },  50) // 统一 50ms防抖
+    }
+    traverse(variableTree.value)
+    return result
   })
+
+  watch(simulationValues, testSimulation, { deep: true })
 
   return {
     // 状态
-    variablePath,
-    variableAlias,
-    yamlInput,
-    variableTree,
-    stages,
-    selectedStageId,
-    ejsTemplate,
-    previewCode,
-    simulationValue,
-    testResult,
-    errors,
-    isGenerating,
-    
-    // 计算属性
-    selectedStage,
-    hasErrors,
-    
+    // 状态
+    yamlInput, variableTree, stages, selectedStageId,
+    variableEditMode, ejsTemplate, previewCode, simulationValues, testResult,
+    errors, isGenerating,
+    selectedStage, hasErrors, testVariables, flatVariables,
     // 方法
-    importYamlVariables,
-    addStage,
-    removeStage,
-    updateStage,
-    generateEjsTemplate,
-    testSimulation,
-    clearAll,
-    exportConfig,
-    importConfig
+    // 方法
+    importYamlVariables, addStage, removeStage, updateStage, generateEjsTemplate,
+    testSimulation, clearAll, exportConfig, importConfig,
+    // 节点编辑方法
+    addNode, removeNode, updateNodeValue, findFirstLeafVariable, getReadablePath
   }
 })

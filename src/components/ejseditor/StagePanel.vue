@@ -85,17 +85,17 @@
 
             <div v-for="(condition) in store.selectedStage.conditions" :key="condition.id" class="condition-builder">
               <el-select
-                :model-value="condition.variablePath"
-                @change="(val: string) => updateCondition(condition.id, { variablePath: val })"
+                :model-value="condition.variableId"
+                @change="(val: string) => updateCondition(condition.id, { variableId: val })"
                 placeholder="选择变量"
                 style="width: 150px"
                 filterable
               >
                 <el-option
-                  v-for="variable in flatVariables"
-                  :key="variable.path"
-                  :label="variable.path"
-                  :value="variable.path"
+                  v-for="variable in store.flatVariables"
+                  :key="variable.id"
+                  :label="variable.readablePath"
+                  :value="variable.id"
                 />
               </el-select>
 
@@ -191,29 +191,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Delete, QuestionFilled } from '@element-plus/icons-vue'
 import { useEjsEditorStore } from '@/stores/ejsEditor'
-import type { Stage, Condition, VariableNode } from '@/stores/ejsEditor'
+import type { Stage, Condition } from '@/stores/ejsEditor'
 
 const store = useEjsEditorStore()
 const localContent = ref('')
-
-const flatVariables = computed(() => {
-  const result: { path: string; alias: string }[] = []
-  function traverse(nodes: VariableNode[]) {
-    for (const node of nodes) {
-      if (node.children && node.children.length > 0) {
-        traverse(node.children)
-      } else {
-        result.push({ path: node.path, alias: node.key })
-      }
-    }
-  }
-  traverse(store.variableTree)
-  return result
-})
 
 // 当选择的阶段变化时，更新本地内容
 watch(
@@ -271,6 +256,7 @@ function addCondition() {
   if (!store.selectedStage) return
   const newCondition: Condition = {
     id: `cond_${Date.now()}`,
+    variableId: '',
     variablePath: '',
     variableAlias: '',
     type: 'equal',
@@ -292,10 +278,13 @@ function updateCondition(conditionId: string, updates: Partial<Condition>) {
   const conditions = store.selectedStage.conditions.map(c => {
     if (c.id === conditionId) {
       const updatedCondition = { ...c, ...updates }
-      // 如果更新了 variablePath，同步更新 variableAlias
-      if (updates.variablePath) {
-        const foundVar = flatVariables.value.find(v => v.path === updates.variablePath)
-        updatedCondition.variableAlias = foundVar ? foundVar.alias : ''
+      // 如果更新了 variableId，同步更新 variablePath 和 variableAlias
+      if (updates.variableId) {
+        const foundVar = store.flatVariables.find(v => v.id === updates.variableId)
+        if (foundVar) {
+          updatedCondition.variablePath = foundVar.readablePath
+          updatedCondition.variableAlias = foundVar.alias
+        }
       }
       return updatedCondition
     }

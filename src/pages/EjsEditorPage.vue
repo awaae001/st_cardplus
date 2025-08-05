@@ -33,7 +33,7 @@
     <!-- 主内容区域 -->
     <div class="main-content">
       <splitpanes class="default-theme" :horizontal="false">
-        <pane min-size="20" size="30">
+        <pane min-size="20" size="70">
           <div class="left-panel">
             <el-tabs v-model="activeLeftTab" class="h-full">
               <el-tab-pane label="变量配置" name="variables" class="h-full">
@@ -61,7 +61,7 @@
             <TemplateEditor />
           </div>
         </pane>
-        <pane min-size="20" size="40">
+        <pane min-size="20" size="30">
           <div class="right-panel">
             <el-tabs v-model="activeRightTab" class="h-full">
               <el-tab-pane label="代码预览" name="preview" class="h-full">
@@ -103,7 +103,7 @@ import SimulationPanel from '@/components/ejseditor/SimulationPanel.vue'
 const store = useEjsEditorStore()
 const activeLeftTab = ref('variables')
 const activeRightTab = ref('preview')
-const centerPanelVisible = ref(true)
+const centerPanelVisible = ref(false)
 
 function toggleCenterPanel() {
   centerPanelVisible.value = !centerPanelVisible.value
