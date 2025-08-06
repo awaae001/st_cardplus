@@ -11,26 +11,28 @@
             <Icon icon="ph:info-duotone" class="form-section-icon" />基本信息
           </h3>
           <div class="form-section-content">
-            <div>
-              <label class="form-label">标题/备注 (Comment)</label><el-input v-model="localModel.comment"
-                placeholder="给条目起个易于识别的名字" />
-            </div>
-            <div>
-              <label class="form-label">主要关键词 (Key) -
-                <span class="form-label-subtext">支持 /regex/i</span></label>
-              <el-select
-                v-model="localModel.key"
-                multiple
-                filterable
-                allow-create
-                default-first-option
-                placeholder="输入关键词后按回车键添加"
-                class="form-full-width"
-              >
-              </el-select>
-              <p class="form-help-text">
-                提示: 正则表达式需以 / 开头和结尾, 例如 /regex/i。
-              </p>
+            <div class="form-row-responsive">
+              <div class="form-group-responsive">
+                <label class="form-label">标题/备注 (Comment)</label>
+                <el-input v-model="localModel.comment" placeholder="给条目起个易于识别的名字" />
+              </div>
+              <div class="form-group-responsive">
+                <label class="form-label">主要关键词 (Key) - <span class="form-label-subtext">支持 /regex/i</span></label>
+                <el-select
+                  v-model="localModel.key"
+                  multiple
+                  filterable
+                  allow-create
+                  default-first-option
+                  placeholder="输入关键词后按回车键添加"
+                  class="form-full-width"
+                >
+                  <el-option v-for="item in props.allKeywords" :key="item" :label="item" :value="item" />
+                </el-select>
+                <p class="form-help-text">
+                  提示: 正则表达式需以 / 开头和结尾, 例如 /regex/i。
+                </p>
+              </div>
             </div>
             <div>
               <label class="form-label">条目内容 (Content)</label><el-input v-model="localModel.content" type="textarea"
@@ -46,26 +48,6 @@
             <Icon icon="ph:radio-button-duotone" class="form-section-icon" />触发, 激活, 插入与顺序
           </h3>
           <div class="form-grid-3-col">
-            <div class="form-grid-span-3">
-              <label class="form-label">次要关键词 (Optional Filter)</label>
-              <el-select
-                v-model="localModel.keysecondary"
-                multiple
-                filterable
-                allow-create
-                default-first-option
-                placeholder="输入关键词后按回车键添加"
-                class="form-full-width"
-              >
-              </el-select>
-            </div>
-            <div>
-              <label class="form-label">次要关键词逻辑 (Logic)</label><el-select v-model="localModel.selectiveLogic"
-                placeholder="选择逻辑" class="form-full-width" :disabled="!localModel.selective"><el-option label="与任意"
-                  :value="0" /><el-option label="非所有" :value="1" /><el-option label="非任何" :value="2" /><el-option
-                  label="与所有" :value="3" /></el-select><el-checkbox v-model="localModel.selective" label="启用次要逻辑"
-                class="form-checkbox-margin-top" />
-            </div>
             <div class="form-flex-col">
               <label class="form-label">常驻 (Constant)</label><el-switch v-model="localModel.constant" />
             </div>
@@ -80,29 +62,27 @@
                   class="form-checkbox-nowrap" />
               </div>
             </div>
-            <div class="form-grid-span-3">
-              <hr class="form-divider" />
-            </div>
             <div>
               <label class="form-label">顺序</label><el-input-number v-model="localModel.order" :min="0"
                 controls-position="right" class="form-full-width" />
             </div>
             <div>
-              <label class="form-label">插入位置 (Position)</label><el-select v-model="localModel.position"
-                placeholder="选择插入位置" class="form-full-width"><el-option label="角色定义之前" :value="0" />
-                <el-option label="角色定义之后" :value="1" /><el-option label="作者注释之前" :value="2" />
-                <el-option label="作者注释之后" :value="3" /><el-option label="@D" :value="4" />
-                <el-option label="示例消息之前" :value="5" /><el-option label="示例消息之后" :value="6" /></el-select>
+              <label class="form-label">插入位置 (Position)</label>
+              <el-select v-model="combinedPosition" placeholder="选择插入位置" class="form-full-width">
+                <el-option label="角色定义之前" value="0" />
+                <el-option label="角色定义之后" value="1" />
+                <el-option label="作者注释之前" value="2" />
+                <el-option label="作者注释之后" value="3" />
+                <el-option label="示例消息之前" value="5" />
+                <el-option label="示例消息之后" value="6" />
+                <el-option label="@D 系统" value="4-0" />
+                <el-option label="@D 用户" value="4-1" />
+                <el-option label="@D 助手" value="4-2" />
+              </el-select>
             </div>
             <div>
-              <label class="form-label">插入深度 (Depth)</label><el-input-number v-model="localModel.depth" :min="0"
-                :max="999" controls-position="right" class="form-full-width" :disabled="localModel.position !== 4" />
-            </div>
-            <div v-if="localModel.position === 4">
-              <label class="form-label">深度角色 (Role for In-chat)</label><el-select v-model="localModel.role"
-                placeholder="选择角色" class="form-full-width"><el-option label="系统" :value="0" />
-                <el-option label="用户" :value="1" />
-                <el-option label="助手" :value="2" /></el-select>
+              <label class="form-label">插入深度 (Depth)</label>
+              <el-input-number v-model="localModel.depth" :min="0" :max="999" controls-position="right" class="form-full-width" :disabled="localModel.position !== 4" />
             </div>
           </div>
         </section>
@@ -129,6 +109,27 @@
                 </div>
                 <div class="form-flex-col-start">
                   <label class="form-label">启用向量匹配</label><el-switch v-model="localModel.vectorized" />
+                </div>
+                <div class="form-grid-span-3">
+                  <label class="form-label">次要关键词 (Optional Filter)</label>
+                  <el-select
+                    v-model="localModel.keysecondary"
+                    multiple
+                    filterable
+                    allow-create
+                    default-first-option
+                    placeholder="输入关键词后按回车键添加"
+                    class="form-full-width"
+                  >
+                    <el-option v-for="item in props.allKeywords" :key="item" :label="item" :value="item" />
+                  </el-select>
+                </div>
+                <div>
+                  <label class="form-label">次要关键词逻辑 (Logic)</label><el-select v-model="localModel.selectiveLogic"
+                    placeholder="选择逻辑" class="form-full-width" :disabled="!localModel.selective"><el-option label="与任意"
+                      :value="0" /><el-option label="非所有" :value="1" /><el-option label="非任何" :value="2" /><el-option
+                      label="与所有" :value="3" /></el-select><el-checkbox v-model="localModel.selective" label="启用次要逻辑"
+                    class="form-checkbox-margin-top" />
                 </div>
               </div>
             </section>
@@ -211,6 +212,7 @@ import type { WorldBookEntry } from './types';
 const props = defineProps<{
   entry: WorldBookEntry | null;
   modelValue: Partial<WorldBookEntry>;
+  allKeywords?: string[];
 }>();
 
 const emit = defineEmits<{
@@ -220,19 +222,30 @@ const emit = defineEmits<{
 const entryFormRef = ref<InstanceType<typeof ElForm> | null>(null);
 const advancedOptionsVisible = ref(false);
 
-// const updateModel = (field: keyof WorldBookEntry, value: any) => {
-//   if (props.modelValue) {
-//     const newModelValue = { ...props.modelValue };
-//     (newModelValue as any)[field] = value;
-//     emit('update:modelValue', newModelValue);
-//   }
-// };
-
 const localModel = computed({
   get: () => props.modelValue || {},
   set: (value) => emit('update:modelValue', value)
 });
 
+const combinedPosition = computed({
+  get: () => {
+    if (localModel.value.position === 4) {
+      return `4-${localModel.value.role}`;
+    }
+    return String(localModel.value.position);
+  },
+  set: (value) => {
+    const newModel = { ...localModel.value };
+    if (typeof value === 'string' && value.startsWith('4-')) {
+      const role = parseInt(value.split('-')[1], 10);
+      newModel.position = 4;
+      newModel.role = role;
+    } else {
+      newModel.position = parseInt(String(value), 10);
+    }
+    localModel.value = newModel;
+  }
+});
 
 watch(() => props.entry, () => {
   entryFormRef.value?.clearValidate();
