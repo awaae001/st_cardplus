@@ -201,8 +201,6 @@ const handleNodeClick = (data: any) => {
 }
 
 .worldbook-list-add-button {
-  width: 28px;
-  height: 28px;
   font-size: 16px;
 }
 

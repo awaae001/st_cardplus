@@ -3,6 +3,26 @@ import vue from '@vitejs/plugin-vue';
 import electron from 'vite-plugin-electron';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
+import { execSync } from 'child_process';
+
+// 安全地获取 git commit hash 和 count
+const getGitVersionInfo = () => {
+  try {
+    const commitHash = execSync('git rev-parse --short HEAD').toString().trim();
+    const commitCount = execSync('git rev-list --count HEAD').toString().trim();
+    return { commitHash, commitCount };
+  } catch (e) {
+    console.error('Failed to get git info:', e);
+    return { commitHash: 'unknown', commitCount: 'unknown' };
+  }
+};
+
+const { commitHash, commitCount } = getGitVersionInfo();
+
+// 优先使用 Cloudflare Pages 的环境变量
+const appVersion = process.env.CF_PAGES_COMMIT_SHA ? process.env.CF_PAGES_COMMIT_SHA.slice(0, 7) : commitHash;
+const appCommitCount = commitCount;
+
 
 export default defineConfig({
   server: {
@@ -23,6 +43,8 @@ export default defineConfig({
   define: {
     // 防止 Node.js 模块在浏览器环境中被访问
     global: 'globalThis',
+    __APP_VERSION__: JSON.stringify(appVersion),
+    __APP_COMMIT_COUNT__: JSON.stringify(appCommitCount),
   },
   optimizeDeps: {
     exclude: ['fs', 'path', 'os'],

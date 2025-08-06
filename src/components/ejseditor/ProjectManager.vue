@@ -19,6 +19,8 @@
         <el-button :icon="Plus" size="small" @click="handleCreateProject" type="primary" style="width: 100%">
           新建项目
         </el-button>
+      </div>
+      <div class="action-buttons">
         <el-button :icon="Setting" size="small" @click="showProjectDialog = true" :disabled="!store.currentProjectId"
           style="width: 100%">
           项目管理
@@ -235,7 +237,7 @@ async function handleCreateProject() {
 
     if (projectName) {
       let copyFromCurrent = false
-      
+
       // 如果当前有内容，询问是否复制
       if (store.stages.length > 0 || store.yamlInput.trim()) {
         try {
