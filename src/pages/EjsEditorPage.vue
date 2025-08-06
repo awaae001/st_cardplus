@@ -33,12 +33,20 @@
     <!-- 主内容区域 -->
     <div class="main-content">
       <splitpanes class="default-theme" :horizontal="false">
-        <pane min-size="20" size="70">
-          <div class="left-panel">
-            <el-tabs v-model="activeLeftTab" class="h-full">
+        <!-- 项目和方案管理侧边栏 -->
+        <pane min-size="15" size="20">
+          <div class="sidebar-panel">
+            <el-tabs v-model="activeSidebarTab" class="h-full">
               <el-tab-pane label="项目管理" name="projects" class="h-full">
                 <ProjectManager />
               </el-tab-pane>
+            </el-tabs>
+          </div>
+        </pane>
+        <!-- 左侧面板 -->
+        <pane min-size="20" size="50">
+          <div class="left-panel">
+            <el-tabs v-model="activeLeftTab" class="h-full">
               <el-tab-pane label="变量配置" name="variables" class="h-full">
                 <VariablePanel />
               </el-tab-pane>
@@ -105,7 +113,8 @@ import PreviewPanel from '@/components/ejseditor/PreviewPanel.vue'
 import SimulationPanel from '@/components/ejseditor/SimulationPanel.vue'
 
 const store = useEjsEditorStore()
-const activeLeftTab = ref('projects')
+const activeSidebarTab = ref('projects')
+const activeLeftTab = ref('variables')
 const activeRightTab = ref('preview')
 const centerPanelVisible = ref(false)
 
@@ -312,7 +321,7 @@ watch(
   min-height: 0;
 }
 
-.left-panel, .right-panel, .center-panel {
+.sidebar-panel, .left-panel, .right-panel, .center-panel {
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -322,17 +331,21 @@ watch(
 
 .center-panel {
   flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
-.panel-header {
+.center-panel .panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
   border-bottom: 1px solid var(--el-border-color-light);
+  order: -1; /* 确保 header 在最前面 */
+  flex-shrink: 0; /* 防止压缩 */
 }
 
-.panel-header h3 {
+.center-panel .panel-header h3 {
   margin: 0;
   font-size: 16px;
   font-weight: 500;

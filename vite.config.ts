@@ -31,7 +31,7 @@ export default defineConfig({
   build: {
     outDir: 'dist', // 打包输出目录
     minify: 'terser', // 使用terser进行更严格的minify
-    cssCodeSplit: true, // 启用CSS代码分割
+    cssCodeSplit: false, // 禁用CSS代码分割以避免加载顺序问题
     rollupOptions: {
       output: {
         manualChunks(id) {

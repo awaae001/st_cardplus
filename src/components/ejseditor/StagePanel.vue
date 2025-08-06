@@ -5,16 +5,11 @@
       <div class="section">
         <div class="section-header">
           <h4 class="section-title">阶段管理</h4>
-          <el-button
-            type="primary"
-            size="small"
-            :icon="Plus"
-            @click="store.addStage"
-          >
+          <el-button type="primary" size="small" :icon="Plus" @click="store.addStage">
             添加阶段
           </el-button>
         </div>
-        
+
         <div v-if="store.stages.length === 0" class="empty-state">
           <el-empty description="暂无阶段" :image-size="60">
             <el-button type="primary" @click="store.addStage">
@@ -26,42 +21,28 @@
 
       <!-- 阶段列表 -->
       <div v-if="store.stages.length > 0" class="section">
-        <draggable
-          v-model="dragStages"
-          item-key="id"
-          handle=".drag-handle"
-          animation="200"
-          ghost-class="ghost"
-          chosen-class="chosen"
-          class="stage-list"
-        >
+        <draggable v-model="dragStages" item-key="id" handle=".drag-handle" animation="200" ghost-class="ghost"
+          chosen-class="chosen" class="stage-list">
           <template #item="{ element: stage, index }">
-            <div
-              class="stage-item"
-              :class="{ 'is-selected': stage.id === store.selectedStageId }"
-              @click="selectStage(stage.id)"
-            >
+            <div class="stage-item" :class="{ 'is-selected': stage.id === store.selectedStageId }"
+              @click="selectStage(stage.id)">
               <div class="stage-header">
                 <div class="stage-info">
-                  <el-icon class="drag-handle"><Menu /></el-icon>
+                  <el-icon class="drag-handle">
+                    <Menu />
+                  </el-icon>
                   <span class="stage-index">{{ index + 1 }}</span>
                   <span class="stage-name">{{ stage.name }}</span>
                 </div>
                 <div class="stage-actions">
-                <el-button
-                  type="danger"
-                  size="small"
-                  :icon="Delete"
-                  circle
-                  @click.stop="removeStage(stage.id)"
-                />
+                  <el-button type="danger" size="small" :icon="Delete" circle @click.stop="removeStage(stage.id)" />
+                </div>
               </div>
-            </div>
-            <div class="stage-condition">
-              <el-tag size="small" type="info">
-                {{ formatConditions(stage) }}
-              </el-tag>
-            </div>
+              <div class="stage-condition">
+                <el-tag size="small" type="info">
+                  {{ formatConditions(stage) }}
+                </el-tag>
+              </div>
             </div>
           </template>
         </draggable>
@@ -70,59 +51,36 @@
       <!-- 阶段详情编辑 -->
       <div v-if="store.selectedStage" class="section">
         <h4 class="section-title">阶段详情</h4>
-        
+
         <!-- 阶段名称 -->
         <div class="form-item">
           <label>阶段名称</label>
-          <el-input
-            :model-value="store.selectedStage.name"
-            @input="updateStageName"
-            placeholder="输入阶段名称"
-          />
+          <el-input :model-value="store.selectedStage.name" @input="updateStageName" placeholder="输入阶段名称" />
         </div>
 
         <!-- 条件设置 -->
         <div class="form-item">
           <label>触发条件</label>
           <div class="condition-groups-container">
-            <div
-              v-for="(group, groupIndex) in store.selectedStage.conditionGroups"
-              :key="group.id"
-              class="condition-group"
-            >
+            <div v-for="(group, groupIndex) in store.selectedStage.conditionGroups" :key="group.id"
+              class="condition-group">
               <div class="condition-group-header">
                 <span class="condition-group-title">条件组 {{ groupIndex + 1 }} (AND)</span>
-                 <el-button
-                  v-if="store.selectedStage.conditionGroups.length > 1"
-                  type="danger"
-                  :icon="Delete"
-                  circle
-                  size="small"
-                  @click="removeConditionGroup(group.id)"
-                />
+                <el-button v-if="store.selectedStage.conditionGroups.length > 1" type="danger" :icon="Delete" circle
+                  size="small" @click="removeConditionGroup(group.id)" />
               </div>
 
               <div v-for="(condition) in group.conditions" :key="condition.id" class="condition-builder">
-                <el-select
-                  :model-value="condition.variableId"
+                <el-select :model-value="condition.variableId"
                   @change="(val: string) => updateCondition(group.id, condition.id, { variableId: val })"
-                  placeholder="选择变量"
-                  style="width: 150px"
-                  filterable
-                >
-                  <el-option
-                    v-for="variable in store.flatVariables"
-                    :key="variable.id"
-                    :label="variable.readablePath"
-                    :value="variable.id"
-                  />
+                  placeholder="选择变量" style="width: 150px" filterable>
+                  <el-option v-for="variable in store.flatVariables" :key="variable.id" :label="variable.readablePath"
+                    :value="variable.id" />
                 </el-select>
 
-                <el-select
-                  :model-value="condition.type"
+                <el-select :model-value="condition.type"
                   @change="(val: Condition['type']) => updateCondition(group.id, condition.id, { type: val })"
-                  style="width: 120px"
-                >
+                  style="width: 120px">
                   <el-option label="<" value="less" />
                   <el-option label="<=" value="lessEqual" />
                   <el-option label="==" value="equal" />
@@ -133,30 +91,19 @@
                   <el-option label="不是" value="isNot" />
                 </el-select>
 
-                <el-input
-                  :model-value="condition.value"
-                  @input="(val: string) => updateCondition(group.id, condition.id, { value: val })"
-                  style="width: 100px"
-                  placeholder="值"
-                />
+                <el-input :model-value="condition.value"
+                  @input="(val: string) => updateCondition(group.id, condition.id, { value: val })" style="width: 100px"
+                  placeholder="值" />
 
                 <template v-if="condition.type === 'range'">
                   <span class="range-separator">到</span>
-                  <el-input
-                    :model-value="condition.endValue"
+                  <el-input :model-value="condition.endValue"
                     @input="(val: string) => updateCondition(group.id, condition.id, { endValue: val })"
-                    style="width: 100px"
-                    placeholder="结束值"
-                  />
+                    style="width: 100px" placeholder="结束值" />
                 </template>
 
-                <el-button
-                  type="danger"
-                  :icon="Delete"
-                  circle
-                  size="small"
-                  @click="removeCondition(group.id, condition.id)"
-                />
+                <el-button type="danger" :icon="Delete" circle size="small"
+                  @click="removeCondition(group.id, condition.id)" />
               </div>
               <el-button :icon="Plus" @click="addCondition(group.id)" size="small" class="mt-2">
                 添加条件
@@ -178,16 +125,13 @@
           <label>
             阶段内容
             <el-tooltip content="支持YAML格式，内容将被嵌入到EJS模板中" placement="top">
-              <el-icon class="help-icon"><QuestionFilled /></el-icon>
+              <el-icon class="help-icon">
+                <QuestionFilled />
+              </el-icon>
             </el-tooltip>
           </label>
-          <el-input
-            v-model="localContent"
-            type="textarea"
-            :rows="8"
-            placeholder="输入该阶段对应的内容（YAML格式）..."
-            class="content-textarea"
-          />
+          <el-input v-model="localContent" type="textarea" :rows="8" placeholder="输入该阶段对应的内容（YAML格式）..."
+            class="content-textarea" />
         </div>
 
         <!-- 预览当前阶段 -->
@@ -254,7 +198,7 @@ watch(localContent, (newValue) => {
     if (store.selectedStage && newValue !== store.selectedStage.content) {
       store.updateStage(store.selectedStageId, { content: newValue })
     }
-  },  50)
+  }, 50)
 })
 
 function selectStage(stageId: string) {
@@ -305,7 +249,7 @@ function addCondition(groupId: string) {
     type: 'equal',
     value: ''
   }
-  
+
   const conditionGroups = store.selectedStage.conditionGroups.map(group => {
     if (group.id === groupId) {
       return { ...group, conditions: [...group.conditions, newCondition] };
@@ -318,7 +262,7 @@ function addCondition(groupId: string) {
 
 function removeCondition(groupId: string, conditionId: string) {
   if (!store.selectedStage) return
-  
+
   const conditionGroups = store.selectedStage.conditionGroups.map(group => {
     if (group.id === groupId) {
       const conditions = group.conditions.filter(c => c.id !== conditionId);
@@ -332,7 +276,7 @@ function removeCondition(groupId: string, conditionId: string) {
 
 function updateCondition(groupId: string, conditionId: string, updates: Partial<Condition>) {
   if (!store.selectedStage) return
-  
+
   const conditionGroups = store.selectedStage.conditionGroups.map(group => {
     if (group.id === groupId) {
       const conditions = group.conditions.map(c => {
@@ -353,7 +297,7 @@ function updateCondition(groupId: string, conditionId: string, updates: Partial<
     }
     return group;
   });
-  
+
   store.updateStage(store.selectedStageId, { conditionGroups });
 }
 
@@ -648,25 +592,25 @@ async function clearAllStages() {
   .panel-content {
     padding: 12px;
   }
-  
+
   .condition-builder {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .condition-builder .el-select,
   .condition-builder .el-input-number {
     width: 100% !important;
   }
-  
+
   .batch-actions {
     flex-direction: column;
   }
-  
+
   .batch-actions .el-button-group {
     width: 100%;
   }
-  
+
   .batch-actions .el-button {
     flex: 1;
   }

@@ -95,14 +95,6 @@
         <h5>模板信息</h5>
         <div class="info-grid">
           <div class="info-item">
-            <span class="label">变量名:</span>
-            <span class="value">{{ store.variableAlias || '未设置' }}</span>
-          </div>
-          <div class="info-item">
-            <span class="label">变量路径:</span>
-            <span class="value">{{ store.variablePath || '未设置' }}</span>
-          </div>
-          <div class="info-item">
             <span class="label">阶段数量:</span>
             <span class="value">{{ store.stages.length }}</span>
           </div>
