@@ -40,7 +40,21 @@ export interface EditorError {
   line?: number
 }
 
+export interface Project {
+  id: string
+  name: string
+  yamlInput: string
+  stages: Stage[]
+  defaultStageContent: string
+  createdAt: string
+  updatedAt: string
+}
+
 export const useEjsEditorStore = defineStore('ejsEditor', () => {
+  // 项目管理
+  const projects = ref<Project[]>([])
+  const currentProjectId = ref('')
+  
   // 基础状态
   const yamlInput = ref('')
   const variableTree = ref<VariableNode[]>([])
@@ -62,9 +76,20 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
   const isGenerating = ref(false)
 
   // 计算属性
+  const currentProject = computed(() => 
+    projects.value.find(project => project.id === currentProjectId.value)
+  )
+
   const selectedStage = computed(() => 
     stages.value.find(stage => stage.id === selectedStageId.value)
   )
+
+  // 获取当前阶段的有效变量配置
+  const currentStageVariables = computed(() => {
+    const stage = selectedStage.value
+    if (!stage) return variableTree.value
+    return variableTree.value
+  })
 
   const hasErrors = computed(() => errors.value.length > 0)
 
@@ -377,6 +402,113 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     }
   }
 
+  // --- 项目管理 ---
+  function createProject(name: string = `项目${projects.value.length + 1}`): string {
+    const newProject: Project = {
+      id: `project_${Date.now()}`,
+      name,
+      yamlInput: yamlInput.value,
+      stages: [...stages.value],
+      defaultStageContent: defaultStageContent.value,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+    
+    projects.value.push(newProject)
+    currentProjectId.value = newProject.id
+    return newProject.id
+  }
+
+  function switchProject(projectId: string) {
+    const project = projects.value.find(p => p.id === projectId)
+    if (!project) {
+      throw new Error(`项目 ${projectId} 不存在`)
+    }
+    
+    // 保存当前项目状态
+    saveCurrentProjectState()
+    
+    // 切换到新项目
+    currentProjectId.value = projectId
+    loadProjectState(project)
+  }
+
+  function saveCurrentProjectState() {
+    if (!currentProjectId.value) return
+    
+    const currentProject = projects.value.find(p => p.id === currentProjectId.value)
+    if (currentProject) {
+      currentProject.yamlInput = yamlInput.value
+      currentProject.stages = [...stages.value]
+      currentProject.defaultStageContent = defaultStageContent.value
+      currentProject.updatedAt = new Date().toISOString()
+    }
+  }
+
+  function loadProjectState(project: Project) {
+    yamlInput.value = project.yamlInput
+    stages.value = [...project.stages]
+    defaultStageContent.value = project.defaultStageContent
+    
+    // 重新导入变量并生成模板
+    if (project.yamlInput) {
+      importYamlVariables()
+    }
+    
+    // 设置选中的阶段
+    if (stages.value.length > 0) {
+      selectedStageId.value = stages.value[0].id
+    } else {
+      selectedStageId.value = ''
+    }
+    
+    generateEjsTemplate()
+  }
+
+  function renameProject(projectId: string, newName: string) {
+    const project = projects.value.find(p => p.id === projectId)
+    if (project) {
+      project.name = newName
+      project.updatedAt = new Date().toISOString()
+    }
+  }
+
+  function deleteProject(projectId: string) {
+    const index = projects.value.findIndex(p => p.id === projectId)
+    if (index > -1) {
+      projects.value.splice(index, 1)
+      
+      // 如果删除的是当前项目，切换到第一个项目或创建新项目
+      if (currentProjectId.value === projectId) {
+        if (projects.value.length > 0) {
+          switchProject(projects.value[0].id)
+        } else {
+          // 创建新的默认项目
+          createProject('默认项目')
+          clearAll() // 清空状态
+        }
+      }
+    }
+  }
+
+  function importAsNewProject(config: any, name?: string) {
+    const projectName = name || `导入项目_${new Date().toLocaleString()}`
+    
+    const newProject: Project = {
+      id: `project_${Date.now()}`,
+      name: projectName,
+      yamlInput: config.yamlInput || '',
+      stages: config.stages || [],
+      defaultStageContent: config.defaultStageContent || '// 默认情况',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+    
+    projects.value.push(newProject)
+    switchProject(newProject.id)
+    return newProject.id
+  }
+
   function clearAll() {
     yamlInput.value = ''
     variableTree.value = []
@@ -399,19 +531,37 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     }
   }
 
-  function importConfig(config: any) {
-    // ... (此函数无需修改)
+  function importConfig(config: any, replaceCurrentProject: boolean = false, projectName?: string) {
     try {
-      yamlInput.value = config.yamlInput || ''
-      stages.value = config.stages || []
-      defaultStageContent.value = config.defaultStageContent || '// 默认情况'
-      if (config.yamlInput) {
-        importYamlVariables()
+      if (replaceCurrentProject && currentProjectId.value) {
+        // 替换当前项目
+        const currentProject = projects.value.find(p => p.id === currentProjectId.value)
+        if (currentProject) {
+          currentProject.yamlInput = config.yamlInput || ''
+          currentProject.stages = config.stages || []
+          currentProject.defaultStageContent = config.defaultStageContent || '// 默认情况'
+          currentProject.updatedAt = new Date().toISOString()
+          loadProjectState(currentProject)
+        }
+      } else {
+        // 创建新项目或直接导入到当前状态
+        if (projects.value.length > 0) {
+          // 如果已有项目，则创建新项目
+          importAsNewProject(config, projectName)
+        } else {
+          // 没有项目时，直接导入到当前状态
+          yamlInput.value = config.yamlInput || ''
+          stages.value = config.stages || []
+          defaultStageContent.value = config.defaultStageContent || '// 默认情况'
+          if (config.yamlInput) {
+            importYamlVariables()
+          }
+          if (stages.value.length > 0) {
+            selectedStageId.value = stages.value[0].id
+          }
+          generateEjsTemplate()
+        }
       }
-      if (stages.value.length > 0) {
-        selectedStageId.value = stages.value[0].id
-      }
-      generateEjsTemplate()
     } catch (error) {
       errors.value.push({
         type: 'yaml',
@@ -436,21 +586,46 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
         }
       }
     }
-    traverse(variableTree.value)
+    // 使用当前阶段的有效变量配置
+    traverse(currentStageVariables.value)
     return result
   })
+
+  // 初始化逻辑
+  function initializeStore() {
+    // 如果没有项目，创建默认项目
+    if (projects.value.length === 0 && !currentProjectId.value) {
+      const defaultProjectId = createProject('默认项目')
+      currentProjectId.value = defaultProjectId
+    }
+  }
+
+  // 自动保存当前项目状态的 watcher（带防抖）
+  let saveProjectTimer: NodeJS.Timeout | null = null
+  watch([yamlInput, stages, defaultStageContent], () => {
+    if (currentProjectId.value) {
+      if (saveProjectTimer) clearTimeout(saveProjectTimer)
+      saveProjectTimer = setTimeout(() => {
+        saveCurrentProjectState()
+        saveProjectTimer = null
+      }, 500) // 500ms 防抖
+    }
+  }, { deep: true })
 
   watch(simulationValues, testSimulation, { deep: true })
 
   return {
-    // 状态
-    // 状态
+    // 项目管理状态
+    projects, currentProjectId, currentProject,
+    // 基础状态
     yamlInput, variableTree, stages, selectedStageId, defaultStageContent,
     variableEditMode, ejsTemplate, previewCode, simulationValues, testResult,
     errors, isGenerating,
-    selectedStage, hasErrors, flatVariables,
-    // 方法
-    // 方法
+    selectedStage, hasErrors, flatVariables, currentStageVariables,
+    // 项目管理方法
+    initializeStore, createProject, switchProject, saveCurrentProjectState, loadProjectState,
+    renameProject, deleteProject, importAsNewProject,
+    // 基础方法
     importYamlVariables, addStage, removeStage, updateStage, generateEjsTemplate,
     testSimulation, clearAll, exportConfig, importConfig,
     // 节点编辑方法
