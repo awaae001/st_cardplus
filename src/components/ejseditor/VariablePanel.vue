@@ -64,12 +64,30 @@
         </div>
       </div>
 
-    </div>
-  </div>
+     <!-- 默认输出 -->
+     <div class="section">
+       <h4 class="section-title">
+         默认输出
+         <el-tooltip content="当所有阶段条件都不满足时，将输出此内容。" placement="top">
+           <el-icon class="help-icon"><QuestionFilled /></el-icon>
+         </el-tooltip>
+       </h4>
+       <el-input
+         v-model="store.defaultStageContent"
+         type="textarea"
+         :rows="4"
+         placeholder="输入默认内容..."
+         class="content-textarea"
+         @input="store.generateEjsTemplate()"
+       />
+     </div>
+   </div>
+ </div>
 </template>
 
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
+import { QuestionFilled } from '@element-plus/icons-vue'
 import { useEjsEditorStore } from '@/stores/ejsEditor'
 import VariableTreeNode from './VariableTreeNode.vue'
 import EditableVariableTreeNode from './EditableVariableTreeNode.vue'

@@ -12,11 +12,15 @@ export interface VariableNode {
   path: string // Unique ID for a node
 }
 
+export interface ConditionGroup {
+  id: string;
+  conditions: Condition[];
+}
+
 export interface Stage {
   id: string
   name: string
-  conditions: Condition[]
-  conjunction: 'and' | 'or'
+  conditionGroups: ConditionGroup[]
   content: string
 }
 
@@ -44,6 +48,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
   // 阶段管理
   const stages = ref<Stage[]>([])
   const selectedStageId = ref('')
+  const defaultStageContent = ref('// 默认情况')
   const variableEditMode = ref<'yaml' | 'tree'>('yaml')
   
   // 编辑器状态
@@ -63,21 +68,6 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
 
   const hasErrors = computed(() => errors.value.length > 0)
 
-  const variableAlias = computed(() => {
-    const stage = selectedStage.value
-    if (!stage || !stage.conditions || stage.conditions.length === 0) {
-      return ''
-    }
-    return stage.conditions[0].variableAlias || ''
-  })
-
-  const variablePath = computed(() => {
-    const stage = selectedStage.value
-    if (!stage || !stage.conditions || stage.conditions.length === 0) {
-      return ''
-    }
-    return stage.conditions[0].variablePath || ''
-  })
 
   // --- YAML 和变量树转换 ---
   function parseYamlInput(yamlText: string): VariableNode[] {
@@ -276,8 +266,9 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     const newStage: Stage = {
       id: `stage_${Date.now()}`,
       name: `阶段${stages.value.length + 1}`,
-      conditions: [],
-      conjunction: 'and',
+      conditionGroups: [
+        { id: `group_${Date.now()}`, conditions: [] }
+      ],
       content: ''
     }
     stages.value.push(newStage)
@@ -304,49 +295,6 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     }
   }
 
-  function sortStages() {
-    stages.value.sort((a, b) => {
-      const getSortValue = (stage: Stage): { type: 'number' | 'string' | 'none'; value: any } => {
-        const firstCond = stage.conditions?.[0]
-        if (firstCond?.value === undefined || firstCond?.value === null || firstCond?.value === '') {
-          return { type: 'none', value: null }
-        }
-        
-        const value = firstCond.value
-        const numValue = Number(value)
-
-        if (typeof value === 'number' && isFinite(value)) {
-          return { type: 'number', value: value }
-        }
-        
-        if (typeof value === 'string') {
-          if (value.trim() !== '' && !isNaN(numValue) && isFinite(numValue)) {
-            return { type: 'number', value: numValue }
-          }
-          return { type: 'string', value: value }
-        }
-        
-        return { type: 'string', value: String(value) }
-      }
-
-      const valA = getSortValue(a)
-      const valB = getSortValue(b)
-
-      if (valA.type === 'number' && valB.type === 'number') {
-        return valA.value - valB.value
-      }
-      if (valA.type === 'string' && valB.type === 'string') {
-        return valA.value.localeCompare(valB.value)
-      }
-      
-      if (valA.type === 'number') return -1
-      if (valB.type === 'number') return 1
-
-      return 0
-    })
-    generateEjsTemplate()
-  }
-
   function generateEjsTemplate() {
     if (stages.value.length === 0) {
       ejsTemplate.value = ''
@@ -355,20 +303,20 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     }
     try {
       errors.value = errors.value.filter(e => e.type !== 'ejs')
-      const sortedStages = [...stages.value].sort((a, b) => {
-        const firstCondA = a.conditions?.[0]
-        const firstCondB = b.conditions?.[0]
-        if (!firstCondA || !firstCondB) return 0
-        if (typeof firstCondA.value === 'number' && typeof firstCondB.value === 'number') {
-          return firstCondA.value - firstCondB.value
-        }
-        return 0
-      })
       let templateBody = ''
-      sortedStages.forEach((stage, index) => {
-        const condition = (stage.conditions || [])
-          .map(cond => generateSingleCondition(cond))
-          .join(` ${stage.conjunction === 'and' ? '&&' : '||'} `) || 'true'
+      stages.value.forEach((stage, index) => {
+        const groupConditions = (stage.conditionGroups || [])
+          .map(group => {
+            const singleConditions = (group.conditions || [])
+              .map(cond => generateSingleCondition(cond))
+              .join(' && '); // Conditions within a group are ANDed
+            return singleConditions ? `(${singleConditions})` : '';
+          })
+          .filter(c => c) // Remove empty groups
+          .join(' || '); // Groups are ORed
+
+        const condition = groupConditions || 'true'
+        
         const content = stage.content || '// 空内容'
         const formattedContent = content.endsWith('\n') ? content : `${content}\n`
         if (index === 0) {
@@ -378,8 +326,8 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
         }
         templateBody += formattedContent
       })
-      if (sortedStages.length > 0) {
-        templateBody += `<%_ } else { _%>\n// 默认情况\n<%_ } _%>\n`
+      if (stages.value.length > 0) {
+        templateBody += `<%_ } else { _%>\n${defaultStageContent.value}\n<%_ } _%>\n`
       }
       ejsTemplate.value = templateBody
       previewCode.value = templateBody
@@ -434,6 +382,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     variableTree.value = []
     stages.value = []
     selectedStageId.value = ''
+    defaultStageContent.value = '// 默认情况'
     ejsTemplate.value = ''
     previewCode.value = ''
     simulationValues.value = {}
@@ -445,6 +394,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     return {
       yamlInput: yamlInput.value,
       stages: stages.value,
+      defaultStageContent: defaultStageContent.value,
       timestamp: new Date().toISOString()
     }
   }
@@ -454,6 +404,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     try {
       yamlInput.value = config.yamlInput || ''
       stages.value = config.stages || []
+      defaultStageContent.value = config.defaultStageContent || '// 默认情况'
       if (config.yamlInput) {
         importYamlVariables()
       }
@@ -494,13 +445,13 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
   return {
     // 状态
     // 状态
-    yamlInput, variableTree, stages, selectedStageId,
+    yamlInput, variableTree, stages, selectedStageId, defaultStageContent,
     variableEditMode, ejsTemplate, previewCode, simulationValues, testResult,
     errors, isGenerating,
-    selectedStage, hasErrors, flatVariables, variableAlias, variablePath,
+    selectedStage, hasErrors, flatVariables,
     // 方法
     // 方法
-    importYamlVariables, addStage, removeStage, updateStage, sortStages, generateEjsTemplate,
+    importYamlVariables, addStage, removeStage, updateStage, generateEjsTemplate,
     testSimulation, clearAll, exportConfig, importConfig,
     // 节点编辑方法
     addNode, removeNode, updateNodeValue, findFirstLeafVariable, getReadablePath
