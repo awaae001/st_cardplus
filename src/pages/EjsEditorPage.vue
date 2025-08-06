@@ -36,6 +36,9 @@
         <pane min-size="20" size="70">
           <div class="left-panel">
             <el-tabs v-model="activeLeftTab" class="h-full">
+              <el-tab-pane label="项目管理" name="projects" class="h-full">
+                <ProjectManager />
+              </el-tab-pane>
               <el-tab-pane label="变量配置" name="variables" class="h-full">
                 <VariablePanel />
               </el-tab-pane>
@@ -94,6 +97,7 @@ import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 
 // 组件导入
+import ProjectManager from '@/components/ejseditor/ProjectManager.vue'
 import VariablePanel from '@/components/ejseditor/VariablePanel.vue'
 import StagePanel from '@/components/ejseditor/StagePanel.vue'
 import TemplateEditor from '@/components/ejseditor/TemplateEditor.vue'
@@ -101,7 +105,7 @@ import PreviewPanel from '@/components/ejseditor/PreviewPanel.vue'
 import SimulationPanel from '@/components/ejseditor/SimulationPanel.vue'
 
 const store = useEjsEditorStore()
-const activeLeftTab = ref('variables')
+const activeLeftTab = ref('projects')
 const activeRightTab = ref('preview')
 const centerPanelVisible = ref(false)
 
@@ -123,7 +127,40 @@ async function handleImportConfig() {
 
     if (file) {
       const config = JSON.parse(file)
-      store.importConfig(config)
+      
+      // 如果有现有项目，询问用户导入方式
+      if (store.projects.length > 0) {
+        const importType = await ElMessageBox.confirm(
+          '选择导入方式：',
+          '导入配置',
+          {
+            confirmButtonText: '创建新项目',
+            cancelButtonText: '替换当前项目',
+            distinguishCancelAndClose: true,
+            type: 'info'
+          }
+        ).then(() => 'new')
+          .catch((action: string) => action === 'cancel' ? 'replace' : null)
+        
+        if (importType === 'new') {
+          const { value: projectName } = await ElMessageBox.prompt(
+            '请输入新项目的名称',
+            '新建项目',
+            {
+              inputPlaceholder: '项目名称...'
+            }
+          )
+          store.importConfig(config, false, projectName)
+        } else if (importType === 'replace') {
+          store.importConfig(config, true)
+        } else {
+          return // 用户取消
+        }
+      } else {
+        // 没有现有项目时直接导入
+        store.importConfig(config)
+      }
+      
       ElMessage.success('配置导入成功')
     }
   } catch (error) {
@@ -173,14 +210,26 @@ async function copyToClipboard() {
 
 // 页面加载时的初始化
 onMounted(() => {
+  // 初始化项目管理
+  store.initializeStore()
+  
   // 可以在这里加载本地存储的数据
-  const saved = localStorage.getItem('ejs-editor-state')
+  const saved = localStorage.getItem('ejs-editor-projects')
   if (saved) {
     try {
-      const config = JSON.parse(saved)
-      store.importConfig(config)
+      const savedData = JSON.parse(saved)
+      if (savedData.projects && Array.isArray(savedData.projects)) {
+        store.projects = savedData.projects
+        if (savedData.currentProjectId) {
+          store.currentProjectId = savedData.currentProjectId
+          const project = store.projects.find(p => p.id === savedData.currentProjectId)
+          if (project) {
+            store.loadProjectState(project)
+          }
+        }
+      }
     } catch (error) {
-      console.warn('Failed to load saved state:', error)
+      console.warn('Failed to load saved projects:', error)
     }
   }
 })
@@ -189,27 +238,30 @@ onMounted(() => {
 import { watch } from 'vue'
 let saveStateTimer: NodeJS.Timeout | null = null
 
-// 只监听需要保存的关键状态变化，避免过度触发
+// 监听项目状态变化，自动保存到本地存储
 watch(
   [
-    () => store.variablePath,
-    () => store.variableAlias, 
-    () => store.yamlInput,
-    () => store.stages.length,
-    () => store.stages.map(s => `${s.id}-${s.name}-${JSON.stringify(s.conditions)}-${s.conjunction}`).join(',')
+    () => store.projects.length,
+    () => store.currentProjectId,
+    () => store.projects.map(p => `${p.id}-${p.name}-${p.updatedAt}`).join(',')
   ],
   () => {
     if (saveStateTimer) clearTimeout(saveStateTimer)
     saveStateTimer = setTimeout(() => {
       try {
-        const config = store.exportConfig()
-        localStorage.setItem('ejs-editor-state', JSON.stringify(config))
+        const saveData = {
+          projects: store.projects,
+          currentProjectId: store.currentProjectId,
+          timestamp: new Date().toISOString()
+        }
+        localStorage.setItem('ejs-editor-projects', JSON.stringify(saveData))
       } catch (error) {
-        console.warn('保存状态失败:', error)
+        console.warn('保存项目失败:', error)
       }
       saveStateTimer = null
-    }, 1000) // 增加到1秒防抖，减少保存频率
-  }
+    }, 1000) // 1秒防抖，减少保存频率
+  },
+  { deep: true }
 )
 </script>
 
