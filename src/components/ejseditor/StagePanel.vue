@@ -3,10 +3,10 @@
     <div class="panel-content">
       <!-- 阶段列表头部 -->
       <div class="section">
-        <div class="section-header">
+        <div class="section-header" :class="{ 'mobile-header': isMobile }">
           <h4 class="section-title">阶段管理</h4>
-          <el-button type="primary" size="small" :icon="Plus" @click="store.addStage">
-            添加阶段
+          <el-button type="primary" :size="isMobile ? 'small' : 'small'" :icon="Plus" @click="store.addStage">
+            {{ isMobile ? '添加' : '添加阶段' }}
           </el-button>
         </div>
 
@@ -70,40 +70,43 @@
                   size="small" @click="removeConditionGroup(group.id)" />
               </div>
 
-              <div v-for="(condition) in group.conditions" :key="condition.id" class="condition-builder">
+              <div v-for="(condition) in group.conditions" :key="condition.id" class="condition-builder" :class="{ 'mobile-condition-builder': isMobile }">
                 <el-select :model-value="condition.variableId"
                   @change="(val: string) => updateCondition(group.id, condition.id, { variableId: val })"
-                  placeholder="选择变量" style="width: 150px" filterable>
+                  placeholder="选择变量" :style="isMobile ? 'width: 100%; margin-bottom: 8px;' : 'width: 150px'" filterable>
                   <el-option v-for="variable in store.flatVariables" :key="variable.id" :label="variable.readablePath"
                     :value="variable.id" />
                 </el-select>
 
-                <el-select :model-value="condition.type"
-                  @change="(val: Condition['type']) => updateCondition(group.id, condition.id, { type: val })"
-                  style="width: 120px">
-                  <el-option label="<" value="less" />
-                  <el-option label="<=" value="lessEqual" />
-                  <el-option label="==" value="equal" />
-                  <el-option label=">" value="greater" />
-                  <el-option label=">=" value="greaterEqual" />
-                  <el-option label="范围" value="range" />
-                  <el-option label="是" value="is" />
-                  <el-option label="不是" value="isNot" />
-                </el-select>
+                <div class="condition-row" :class="{ 'mobile-condition-row': isMobile }">
+                  <el-select :model-value="condition.type"
+                    @change="(val: Condition['type']) => updateCondition(group.id, condition.id, { type: val })"
+                    :style="isMobile ? 'width: 80px;' : 'width: 120px;'">
+                    <el-option label="<" value="less" />
+                    <el-option label="<=" value="lessEqual" />
+                    <el-option label="==" value="equal" />
+                    <el-option label=">" value="greater" />
+                    <el-option label=">=" value="greaterEqual" />
+                    <el-option label="范围" value="range" />
+                    <el-option label="是" value="is" />
+                    <el-option label="不是" value="isNot" />
+                  </el-select>
 
-                <el-input :model-value="condition.value"
-                  @input="(val: string) => updateCondition(group.id, condition.id, { value: val })" style="width: 100px"
-                  placeholder="值" />
+                  <el-input :model-value="condition.value"
+                    @input="(val: string) => updateCondition(group.id, condition.id, { value: val })" 
+                    :style="isMobile ? 'width: 80px;' : 'width: 100px;'"
+                    placeholder="值" />
 
-                <template v-if="condition.type === 'range'">
-                  <span class="range-separator">到</span>
-                  <el-input :model-value="condition.endValue"
-                    @input="(val: string) => updateCondition(group.id, condition.id, { endValue: val })"
-                    style="width: 100px" placeholder="结束值" />
-                </template>
+                  <template v-if="condition.type === 'range'">
+                    <span class="range-separator">到</span>
+                    <el-input :model-value="condition.endValue"
+                      @input="(val: string) => updateCondition(group.id, condition.id, { endValue: val })"
+                      :style="isMobile ? 'width: 80px;' : 'width: 100px;'" placeholder="结束值" />
+                  </template>
 
-                <el-button type="danger" :icon="Delete" circle size="small"
-                  @click="removeCondition(group.id, condition.id)" />
+                  <el-button type="danger" :icon="Delete" circle :size="isMobile ? 'small' : 'small'"
+                    @click="removeCondition(group.id, condition.id)" />
+                </div>
               </div>
               <el-button :icon="Plus" @click="addCondition(group.id)" size="small" class="mt-2">
                 添加条件
@@ -162,9 +165,11 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Delete, QuestionFilled, Menu } from '@element-plus/icons-vue'
 import draggable from 'vuedraggable'
 import { useEjsEditorStore } from '@/stores/ejsEditor'
+import { useDevice } from '@/composables/useDevice'
 import type { Stage, Condition, ConditionGroup } from '@/stores/ejsEditor'
 
 const store = useEjsEditorStore()
+const { isMobile } = useDevice()
 const localContent = ref('')
 
 const dragStages = computed({
@@ -587,32 +592,96 @@ async function clearAllStages() {
   gap: 8px;
 }
 
-/* 响应式调整 */
+/* 移动端样式优化 */
 @media (max-width: 768px) {
-  .panel-content {
-    padding: 12px;
+  .stage-panel {
+    padding: 8px 12px;
   }
 
-  .condition-builder {
+  .panel-content {
+    padding: 0;
+  }
+
+  .section {
+    margin-bottom: 16px;
+  }
+
+  .mobile-header {
     flex-direction: column;
     align-items: stretch;
+    gap: 8px;
   }
 
-  .condition-builder .el-select,
-  .condition-builder .el-input-number {
-    width: 100% !important;
+  .mobile-header .section-title {
+    text-align: center;
+    margin-bottom: 4px;
+  }
+
+  .stage-item {
+    padding: 8px;
+  }
+
+  .stage-header {
+    margin-bottom: 6px;
+  }
+
+  .mobile-condition-builder {
+    flex-direction: column;
+    align-items: stretch;
+    background: var(--el-fill-color-extra-light);
+    padding: 8px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+
+  .condition-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .mobile-condition-row {
+    flex-wrap: wrap;
+  }
+
+  .mobile-condition-row .el-select,
+  .mobile-condition-row .el-input {
+    flex: 1;
+    min-width: 60px;
+  }
+
+  .range-separator {
+    font-size: 10px;
+    padding: 0 4px;
+  }
+
+  .condition-group {
+    padding: 8px;
+  }
+
+  .content-textarea :deep(.el-textarea__inner) {
+    font-size: 12px;
   }
 
   .batch-actions {
     flex-direction: column;
-  }
-
-  .batch-actions .el-button-group {
-    width: 100%;
+    gap: 6px;
   }
 
   .batch-actions .el-button {
-    flex: 1;
+    width: 100%;
+  }
+}
+
+/* 平板端优化 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .stage-panel {
+    padding: 12px 16px;
+  }
+
+  .condition-builder {
+    flex-wrap: wrap;
+    gap: 6px;
   }
 }
 </style>

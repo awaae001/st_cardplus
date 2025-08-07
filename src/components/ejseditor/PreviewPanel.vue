@@ -2,23 +2,23 @@
   <div class="preview-panel">
     <div class="panel-content">
       <!-- 预览头部 -->
-      <div class="preview-header">
+      <div class="preview-header" :class="{ 'mobile-header': isMobile }">
         <h4 class="section-title">代码预览</h4>
-        <div class="header-actions">
+        <div class="header-actions" :class="{ 'mobile-actions': isMobile }">
           <el-button
             :icon="CopyDocument"
-            size="small"
+            :size="isMobile ? 'small' : 'small'"
             @click="copyCode"
             :disabled="!store.previewCode"
           >
-            复制
+            {{ isMobile ? '复制' : '复制' }}
           </el-button>
           <el-button
             :icon="RefreshRight"
-            size="small"
+            :size="isMobile ? 'small' : 'small'"
             @click="store.generateEjsTemplate"
           >
-            刷新
+            {{ isMobile ? '刷新' : '刷新' }}
           </el-button>
         </div>
       </div>
@@ -64,12 +64,13 @@
       </div>
 
       <!-- 快速操作 -->
-      <div v-if="store.previewCode" class="quick-actions">
-        <el-button-group>
+      <div v-if="store.previewCode" class="quick-actions" :class="{ 'mobile-quick-actions': isMobile }">
+        <template v-if="isMobile">
           <el-button
             size="small"
             @click="formatCode"
             :icon="DocumentChecked"
+            class="action-button"
           >
             格式化
           </el-button>
@@ -77,6 +78,7 @@
             size="small"
             @click="validateSyntax"
             :icon="CircleCheck"
+            class="action-button"
           >
             语法检查
           </el-button>
@@ -84,10 +86,36 @@
             size="small"
             @click="showPreviewDialog"
             :icon="View"
+            class="action-button"
           >
             全屏预览
           </el-button>
-        </el-button-group>
+        </template>
+        <template v-else>
+          <el-button-group>
+            <el-button
+              size="small"
+              @click="formatCode"
+              :icon="DocumentChecked"
+            >
+              格式化
+            </el-button>
+            <el-button
+              size="small"
+              @click="validateSyntax"
+              :icon="CircleCheck"
+            >
+              语法检查
+            </el-button>
+            <el-button
+              size="small"
+              @click="showPreviewDialog"
+              :icon="View"
+            >
+              全屏预览
+            </el-button>
+          </el-button-group>
+        </template>
       </div>
 
       <!-- 模板信息 -->
@@ -135,8 +163,10 @@ import {
   View
 } from '@element-plus/icons-vue'
 import { useEjsEditorStore } from '@/stores/ejsEditor'
+import { useDevice } from '@/composables/useDevice'
 
 const store = useEjsEditorStore()
+const { isMobile } = useDevice()
 const previewDialogVisible = ref(false)
 const lastGeneratedTime = ref(Date.now())
 
@@ -391,41 +421,80 @@ function formatTimestamp(timestamp: number): string {
   line-height: 1.6;
 }
 
-/* 响应式调整 */
+/* 移动端样式优化 */
 @media (max-width: 768px) {
+  .preview-panel {
+    padding: 8px 12px;
+  }
+
   .panel-content {
-    padding: 12px;
+    padding: 0;
     gap: 12px;
   }
   
-  .preview-header {
+  .mobile-header {
     flex-direction: column;
     align-items: stretch;
     gap: 8px;
   }
+
+  .mobile-header .section-title {
+    text-align: center;
+    margin-bottom: 4px;
+  }
   
-  .header-actions {
+  .mobile-actions {
     justify-content: center;
+    gap: 6px;
   }
   
   .stats-bar {
     justify-content: center;
+    flex-wrap: wrap;
   }
   
   .info-grid {
     grid-template-columns: 1fr;
+    gap: 6px;
   }
   
-  .quick-actions {
-    flex-direction: column;
+  .mobile-quick-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
   }
-  
-  .quick-actions .el-button-group {
+
+  .mobile-quick-actions .action-button {
     width: 100%;
+    justify-self: stretch;
   }
-  
-  .quick-actions .el-button {
-    flex: 1;
+
+  .mobile-quick-actions .action-button:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .code-content {
+    font-size: 11px;
+    padding: 12px;
+  }
+
+  .template-info {
+    padding: 8px;
+  }
+
+  .code-preview {
+    min-height: 150px;
+  }
+}
+
+/* 平板端优化 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .panel-content {
+    padding: 12px;
+  }
+
+  .quick-actions {
+    justify-content: center;
   }
 }
 

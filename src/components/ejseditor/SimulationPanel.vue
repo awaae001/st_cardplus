@@ -2,7 +2,7 @@
   <div class="simulation-panel">
     <div class="panel-content">
       <!-- 模拟头部 -->
-      <div class="simulation-header">
+      <div class="simulation-header" :class="{ 'mobile-header': isMobile }">
         <h4 class="section-title">模拟测试</h4>
         <el-tooltip content="通过输入不同的变量值来测试模板输出" placement="top">
           <el-icon class="help-icon"><QuestionFilled /></el-icon>
@@ -33,9 +33,10 @@
           @click="store.testSimulation"
           :disabled="!store.ejsTemplate"
           :icon="VideoPlay"
+          :size="isMobile ? 'default' : 'default'"
           style="width: 100%"
         >
-          运行测试
+          {{ isMobile ? '运行测试' : '运行测试' }}
         </el-button>
       </div>
 
@@ -96,9 +97,11 @@
 <script setup lang="ts">
 import { QuestionFilled, VideoPlay } from '@element-plus/icons-vue'
 import { useEjsEditorStore } from '@/stores/ejsEditor'
+import { useDevice } from '@/composables/useDevice'
 import type { Stage, Condition } from '@/stores/ejsEditor'
 
 const store = useEjsEditorStore()
+const { isMobile } = useDevice()
 
 function formatSingleCondition(condition: Condition): string {
   const { variableAlias, type, value, endValue } = condition
@@ -390,27 +393,99 @@ function isStageMatched(stage: Stage): boolean {
   flex: 1;
 }
 
-/* 响应式调整 */
+/* 移动端样式优化 */
 @media (max-width: 768px) {
+  .simulation-panel {
+    padding: 8px 12px;
+  }
+
   .panel-content {
-    padding: 12px;
-    gap: 16px;
+    padding: 0;
+    gap: 12px;
+  }
+
+  .mobile-header {
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .mobile-header .section-title {
+    text-align: center;
+  }
+
+  .form-item label {
+    font-size: 11px;
+  }
+
+  .form-item .el-input {
+    font-size: 14px;
   }
   
   .value-buttons {
     justify-content: center;
+    gap: 3px;
+  }
+
+  .value-buttons .el-button {
+    padding: 4px 8px;
+    font-size: 11px;
   }
   
   .comparison-row {
-    grid-template-columns: 25px 1fr 70px 50px;
-    gap: 4px;
-    padding: 6px;
+    grid-template-columns: 20px 1fr 60px 45px;
+    gap: 3px;
+    padding: 4px;
+    font-size: 11px;
+  }
+
+  .row-name {
+    font-size: 11px;
+  }
+
+  .row-condition {
+    font-size: 10px;
   }
   
   .suggestion-item {
     flex-direction: column;
-    align-items: stretch;
+    align-items: center;
     text-align: center;
+    padding: 8px;
+    gap: 4px;
+  }
+
+  .suggestion-value {
+    min-width: auto;
+    font-size: 14px;
+  }
+
+  .suggestion-desc {
+    font-size: 11px;
+  }
+
+  .result-container {
+    min-height: 80px;
+  }
+
+  .result-content pre {
+    font-size: 11px;
+  }
+
+  .empty-state {
+    padding: 16px;
+    text-align: center;
+  }
+}
+
+/* 平板端优化 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .panel-content {
+    padding: 12px;
+  }
+
+  .comparison-row {
+    grid-template-columns: 25px 1fr 80px 55px;
   }
 }
 </style>

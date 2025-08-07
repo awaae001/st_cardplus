@@ -32,7 +32,58 @@
 
     <!-- 主内容区域 -->
     <div class="main-content">
-      <splitpanes class="default-theme" :horizontal="false">
+      <!-- 移动端布局 -->
+      <div v-if="isMobileOrTablet" class="mobile-layout">
+        <!-- 移动端导航 -->
+        <div class="mobile-nav">
+          <el-segmented v-model="mobileActivePanel" :options="[
+            { label: '项目', value: 'projects' },
+            { label: '变量', value: 'variables' },
+            { label: '阶段', value: 'stages' },
+            { label: '编辑', value: 'editor' },
+            { label: '预览', value: 'preview' }
+          ]" size="small" />
+        </div>
+        <!-- 移动端面板内容 -->
+        <div class="mobile-panel-content">
+          <div v-show="mobileActivePanel === 'projects'" class="mobile-panel">
+            <ProjectManager />
+          </div>
+          <div v-show="mobileActivePanel === 'variables'" class="mobile-panel">
+            <VariablePanel />
+          </div>
+          <div v-show="mobileActivePanel === 'stages'" class="mobile-panel">
+            <StagePanel />
+          </div>
+          <div v-show="mobileActivePanel === 'editor'" class="mobile-panel">
+            <div class="panel-header">
+              <h3>模板编辑器</h3>
+              <div class="header-actions">
+                <el-button :icon="CopyDocument" @click="copyToClipboard" size="small" type="primary">
+                  复制
+                </el-button>
+                <el-button :icon="RefreshRight" @click="store.generateEjsTemplate" size="small">
+                  生成
+                </el-button>
+              </div>
+            </div>
+            <TemplateEditor />
+          </div>
+          <div v-show="mobileActivePanel === 'preview'" class="mobile-panel">
+            <el-tabs v-model="activeRightTab" class="h-full">
+              <el-tab-pane label="代码预览" name="preview" class="h-full">
+                <PreviewPanel />
+              </el-tab-pane>
+              <el-tab-pane label="模拟测试" name="simulation" class="h-full">
+                <SimulationPanel />
+              </el-tab-pane>
+            </el-tabs>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 桌面端布局 -->
+      <splitpanes v-else class="default-theme" :horizontal="false">
         <!-- 项目和方案管理侧边栏 -->
         <pane min-size="15" size="20">
           <div class="sidebar-panel">
@@ -103,6 +154,7 @@ import { useEjsEditorStore } from '@/stores/ejsEditor'
 import { saveAs } from 'file-saver'
 import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
+import { useDevice } from '@/composables/useDevice'
 
 // 组件导入
 import ProjectManager from '@/components/ejseditor/ProjectManager.vue'
@@ -113,10 +165,12 @@ import PreviewPanel from '@/components/ejseditor/PreviewPanel.vue'
 import SimulationPanel from '@/components/ejseditor/SimulationPanel.vue'
 
 const store = useEjsEditorStore()
+const { isMobileOrTablet } = useDevice()
 const activeSidebarTab = ref('projects')
 const activeLeftTab = ref('variables')
 const activeRightTab = ref('preview')
 const centerPanelVisible = ref(false)
+const mobileActivePanel = ref('projects')
 
 function toggleCenterPanel() {
   centerPanelVisible.value = !centerPanelVisible.value
@@ -317,7 +371,6 @@ watch(
 
 .main-content {
   flex: 1;
-  display: flex;
   min-height: 0;
 }
 
@@ -405,5 +458,80 @@ watch(
 
 :deep(.splitpanes__splitter:hover:before) {
   opacity: 1;
+}
+
+/* 移动端样式 */
+.mobile-layout {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-nav {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--el-border-color-light);
+  background: var(--el-bg-color);
+  flex-shrink: 0;
+}
+
+.mobile-panel-content {
+  flex: 1;
+  overflow: hidden;
+  flex-direction: column;
+}
+
+.mobile-panel {
+  height: 100%;
+  overflow-y: auto;
+  background: var(--el-bg-color);
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 移动端工具栏优化 */
+@media screen and (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+    padding: 12px 16px;
+    gap: 12px;
+    align-items: stretch;
+  }
+  
+  .toolbar-left {
+    align-items: center;
+    text-align: center;
+  }
+  
+  .toolbar-right {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  
+  .page-title {
+    font-size: 18px;
+  }
+  
+  .el-button-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  
+  .el-button-group .el-button {
+    margin: 0;
+    flex: 1;
+    min-width: auto;
+  }
+}
+
+/* 平板端样式调整 */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+  .mobile-nav {
+    padding: 16px 20px;
+  }
+  
+  .mobile-panel {
+    padding: 0 8px;
+  }
 }
 </style>
