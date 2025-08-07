@@ -752,6 +752,7 @@
 }
 .advanced-options-toggle {
   cursor: pointer;
+  -webkit-user-select: none;
   user-select: none;
   transition: background-color 0.2s;
   border-bottom: 1px solid var(--el-border-color-lighter);
@@ -798,4 +799,31 @@
 .splitpanes.default-theme .splitpanes__splitter::before,
 .splitpanes.default-theme .splitpanes__splitter::after {
   background-color: var(--el-text-color-secondary);
+}
+
+/* Responsive layout for form rows */
+.form-row-responsive {
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* Spacing for mobile view */
+}
+
+.form-group-responsive {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+/* Desktop view: side-by-side layout */
+@media (min-width: 768px) {
+  .form-row-responsive {
+    flex-direction: row;
+    gap: 24px; /* Wider gap for desktop */
+  }
+  .form-group-responsive:first-child {
+    flex: 1;
+  }
+  .form-group-responsive:last-child {
+    flex: 3;
+  }
 }

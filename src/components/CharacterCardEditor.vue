@@ -22,6 +22,8 @@
     <Relationships :form="form" :addRelationship="addRelationship" :removeRelationship="removeRelationship"
       :exportRelationships="exportRelationships" />
 
+    <CharacterNotes :form="form" :addNote="addNote" :removeNote="removeNote" />
+
     <div style="margin: 4px;"></div>
 
     <SkillsEditor :form="form" :addSkill="addSkill" :removeSkill="removeSkill" :exportSkills="exportSkills" />
@@ -56,12 +58,14 @@ import PersonalityTraits from './charcard/PersonalityTraits.vue';
 import Relationships from './charcard/Relationships.vue';
 import LikesDislikesRoutine from './charcard/LikesDislikesRoutine.vue';
 import SkillsEditor from './charcard/SkillsEditor.vue';
+import CharacterNotes from './charcard/CharacterNotes.vue';
 import type {
   Appearance,
   Attire,
   Trait,
   Relationship,
   Skill,
+  Note,
   CharacterCard
 } from '../types/character';
 
@@ -112,6 +116,7 @@ const createDefaultCharacterCard = (): CharacterCard => ({
     lateNight: '',
   },
   skills: [],
+  notes: [],
 });
 
 // 角色卡表单数据
@@ -201,6 +206,24 @@ const removeRelationship = (index: number): void => {
 };
 
 /**
+ * 添加角色备注
+ */
+const addNote = (): void => {
+  form.value.notes.push({
+    name: '',
+    data: ['']
+  });
+};
+
+/**
+ * 删除角色备注
+ * @param index - 要删除的备注索引
+ */
+const removeNote = (index: number): void => {
+  form.value.notes.splice(index, 1);
+};
+
+/**
  * 处理文本字段，将多行文本转换为数组
  * @param text - 要处理的文本
  * @returns 处理后的字符串数组
@@ -234,15 +257,26 @@ const saveCharacterCard = async (): Promise<void> => {
     }));
 
     // 处理原始数据
+    const processedNotes = form.value.notes.reduce((acc, note) => {
+      if (note.name) {
+        acc[`{{${note.name}}}`] = {
+          name: note.name,
+          data: note.data.filter(d => d.trim() !== '')
+        };
+      }
+      return acc;
+    }, {} as Record<string, { name: string; data: string[] }>);
+
     const rawData = {
       ...form.value,
       attires: processedAttires,
       gender: form.value.gender === 'other' ? form.value.customGender : form.value.gender,
       background: processTextToArray(form.value.background),
       likes: processTextToArray(form.value.likes),
-      dislikes: processTextToArray(form.value.dislikes)
+      dislikes: processTextToArray(form.value.dislikes),
+      notes: processedNotes
     };
-    
+
     // 过滤空值
     const dataToSave = filterEmptyValues(rawData);
 
@@ -254,12 +288,12 @@ const saveCharacterCard = async (): Promise<void> => {
 
     // 生成随机数作为文件名的一部分
     const generateRandomNumber = (): number => Math.floor(10000000 + Math.random() * 90000000);
-    
+
     // 创建并保存文件
     const jsonData = JSON.stringify(dataToSave, null, 2);
     const blob = new Blob([jsonData], { type: 'application/json' });
     saveAs(blob, `${form.value.chineseName || 'character_card'}_${generateRandomNumber()}.json`);
-    
+
     ElMessage.success('角色卡保存成功！');
   } catch (error) {
     ElMessage.error("保存失败");
@@ -313,59 +347,75 @@ const filterEmptyValues = (obj: any): any => {
  * @returns 转换后的角色卡数据
  */
 const processLoadedData = (parsedData: any): CharacterCard => {
-  
+
   // 简化外观数据处理逻辑
   // 直接使用导入文件中的 appearance 对象，如果不存在则为空对象
   const appearance: Appearance = parsedData.appearance || {};
 
   // 处理服装数据
-  const attires: Attire[] = Array.isArray(parsedData.attires) 
+  const attires: Attire[] = Array.isArray(parsedData.attires)
     ? parsedData.attires.map((attire: any) => ({
-        name: attire.name || '',
-        description: attire.description || '',
-        tops: attire.tops || '',
-        bottoms: attire.bottoms || '',
-        shoes: attire.shoes || '',
-        socks: attire.socks || '',
-        underwears: attire.underwears || '',
-        // 处理配饰：数组转为多行文本
-        accessories: Array.isArray(attire.accessories)
-          ? attire.accessories.join('\n')
-          : typeof attire.accessories === 'string'
-            ? attire.accessories
-            : ''
-      }))
+      name: attire.name || '',
+      description: attire.description || '',
+      tops: attire.tops || '',
+      bottoms: attire.bottoms || '',
+      shoes: attire.shoes || '',
+      socks: attire.socks || '',
+      underwears: attire.underwears || '',
+      // 处理配饰：数组转为多行文本
+      accessories: Array.isArray(attire.accessories)
+        ? attire.accessories.join('\n')
+        : typeof attire.accessories === 'string'
+          ? attire.accessories
+          : ''
+    }))
     : [];
 
   // 处理性格特质
   const traits: Trait[] = Array.isArray(parsedData.traits)
     ? parsedData.traits.map((trait: any) => ({
-        name: trait.name || '',
-        description: trait.description || '',
-        dialogueExamples: Array.isArray(trait.dialogueExamples) ? trait.dialogueExamples : [''],
-        behaviorExamples: Array.isArray(trait.behaviorExamples) ? trait.behaviorExamples : ['']
-      }))
+      name: trait.name || '',
+      description: trait.description || '',
+      dialogueExamples: Array.isArray(trait.dialogueExamples) ? trait.dialogueExamples : [''],
+      behaviorExamples: Array.isArray(trait.behaviorExamples) ? trait.behaviorExamples : ['']
+    }))
     : [];
 
   // 处理人际关系
   const relationships: Relationship[] = Array.isArray(parsedData.relationships)
     ? parsedData.relationships.map((rel: any) => ({
-        name: rel.name || '',
-        description: rel.description || '',
-        features: rel.features || '',
-        dialogueExamples: Array.isArray(rel.dialogueExamples) ? rel.dialogueExamples : ['']
-      }))
+      name: rel.name || '',
+      description: rel.description || '',
+      features: rel.features || '',
+      dialogueExamples: Array.isArray(rel.dialogueExamples) ? rel.dialogueExamples : ['']
+    }))
     : [];
 
   // 处理技能
   const skills: Skill[] = Array.isArray(parsedData.skills)
     ? parsedData.skills.map((skill: any) => ({
-        name: skill.name || '',
-        description: skill.description || '',
-        dialogExample: skill.dialogExample || '',
-        behaviorExample: skill.behaviorExample || ''
-      }))
+      name: skill.name || '',
+      description: skill.description || '',
+      dialogExample: skill.dialogExample || '',
+      behaviorExample: skill.behaviorExample || ''
+    }))
     : [];
+
+  // 处理角色备注
+  let notes: Note[] = [];
+  if (parsedData.notes) {
+    if (Array.isArray(parsedData.notes)) {
+      notes = parsedData.notes.map((note: any) => ({
+        name: note.name || '',
+        data: Array.isArray(note.data) ? note.data : ['']
+      }));
+    } else if (typeof parsedData.notes === 'object') {
+      notes = Object.values(parsedData.notes).map((note: any) => ({
+        name: note.name || '',
+        data: Array.isArray(note.data) ? note.data : ['']
+      }));
+    }
+  }
 
   // 返回转换后的数据
   return {
@@ -391,7 +441,8 @@ const processLoadedData = (parsedData: any): CharacterCard => {
       night: parsedData.dailyRoutine?.night || '',
       lateNight: parsedData.dailyRoutine?.lateNight || ''
     },
-    skills
+    skills,
+    notes
   };
 };
 
@@ -405,7 +456,7 @@ const loadCharacterCard = async (): Promise<void> => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';
-    
+
     // 设置文件选择事件处理
     input.onchange = async (event) => {
       const file = (event.target as HTMLInputElement).files?.[0];
@@ -424,7 +475,7 @@ const loadCharacterCard = async (): Promise<void> => {
         // 处理数据并更新表单
         const convertedData = processLoadedData(parsedData);
         form.value = convertedData;
-        
+
         ElMessage.success('角色卡加载成功！');
       } catch (error) {
         ElMessage.error(`加载失败：${error instanceof Error ? error.message : '未知错误'}`);
@@ -446,8 +497,8 @@ const resetForm = (): void => {
     cancelButtonText: '取消',
     type: 'warning',
   }).then(() => {
-  // 清除本地存储的数据
-  clearLocalStorage();
+    // 清除本地存储的数据
+    clearLocalStorage();
     // 完全重置表单数据，包括自定义字段
     const newForm = createDefaultCharacterCard();
     const standardFields = {
@@ -470,10 +521,10 @@ const resetForm = (): void => {
       butt: '',
       feet: ''
     };
-    
+
     newForm.appearance = { ...standardFields };
     form.value = newForm;
-    
+
     ElMessage.success('数据已重置，包括自定义字段');
   }).catch(() => {
     ElMessage.info('取消重置');
@@ -544,6 +595,16 @@ const copyToClipboard = async (): Promise<void> => {
   }));
 
   // 处理原始数据
+  const processedNotes = form.value.notes.reduce((acc, note) => {
+    if (note.name) {
+      acc[`{{${note.name}}}`] = {
+        name: note.name,
+        data: note.data.filter(d => d.trim() !== '')
+      };
+    }
+    return acc;
+  }, {} as Record<string, { name: string; data: string[] }>);
+
   const rawData = {
     ...form.value,
     attires: processedAttires,
@@ -551,9 +612,10 @@ const copyToClipboard = async (): Promise<void> => {
     identity: processTextToArray(form.value.identity),
     background: processTextToArray(form.value.background),
     likes: processTextToArray(form.value.likes),
-    dislikes: processTextToArray(form.value.dislikes)
+    dislikes: processTextToArray(form.value.dislikes),
+    notes: processedNotes
   };
-  
+
   // 过滤空值
   const dataToSave = filterEmptyValues(rawData);
 
@@ -577,7 +639,7 @@ const importFromClipboard = async (data: string): Promise<void> => {
   try {
     // 先重置表单
     form.value = createDefaultCharacterCard();
-    
+
     const parsedData = JSON.parse(data);
 
     // 验证基本结构
@@ -667,7 +729,7 @@ defineExpose({
 .ps-text {
   font-style: italic;
   color: #373737;
-  font-weight:  50;
+  font-weight: 50;
 }
 
 .title-Btn {

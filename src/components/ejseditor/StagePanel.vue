@@ -3,18 +3,13 @@
     <div class="panel-content">
       <!-- 阶段列表头部 -->
       <div class="section">
-        <div class="section-header">
+        <div class="section-header" :class="{ 'mobile-header': isMobile }">
           <h4 class="section-title">阶段管理</h4>
-          <el-button
-            type="primary"
-            size="small"
-            :icon="Plus"
-            @click="store.addStage"
-          >
-            添加阶段
+          <el-button type="primary" :size="isMobile ? 'small' : 'small'" :icon="Plus" @click="store.addStage">
+            {{ isMobile ? '添加' : '添加阶段' }}
           </el-button>
         </div>
-        
+
         <div v-if="store.stages.length === 0" class="empty-state">
           <el-empty description="暂无阶段" :image-size="60">
             <el-button type="primary" @click="store.addStage">
@@ -26,122 +21,104 @@
 
       <!-- 阶段列表 -->
       <div v-if="store.stages.length > 0" class="section">
-        <div class="stage-list">
-          <div
-            v-for="(stage, index) in store.stages"
-            :key="stage.id"
-            class="stage-item"
-            :class="{ 'is-selected': stage.id === store.selectedStageId }"
-            @click="selectStage(stage.id)"
-          >
-            <div class="stage-header">
-              <div class="stage-info">
-                <span class="stage-index">{{ index + 1 }}</span>
-                <span class="stage-name">{{ stage.name }}</span>
+        <draggable v-model="dragStages" item-key="id" handle=".drag-handle" animation="200" ghost-class="ghost"
+          chosen-class="chosen" class="stage-list">
+          <template #item="{ element: stage, index }">
+            <div class="stage-item" :class="{ 'is-selected': stage.id === store.selectedStageId }"
+              @click="selectStage(stage.id)">
+              <div class="stage-header">
+                <div class="stage-info">
+                  <el-icon class="drag-handle">
+                    <Menu />
+                  </el-icon>
+                  <span class="stage-index">{{ index + 1 }}</span>
+                  <span class="stage-name">{{ stage.name }}</span>
+                </div>
+                <div class="stage-actions">
+                  <el-button type="danger" size="small" :icon="Delete" circle @click.stop="removeStage(stage.id)" />
+                </div>
               </div>
-              <div class="stage-actions">
-                <el-button
-                  type="danger"
-                  size="small"
-                  :icon="Delete"
-                  circle
-                  @click.stop="removeStage(stage.id)"
-                />
+              <div class="stage-condition">
+                <el-tag size="small" type="info">
+                  {{ formatConditions(stage) }}
+                </el-tag>
               </div>
             </div>
-            <div class="stage-condition">
-              <el-tag size="small" type="info">
-                {{ formatConditions(stage) }}
-              </el-tag>
-            </div>
-          </div>
-        </div>
+          </template>
+        </draggable>
       </div>
 
       <!-- 阶段详情编辑 -->
       <div v-if="store.selectedStage" class="section">
         <h4 class="section-title">阶段详情</h4>
-        
+
         <!-- 阶段名称 -->
         <div class="form-item">
           <label>阶段名称</label>
-          <el-input
-            :model-value="store.selectedStage.name"
-            @input="updateStageName"
-            placeholder="输入阶段名称"
-          />
+          <el-input :model-value="store.selectedStage.name" @input="updateStageName" placeholder="输入阶段名称" />
         </div>
 
         <!-- 条件设置 -->
         <div class="form-item">
           <label>触发条件</label>
-          <div class="condition-group">
-            <div class="conjunction-selector">
-              <el-radio-group :model-value="store.selectedStage.conjunction" @change="updateConjunction" size="small">
-                <el-radio-button label="and">与 (AND)</el-radio-button>
-                <el-radio-button label="or">或 (OR)</el-radio-button>
-              </el-radio-group>
+          <div class="condition-groups-container">
+            <div v-for="(group, groupIndex) in store.selectedStage.conditionGroups" :key="group.id"
+              class="condition-group">
+              <div class="condition-group-header">
+                <span class="condition-group-title">条件组 {{ groupIndex + 1 }} (AND)</span>
+                <el-button v-if="store.selectedStage.conditionGroups.length > 1" type="danger" :icon="Delete" circle
+                  size="small" @click="removeConditionGroup(group.id)" />
+              </div>
+
+              <div v-for="(condition) in group.conditions" :key="condition.id" class="condition-builder" :class="{ 'mobile-condition-builder': isMobile }">
+                <el-select :model-value="condition.variableId"
+                  @change="(val: string) => updateCondition(group.id, condition.id, { variableId: val })"
+                  placeholder="选择变量" :style="isMobile ? 'width: 100%; margin-bottom: 8px;' : 'width: 150px'" filterable>
+                  <el-option v-for="variable in store.flatVariables" :key="variable.id" :label="variable.readablePath"
+                    :value="variable.id" />
+                </el-select>
+
+                <div class="condition-row" :class="{ 'mobile-condition-row': isMobile }">
+                  <el-select :model-value="condition.type"
+                    @change="(val: Condition['type']) => updateCondition(group.id, condition.id, { type: val })"
+                    :style="isMobile ? 'width: 80px;' : 'width: 120px;'">
+                    <el-option label="<" value="less" />
+                    <el-option label="<=" value="lessEqual" />
+                    <el-option label="==" value="equal" />
+                    <el-option label=">" value="greater" />
+                    <el-option label=">=" value="greaterEqual" />
+                    <el-option label="范围" value="range" />
+                    <el-option label="是" value="is" />
+                    <el-option label="不是" value="isNot" />
+                  </el-select>
+
+                  <el-input :model-value="condition.value"
+                    @input="(val: string) => updateCondition(group.id, condition.id, { value: val })" 
+                    :style="isMobile ? 'width: 80px;' : 'width: 100px;'"
+                    placeholder="值" />
+
+                  <template v-if="condition.type === 'range'">
+                    <span class="range-separator">到</span>
+                    <el-input :model-value="condition.endValue"
+                      @input="(val: string) => updateCondition(group.id, condition.id, { endValue: val })"
+                      :style="isMobile ? 'width: 80px;' : 'width: 100px;'" placeholder="结束值" />
+                  </template>
+
+                  <el-button type="danger" :icon="Delete" circle :size="isMobile ? 'small' : 'small'"
+                    @click="removeCondition(group.id, condition.id)" />
+                </div>
+              </div>
+              <el-button :icon="Plus" @click="addCondition(group.id)" size="small" class="mt-2">
+                添加条件
+              </el-button>
+
+              <div v-if="groupIndex < store.selectedStage.conditionGroups.length - 1" class="group-separator">
+                <span>OR</span>
+              </div>
             </div>
 
-            <div v-for="(condition) in store.selectedStage.conditions" :key="condition.id" class="condition-builder">
-              <el-select
-                :model-value="condition.variableId"
-                @change="(val: string) => updateCondition(condition.id, { variableId: val })"
-                placeholder="选择变量"
-                style="width: 150px"
-                filterable
-              >
-                <el-option
-                  v-for="variable in store.flatVariables"
-                  :key="variable.id"
-                  :label="variable.readablePath"
-                  :value="variable.id"
-                />
-              </el-select>
-
-              <el-select
-                :model-value="condition.type"
-                @change="(val: Condition['type']) => updateCondition(condition.id, { type: val })"
-                style="width: 120px"
-              >
-                <el-option label="<" value="less" />
-                <el-option label="<=" value="lessEqual" />
-                <el-option label="==" value="equal" />
-                <el-option label=">" value="greater" />
-                <el-option label=">=" value="greaterEqual" />
-                <el-option label="范围" value="range" />
-                <el-option label="是" value="is" />
-                <el-option label="不是" value="isNot" />
-              </el-select>
-
-              <el-input
-                :model-value="condition.value"
-                @input="(val: string) => updateCondition(condition.id, { value: val })"
-                style="width: 100px"
-                placeholder="值"
-              />
-
-              <template v-if="condition.type === 'range'">
-                <span class="range-separator">到</span>
-                <el-input
-                  :model-value="condition.endValue"
-                  @input="(val: string) => updateCondition(condition.id, { endValue: val })"
-                  style="width: 100px"
-                  placeholder="结束值"
-                />
-              </template>
-
-              <el-button
-                type="danger"
-                :icon="Delete"
-                circle
-                size="small"
-                @click="removeCondition(condition.id)"
-              />
-            </div>
-
-            <el-button :icon="Plus" @click="addCondition" class="mt-2">
-              添加条件
+            <el-button @click="addConditionGroup" :icon="Plus" class="mt-4">
+              添加条件组 (OR)
             </el-button>
           </div>
         </div>
@@ -151,16 +128,13 @@
           <label>
             阶段内容
             <el-tooltip content="支持YAML格式，内容将被嵌入到EJS模板中" placement="top">
-              <el-icon class="help-icon"><QuestionFilled /></el-icon>
+              <el-icon class="help-icon">
+                <QuestionFilled />
+              </el-icon>
             </el-tooltip>
           </label>
-          <el-input
-            v-model="localContent"
-            type="textarea"
-            :rows="8"
-            placeholder="输入该阶段对应的内容（YAML格式）..."
-            class="content-textarea"
-          />
+          <el-input v-model="localContent" type="textarea" :rows="8" placeholder="输入该阶段对应的内容（YAML格式）..."
+            class="content-textarea" />
         </div>
 
         <!-- 预览当前阶段 -->
@@ -176,14 +150,9 @@
       <div v-if="store.stages.length > 0" class="section">
         <h4 class="section-title">批量操作</h4>
         <div class="batch-actions">
-          <el-button-group>
-            <el-button size="small" @click="sortStagesByCondition">
-              按条件排序
-            </el-button>
-            <el-button size="small" @click="clearAllStages" type="danger">
-              清空所有阶段
-            </el-button>
-          </el-button-group>
+          <el-button size="small" @click="clearAllStages" type="danger">
+            清空所有阶段
+          </el-button>
         </div>
       </div>
     </div>
@@ -191,14 +160,27 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Delete, QuestionFilled } from '@element-plus/icons-vue'
+import { Plus, Delete, QuestionFilled, Menu } from '@element-plus/icons-vue'
+import draggable from 'vuedraggable'
 import { useEjsEditorStore } from '@/stores/ejsEditor'
-import type { Stage, Condition } from '@/stores/ejsEditor'
+import { useDevice } from '@/composables/useDevice'
+import type { Stage, Condition, ConditionGroup } from '@/stores/ejsEditor'
 
 const store = useEjsEditorStore()
+const { isMobile } = useDevice()
 const localContent = ref('')
+
+const dragStages = computed({
+  get() {
+    return store.stages
+  },
+  set(newStages) {
+    store.stages = newStages
+    store.generateEjsTemplate()
+  }
+})
 
 // 当选择的阶段变化时，更新本地内容
 watch(
@@ -221,7 +203,7 @@ watch(localContent, (newValue) => {
     if (store.selectedStage && newValue !== store.selectedStage.content) {
       store.updateStage(store.selectedStageId, { content: newValue })
     }
-  },  50)
+  }, 50)
 })
 
 function selectStage(stageId: string) {
@@ -246,13 +228,23 @@ function updateStageName(value: string) {
   }
 }
 
-function updateConjunction(value: 'and' | 'or') {
-  if (store.selectedStage) {
-    store.updateStage(store.selectedStageId, { conjunction: value })
-  }
+function addConditionGroup() {
+  if (!store.selectedStage) return;
+  const newGroup: ConditionGroup = {
+    id: `group_${Date.now()}`,
+    conditions: [],
+  };
+  const conditionGroups = [...store.selectedStage.conditionGroups, newGroup];
+  store.updateStage(store.selectedStageId, { conditionGroups });
 }
 
-function addCondition() {
+function removeConditionGroup(groupId: string) {
+  if (!store.selectedStage) return;
+  const conditionGroups = store.selectedStage.conditionGroups.filter(g => g.id !== groupId);
+  store.updateStage(store.selectedStageId, { conditionGroups });
+}
+
+function addCondition(groupId: string) {
   if (!store.selectedStage) return
   const newCondition: Condition = {
     id: `cond_${Date.now()}`,
@@ -262,36 +254,56 @@ function addCondition() {
     type: 'equal',
     value: ''
   }
-  const conditions = [...store.selectedStage.conditions, newCondition]
-  store.updateStage(store.selectedStageId, { conditions })
-}
 
-function removeCondition(conditionId: string) {
-  if (!store.selectedStage) return
-  const conditions = store.selectedStage.conditions.filter(c => c.id !== conditionId)
-  store.updateStage(store.selectedStageId, { conditions })
-}
-
-function updateCondition(conditionId: string, updates: Partial<Condition>) {
-  if (!store.selectedStage) return
-  
-  const conditions = store.selectedStage.conditions.map(c => {
-    if (c.id === conditionId) {
-      const updatedCondition = { ...c, ...updates }
-      // 如果更新了 variableId，同步更新 variablePath 和 variableAlias
-      if (updates.variableId) {
-        const foundVar = store.flatVariables.find(v => v.id === updates.variableId)
-        if (foundVar) {
-          updatedCondition.variablePath = foundVar.readablePath
-          updatedCondition.variableAlias = foundVar.alias
-        }
-      }
-      return updatedCondition
+  const conditionGroups = store.selectedStage.conditionGroups.map(group => {
+    if (group.id === groupId) {
+      return { ...group, conditions: [...group.conditions, newCondition] };
     }
-    return c
-  })
-  
-  store.updateStage(store.selectedStageId, { conditions })
+    return group;
+  });
+
+  store.updateStage(store.selectedStageId, { conditionGroups });
+}
+
+function removeCondition(groupId: string, conditionId: string) {
+  if (!store.selectedStage) return
+
+  const conditionGroups = store.selectedStage.conditionGroups.map(group => {
+    if (group.id === groupId) {
+      const conditions = group.conditions.filter(c => c.id !== conditionId);
+      return { ...group, conditions };
+    }
+    return group;
+  });
+
+  store.updateStage(store.selectedStageId, { conditionGroups });
+}
+
+function updateCondition(groupId: string, conditionId: string, updates: Partial<Condition>) {
+  if (!store.selectedStage) return
+
+  const conditionGroups = store.selectedStage.conditionGroups.map(group => {
+    if (group.id === groupId) {
+      const conditions = group.conditions.map(c => {
+        if (c.id === conditionId) {
+          const updatedCondition = { ...c, ...updates };
+          if (updates.variableId) {
+            const foundVar = store.flatVariables.find(v => v.id === updates.variableId);
+            if (foundVar) {
+              updatedCondition.variablePath = foundVar.readablePath;
+              updatedCondition.variableAlias = foundVar.alias;
+            }
+          }
+          return updatedCondition;
+        }
+        return c;
+      });
+      return { ...group, conditions };
+    }
+    return group;
+  });
+
+  store.updateStage(store.selectedStageId, { conditionGroups });
 }
 
 function formatSingleCondition(condition: Condition): string {
@@ -322,25 +334,27 @@ function formatSingleCondition(condition: Condition): string {
 }
 
 function formatConditions(stage: Stage): string {
-  if (!stage.conditions || stage.conditions.length === 0) {
-    return '无条件 (始终激活)'
+  if (!stage.conditionGroups || stage.conditionGroups.length === 0) {
+    return '无条件 (始终激活)';
   }
-  const separator = stage.conjunction === 'and' ? ' AND ' : ' OR '
-  return stage.conditions.map(formatSingleCondition).join(separator)
+
+  const groupStrings = stage.conditionGroups
+    .map(group => {
+      if (!group.conditions || group.conditions.length === 0) {
+        return null;
+      }
+      const conditionStrings = group.conditions.map(formatSingleCondition).join(' AND ');
+      return `(${conditionStrings})`;
+    })
+    .filter(Boolean); // 过滤掉空的组
+
+  if (groupStrings.length === 0) {
+    return '无条件 (始终激活)';
+  }
+
+  return groupStrings.join(' OR ');
 }
 
-function sortStagesByCondition() {
-  const sorted = [...store.stages].sort((a, b) => {
-    const valA = a.conditions?.[0]?.value ?? 0
-    const valB = b.conditions?.[0]?.value ?? 0
-    if (typeof valA === 'number' && typeof valB === 'number') {
-      return valA - valB
-    }
-    return 0
-  })
-  store.stages = sorted
-  ElMessage.success('阶段已按第一个条件的值排序')
-}
 
 async function clearAllStages() {
   try {
@@ -443,6 +457,11 @@ async function clearAllStages() {
   gap: 8px;
 }
 
+.drag-handle {
+  cursor: grab;
+  color: var(--el-text-color-secondary);
+}
+
 .stage-index {
   display: inline-flex;
   align-items: center;
@@ -459,6 +478,16 @@ async function clearAllStages() {
 .stage-name {
   font-weight: 500;
   color: var(--el-text-color-primary);
+}
+
+.ghost {
+  opacity: 0.5;
+  background: var(--el-color-primary-light-9);
+}
+
+.chosen {
+  transform: scale(1.02);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
 }
 
 .stage-condition {
@@ -486,6 +515,48 @@ async function clearAllStages() {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.condition-groups-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.condition-group {
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 4px;
+  padding: 12px;
+  background-color: var(--el-bg-color-page);
+}
+
+.condition-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.condition-group-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--el-text-color-secondary);
+}
+
+.group-separator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 12px 0;
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.group-separator span {
+  background-color: var(--el-bg-color-page);
+  padding: 0 8px;
 }
 
 .range-separator {
@@ -521,32 +592,96 @@ async function clearAllStages() {
   gap: 8px;
 }
 
-/* 响应式调整 */
+/* 移动端样式优化 */
 @media (max-width: 768px) {
-  .panel-content {
-    padding: 12px;
+  .stage-panel {
+    padding: 8px 12px;
   }
-  
-  .condition-builder {
+
+  .panel-content {
+    padding: 0;
+  }
+
+  .section {
+    margin-bottom: 16px;
+  }
+
+  .mobile-header {
     flex-direction: column;
     align-items: stretch;
+    gap: 8px;
   }
-  
-  .condition-builder .el-select,
-  .condition-builder .el-input-number {
-    width: 100% !important;
+
+  .mobile-header .section-title {
+    text-align: center;
+    margin-bottom: 4px;
   }
-  
+
+  .stage-item {
+    padding: 8px;
+  }
+
+  .stage-header {
+    margin-bottom: 6px;
+  }
+
+  .mobile-condition-builder {
+    flex-direction: column;
+    align-items: stretch;
+    background: var(--el-fill-color-extra-light);
+    padding: 8px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+
+  .condition-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .mobile-condition-row {
+    flex-wrap: wrap;
+  }
+
+  .mobile-condition-row .el-select,
+  .mobile-condition-row .el-input {
+    flex: 1;
+    min-width: 60px;
+  }
+
+  .range-separator {
+    font-size: 10px;
+    padding: 0 4px;
+  }
+
+  .condition-group {
+    padding: 8px;
+  }
+
+  .content-textarea :deep(.el-textarea__inner) {
+    font-size: 12px;
+  }
+
   .batch-actions {
     flex-direction: column;
+    gap: 6px;
   }
-  
-  .batch-actions .el-button-group {
+
+  .batch-actions .el-button {
     width: 100%;
   }
-  
-  .batch-actions .el-button {
-    flex: 1;
+}
+
+/* 平板端优化 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .stage-panel {
+    padding: 12px 16px;
+  }
+
+  .condition-builder {
+    flex-wrap: wrap;
+    gap: 6px;
   }
 }
 </style>

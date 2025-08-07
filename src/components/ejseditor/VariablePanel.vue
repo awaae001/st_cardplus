@@ -3,11 +3,11 @@
     <div class="panel-content">
       <!-- 变量定义 -->
       <div class="section">
-        <div class="section-header">
+        <div class="section-header" :class="{ 'mobile-header': isMobile }">
           <h4 class="section-title">变量定义</h4>
-          <el-radio-group v-model="store.variableEditMode" size="small">
-            <el-radio-button label="yaml">YAML</el-radio-button>
-            <el-radio-button label="tree">节点树</el-radio-button>
+          <el-radio-group v-model="store.variableEditMode" :size="isMobile ? 'small' : 'small'">
+            <el-radio-button value="yaml">YAML</el-radio-button>
+            <el-radio-button value="tree">节点树</el-radio-button>
           </el-radio-group>
         </div>
 
@@ -17,21 +17,22 @@
             <el-input
               v-model="store.yamlInput"
               type="textarea"
-              :rows="8"
+              :rows="isMobile ? 6 : 8"
               placeholder="粘贴YAML格式的变量定义...&#10;例如:&#10;世界:&#10;  日期: [0, '记录故事天数']&#10;角色:&#10;  狼蛛:&#10;    好感度: [0, '角色好感度']"
               class="yaml-textarea"
             />
-            <div class="yaml-actions">
+            <div class="yaml-actions" :class="{ 'mobile-actions': isMobile }">
               <el-button 
                 type="primary" 
                 @click="store.importYamlVariables"
                 :disabled="!store.yamlInput.trim()"
-                size="small"
+                :size="isMobile ? 'small' : 'small'"
+                class="action-button"
               >
                 解析变量
               </el-button>
-              <el-button @click="clearYaml" size="small">清空</el-button>
-              <el-button @click="showExample" size="small" type="info">示例</el-button>
+              <el-button @click="clearYaml" :size="isMobile ? 'small' : 'small'" class="action-button">清空</el-button>
+              <el-button @click="showExample" :size="isMobile ? 'small' : 'small'" type="info" class="action-button">示例</el-button>
             </div>
           </div>
           <!-- 只读预览 -->
@@ -49,7 +50,7 @@
         <!-- 节点树编辑模式 -->
         <div v-if="store.variableEditMode === 'tree'">
           <div class="tree-actions">
-            <el-button @click="store.addNode(null)" size="small">添加根节点</el-button>
+            <el-button @click="store.addNode(null)" :size="isMobile ? 'small' : 'small'">添加根节点</el-button>
           </div>
           <div class="variable-tree-editable">
             <div v-if="store.variableTree.length === 0" class="empty-tree">
@@ -64,19 +65,39 @@
         </div>
       </div>
 
-    </div>
-  </div>
+     <!-- 默认输出 -->
+     <div class="section">
+       <h4 class="section-title">
+         默认输出
+         <el-tooltip content="当所有阶段条件都不满足时，将输出此内容。" placement="top">
+           <el-icon class="help-icon"><QuestionFilled /></el-icon>
+         </el-tooltip>
+       </h4>
+       <el-input
+         v-model="store.defaultStageContent"
+         type="textarea"
+         :rows="isMobile ? 3 : 4"
+         placeholder="输入默认内容..."
+         class="content-textarea"
+         @input="store.generateEjsTemplate()"
+       />
+     </div>
+   </div>
+ </div>
 </template>
 
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
+import { QuestionFilled } from '@element-plus/icons-vue'
 import { useEjsEditorStore } from '@/stores/ejsEditor'
+import { useDevice } from '@/composables/useDevice'
 import VariableTreeNode from './VariableTreeNode.vue'
 import EditableVariableTreeNode from './EditableVariableTreeNode.vue'
 import { watch } from 'vue'
 import type { VariableNode } from '@/stores/ejsEditor'
 
 const store = useEjsEditorStore()
+const { isMobile } = useDevice()
 
 watch(() => store.variableEditMode, (newMode) => {
   if (newMode === 'tree' && store.yamlInput.trim() && store.variableTree.length === 0) {
@@ -231,5 +252,65 @@ function selectVariable(node: VariableNode) {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+/* 移动端样式 */
+@media screen and (max-width: 768px) {
+  .variable-panel {
+    padding: 8px 12px;
+  }
+
+  .section {
+    margin-bottom: 16px;
+  }
+
+  .mobile-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .mobile-header .section-title {
+    text-align: center;
+    margin-bottom: 4px;
+  }
+
+  .mobile-actions {
+    justify-content: center;
+  }
+
+  .action-button {
+    flex: 1;
+    min-width: 0;
+    max-width: 120px;
+  }
+
+  .yaml-textarea :deep(.el-textarea__inner) {
+    font-size: 12px;
+  }
+
+  .variable-tree-readonly {
+    max-height: 300px;
+    margin-top: 12px;
+  }
+
+  .variable-tree-editable {
+    padding: 8px;
+  }
+
+  .content-textarea :deep(.el-textarea__inner) {
+    font-size: 14px;
+  }
+}
+
+/* 平板端样式 */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+  .variable-panel {
+    padding: 12px 16px;
+  }
+
+  .variable-tree-readonly {
+    max-height: 400px;
+  }
 }
 </style>

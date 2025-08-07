@@ -53,7 +53,7 @@
               @import-entry="showImportEntryDialog" @save-entry="saveCurrentEntry"
               @delete-entry="deleteSelectedEntry" />
           </div>
-          <WorldBookEditor :entry="selectedEntry" v-model="editableEntry" />
+          <WorldBookEditor :entry="selectedEntry" v-model="editableEntry" :all-keywords="allKeywords" />
         </el-tab-pane>
       </el-tabs>
     </div>
@@ -83,7 +83,7 @@
                 @import-entry="showImportEntryDialog" @save-entry="saveCurrentEntry"
                 @delete-entry="deleteSelectedEntry" />
             </div>
-            <WorldBookEditor :entry="selectedEntry" v-model="editableEntry" />
+            <WorldBookEditor :entry="selectedEntry" v-model="editableEntry" :all-keywords="allKeywords" />
           </div>
         </Pane>
       </Splitpanes>
@@ -105,7 +105,7 @@ import { useWorldBookCollection } from "../composables/useWorldBookCollection";
 import { useWorldBookEntry } from "../composables/useWorldBookEntry";
 import { useWorldBookDragDrop } from "../composables/useWorldBookDragDrop";
 
-import { nextTick } from 'vue';
+import { computed, nextTick } from 'vue';
 
 // Manage the collection of world books
 const {
@@ -140,6 +140,14 @@ const {
   showImportWorldBookDialog,
   clearAllEntries,
 } = useWorldBookEntry(activeBook, saveWorldBookToLocalStorage);
+
+const allKeywords = computed(() => {
+  if (!activeBook.value) {
+    return [];
+  }
+  const allKeys = activeBook.value.entries.flatMap(entry => [...entry.key, ...entry.keysecondary]);
+  return [...new Set(allKeys.filter(key => key))]; // 过滤掉空字符串或null/undefined
+});
 
 // Manage drag and drop logic, must be after other composables
 const dragDropHandlers = useWorldBookDragDrop(

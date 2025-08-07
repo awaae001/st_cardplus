@@ -65,13 +65,21 @@ export interface Skill {
   name: string;           // 技能名称
   description: string;    // 技能描述
   dialogExample: string;  // 对话示例
-  behaviorExample: string;// 行为示例
+  behaviorExample: string; // 行为示例
 }
 
 /**
- * 角色卡主接口定义
- * 包含角色的所有信息
- */
+* 角色备注接口定义
+*/
+export interface Note {
+  name: string; // 备注名称
+  data: string[]; // 备注数据
+}
+
+/**
+* 角色卡主接口定义
+* 包含角色的所有信息
+*/
 export interface CharacterCard {
   chineseName: string;     // 中文名
   japaneseName: string;    // 日文名
@@ -89,4 +97,5 @@ export interface CharacterCard {
   dislikes: string;        // 厌恶
   dailyRoutine: { [key: string]: string }; // 日常作息
   skills: Skill[];         // 技能
+  notes: Note[];           // 角色备注
 }
