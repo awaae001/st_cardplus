@@ -3,13 +3,24 @@ import { ref, computed, watch } from 'vue'
 import * as yaml from 'js-yaml'
 import * as ejs from 'ejs'
 
-// 类型定义
+//  类型定义 
+
 export interface VariableNode {
   key: string
   value: any
   description?: string
   children?: VariableNode[]
   path: string // Unique ID for a node
+}
+
+export interface Condition {
+  id: string
+  variableId: string
+  variablePath: string
+  variableAlias: string
+  type: 'less' | 'lessEqual' | 'equal' | 'greater' | 'greaterEqual' | 'range' | 'is' | 'isNot'
+  value: any
+  endValue?: any
 }
 
 export interface ConditionGroup {
@@ -22,18 +33,14 @@ export interface Stage {
   name: string
   conditionGroups: ConditionGroup[]
   content: string
-  conditions?: Condition[]
-  conjunction?: 'and' | 'or'
 }
 
-export interface Condition {
-  id:string
-  variableId: string // 内部唯一ID
-  variablePath: string // 可读路径
-  variableAlias: string
-  type: 'less' | 'lessEqual' | 'equal' | 'greater' | 'greaterEqual' | 'range' | 'is' | 'isNot'
-  value: any
-  endValue?: any // 用于范围条件
+export interface LogicBlock {
+  id: string;
+  name: string;
+  stages: Stage[];
+  defaultStageContent: string;
+  enabled: boolean;
 }
 
 export interface EditorError {
@@ -45,8 +52,7 @@ export interface EditorError {
 export interface StageScheme {
   id: string
   name: string
-  stages: Stage[]
-  defaultStageContent: string
+  logicBlocks: LogicBlock[]
   createdAt: string
   description?: string
 }
@@ -55,8 +61,7 @@ export interface Project {
   id: string
   name: string
   yamlInput: string
-  stages: Stage[]
-  defaultStageContent: string
+  logicBlocks: LogicBlock[]
   createdAt: string
   updatedAt: string
   stageSchemes?: StageScheme[]
@@ -64,43 +69,43 @@ export interface Project {
 }
 
 export const useEjsEditorStore = defineStore('ejsEditor', () => {
-  // 项目管理
+  //  状态 
   const projects = ref<Project[]>([])
   const currentProjectId = ref('')
   
-  // 基础状态
   const yamlInput = ref('')
   const variableTree = ref<VariableNode[]>([])
   
-  // 阶段管理
-  const stages = ref<Stage[]>([])
-  const selectedStageId = ref('')
-  const defaultStageContent = ref('// 默认情况')
+  const logicBlocks = ref<LogicBlock[]>([])
+  const selectedStageId = ref('') // Now format: "logicBlockId/stageId"
   const variableEditMode = ref<'yaml' | 'tree'>('yaml')
   
-  // 阶段方案管理
   const currentSchemeId = ref('')
   
-  // 编辑器状态
   const ejsTemplate = ref('')
   const previewCode = ref('')
   
-  // 测试模拟
   const simulationValues = ref<Record<string, any>>({})
   const testResult = ref('')
   const errors = ref<EditorError[]>([])
   const isGenerating = ref(false)
 
-  // 计算属性
+  //  计算属性 
   const currentProject = computed(() => 
     projects.value.find(project => project.id === currentProjectId.value)
   )
 
-  const selectedStage = computed(() => 
-    stages.value.find(stage => stage.id === selectedStageId.value)
+  const selectedLogicBlockId = computed(() => selectedStageId.value.split('/')[0])
+  const selectedStageInstanceId = computed(() => selectedStageId.value.split('/')[1])
+
+  const selectedLogicBlock = computed(() => 
+    logicBlocks.value.find(block => block.id === selectedLogicBlockId.value)
   )
 
-  // 当前项目的阶段方案
+  const selectedStage = computed(() => 
+    selectedLogicBlock.value?.stages.find(stage => stage.id === selectedStageInstanceId.value)
+  )
+
   const currentProjectSchemes = computed(() => 
     currentProject.value?.stageSchemes || []
   )
@@ -109,17 +114,13 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     currentProjectSchemes.value.find(scheme => scheme.id === currentSchemeId.value)
   )
 
-  // 获取当前阶段的有效变量配置
   const currentStageVariables = computed(() => {
-    const stage = selectedStage.value
-    if (!stage) return variableTree.value
     return variableTree.value
   })
 
   const hasErrors = computed(() => errors.value.length > 0)
 
-
-  // --- YAML 和变量树转换 ---
+  //  YAML 和变量树转换 (无变化) 
   function parseYamlInput(yamlText: string): VariableNode[] {
     try {
       errors.value = errors.value.filter(e => e.type !== 'yaml')
@@ -142,7 +143,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
       const node: VariableNode = {
         key,
         value: null,
-        path: currentPath // The path itself is the unique ID
+        path: currentPath
       }
 
       if (Array.isArray(value) && value.length <= 2) {
@@ -181,17 +182,14 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
       result += `${spaces}${key}:`
       
       if (Array.isArray(value) && value.length <= 2) {
-        // 数组格式：[值, 描述]
         result += ` [${value[0]}`
         if (value[1]) {
           result += `, ${value[1]}`
         }
         result += `]\n`
       } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-        // 嵌套对象
         result += `\n${customYamlGenerate(value, indent + 1)}`
       } else {
-        // 简单值
         result += ` ${value}\n`
       }
     }
@@ -212,7 +210,6 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     }
   }
 
-  // --- 核心业务逻辑 ---
   function importYamlVariables() {
     if (!yamlInput.value.trim()) {
       variableTree.value = []
@@ -221,7 +218,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     variableTree.value = parseYamlInput(yamlInput.value)
   }
 
-  // --- 不可变更新 (Immutable Updates) ---
+  //  节点编辑方法 (无变化) 
   function addNode(parentId: string | null = null) {
     const newNode: VariableNode = {
       key: '新节点',
@@ -281,118 +278,143 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     generateYamlFromTree()
   }
 
-  // --- 其他方法 ---
-  function getReadablePath(node: VariableNode, nodes: VariableNode[] = variableTree.value, parentPath: string = ''): string | null {
-    for (const n of nodes) {
-      const currentPath = parentPath ? `${parentPath}.${n.key}` : n.key;
-      if (n.path === node.path) {
-        return currentPath;
-      }
-      if (n.children) {
-        const foundPath = getReadablePath(node, n.children, currentPath);
-        if (foundPath) {
-          return foundPath;
-        }
-      }
-    }
-    return null;
+  //  核心业务逻辑 (已重构) 
+
+  // Logic Block Management
+  function addLogicBlock() {
+    const newBlock: LogicBlock = {
+      id: `block_${Date.now()}`,
+      name: `逻辑块 ${logicBlocks.value.length + 1}`,
+      stages: [],
+      defaultStageContent: '// 默认情况',
+      enabled: true,
+    };
+    logicBlocks.value.push(newBlock);
+    generateEjsTemplate();
   }
 
-  function findFirstLeafVariable(nodes: VariableNode[]): VariableNode | null {
-    for (const node of nodes) {
-      if (!node.children || node.children.length === 0) {
-        if (node.value !== null && node.value !== undefined) {
-          return node
-        }
-      } else {
-        const found = findFirstLeafVariable(node.children)
-        if (found) return found
-      }
+  function removeLogicBlock(blockId: string) {
+    logicBlocks.value = logicBlocks.value.filter(block => block.id !== blockId);
+    if (selectedLogicBlockId.value === blockId) {
+      selectedStageId.value = '';
     }
-    return null
+    generateEjsTemplate();
   }
 
-  function addStage() {
+  function updateLogicBlock(blockId: string, updates: Partial<LogicBlock>) {
+    const block = logicBlocks.value.find(b => b.id === blockId);
+    if (block) {
+      Object.assign(block, updates);
+      generateEjsTemplate();
+    }
+  }
+
+  // Stage Management (within a logic block)
+  function addStage(blockId: string) {
+    const block = logicBlocks.value.find(b => b.id === blockId);
+    if (!block) return;
+
     const newStage: Stage = {
       id: `stage_${Date.now()}`,
-      name: `阶段${stages.value.length + 1}`,
-      conditionGroups: [
-        { id: `group_${Date.now()}`, conditions: [] }
-      ],
+      name: `阶段 ${block.stages.length + 1}`,
+      conditionGroups: [{ id: `group_${Date.now()}`, conditions: [] }],
       content: '',
-      conditions: [],
-      conjunction: 'and'
-    }
-    stages.value.push(newStage)
-    selectedStageId.value = newStage.id
-    generateEjsTemplate()
+    };
+    block.stages.push(newStage);
+    selectedStageId.value = `${block.id}/${newStage.id}`;
+    generateEjsTemplate();
   }
 
-  function removeStage(stageId: string) {
-    const index = stages.value.findIndex(stage => stage.id === stageId)
-    if (index > -1) {
-      stages.value.splice(index, 1)
-      if (selectedStageId.value === stageId) {
-        selectedStageId.value = stages.value.length > 0 ? stages.value[0].id : ''
-      }
-      generateEjsTemplate()
+  function removeStage(blockId: string, stageId: string) {
+    const block = logicBlocks.value.find(b => b.id === blockId);
+    if (!block) return;
+
+    block.stages = block.stages.filter(stage => stage.id !== stageId);
+    if (selectedStageId.value === `${blockId}/${stageId}`) {
+      selectedStageId.value = block.stages.length > 0 ? `${blockId}/${block.stages[0].id}` : '';
+    }
+    generateEjsTemplate();
+  }
+
+  function updateStage(blockId: string, stageId: string, updates: Partial<Stage>) {
+    const block = logicBlocks.value.find(b => b.id === blockId);
+    if (!block) return;
+
+    const stage = block.stages.find(s => s.id === stageId);
+    if (stage) {
+      Object.assign(stage, updates);
+      generateEjsTemplate();
     }
   }
 
-  function updateStage(stageId: string, updates: Partial<Stage>) {
-    const index = stages.value.findIndex(stage => stage.id === stageId)
-    if (index > -1) {
-      stages.value[index] = { ...stages.value[index], ...updates }
-      generateEjsTemplate()
+  function updateStagesOrder(blockId: string, newStages: Stage[]) {
+    const block = logicBlocks.value.find(b => b.id === blockId);
+    if (block) {
+      block.stages = newStages;
+      generateEjsTemplate();
     }
   }
 
+  //  EJS Template Generation (已重构) 
   function generateEjsTemplate() {
-    if (stages.value.length === 0) {
-      ejsTemplate.value = ''
-      previewCode.value = ''
-      return
+    if (logicBlocks.value.length === 0) {
+      ejsTemplate.value = '';
+      previewCode.value = '';
+      return;
     }
     try {
-      errors.value = errors.value.filter(e => e.type !== 'ejs')
-      let templateBody = ''
-      stages.value.forEach((stage, index) => {
-        const groupConditions = (stage.conditionGroups || [])
-          .map(group => {
-            const singleConditions = (group.conditions || [])
-              .map(cond => generateSingleCondition(cond))
-              .join(' && '); // Conditions within a group are ANDed
-            return singleConditions ? `(${singleConditions})` : '';
-          })
-          .filter(c => c) // Remove empty groups
-          .join(' || '); // Groups are ORed
+      errors.value = errors.value.filter(e => e.type !== 'ejs');
+      let finalTemplate = '';
 
-        const condition = groupConditions || 'true'
-        
-        const content = stage.content || '// 空内容'
-        const formattedContent = content.endsWith('\n') ? content : `${content}\n`
-        if (index === 0) {
-          templateBody += `<%_ if (${condition}) { _%>\n`
-        } else {
-          templateBody += `<%_ } else if (${condition}) { _%>\n`
+      logicBlocks.value.forEach(block => {
+        if (!block.enabled || block.stages.length === 0) {
+          return; // Skip disabled or empty blocks
         }
-        templateBody += formattedContent
-      })
-      if (stages.value.length > 0) {
-        templateBody += `<%_ } else { _%>\n${defaultStageContent.value}\n<%_ } _%>\n`
-      }
-      ejsTemplate.value = templateBody
-      previewCode.value = templateBody
+
+        let blockTemplate = '';
+        block.stages.forEach((stage, index) => {
+          const groupConditions = (stage.conditionGroups || [])
+            .map(group => {
+              const singleConditions = (group.conditions || [])
+                .map(cond => generateSingleCondition(cond))
+                .join(' && ');
+              return singleConditions ? `(${singleConditions})` : '';
+            })
+            .filter(c => c)
+            .join(' || ');
+
+          const condition = groupConditions || 'true';
+          const content = stage.content || '// 空内容';
+          const formattedContent = content.endsWith('\n') ? content : `${content}\n`;
+
+          if (index === 0) {
+            blockTemplate += `<%_ if (${condition}) { _%>\n`;
+          } else {
+            blockTemplate += `<%_ } else if (${condition}) { _%>\n`;
+          }
+          blockTemplate += formattedContent;
+        });
+
+        if (block.stages.length > 0) {
+          const defaultContent = block.defaultStageContent || '// 默认情况';
+          blockTemplate += `<%_ } else { _%>\n${defaultContent}\n<%_ } _%>\n`;
+        }
+        
+        finalTemplate += blockTemplate + '\n'; // Add newline between blocks
+      });
+
+      ejsTemplate.value = finalTemplate.trim();
+      previewCode.value = finalTemplate.trim();
     } catch (error) {
       errors.value.push({
         type: 'ejs',
         message: `模板生成错误: ${error instanceof Error ? error.message : '未知错误'}`
-      })
+      });
     }
   }
 
   function generateSingleCondition(condition: Condition): string {
-    const varGetter = `getvar('${condition.variablePath}')` // 在模板中使用可读路径
+    const varGetter = `getvar('${condition.variablePath}')`
     const value = !isNaN(parseFloat(condition.value)) && isFinite(condition.value)
       ? condition.value
       : `'${condition.value}'`
@@ -411,15 +433,14 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     }
   }
 
+  //  Simulation (无变化) 
   function testSimulation() {
-    // ... (此函数无需修改)
     if (!ejsTemplate.value) {
       testResult.value = ''
       return
     }
     try {
       const mockGetvar = (path: string) => {
-        // The key of simulationValues is the variable's readablePath (which is its ID now)
         return simulationValues.value[path]
       }
       const result = ejs.render(ejsTemplate.value, { getvar: mockGetvar })
@@ -429,9 +450,27 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     }
   }
 
-  // --- 项目管理 ---
+  //  向后兼容转换 
+  function convertLegacyData(projectData: any): LogicBlock[] {
+    if (projectData.logicBlocks) {
+      return projectData.logicBlocks; // Already new format
+    }
+    if (projectData.stages && Array.isArray(projectData.stages)) {
+      // Old format detected, convert it
+      const defaultBlock: LogicBlock = {
+        id: `block_legacy_${Date.now()}`,
+        name: '默认逻辑块',
+        stages: projectData.stages,
+        defaultStageContent: projectData.defaultStageContent || '// 默认情况',
+        enabled: true,
+      };
+      return [defaultBlock];
+    }
+    return []; // No stage data
+  }
+
+  //  项目管理 (已重构) 
   function createProject(name: string = `项目${projects.value.length + 1}`, copyFromCurrent: boolean = false): string {
-    // 保存当前项目状态
     if (currentProjectId.value) {
       saveCurrentProjectState()
     }
@@ -440,15 +479,12 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
       id: `project_${Date.now()}`,
       name,
       yamlInput: copyFromCurrent ? yamlInput.value : '',
-      stages: copyFromCurrent ? [...stages.value] : [],
-      defaultStageContent: copyFromCurrent ? defaultStageContent.value : '// 默认情况',
+      logicBlocks: copyFromCurrent ? JSON.parse(JSON.stringify(logicBlocks.value)) : [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
     
     projects.value.push(newProject)
-    
-    // 切换到新项目
     currentProjectId.value = newProject.id
     loadProjectState(newProject)
     
@@ -457,14 +493,9 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
 
   function switchProject(projectId: string) {
     const project = projects.value.find(p => p.id === projectId)
-    if (!project) {
-      throw new Error(`项目 ${projectId} 不存在`)
-    }
+    if (!project) throw new Error(`项目 ${projectId} 不存在`)
     
-    // 保存当前项目状态
     saveCurrentProjectState()
-    
-    // 切换到新项目
     currentProjectId.value = projectId
     loadProjectState(project)
   }
@@ -472,30 +503,26 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
   function saveCurrentProjectState() {
     if (!currentProjectId.value) return
     
-    const currentProject = projects.value.find(p => p.id === currentProjectId.value)
-    if (currentProject) {
-      currentProject.yamlInput = yamlInput.value
-      currentProject.stages = [...stages.value]
-      currentProject.defaultStageContent = defaultStageContent.value
-      currentProject.currentSchemeId = currentSchemeId.value
-      currentProject.updatedAt = new Date().toISOString()
-      
-      // 保存当前方案状态
+    const project = projects.value.find(p => p.id === currentProjectId.value)
+    if (project) {
+      project.yamlInput = yamlInput.value
+      project.logicBlocks = JSON.parse(JSON.stringify(logicBlocks.value))
+      project.currentSchemeId = currentSchemeId.value
+      project.updatedAt = new Date().toISOString()
       saveCurrentSchemeState()
     }
   }
 
   function loadProjectState(project: Project) {
     yamlInput.value = project.yamlInput
-    
-    // 重新导入变量
     if (project.yamlInput) {
       importYamlVariables()
     }
-    
-    // 加载阶段方案
+
+    // 向后兼容处理
+    const loadedLogicBlocks = convertLegacyData(project);
+
     if (project.stageSchemes && project.stageSchemes.length > 0) {
-      // 如果有当前方案ID，加载对应方案；否则加载第一个方案
       const targetSchemeId = project.currentSchemeId || project.stageSchemes[0].id
       const targetScheme = project.stageSchemes.find(s => s.id === targetSchemeId)
       
@@ -503,21 +530,16 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
         currentSchemeId.value = targetSchemeId
         loadSchemeState(targetScheme)
       } else {
-        // 如果找不到方案，加载项目直接的阶段数据（兼容旧数据）
-        stages.value = [...project.stages]
-        defaultStageContent.value = project.defaultStageContent
+        logicBlocks.value = loadedLogicBlocks
         currentSchemeId.value = ''
       }
     } else {
-      // 没有方案时，直接加载项目的阶段数据
-      stages.value = [...project.stages]
-      defaultStageContent.value = project.defaultStageContent
+      logicBlocks.value = loadedLogicBlocks
       currentSchemeId.value = ''
     }
     
-    // 设置选中的阶段
-    if (stages.value.length > 0) {
-      selectedStageId.value = stages.value[0].id
+    if (logicBlocks.value.length > 0 && logicBlocks.value[0].stages.length > 0) {
+      selectedStageId.value = `${logicBlocks.value[0].id}/${logicBlocks.value[0].stages[0].id}`
     } else {
       selectedStageId.value = ''
     }
@@ -537,15 +559,11 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     const index = projects.value.findIndex(p => p.id === projectId)
     if (index > -1) {
       projects.value.splice(index, 1)
-      
-      // 如果删除的是当前项目，切换到第一个项目或创建新项目
       if (currentProjectId.value === projectId) {
         if (projects.value.length > 0) {
           switchProject(projects.value[0].id)
         } else {
-          // 创建新的默认项目
           createProject('默认项目')
-          clearAll() // 清空状态
         }
       }
     }
@@ -558,8 +576,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
       id: `project_${Date.now()}`,
       name: projectName,
       yamlInput: config.yamlInput || '',
-      stages: config.stages || [],
-      defaultStageContent: config.defaultStageContent || '// 默认情况',
+      logicBlocks: convertLegacyData(config),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
@@ -572,9 +589,8 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
   function clearAll() {
     yamlInput.value = ''
     variableTree.value = []
-    stages.value = []
+    logicBlocks.value = []
     selectedStageId.value = ''
-    defaultStageContent.value = '// 默认情况'
     ejsTemplate.value = ''
     previewCode.value = ''
     simulationValues.value = {}
@@ -585,39 +601,32 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
   function exportConfig() {
     return {
       yamlInput: yamlInput.value,
-      stages: stages.value,
-      defaultStageContent: defaultStageContent.value,
+      logicBlocks: logicBlocks.value,
       timestamp: new Date().toISOString()
     }
   }
 
   function importConfig(config: any, replaceCurrentProject: boolean = false, projectName?: string) {
     try {
+      const importedLogicBlocks = convertLegacyData(config);
+
       if (replaceCurrentProject && currentProjectId.value) {
-        // 替换当前项目
-        const currentProject = projects.value.find(p => p.id === currentProjectId.value)
-        if (currentProject) {
-          currentProject.yamlInput = config.yamlInput || ''
-          currentProject.stages = config.stages || []
-          currentProject.defaultStageContent = config.defaultStageContent || '// 默认情况'
-          currentProject.updatedAt = new Date().toISOString()
-          loadProjectState(currentProject)
+        const project = projects.value.find(p => p.id === currentProjectId.value)
+        if (project) {
+          project.yamlInput = config.yamlInput || ''
+          project.logicBlocks = importedLogicBlocks
+          project.updatedAt = new Date().toISOString()
+          loadProjectState(project)
         }
       } else {
-        // 创建新项目或直接导入到当前状态
         if (projects.value.length > 0) {
-          // 如果已有项目，则创建新项目
           importAsNewProject(config, projectName)
         } else {
-          // 没有项目时，直接导入到当前状态
           yamlInput.value = config.yamlInput || ''
-          stages.value = config.stages || []
-          defaultStageContent.value = config.defaultStageContent || '// 默认情况'
-          if (config.yamlInput) {
-            importYamlVariables()
-          }
-          if (stages.value.length > 0) {
-            selectedStageId.value = stages.value[0].id
+          logicBlocks.value = importedLogicBlocks
+          if (config.yamlInput) importYamlVariables()
+          if (logicBlocks.value.length > 0 && logicBlocks.value[0].stages.length > 0) {
+            selectedStageId.value = `${logicBlocks.value[0].id}/${logicBlocks.value[0].stages[0].id}`
           }
           generateEjsTemplate()
         }
@@ -646,18 +655,14 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
         }
       }
     }
-    // 使用当前阶段的有效变量配置
     traverse(currentStageVariables.value)
     return result
   })
 
-  // 初始化逻辑
+  //  初始化和 Watchers (已重构) 
   function initializeStore() {
-    // 如果没有项目，创建默认项目
     if (projects.value.length === 0 && !currentProjectId.value) {
-      const defaultProjectId = createProject('默认项目', false) // 不复制当前状态
-      
-      // 为默认项目创建一个默认方案（创建一个空的初始方案）
+      const defaultProjectId = createProject('默认项目', false)
       const project = projects.value.find(p => p.id === defaultProjectId)
       if (project) {
         const defaultSchemeId = createStageScheme('默认方案', '初始阶段配置方案')
@@ -666,34 +671,31 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     }
   }
 
-  // 自动保存当前项目状态的 watcher（带防抖）
   let saveProjectTimer: NodeJS.Timeout | null = null
-  watch([yamlInput, stages, defaultStageContent, currentSchemeId], () => {
+  watch([yamlInput, logicBlocks, currentSchemeId], () => {
     if (currentProjectId.value) {
       if (saveProjectTimer) clearTimeout(saveProjectTimer)
       saveProjectTimer = setTimeout(() => {
         saveCurrentProjectState()
         saveProjectTimer = null
-      }, 500) // 500ms 防抖
+      }, 500)
     }
   }, { deep: true })
 
   watch(simulationValues, testSimulation, { deep: true })
 
-  // --- 阶段方案管理 ---
+  //  阶段方案管理 (已重构) 
   function createStageScheme(name: string, description?: string): string {
     if (!currentProject.value) return ''
     
     const newScheme: StageScheme = {
       id: `scheme_${Date.now()}`,
       name,
-      stages: [...stages.value],
-      defaultStageContent: defaultStageContent.value,
+      logicBlocks: JSON.parse(JSON.stringify(logicBlocks.value)),
       createdAt: new Date().toISOString(),
       description
     }
 
-    // 初始化项目的stageSchemes数组
     if (!currentProject.value.stageSchemes) {
       currentProject.value.stageSchemes = []
     }
@@ -711,10 +713,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     const scheme = project.stageSchemes.find(s => s.id === schemeId)
     if (!scheme) return
 
-    // 保存当前方案状态
     saveCurrentSchemeState()
-
-    // 切换到新方案
     currentSchemeId.value = schemeId
     project.currentSchemeId = schemeId
     loadSchemeState(scheme)
@@ -725,18 +724,15 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
 
     const scheme = currentProject.value.stageSchemes.find(s => s.id === currentSchemeId.value)
     if (scheme) {
-      scheme.stages = [...stages.value]
-      scheme.defaultStageContent = defaultStageContent.value
+      scheme.logicBlocks = JSON.parse(JSON.stringify(logicBlocks.value))
     }
   }
 
   function loadSchemeState(scheme: StageScheme) {
-    stages.value = [...scheme.stages]
-    defaultStageContent.value = scheme.defaultStageContent
+    logicBlocks.value = JSON.parse(JSON.stringify(scheme.logicBlocks))
 
-    // 设置选中的阶段
-    if (stages.value.length > 0) {
-      selectedStageId.value = stages.value[0].id
+    if (logicBlocks.value.length > 0 && logicBlocks.value[0].stages.length > 0) {
+      selectedStageId.value = `${logicBlocks.value[0].id}/${logicBlocks.value[0].stages[0].id}`
     } else {
       selectedStageId.value = ''
     }
@@ -746,14 +742,12 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
 
   function saveCurrentAsNewScheme(name: string, description?: string): string {
     if (!currentProject.value) return ''
-    
     return createStageScheme(name, description)
   }
 
   function renameStageScheme(schemeId: string, newName: string) {
     const project = currentProject.value
     if (!project?.stageSchemes) return
-
     const scheme = project.stageSchemes.find(s => s.id === schemeId)
     if (scheme) {
       scheme.name = newName
@@ -770,14 +764,13 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
       project.stageSchemes.splice(index, 1)
       project.updatedAt = new Date().toISOString()
 
-      // 如果删除的是当前方案，切换到第一个方案或清空
       if (currentSchemeId.value === schemeId) {
         if (project.stageSchemes.length > 0) {
           switchStageScheme(project.stageSchemes[0].id)
         } else {
           currentSchemeId.value = ''
           project.currentSchemeId = ''
-          stages.value = []
+          logicBlocks.value = []
           selectedStageId.value = ''
           generateEjsTemplate()
         }
@@ -796,8 +789,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     const newScheme: StageScheme = {
       id: `scheme_${Date.now()}`,
       name: copyName,
-      stages: [...sourceScheme.stages],
-      defaultStageContent: sourceScheme.defaultStageContent,
+      logicBlocks: JSON.parse(JSON.stringify(sourceScheme.logicBlocks)),
       createdAt: new Date().toISOString(),
       description: sourceScheme.description
     }
@@ -808,27 +800,59 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     return newScheme.id
   }
 
-  watch(simulationValues, testSimulation, { deep: true })
+  //  辅助方法 
+  function findFirstLeafVariable(nodes: VariableNode[]): VariableNode | null {
+    for (const node of nodes) {
+      if (!node.children || node.children.length === 0) {
+        if (node.value !== null && node.value !== undefined) {
+          return node
+        }
+      } else {
+        const found = findFirstLeafVariable(node.children)
+        if (found) return found
+      }
+    }
+    return null
+  }
+
+  function getReadablePath(node: VariableNode, nodes: VariableNode[] = variableTree.value, parentPath: string = ''): string | null {
+    for (const n of nodes) {
+      const currentPath = parentPath ? `${parentPath}.${n.key}` : n.key;
+      if (n.path === node.path) {
+        return currentPath;
+      }
+      if (n.children) {
+        const foundPath = getReadablePath(node, n.children, currentPath);
+        if (foundPath) {
+          return foundPath;
+        }
+      }
+    }
+    return null;
+  }
 
   return {
-    // 项目管理状态
+    // 状态
     projects, currentProjectId, currentProject,
-    // 基础状态
-    yamlInput, variableTree, stages, selectedStageId, defaultStageContent,
+    yamlInput, variableTree, logicBlocks, selectedStageId,
     variableEditMode, ejsTemplate, previewCode, simulationValues, testResult,
     errors, isGenerating,
     selectedStage, hasErrors, flatVariables, currentStageVariables,
-    // 阶段方案管理状态
+    selectedLogicBlock, selectedLogicBlockId,
     currentSchemeId, currentProjectSchemes, currentScheme,
-    // 项目管理方法
+    
+    // 方法
     initializeStore, createProject, switchProject, saveCurrentProjectState, loadProjectState,
     renameProject, deleteProject, importAsNewProject,
-    // 基础方法
-    importYamlVariables, addStage, removeStage, updateStage, generateEjsTemplate,
+    
+    importYamlVariables, generateEjsTemplate,
     testSimulation, clearAll, exportConfig, importConfig,
-    // 节点编辑方法
+    
     addNode, removeNode, updateNodeValue, findFirstLeafVariable, getReadablePath,
-    // 阶段方案管理方法
+    
+    addLogicBlock, removeLogicBlock, updateLogicBlock,
+    addStage, removeStage, updateStage, updateStagesOrder,
+    
     createStageScheme, switchStageScheme, saveCurrentSchemeState, loadSchemeState,
     saveCurrentAsNewScheme, renameStageScheme, deleteStageScheme, copyStageScheme
   }

@@ -33,7 +33,7 @@
       <div class="project-title">
         <h4>{{ store.currentProject.name }}</h4>
         <el-tag size="small" type="info">
-          {{ store.stages.length }} 个阶段
+          {{ totalStagesCount }} 个阶段
         </el-tag>
       </div>
       <div class="project-meta">
@@ -73,7 +73,6 @@
             :class="{ 'is-active': scheme.id === store.currentSchemeId }" @click="handleSchemeChange(scheme.id)">
             <div class="scheme-info">
               <span class="scheme-name">{{ scheme.name }}</span>
-              <span class="scheme-meta">{{ scheme.stages.length }} 个阶段</span>
             </div>
             <div class="scheme-actions" @click.stop>
               <el-button size="small" :icon="Edit" circle @click="handleRenameScheme(scheme.id)" title="重命名方案" />
@@ -170,7 +169,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Setting, ArrowRight, CopyDocument, Delete, Edit } from '@element-plus/icons-vue'
 import { useEjsEditorStore } from '@/stores/ejsEditor'
@@ -178,6 +177,11 @@ import { useEjsEditorStore } from '@/stores/ejsEditor'
 const store = useEjsEditorStore()
 const showProjectDialog = ref(false)
 const showSchemePanel = ref(true)
+
+const totalStagesCount = computed(() => {
+  if (!store.logicBlocks) return 0
+  return store.logicBlocks.reduce((total, block) => total + block.stages.length, 0)
+})
 
 // 当前项目编辑表单
 const currentProjectForm = ref({
@@ -239,7 +243,7 @@ async function handleCreateProject() {
       let copyFromCurrent = false
 
       // 如果当前有内容，询问是否复制
-      if (store.stages.length > 0 || store.yamlInput.trim()) {
+      if (totalStagesCount.value > 0 || store.yamlInput.trim()) {
         try {
           await ElMessageBox.confirm(
             '是否复制当前项目的内容到新项目？',
@@ -353,7 +357,7 @@ async function handleDeleteProject(projectId: string) {
   }
 }
 
-// --- 阶段方案管理方法 ---
+//  阶段方案管理方法 
 
 // 处理方案切换
 async function handleSchemeChange(schemeId: string) {

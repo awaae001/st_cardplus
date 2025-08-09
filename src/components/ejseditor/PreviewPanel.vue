@@ -32,7 +32,7 @@
           {{ characterCount }} 字符
         </el-tag>
         <el-tag size="small" type="warning">
-          {{ store.stages.length }} 个阶段
+          {{ totalStagesCount }} 个阶段
         </el-tag>
       </div>
 
@@ -124,7 +124,7 @@
         <div class="info-grid">
           <div class="info-item">
             <span class="label">阶段数量:</span>
-            <span class="value">{{ store.stages.length }}</span>
+            <span class="value">{{ totalStagesCount }}</span>
           </div>
           <div class="info-item">
             <span class="label">生成时间:</span>
@@ -181,6 +181,11 @@ const characterCount = computed(() => {
 
 const ejsErrors = computed(() => {
   return store.errors.filter(error => error.type === 'ejs')
+})
+
+const totalStagesCount = computed(() => {
+  if (!store.logicBlocks) return 0
+  return store.logicBlocks.reduce((total, block) => total + block.stages.length, 0)
 })
 
 // 监听预览代码变化，更新生成时间
