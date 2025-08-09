@@ -1,65 +1,52 @@
 <template>
   <div class="about-page">
     <h1>设置与关于</h1>
-    
+
     <!-- 设置区域 -->
     <div class="settings-section">
       <h2>应用设置</h2>
-      
+
       <div class="setting-group">
         <div class="setting-item">
           <div class="setting-info">
             <span class="setting-label">显示测试版功能</span>
-            <Icon icon="material-symbols:experiment-outline" width="20" height="20" style="margin-left: 8px; color: var(--el-color-warning);" />
+            <Icon icon="material-symbols:experiment-outline" width="20" height="20"
+              style="margin-left: 8px; color: var(--el-color-warning);" />
           </div>
-          <el-switch
-            v-model="betaFeaturesEnabled"
-            @change="onBetaFeaturesToggle"
-            :active-text="betaFeaturesEnabled ? '开启' : ''"
-            :inactive-text="!betaFeaturesEnabled ? '关闭' : ''"
-            size="large"
-          />
+          <el-switch v-model="betaFeaturesEnabled" @change="onBetaFeaturesToggle"
+            :active-text="betaFeaturesEnabled ? '开启' : ''" :inactive-text="!betaFeaturesEnabled ? '关闭' : ''"
+            size="large" />
         </div>
         <p class="setting-description">
           开启后将在侧边栏显示测试版功能，包括 EJS 模板编辑器和世界书功能
         </p>
       </div>
-      
+
       <div class="setting-group">
         <div class="setting-item">
           <div class="setting-info">
             <span class="setting-label">umami匿名遥测</span>
-            <Icon icon="material-symbols:analytics-outline" width="20" height="20" style="margin-left: 8px; color: var(--el-color-info);" />
+            <Icon icon="material-symbols:analytics-outline" width="20" height="20"
+              style="margin-left: 8px; color: var(--el-color-info);" />
           </div>
-          <el-switch
-            v-model="umamiEnabled"
-            @change="onUmamiToggle"
-            :active-text="umamiEnabled ? '开启' : ''"
-            :inactive-text="!umamiEnabled ? '关闭' : ''"
-            size="large"
-          />
+          <el-switch v-model="umamiEnabled" @change="onUmamiToggle" :active-text="umamiEnabled ? '开启' : ''"
+            :inactive-text="!umamiEnabled ? '关闭' : ''" size="large" />
         </div>
         <p class="setting-description">
           开启后将收集匿名使用数据以帮助改进应用，不会收集任何个人信息或角色卡内容
         </p>
       </div>
-      
+
       <div class="setting-group">
         <div class="setting-item">
           <div class="setting-info">
             <span class="setting-label">自动保存间隔</span>
-            <Icon icon="material-symbols:save-outline" width="20" height="20" style="margin-left: 8px; color: var(--el-color-success);" />
+            <Icon icon="material-symbols:save-outline" width="20" height="20"
+              style="margin-left: 8px; color: var(--el-color-success);" />
           </div>
           <div class="interval-control">
-            <el-input-number
-              v-model="autoSaveInterval"
-              @change="onAutoSaveIntervalChange"
-              :min="1"
-              :max="60"
-              :step="1"
-              size="large"
-              style="width: 120px;"
-            />
+            <el-input-number v-model="autoSaveInterval" @change="onAutoSaveIntervalChange" :min="1" :max="60" :step="1"
+              size="large" style="width: 120px;" />
             <span class="interval-unit">秒</span>
           </div>
         </div>
@@ -67,23 +54,51 @@
           设置编辑器中内容的自动保存间隔，范围：1-60秒
         </p>
       </div>
+
+      <div class="setting-group">
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">数据迁移</span>
+            <Icon icon="material-symbols:cloud-sync-outline" width="20" height="20"
+              style="margin-left: 8px; color: var(--el-color-primary);" />
+          </div>
+          <div>
+            <el-button @click="exportData" type="primary" plain>
+              <Icon icon="material-symbols:download" width="20" height="20" style="margin-right: 8px;" />
+              导出数据
+            </el-button>
+            <el-button @click="importData" type="success" plain>
+              <Icon icon="material-symbols:upload" width="20" height="20" style="margin-right: 8px;" />
+              导入数据
+            </el-button>
+          </div>
+        </div>
+        <p class="setting-description">
+          导出所有本地数据到一个 JSON 文件，或从一个 JSON 文件导入数据来恢复状态。
+        </p>
+      </div>
     </div>
-    
+
     <!-- 关于区域 -->
     <div class="about-section">
       <h2>关于应用</h2>
       <p>这是一个用于创建和管理 SillyTavern 角色卡的在线应用程序。</p>
       <p>访问我们的 GitHub 页面获取更多信息或贡献代码：</p>
-      <p>开发版本：<b>dev_{{ appVersion }}({{ appCommitCount }})</b></p>
+      <p>
+        开发版本：
+        <b v-if="appCommitCount === '1'">在线版_{{ appVersion }}</b>
+        <b v-else>dev_{{ appVersion }}({{ appCommitCount }})</b>
+      </p>
     </div>
-    
+
     <a href="https://github.com/awaae001/st_cardplus" target="_blank" class="github-link">
-      <Icon icon="mdi:github" width="24" height="24"  style="margin-right: 4px;"/>
+      <Icon icon="mdi:github" width="24" height="24" style="margin-right: 4px;" />
       GitHub 仓库
     </a>
-      <div style="margin: 6px; display: inline;"></div>
-    <a href="https://autopatchcn.yuanshen.com/client_app/download/launcher/20241225164539_9oyGHAOXvzP4uaBW/mihoyo/yuanshen_setup_202412201736.exe" target="_blank" class="pro">
-      <Icon icon="material-symbols:key-vertical-outline" width="24" height="24"  style="margin-right: 4px;"/>
+    <div style="margin: 6px; display: inline;"></div>
+    <a href="https://autopatchcn.yuanshen.com/client_app/download/launcher/20241225164539_9oyGHAOXvzP4uaBW/mihoyo/yuanshen_setup_202412201736.exe"
+      target="_blank" class="pro">
+      <Icon icon="material-symbols:key-vertical-outline" width="24" height="24" style="margin-right: 4px;" />
       解锁高级版
     </a>
   </div>
@@ -192,7 +207,7 @@ const onAutoSaveIntervalChange = (value: number) => {
 
 const toggleUmamiScript = (enabled: boolean) => {
   const existingScript = document.querySelector('script[data-website-id="6685fde6-dad1-49c1-b952-3a487d6991da"]');
-  
+
   if (enabled && !existingScript) {
     // 添加遥测脚本
     const script = document.createElement('script');
@@ -213,6 +228,97 @@ onMounted(() => {
   // 根据设置初始化遥测脚本
   toggleUmamiScript(umamiEnabled.value);
 });
+
+const exportData = () => {
+  try {
+    const data: { [key: string]: any } = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key) {
+        data[key] = localStorage.getItem(key);
+      }
+    }
+
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `st-cardplus-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    ElMessage({
+      type: 'success',
+      message: '数据已成功导出',
+    });
+  } catch (error) {
+    console.error('导出数据失败:', error);
+    ElMessage({
+      type: 'error',
+      message: '导出数据失败',
+    });
+  }
+};
+
+const importData = () => {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'application/json';
+  input.onchange = (event) => {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const json = e.target?.result as string;
+        const data = JSON.parse(json);
+
+        ElMessageBox.confirm(
+          '这将用导入文件中的数据覆盖所有现有本地数据。此操作无法撤销。您确定要继续吗？',
+          '警告',
+          {
+            confirmButtonText: '确认导入',
+            cancelButtonText: '取消',
+            type: 'warning',
+          }
+        )
+          .then(() => {
+            localStorage.clear();
+            for (const key in data) {
+              if (Object.prototype.hasOwnProperty.call(data, key)) {
+                localStorage.setItem(key, data[key]);
+              }
+            }
+            ElMessage({
+              type: 'success',
+              message: '数据已成功导入。应用将重新加载以应用更改。',
+            });
+            setTimeout(() => {
+              window.location.reload();
+            }, 2000);
+          })
+          .catch(() => {
+            ElMessage({
+              type: 'info',
+              message: '导入操作已取消',
+            });
+          });
+      } catch (error) {
+        console.error('导入数据失败:', error);
+        ElMessage({
+          type: 'error',
+          message: '导入数据失败，文件格式可能不正确。',
+        });
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+};
 </script>
 
 <style scoped>
@@ -234,7 +340,8 @@ onMounted(() => {
   background-clip: text;
 }
 
-.settings-section, .about-section {
+.settings-section,
+.about-section {
   margin: 24px 0;
   padding: 24px;
   border: 1px solid var(--el-border-color);
@@ -244,7 +351,8 @@ onMounted(() => {
   transition: all 0.3s ease;
 }
 
-.settings-section:hover, .about-section:hover {
+.settings-section:hover,
+.about-section:hover {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
@@ -256,7 +364,8 @@ onMounted(() => {
   text-align: center;
 }
 
-.settings-section h2, .about-section h2 {
+.settings-section h2,
+.about-section h2 {
   margin: 0 0 20px 0;
   color: var(--el-text-color-primary);
   font-size: 20px;
@@ -368,37 +477,40 @@ onMounted(() => {
   .about-page {
     padding: 16px;
   }
-  
+
   .about-page h1 {
     font-size: 28px;
   }
-  
-  .settings-section, .about-section {
+
+  .settings-section,
+  .about-section {
     padding: 20px;
     margin: 20px 0;
   }
-  
+
   .setting-item {
     padding: 16px;
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
-  
+
   .setting-info {
     width: 100%;
   }
-  
-  .github-link, .pro {
+
+  .github-link,
+  .pro {
     display: block;
     margin: 12px 0;
     text-align: center;
   }
-  
-  .settings-section h2, .about-section h2 {
+
+  .settings-section h2,
+  .about-section h2 {
     font-size: 18px;
   }
-  
+
   .interval-control {
     flex-direction: column;
     align-items: flex-end;
