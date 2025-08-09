@@ -98,7 +98,7 @@
 <script setup lang="ts">
 import { ref, watch, defineProps } from 'vue'
 import { useEjsEditorStore } from '@/stores/ejsEditor'
-import type { Stage, Condition, ConditionGroup } from '@/stores/ejsEditor'
+import type { Stage, Condition, ConditionGroup } from '@/types/ejs-editor'
 import { Plus, Delete, QuestionFilled } from '@element-plus/icons-vue'
 import { useDevice } from '@/composables/useDevice'
 

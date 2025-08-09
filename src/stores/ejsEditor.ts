@@ -2,125 +2,76 @@ import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import * as yaml from 'js-yaml'
 import * as ejs from 'ejs'
-
-//  类型定义 
-
-export interface VariableNode {
-  key: string
-  value: any
-  description?: string
-  children?: VariableNode[]
-  path: string // Unique ID for a node
-}
-
-export interface Condition {
-  id: string
-  variableId: string
-  variablePath: string
-  variableAlias: string
-  type: 'less' | 'lessEqual' | 'equal' | 'greater' | 'greaterEqual' | 'range' | 'is' | 'isNot'
-  value: any
-  endValue?: any
-}
-
-export interface ConditionGroup {
-  id: string;
-  conditions: Condition[];
-}
-
-export interface Stage {
-  id: string
-  name: string
-  conditionGroups: ConditionGroup[]
-  content: string
-}
-
-export interface LogicBlock {
-  id: string;
-  name: string;
-  stages: Stage[];
-  defaultStageContent: string;
-  enabled: boolean;
-}
-
-export interface EditorError {
-  type: 'yaml' | 'ejs' | 'stage'
-  message: string
-  line?: number
-}
-
-export interface StageScheme {
-  id: string
-  name: string
-  logicBlocks: LogicBlock[]
-  createdAt: string
-  description?: string
-}
-
-export interface Project {
-  id: string
-  name: string
-  yamlInput: string
-  logicBlocks: LogicBlock[]
-  createdAt: string
-  updatedAt: string
-  stageSchemes?: StageScheme[]
-  currentSchemeId?: string
-}
+import type {
+  Project,
+  VariableNode,
+  LogicBlock,
+  EditorError,
+  StageScheme,
+  Stage,
+  Condition
+} from '@/types/ejs-editor'
 
 export const useEjsEditorStore = defineStore('ejsEditor', () => {
-  //  状态 
+  //  State 
   const projects = ref<Project[]>([])
   const currentProjectId = ref('')
-  
   const yamlInput = ref('')
   const variableTree = ref<VariableNode[]>([])
-  
   const logicBlocks = ref<LogicBlock[]>([])
-  const selectedStageId = ref('') // Now format: "logicBlockId/stageId"
+  const selectedStageId = ref('') // Format: "logicBlockId/stageId"
   const variableEditMode = ref<'yaml' | 'tree'>('yaml')
-  
   const currentSchemeId = ref('')
-  
   const ejsTemplate = ref('')
   const previewCode = ref('')
-  
   const simulationValues = ref<Record<string, any>>({})
   const testResult = ref('')
   const errors = ref<EditorError[]>([])
   const isGenerating = ref(false)
 
-  //  计算属性 
-  const currentProject = computed(() => 
+  //  Computed 
+  const currentProject = computed(() =>
     projects.value.find(project => project.id === currentProjectId.value)
   )
-
   const selectedLogicBlockId = computed(() => selectedStageId.value.split('/')[0])
   const selectedStageInstanceId = computed(() => selectedStageId.value.split('/')[1])
-
-  const selectedLogicBlock = computed(() => 
+  const selectedLogicBlock = computed(() =>
     logicBlocks.value.find(block => block.id === selectedLogicBlockId.value)
   )
-
-  const selectedStage = computed(() => 
+  const selectedStage = computed(() =>
     selectedLogicBlock.value?.stages.find(stage => stage.id === selectedStageInstanceId.value)
   )
-
-  const currentProjectSchemes = computed(() => 
+  const currentProjectSchemes = computed(() =>
     currentProject.value?.stageSchemes || []
   )
-
-  const currentScheme = computed(() => 
+  const currentScheme = computed(() =>
     currentProjectSchemes.value.find(scheme => scheme.id === currentSchemeId.value)
   )
-
   const currentStageVariables = computed(() => {
     return variableTree.value
   })
-
   const hasErrors = computed(() => errors.value.length > 0)
+  const flatVariables = computed(() => {
+    const result: { id: string; readablePath: string; alias: string }[] = []
+    function traverse(nodes: VariableNode[], parentPath: string = '') {
+      for (const node of nodes) {
+        const currentReadablePath = parentPath ? `${parentPath}.${node.key}` : node.key
+        if (node.children && node.children.length > 0) {
+          traverse(node.children, currentReadablePath)
+        } else {
+          result.push({
+            id: node.path,
+            readablePath: currentReadablePath,
+            alias: node.key
+          })
+        }
+      }
+    }
+    traverse(currentStageVariables.value)
+    return result
+  })
 
-  //  YAML 和变量树转换 (无变化) 
+  //  YAML and Variable Tree Conversion 
   function parseYamlInput(yamlText: string): VariableNode[] {
     try {
       errors.value = errors.value.filter(e => e.type !== 'yaml')
@@ -137,7 +88,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
 
   function parseObjectToVariableTree(obj: any, parentPath: string = ''): VariableNode[] {
     if (!obj || typeof obj !== 'object') return []
-    
+
     return Object.entries(obj).map(([key, value]) => {
       const currentPath = parentPath ? `${parentPath}.${key}` : key
       const node: VariableNode = {
@@ -177,10 +128,10 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
   function customYamlGenerate(obj: any, indent: number = 0): string {
     const spaces = '  '.repeat(indent)
     let result = ''
-    
+
     for (const [key, value] of Object.entries(obj)) {
       result += `${spaces}${key}:`
-      
+
       if (Array.isArray(value) && value.length <= 2) {
         result += ` [${value[0]}`
         if (value[1]) {
@@ -193,7 +144,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
         result += ` ${value}\n`
       }
     }
-    
+
     return result
   }
 
@@ -218,7 +169,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     variableTree.value = parseYamlInput(yamlInput.value)
   }
 
-  //  节点编辑方法 (无变化) 
+  //  Variable Node Editing 
   function addNode(parentId: string | null = null) {
     const newNode: VariableNode = {
       key: '新节点',
@@ -278,9 +229,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     generateYamlFromTree()
   }
 
-  //  核心业务逻辑 (已重构) 
-
-  // Logic Block Management
+  //  Logic Block Management 
   function addLogicBlock() {
     const newBlock: LogicBlock = {
       id: `block_${Date.now()}`,
@@ -309,7 +258,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     }
   }
 
-  // Stage Management (within a logic block)
+  //  Stage Management 
   function addStage(blockId: string) {
     const block = logicBlocks.value.find(b => b.id === blockId);
     if (!block) return;
@@ -355,7 +304,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     }
   }
 
-  //  EJS Template Generation (已重构) 
+  //  EJS Template Generation 
   function generateEjsTemplate() {
     if (logicBlocks.value.length === 0) {
       ejsTemplate.value = '';
@@ -399,7 +348,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
           const defaultContent = block.defaultStageContent || '// 默认情况';
           blockTemplate += `<%_ } else { _%>\n${defaultContent}\n<%_ } _%>\n`;
         }
-        
+
         finalTemplate += blockTemplate + '\n'; // Add newline between blocks
       });
 
@@ -433,7 +382,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     }
   }
 
-  //  Simulation (无变化) 
+  //  Simulation 
   function testSimulation() {
     if (!ejsTemplate.value) {
       testResult.value = ''
@@ -450,7 +399,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     }
   }
 
-  //  向后兼容转换 
+  //  Legacy Data Conversion 
   function convertLegacyData(projectData: any): LogicBlock[] {
     if (projectData.logicBlocks) {
       return projectData.logicBlocks; // Already new format
@@ -469,7 +418,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     return []; // No stage data
   }
 
-  //  项目管理 (已重构) 
+  //  Project Management 
   function createProject(name: string = `项目${projects.value.length + 1}`, copyFromCurrent: boolean = false): string {
     if (currentProjectId.value) {
       saveCurrentProjectState()
@@ -483,18 +432,18 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
-    
+
     projects.value.push(newProject)
     currentProjectId.value = newProject.id
     loadProjectState(newProject)
-    
+
     return newProject.id
   }
 
   function switchProject(projectId: string) {
     const project = projects.value.find(p => p.id === projectId)
     if (!project) throw new Error(`项目 ${projectId} 不存在`)
-    
+
     saveCurrentProjectState()
     currentProjectId.value = projectId
     loadProjectState(project)
@@ -502,7 +451,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
 
   function saveCurrentProjectState() {
     if (!currentProjectId.value) return
-    
+
     const project = projects.value.find(p => p.id === currentProjectId.value)
     if (project) {
       project.yamlInput = yamlInput.value
@@ -519,13 +468,12 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
       importYamlVariables()
     }
 
-    // 向后兼容处理
     const loadedLogicBlocks = convertLegacyData(project);
 
     if (project.stageSchemes && project.stageSchemes.length > 0) {
       const targetSchemeId = project.currentSchemeId || project.stageSchemes[0].id
       const targetScheme = project.stageSchemes.find(s => s.id === targetSchemeId)
-      
+
       if (targetScheme) {
         currentSchemeId.value = targetSchemeId
         loadSchemeState(targetScheme)
@@ -537,13 +485,13 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
       logicBlocks.value = loadedLogicBlocks
       currentSchemeId.value = ''
     }
-    
+
     if (logicBlocks.value.length > 0 && logicBlocks.value[0].stages.length > 0) {
       selectedStageId.value = `${logicBlocks.value[0].id}/${logicBlocks.value[0].stages[0].id}`
     } else {
       selectedStageId.value = ''
     }
-    
+
     generateEjsTemplate()
   }
 
@@ -569,9 +517,10 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     }
   }
 
+  //  Import / Export 
   function importAsNewProject(config: any, name?: string) {
     const projectName = name || `导入项目_${new Date().toLocaleString()}`
-    
+
     const newProject: Project = {
       id: `project_${Date.now()}`,
       name: projectName,
@@ -580,7 +529,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
-    
+
     projects.value.push(newProject)
     switchProject(newProject.id)
     return newProject.id
@@ -639,27 +588,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     }
   }
 
-  const flatVariables = computed(() => {
-    const result: { id: string; readablePath: string; alias: string }[] = []
-    function traverse(nodes: VariableNode[], parentPath: string = '') {
-      for (const node of nodes) {
-        const currentReadablePath = parentPath ? `${parentPath}.${node.key}` : node.key
-        if (node.children && node.children.length > 0) {
-          traverse(node.children, currentReadablePath)
-        } else {
-          result.push({
-            id: node.path,
-            readablePath: currentReadablePath,
-            alias: node.key
-          })
-        }
-      }
-    }
-    traverse(currentStageVariables.value)
-    return result
-  })
-
-  //  初始化和 Watchers (已重构) 
+  //  Initialization & Watchers 
   function initializeStore() {
     if (projects.value.length === 0 && !currentProjectId.value) {
       const defaultProjectId = createProject('默认项目', false)
@@ -684,10 +613,10 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
 
   watch(simulationValues, testSimulation, { deep: true })
 
-  //  阶段方案管理 (已重构) 
+  //  Stage Scheme Management 
   function createStageScheme(name: string, description?: string): string {
     if (!currentProject.value) return ''
-    
+
     const newScheme: StageScheme = {
       id: `scheme_${Date.now()}`,
       name,
@@ -702,7 +631,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
 
     currentProject.value.stageSchemes.push(newScheme)
     currentProject.value.updatedAt = new Date().toISOString()
-    
+
     return newScheme.id
   }
 
@@ -800,7 +729,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     return newScheme.id
   }
 
-  //  辅助方法 
+  //  Helper Methods 
   function findFirstLeafVariable(nodes: VariableNode[]): VariableNode | null {
     for (const node of nodes) {
       if (!node.children || node.children.length === 0) {
@@ -832,7 +761,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
   }
 
   return {
-    // 状态
+    // State
     projects, currentProjectId, currentProject,
     yamlInput, variableTree, logicBlocks, selectedStageId,
     variableEditMode, ejsTemplate, previewCode, simulationValues, testResult,
@@ -840,19 +769,19 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     selectedStage, hasErrors, flatVariables, currentStageVariables,
     selectedLogicBlock, selectedLogicBlockId,
     currentSchemeId, currentProjectSchemes, currentScheme,
-    
-    // 方法
+
+    // Methods
     initializeStore, createProject, switchProject, saveCurrentProjectState, loadProjectState,
     renameProject, deleteProject, importAsNewProject,
-    
+
     importYamlVariables, generateEjsTemplate,
     testSimulation, clearAll, exportConfig, importConfig,
-    
+
     addNode, removeNode, updateNodeValue, findFirstLeafVariable, getReadablePath,
-    
+
     addLogicBlock, removeLogicBlock, updateLogicBlock,
     addStage, removeStage, updateStage, updateStagesOrder,
-    
+
     createStageScheme, switchStageScheme, saveCurrentSchemeState, loadSchemeState,
     saveCurrentAsNewScheme, renameStageScheme, deleteStageScheme, copyStageScheme
   }

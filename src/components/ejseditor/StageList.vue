@@ -61,13 +61,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue';
+import { ref, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Plus, Delete, Menu } from '@element-plus/icons-vue';
 import draggable from 'vuedraggable';
 import { useEjsEditorStore } from '@/stores/ejsEditor';
 import { useDevice } from '@/composables/useDevice';
-import type { LogicBlock, Stage, Condition } from '@/stores/ejsEditor';
+import type { LogicBlock, Stage, Condition } from '@/types/ejs-editor';
 import StageEditor from './StageEditor.vue';
 
 const props = defineProps<{

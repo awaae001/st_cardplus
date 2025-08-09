@@ -52,7 +52,7 @@
 import { ref, onMounted } from 'vue';
 import { useEjsEditorStore } from '@/stores/ejsEditor';
 import { ElMessageBox, ElMessage } from 'element-plus';
-import { Plus, Delete, Edit } from '@element-plus/icons-vue';
+import { Plus, Delete} from '@element-plus/icons-vue';
 import StageList from './StageList.vue'; // We will create this component next
 
 const store = useEjsEditorStore();

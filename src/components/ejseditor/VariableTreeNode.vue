@@ -50,7 +50,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { ArrowRight, ArrowDown, Document, InfoFilled } from '@element-plus/icons-vue'
-import type { VariableNode } from '@/stores/ejsEditor'
+import type { VariableNode } from '@/types/ejs-editor'
 
 interface Props {
   node: VariableNode

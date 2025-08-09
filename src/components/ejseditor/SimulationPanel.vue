@@ -140,7 +140,7 @@ import { QuestionFilled, VideoPlay, Delete } from '@element-plus/icons-vue'
 import { ref, computed } from 'vue'
 import { useEjsEditorStore } from '@/stores/ejsEditor'
 import { useDevice } from '@/composables/useDevice'
-import type { Stage, Condition, ConditionGroup } from '@/stores/ejsEditor'
+import type { Stage, Condition, ConditionGroup } from '@/types/ejs-editor'
 
 const store = useEjsEditorStore()
 const { isMobile } = useDevice()
