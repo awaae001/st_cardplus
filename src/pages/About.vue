@@ -1,4 +1,4 @@
-<template>
+ <template>
   <div class="about-page">
     <h1>设置与关于</h1>
 
