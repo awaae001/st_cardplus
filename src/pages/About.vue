@@ -64,11 +64,11 @@
           </div>
           <div>
             <el-button @click="exportData" type="primary" plain>
-              <Icon icon="material-symbols:download" width="20" height="20" style="margin-right: 8px;" />
+              <Icon icon="material-symbols:upload" width="20" height="20" style="margin-right: 8px;" />
               导出数据
             </el-button>
             <el-button @click="importData" type="success" plain>
-              <Icon icon="material-symbols:upload" width="20" height="20" style="margin-right: 8px;" />
+              <Icon icon="material-symbols:download" width="20" height="20" style="margin-right: 8px;" />
               导入数据
             </el-button>
           </div>

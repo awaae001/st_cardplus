@@ -19,12 +19,20 @@
 
                     <div v-for="(condition) in group.conditions" :key="condition.id" class="condition-builder"
                         :class="{ 'mobile-condition-builder': isMobile }">
+                        <el-tooltip v-if="condition.variableId" :content="condition.variablePath" placement="top"
+                            :enterable="false">
+                            <el-icon class="condition-info-icon">
+                                <InfoFilled />
+                            </el-icon>
+                        </el-tooltip>
                         <el-select :model-value="condition.variableId"
                             @change="(val: string) => updateCondition(group.id, condition.id, { variableId: val })"
                             placeholder="选择变量" :style="isMobile ? 'width: 100%; margin-bottom: 8px;' : 'width: 150px'"
                             filterable>
                             <el-option v-for="variable in store.flatVariables" :key="variable.id"
-                                :label="variable.readablePath" :value="variable.id" />
+                                :label="variable.readablePath" :value="variable.id">
+                                <div class="option-label" :title="variable.readablePath">{{ variable.readablePath }}</div>
+                            </el-option>
                         </el-select>
 
                         <div class="condition-row" :class="{ 'mobile-condition-row': isMobile }">
@@ -99,7 +107,7 @@
 import { ref, watch, defineProps } from 'vue'
 import { useEjsEditorStore } from '@/stores/ejsEditor'
 import type { Stage, Condition, ConditionGroup } from '@/types/ejs-editor'
-import { Plus, Delete, QuestionFilled } from '@element-plus/icons-vue'
+import { Plus, Delete, QuestionFilled, InfoFilled } from '@element-plus/icons-vue'
 import { useDevice } from '@/composables/useDevice'
 
 const props = defineProps<{
@@ -314,6 +322,19 @@ function updateCondition(groupId: string, conditionId: string, updates: Partial<
     display: flex;
     align-items: center;
     gap: 6px;
+}
+
+.option-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.condition-info-icon {
+    color: var(--el-text-color-secondary);
+    font-size: 16px;
+    cursor: help;
 }
 
 @media (max-width: 768px) {

@@ -322,15 +322,21 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
 
         let blockTemplate = '';
         block.stages.forEach((stage, index) => {
-          const groupConditions = (stage.conditionGroups || [])
+          const groupStrings = (stage.conditionGroups || [])
             .map(group => {
-              const singleConditions = (group.conditions || [])
+              return (group.conditions || [])
                 .map(cond => generateSingleCondition(cond))
+                .filter(c => c && c !== 'true') // 过滤掉无效或默认的条件
                 .join(' && ');
-              return singleConditions ? `(${singleConditions})` : '';
             })
-            .filter(c => c)
-            .join(' || ');
+            .filter(c => c);
+
+          let groupConditions = '';
+          if (groupStrings.length > 1) {
+            groupConditions = groupStrings.map(s => `(${s})`).join(' || ');
+          } else if (groupStrings.length === 1) {
+            groupConditions = groupStrings[0];
+          }
 
           const condition = groupConditions || 'true';
           const content = stage.content || '// 空内容';

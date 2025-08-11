@@ -40,6 +40,9 @@
                 <el-icon class="drag-handle" @click.stop><Menu /></el-icon>
                 <span class="stage-index">{{ index + 1 }}</span>
                 <span class="stage-name">{{ stage.name }}</span>
+                <el-tooltip :content="stage.name" placement="top" :enterable="false">
+                  <el-icon class="info-icon" @click.stop><InfoFilled /></el-icon>
+                </el-tooltip>
               </div>
               <div class="stage-actions">
                 <el-button type="danger" size="small" :icon="Delete" circle @click.stop="removeStage(stage.id)" />
@@ -63,7 +66,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { Plus, Delete, Menu } from '@element-plus/icons-vue';
+import { Plus, Delete, Menu, InfoFilled } from '@element-plus/icons-vue';
 import draggable from 'vuedraggable';
 import { useEjsEditorStore } from '@/stores/ejsEditor';
 import { useDevice } from '@/composables/useDevice';
@@ -206,6 +209,7 @@ function formatConditions(stage: Stage): string {
   display: flex;
   align-items: center;
   gap: 8px;
+  overflow: hidden;
 }
 .drag-handle {
   cursor: grab;
@@ -229,6 +233,14 @@ function formatConditions(stage: Stage): string {
 .stage-name {
   font-weight: 500;
   color: var(--el-text-color-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.info-icon {
+  cursor: pointer;
+  color: var(--el-text-color-secondary);
+  margin-left: 4px;
 }
 .ghost {
   opacity: 0.5;
