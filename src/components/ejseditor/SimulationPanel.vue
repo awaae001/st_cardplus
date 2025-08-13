@@ -16,16 +16,57 @@
           <el-text type="info" size="small">请先在“变量定义”中添加变量</el-text>
         </div>
         
-        <div v-else v-for="variable in store.flatVariables" :key="variable.id" class="form-item">
-          <label>
-            {{ variable.alias || '变量' }}
-            <el-text type="info" size="small">({{ variable.readablePath }})</el-text>
-          </label>
-          <el-input
-            v-model="store.simulationValues[variable.readablePath]"
-            style="width: 100%"
-            :placeholder="`输入 ${variable.alias} 的测试值`"
-          />
+        <div v-else>
+          <!-- 添加变量区域 -->
+          <div class="add-variable-section">
+            <el-select
+              v-model="variableToAdd"
+              placeholder="选择要模拟的变量"
+              filterable
+              style="flex-grow: 1;"
+            >
+              <el-option
+                v-for="variable in availableVariables"
+                :key="variable.id"
+                :label="variable.alias"
+                :value="variable.readablePath"
+              >
+                <span style="float: left">{{ variable.alias }}</span>
+                <span style="float: right; color: var(--el-text-color-secondary); font-size: 13px;">
+                  {{ variable.readablePath }}
+                </span>
+              </el-option>
+            </el-select>
+            <el-button @click="addVariable" :disabled="!variableToAdd">添加</el-button>
+          </div>
+
+          <!-- 已添加的变量列表 -->
+          <div class="simulated-variables-list">
+            <div v-if="Object.keys(store.simulationValues).length === 0" class="no-sim-vars">
+              <el-text type="info" size="small">请从上方添加变量进行模拟</el-text>
+            </div>
+            <div v-else v-for="variable in simulatedVariables" :key="variable.id" class="form-item">
+              <label>
+                {{ variable.alias || '变量' }}
+                <el-text type="info" size="small">({{ variable.readablePath }})</el-text>
+              </label>
+              <div class="input-with-delete">
+                <el-input
+                  v-model="store.simulationValues[variable.readablePath]"
+                  style="width: 100%"
+                  :placeholder="`输入 ${variable.alias} 的测试值`"
+                />
+                <el-button
+                  :icon="Delete"
+                  @click="removeVariable(variable.readablePath)"
+                  circle
+                  plain
+                  type="danger"
+                  class="delete-btn"
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
         <el-button
@@ -34,7 +75,7 @@
           :disabled="!store.ejsTemplate"
           :icon="VideoPlay"
           :size="isMobile ? 'default' : 'default'"
-          style="width: 100%"
+          style="width: 100%; margin-top: 10px;"
         >
           {{ isMobile ? '运行测试' : '运行测试' }}
         </el-button>
@@ -66,11 +107,11 @@
       </div>
 
       <!-- 阶段对比表 -->
-      <div v-if="store.stages.length > 0" class="stage-comparison">
+      <div v-if="allStages.length > 0" class="stage-comparison">
         <h5>所有阶段一览</h5>
         <div class="comparison-table">
           <div
-            v-for="(stage, index) in store.stages"
+            v-for="(stage, index) in allStages"
             :key="stage.id"
             class="comparison-row"
             :class="{ 'is-matched': isStageMatched(stage) }"
@@ -95,13 +136,40 @@
 </template>
 
 <script setup lang="ts">
-import { QuestionFilled, VideoPlay } from '@element-plus/icons-vue'
+import { QuestionFilled, VideoPlay, Delete } from '@element-plus/icons-vue'
+import { ref, computed } from 'vue'
 import { useEjsEditorStore } from '@/stores/ejsEditor'
 import { useDevice } from '@/composables/useDevice'
-import type { Stage, Condition } from '@/stores/ejsEditor'
+import type { Stage, Condition, ConditionGroup } from '@/types/ejs-editor'
 
 const store = useEjsEditorStore()
 const { isMobile } = useDevice()
+const variableToAdd = ref<string | null>(null)
+
+// 可供选择的变量（未被添加到模拟中的）
+const allStages = computed(() => store.logicBlocks.flatMap(block => block.stages));
+
+const availableVariables = computed(() => {
+  const simulatedPaths = Object.keys(store.simulationValues)
+  return store.flatVariables.filter(v => !simulatedPaths.includes(v.readablePath))
+})
+
+// 已添加到模拟中的变量
+const simulatedVariables = computed(() => {
+  const simulatedPaths = Object.keys(store.simulationValues)
+  return store.flatVariables.filter(v => simulatedPaths.includes(v.readablePath))
+})
+
+function addVariable() {
+  if (variableToAdd.value) {
+    store.simulationValues[variableToAdd.value] = '' // 默认值为空字符串
+    variableToAdd.value = null
+  }
+}
+
+function removeVariable(path: string) {
+  delete store.simulationValues[path]
+}
 
 function formatSingleCondition(condition: Condition): string {
   const { variableAlias, type, value, endValue } = condition
@@ -123,49 +191,103 @@ function formatSingleCondition(condition: Condition): string {
 }
 
 function formatConditions(stage: Stage): string {
-  if (!stage.conditions || stage.conditions.length === 0) {
-    return '无条件'
+  if (!stage.conditionGroups || stage.conditionGroups.length === 0) {
+    return '无条件 (始终激活)';
   }
-  const separator = stage.conjunction === 'and' ? ' AND ' : ' OR '
-  return stage.conditions.map(formatSingleCondition).join(separator)
+  const groupStrings = stage.conditionGroups
+    .map(group => {
+      if (!group.conditions || group.conditions.length === 0) return null;
+      const conditionStrings = group.conditions.map(formatSingleCondition).join(' AND ');
+      return `(${conditionStrings})`;
+    })
+    .filter(Boolean);
+  if (groupStrings.length === 0) {
+    return '无条件 (始终激活)';
+  }
+  return groupStrings.join(' OR ');
 }
 
 function isStageMatched(stage: Stage): boolean {
-  const check = (cond: Condition) => {
-    const simValue = store.simulationValues[cond.variablePath] ?? 0
-    const condValue = cond.value
-    const condEndValue = cond.endValue
+  if (!stage.conditionGroups || stage.conditionGroups.length === 0) {
+    return true; // No conditions means it always matches in this context
+  }
 
-    const numSimValue = Number(simValue)
-    const numCondValue = Number(condValue)
-    const numCondEndValue = Number(condEndValue)
+  const checkCondition = (cond: Condition): boolean => {
+    const simValue = store.simulationValues[cond.variablePath];
+    if (simValue === undefined) return false; // Variable not simulated
 
+    const condValue = cond.value;
+    const condEndValue = cond.endValue;
+
+    // Attempt numeric comparison first
+    const numSimValue = Number(simValue);
+    const numCondValue = Number(condValue);
     if (!isNaN(numSimValue) && !isNaN(numCondValue)) {
+      const numCondEndValue = Number(condEndValue);
       switch (cond.type) {
-        case 'less': return numSimValue < numCondValue
-        case 'lessEqual': return numSimValue <= numCondValue
-        case 'equal': return numSimValue == numCondValue
-        case 'greater': return numSimValue > numCondValue
-        case 'greaterEqual': return numSimValue >= numCondValue
-        case 'range': return numSimValue >= numCondValue && numSimValue < numCondEndValue
+        case 'less': return numSimValue < numCondValue;
+        case 'lessEqual': return numSimValue <= numCondValue;
+        case 'equal': return numSimValue == numCondValue; // Use == for loose equality
+        case 'greater': return numSimValue > numCondValue;
+        case 'greaterEqual': return numSimValue >= numCondValue;
+        case 'range':
+          if (isNaN(numCondEndValue)) return false;
+          return numSimValue >= numCondValue && numSimValue < numCondEndValue;
+        case 'is': return simValue === condValue; // Strict equality for 'is'
+        case 'isNot': return simValue !== condValue; // Strict inequality for 'isNot'
       }
     }
 
+    // Fallback to string comparison for non-numeric or specific types
+    const strSimValue = String(simValue);
+    const strCondValue = String(condValue);
     switch (cond.type) {
-      case 'equal': return String(simValue) == String(condValue)
-      case 'is': return String(simValue) === String(condValue)
-      case 'isNot': return String(simValue) !== String(condValue)
-      default: return false
+      case 'equal': return strSimValue == strCondValue;
+      case 'is': return strSimValue === strCondValue;
+      case 'isNot': return strSimValue !== strCondValue;
+      default: return false; // Other types require numeric values
     }
-  }
+  };
 
-  if (!stage.conditions || stage.conditions.length === 0) return false
-  if (stage.conjunction === 'and') return stage.conditions.every(check)
-  return stage.conditions.some(check)
+  const checkGroup = (group: ConditionGroup): boolean => {
+    if (!group.conditions || group.conditions.length === 0) return true; // Empty group is true
+    return group.conditions.every(checkCondition); // Conditions within a group are ANDed
+  };
+
+  // At least one group must be fully matched (groups are ORed)
+  return stage.conditionGroups.some(checkGroup);
 }
 </script>
 
 <style scoped>
+.add-variable-section {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.simulated-variables-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.no-sim-vars {
+  text-align: center;
+  padding: 20px 0;
+  color: var(--el-text-color-secondary);
+}
+
+.input-with-delete {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.delete-btn {
+  flex-shrink: 0;
+}
+
 .simulation-panel {
   height: 100%;
   display: flex;

@@ -1,65 +1,52 @@
 <template>
   <div class="about-page">
     <h1>设置与关于</h1>
-    
+
     <!-- 设置区域 -->
     <div class="settings-section">
       <h2>应用设置</h2>
-      
+
       <div class="setting-group">
         <div class="setting-item">
           <div class="setting-info">
             <span class="setting-label">显示测试版功能</span>
-            <Icon icon="material-symbols:experiment-outline" width="20" height="20" style="margin-left: 8px; color: var(--el-color-warning);" />
+            <Icon icon="material-symbols:experiment-outline" width="20" height="20"
+              style="margin-left: 8px; color: var(--el-color-warning);" />
           </div>
-          <el-switch
-            v-model="betaFeaturesEnabled"
-            @change="onBetaFeaturesToggle"
-            :active-text="betaFeaturesEnabled ? '开启' : ''"
-            :inactive-text="!betaFeaturesEnabled ? '关闭' : ''"
-            size="large"
-          />
+          <el-switch v-model="betaFeaturesEnabled" @change="onBetaFeaturesToggle"
+            :active-text="betaFeaturesEnabled ? '开启' : ''" :inactive-text="!betaFeaturesEnabled ? '关闭' : ''"
+            size="large" />
         </div>
         <p class="setting-description">
           开启后将在侧边栏显示测试版功能，包括 EJS 模板编辑器和世界书功能
         </p>
       </div>
-      
+
       <div class="setting-group">
         <div class="setting-item">
           <div class="setting-info">
             <span class="setting-label">umami匿名遥测</span>
-            <Icon icon="material-symbols:analytics-outline" width="20" height="20" style="margin-left: 8px; color: var(--el-color-info);" />
+            <Icon icon="material-symbols:analytics-outline" width="20" height="20"
+              style="margin-left: 8px; color: var(--el-color-info);" />
           </div>
-          <el-switch
-            v-model="umamiEnabled"
-            @change="onUmamiToggle"
-            :active-text="umamiEnabled ? '开启' : ''"
-            :inactive-text="!umamiEnabled ? '关闭' : ''"
-            size="large"
-          />
+          <el-switch v-model="umamiEnabled" @change="onUmamiToggle" :active-text="umamiEnabled ? '开启' : ''"
+            :inactive-text="!umamiEnabled ? '关闭' : ''" size="large" />
         </div>
         <p class="setting-description">
           开启后将收集匿名使用数据以帮助改进应用，不会收集任何个人信息或角色卡内容
         </p>
       </div>
-      
+
       <div class="setting-group">
         <div class="setting-item">
           <div class="setting-info">
             <span class="setting-label">自动保存间隔</span>
-            <Icon icon="material-symbols:save-outline" width="20" height="20" style="margin-left: 8px; color: var(--el-color-success);" />
+            <Icon icon="material-symbols:save-outline" width="20" height="20"
+              style="margin-left: 8px; color: var(--el-color-success);" />
           </div>
           <div class="interval-control">
-            <el-input-number
-              v-model="autoSaveInterval"
-              @change="onAutoSaveIntervalChange"
-              :min="1"
-              :max="60"
-              :step="1"
-              size="large"
-              style="width: 120px;"
-            />
+            <el-input-number v-model="autoSaveInterval" @change="onAutoSaveIntervalChange" :min="1" :max="60" :step="1"
+              size="large" style="width: 120px;" />
             <span class="interval-unit">秒</span>
           </div>
         </div>
@@ -67,23 +54,87 @@
           设置编辑器中内容的自动保存间隔，范围：1-60秒
         </p>
       </div>
+
+      <div class="setting-group">
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">本地数据迁移</span>
+            <Icon icon="material-symbols:folder-open-outline" width="20" height="20"
+              style="margin-left: 8px; color: var(--el-color-primary);" />
+          </div>
+          <div>
+            <el-button @click="exportData" type="primary" plain>
+              <Icon icon="material-symbols:upload" width="20" height="20" style="margin-right: 8px;" />
+              导出到文件
+            </el-button>
+            <el-button @click="importData" type="success" plain>
+              <Icon icon="material-symbols:download" width="20" height="20" style="margin-right: 8px;" />
+              从文件导入
+            </el-button>
+          </div>
+        </div>
+        <p class="setting-description">
+          将所有应用内数据导出到一个 JSON 文件进行备份，或从备份文件导入以恢复状态。
+        </p>
+      </div>
+      
+      <div class="setting-group">
+        <el-collapse v-model="activeCollapseNames">
+          <el-collapse-item name="webdav">
+            <template #title>
+              <div class="setting-item-title">
+                <span class="setting-label">WebDAV 同步</span>
+                <Icon icon="material-symbols:cloud-sync-outline" width="20" height="20" style="margin-left: 8px; color: var(--el-color-warning);" />
+              </div>
+            </template>
+            <p class="setting-description" style="margin-top: -10px; margin-bottom: 15px;">
+              将数据备份到你的 WebDAV 服务器。这将会上传一个包含所有设置、角色卡和项目的单一备份文件。
+            </p>
+            <div class="webdav-settings">
+              <el-input v-model="webdavConfig.url" placeholder="WebDAV URL" />
+              <el-input v-model="webdavConfig.username" placeholder="用户名" />
+              <el-input v-model="webdavConfig.password" placeholder="密码" type="password" show-password />
+              <div class="webdav-buttons">
+                  <el-button @click="testWebDAV">
+                    <Icon icon="material-symbols:add-link-rounded" style="margin-right: 8px;" />
+                    测试链接
+                  </el-button>
+                  <el-button @click="pushToWebDAV" type="primary">
+                    <Icon icon="material-symbols:cloud-upload" style="margin-right: 8px;" />
+                    推送
+                  </el-button>
+                  <el-button @click="pullFromWebDAV" type="success">
+                    <Icon icon="material-symbols:cloud-download-outline" style="margin-right: 8px;" />
+                    拉取
+                  </el-button>
+              </div>
+            </div>
+          </el-collapse-item>
+        </el-collapse>
+      </div>
+
     </div>
-    
+
     <!-- 关于区域 -->
     <div class="about-section">
       <h2>关于应用</h2>
       <p>这是一个用于创建和管理 SillyTavern 角色卡的在线应用程序。</p>
       <p>访问我们的 GitHub 页面获取更多信息或贡献代码：</p>
-      <p>开发版本：<b>dev_{{ appVersion }}({{ appCommitCount }})</b></p>
+      <p>
+        开发版本：
+        <b v-if="appCommitCount === '1'">在线版_{{ appVersion }}</b>
+        <b v-else>dev_{{ appVersion }}({{ appCommitCount }})</b>
+      </p>
     </div>
-    
+
     <a href="https://github.com/awaae001/st_cardplus" target="_blank" class="github-link">
-      <Icon icon="mdi:github" width="24" height="24"  style="margin-right: 4px;"/>
+      <Icon icon="mdi:github" width="24" height="24" style="margin-right: 4px;" />
       GitHub 仓库
     </a>
-      <div style="margin: 6px; display: inline;"></div>
-    <a href="https://autopatchcn.yuanshen.com/client_app/download/launcher/20241225164539_9oyGHAOXvzP4uaBW/mihoyo/yuanshen_setup_202412201736.exe" target="_blank" class="pro">
-      <Icon icon="material-symbols:key-vertical-outline" width="24" height="24"  style="margin-right: 4px;"/>
+    <div style="margin: 6px; display: inline;"></div>
+    <a href="https://autopatchcn.yuanshen.com/client_app/download/launcher/20241225164539_9oyGHAOXvzP4uaBW/mihoyo/yuanshen_setup_202412201736.exe"
+      target="_blank" class="pro">
+      <Icon icon="material-symbols:key-vertical-outline" width="24" height="24" style="margin-right: 4px;" />
       解锁高级版
     </a>
   </div>
@@ -91,13 +142,27 @@
 
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import { getBetaFeaturesEnabled, setBetaFeaturesEnabled, getUmamiEnabled, setUmamiEnabled, getAutoSaveInterval, setAutoSaveInterval } from '@/utils/localStorageUtils';
+import { uploadToWebDAV, downloadFromWebDAV, testWebDAVConnection } from '@/utils/webdav';
+
+interface WebDAVConfig {
+  url: string;
+  username: string;
+  password: string;
+}
 
 const betaFeaturesEnabled = ref(false);
 const umamiEnabled = ref(true);
 const autoSaveInterval = ref(5);
+const activeCollapseNames = ref<string[]>([]);
+const webdavConfig = ref<WebDAVConfig>({
+  url: '',
+  username: '',
+  password: '',
+});
+const webdavBackupFileName = 'st-cardplus-webdav-backup.json';
 
 const appVersion = __APP_VERSION__;
 const appCommitCount = __APP_COMMIT_COUNT__;
@@ -192,7 +257,7 @@ const onAutoSaveIntervalChange = (value: number) => {
 
 const toggleUmamiScript = (enabled: boolean) => {
   const existingScript = document.querySelector('script[data-website-id="6685fde6-dad1-49c1-b952-3a487d6991da"]');
-  
+
   if (enabled && !existingScript) {
     // 添加遥测脚本
     const script = document.createElement('script');
@@ -210,9 +275,199 @@ onMounted(() => {
   betaFeaturesEnabled.value = getBetaFeaturesEnabled();
   umamiEnabled.value = getUmamiEnabled();
   autoSaveInterval.value = getAutoSaveInterval();
+
+  // 加载保存的WebDAV配置
+  const savedWebDAVConfig = localStorage.getItem('webdavConfig');
+  if (savedWebDAVConfig) {
+    webdavConfig.value = JSON.parse(savedWebDAVConfig);
+  }
+
   // 根据设置初始化遥测脚本
   toggleUmamiScript(umamiEnabled.value);
 });
+
+watch(webdavConfig, (newConfig) => {
+  localStorage.setItem('webdavConfig', JSON.stringify(newConfig));
+}, { deep: true });
+
+const exportData = () => {
+  try {
+    const data: { [key: string]: any } = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key) {
+        data[key] = localStorage.getItem(key);
+      }
+    }
+
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `st-cardplus-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    ElMessage({
+      type: 'success',
+      message: '数据已成功导出',
+    });
+  } catch (error) {
+    console.error('导出数据失败:', error);
+    ElMessage({
+      type: 'error',
+      message: '导出数据失败',
+    });
+  }
+};
+
+const importData = () => {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'application/json';
+  input.onchange = (event) => {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const json = e.target?.result as string;
+        const data = JSON.parse(json);
+
+        ElMessageBox.confirm(
+          '这将用导入文件中的数据覆盖所有现有本地数据。此操作无法撤销。您确定要继续吗？',
+          '警告',
+          {
+            confirmButtonText: '确认导入',
+            cancelButtonText: '取消',
+            type: 'warning',
+          }
+        )
+          .then(() => {
+            localStorage.clear();
+            for (const key in data) {
+              if (Object.prototype.hasOwnProperty.call(data, key)) {
+                localStorage.setItem(key, data[key]);
+              }
+            }
+            ElMessage({
+              type: 'success',
+              message: '数据已成功导入。应用将重新加载以应用更改。',
+            });
+            setTimeout(() => {
+              window.location.reload();
+            }, 2000);
+          })
+          .catch(() => {
+            ElMessage({
+              type: 'info',
+              message: '导入操作已取消',
+            });
+          });
+      } catch (error) {
+        console.error('导入数据失败:', error);
+        ElMessage({
+          type: 'error',
+          message: '导入数据失败，文件格式可能不正确。',
+        });
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+};
+
+const testWebDAV = async () => {
+  if (!webdavConfig.value.url) {
+    ElMessage.error('请输入 WebDAV URL');
+    return;
+  }
+  try {
+    ElMessage.info('正在测试连接...');
+    await testWebDAVConnection(webdavConfig.value);
+    ElMessage.success('连接成功！');
+  } catch (error) {
+    console.error('WebDAV 连接测试失败:', error);
+    ElMessage.error(`连接失败: ${error instanceof Error ? error.message : '未知错误'}`);
+  }
+};
+
+const pushToWebDAV = async () => {
+  if (!webdavConfig.value.url) {
+    ElMessage.error('请输入 WebDAV URL');
+    return;
+  }
+  try {
+    ElMessage.info('正在准备数据并上传...');
+    const data: { [key: string]: any } = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key) {
+        // 排除webdav自身的配置
+        if (key === 'webdavConfig') continue;
+        data[key] = localStorage.getItem(key);
+      }
+    }
+
+    const json = JSON.stringify(data, null, 2);
+    await uploadToWebDAV(webdavConfig.value, webdavBackupFileName, json);
+
+    ElMessage.success('数据已成功推送到 WebDAV 服务器');
+  } catch (error) {
+    console.error('推送到 WebDAV 失败:', error);
+    ElMessage.error(`推送失败: ${error instanceof Error ? error.message : '未知错误'}`);
+  }
+};
+
+const pullFromWebDAV = async () => {
+  if (!webdavConfig.value.url) {
+    ElMessage.error('请输入 WebDAV URL');
+    return;
+  }
+  try {
+    ElMessage.info('正在从服务器拉取数据...');
+    const json = await downloadFromWebDAV(webdavConfig.value, webdavBackupFileName);
+    const data = JSON.parse(json);
+
+    ElMessageBox.confirm(
+      '这将用服务器上的备份覆盖所有现有本地数据。此操作无法撤销。您确定要继续吗？',
+      '警告',
+      {
+        confirmButtonText: '确认覆盖',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    )
+      .then(() => {
+        // 清理旧数据，但不清理WebDAV配置
+        const preservedWebDAVConfig = localStorage.getItem('webdavConfig');
+        localStorage.clear();
+        if (preservedWebDAVConfig) {
+            localStorage.setItem('webdavConfig', preservedWebDAVConfig);
+        }
+
+        for (const key in data) {
+          if (Object.prototype.hasOwnProperty.call(data, key)) {
+            localStorage.setItem(key, data[key]);
+          }
+        }
+        ElMessage.success('数据已成功从服务器恢复。应用将重新加载以应用更改。');
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      })
+      .catch(() => {
+        ElMessage.info('操作已取消');
+      });
+  } catch (error) {
+    console.error('从 WebDAV 拉取失败:', error);
+    ElMessage.error(`拉取失败: ${error instanceof Error ? error.message : '未知错误'}`);
+  }
+};
 </script>
 
 <style scoped>
@@ -234,7 +489,8 @@ onMounted(() => {
   background-clip: text;
 }
 
-.settings-section, .about-section {
+.settings-section,
+.about-section {
   margin: 24px 0;
   padding: 24px;
   border: 1px solid var(--el-border-color);
@@ -244,7 +500,8 @@ onMounted(() => {
   transition: all 0.3s ease;
 }
 
-.settings-section:hover, .about-section:hover {
+.settings-section:hover,
+.about-section:hover {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
@@ -256,7 +513,8 @@ onMounted(() => {
   text-align: center;
 }
 
-.settings-section h2, .about-section h2 {
+.settings-section h2,
+.about-section h2 {
   margin: 0 0 20px 0;
   color: var(--el-text-color-primary);
   font-size: 20px;
@@ -267,12 +525,39 @@ onMounted(() => {
 }
 
 .setting-group {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
+  /* 减少了组之间的间距 */
 }
 
 .setting-group:last-child {
   margin-bottom: 0;
 }
+
+/* 特定为 el-collapse-item 定制样式 */
+.setting-group :deep(.el-collapse-item__header) {
+  padding: 10px 20px;
+  background-color: var(--el-fill-color-lighter);
+  border-radius: 10px;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  height: auto;
+  line-height: normal;
+}
+
+.setting-group :deep(.el-collapse-item__header:hover) {
+  border-color: var(--el-color-primary-light-5);
+  background-color: var(--el-color-primary-light-9);
+}
+
+.setting-group :deep(.el-collapse-item__wrap) {
+  background-color: transparent;
+  border-bottom: none;
+  padding: 16px 20px 10px;
+}
+.setting-group :deep(.el-collapse-item__content) {
+  padding-bottom: 0;
+}
+
 
 .setting-item {
   display: flex;
@@ -286,10 +571,30 @@ onMounted(() => {
   transition: all 0.2s ease;
 }
 
+.setting-item-title {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    color: var(--el-text-color-primary);
+    font-size: 16px;
+}
+
 .setting-item:hover {
   border-color: var(--el-color-primary-light-5);
   background-color: var(--el-color-primary-light-9);
   transform: translateY(-1px);
+}
+
+.webdav-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.webdav-buttons{
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
 }
 
 .setting-info {
@@ -368,37 +673,40 @@ onMounted(() => {
   .about-page {
     padding: 16px;
   }
-  
+
   .about-page h1 {
     font-size: 28px;
   }
-  
-  .settings-section, .about-section {
+
+  .settings-section,
+  .about-section {
     padding: 20px;
     margin: 20px 0;
   }
-  
+
   .setting-item {
     padding: 16px;
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
-  
+
   .setting-info {
     width: 100%;
   }
-  
-  .github-link, .pro {
+
+  .github-link,
+  .pro {
     display: block;
     margin: 12px 0;
     text-align: center;
   }
-  
-  .settings-section h2, .about-section h2 {
+
+  .settings-section h2,
+  .about-section h2 {
     font-size: 18px;
   }
-  
+
   .interval-control {
     flex-direction: column;
     align-items: flex-end;

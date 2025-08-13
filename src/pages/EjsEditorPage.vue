@@ -53,7 +53,7 @@
             <VariablePanel />
           </div>
           <div v-show="mobileActivePanel === 'stages'" class="mobile-panel">
-            <StagePanel />
+            <LogicBlockPanel />
           </div>
           <div v-show="mobileActivePanel === 'editor'" class="mobile-panel">
             <div class="panel-header">
@@ -102,7 +102,7 @@
                 <VariablePanel />
               </el-tab-pane>
               <el-tab-pane label="阶段管理" name="stages" class="h-full">
-                <StagePanel />
+                <LogicBlockPanel />
               </el-tab-pane>
             </el-tabs>
           </div>
@@ -159,7 +159,7 @@ import { useDevice } from '@/composables/useDevice'
 // 组件导入
 import ProjectManager from '@/components/ejseditor/ProjectManager.vue'
 import VariablePanel from '@/components/ejseditor/VariablePanel.vue'
-import StagePanel from '@/components/ejseditor/StagePanel.vue'
+import LogicBlockPanel from '@/components/ejseditor/LogicBlockPanel.vue'
 import TemplateEditor from '@/components/ejseditor/TemplateEditor.vue'
 import PreviewPanel from '@/components/ejseditor/PreviewPanel.vue'
 import SimulationPanel from '@/components/ejseditor/SimulationPanel.vue'

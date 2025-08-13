@@ -2,6 +2,10 @@
   <div class="editable-variable-tree-node">
     <div class="node-content" :class="{ 'is-leaf': !isParentNode, 'is-root': depth === 0 }">
       <div class="node-main">
+        <el-icon v-if="isParentNode" @click="toggleExpand" class="expand-icon">
+          <ArrowRight v-if="!isExpanded" />
+          <ArrowDown v-else />
+        </el-icon>
         <el-input v-model="editableNode.key" placeholder="键" size="small" @change="updateNode" class="node-key-input"/>
         <span v-if="!isParentNode" class="separator">:</span>
         <el-input v-if="!isParentNode" v-model="editableNode.value" placeholder="值" size="small" @change="updateNode" class="node-value-input"/>
@@ -17,7 +21,7 @@
       </div>
     </div>
 
-    <div v-if="isParentNode" class="child-nodes">
+    <div v-if="isParentNode" v-show="isExpanded" class="child-nodes">
       <EditableVariableTreeNode
         v-for="child in node.children"
         :key="child.path"
@@ -31,8 +35,8 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useEjsEditorStore } from '@/stores/ejsEditor'
-import type { VariableNode } from '@/stores/ejsEditor'
-import { Plus, Delete } from '@element-plus/icons-vue'
+import type { VariableNode } from '@/types/ejs-editor'
+import { Plus, Delete, ArrowDown, ArrowRight } from '@element-plus/icons-vue'
 
 interface Props {
   node: VariableNode
@@ -44,6 +48,8 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const store = useEjsEditorStore()
+
+const isExpanded = ref(false)
 
 const editableNode = ref({
   key: props.node.key,
@@ -57,7 +63,13 @@ watch(() => props.node, (newNode) => {
   editableNode.value.description = newNode.description || ''
 }, { deep: true })
 
-const isParentNode = computed(() => props.node.children && props.node.children.length > 0)
+const isParentNode = computed(() => props.node.children !== undefined)
+
+function toggleExpand() {
+  if (isParentNode.value) {
+    isExpanded.value = !isExpanded.value
+  }
+}
 
 function updateNode() {
   store.updateNodeValue(
@@ -67,9 +79,9 @@ function updateNode() {
     editableNode.value.description
   )
 }
-
 function addChildNode() {
   store.addNode(props.node.path)
+  isExpanded.value = true // Auto-expand when adding a new child
 }
 
 function deleteNode() {
@@ -87,6 +99,10 @@ function deleteNode() {
   align-items: center;
   gap: 8px;
   padding: 4px 0;
+}
+.expand-icon {
+  cursor: pointer;
+  color: var(--el-text-color-secondary);
 }
 
 .node-main {

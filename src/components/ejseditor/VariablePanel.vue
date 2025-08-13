@@ -94,7 +94,7 @@ import { useDevice } from '@/composables/useDevice'
 import VariableTreeNode from './VariableTreeNode.vue'
 import EditableVariableTreeNode from './EditableVariableTreeNode.vue'
 import { watch } from 'vue'
-import type { VariableNode } from '@/stores/ejsEditor'
+import type { VariableNode } from '@/types/ejs-editor'
 
 const store = useEjsEditorStore()
 const { isMobile } = useDevice()
