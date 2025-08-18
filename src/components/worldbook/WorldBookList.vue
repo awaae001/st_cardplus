@@ -140,7 +140,7 @@ const treeProps = {
 
 const treeData = computed(() => {
   return Object.values(props.collection.books)
-    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
     .map(book => ({
       id: book.id,
       label: book.name,

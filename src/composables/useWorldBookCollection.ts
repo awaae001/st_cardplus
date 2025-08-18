@@ -36,6 +36,14 @@ export function useWorldBookCollection() {
 
       if (newFormatData && typeof newFormatData === 'object' && newFormatData.books && newFormatData.activeBookId) {
         worldBookCollection.value = newFormatData as WorldBookCollection;
+
+        //数据迁移：确保旧数据有 order 字段
+        Object.values(worldBookCollection.value.books).forEach((book) => {
+          if (typeof book.order !== 'number') {
+            book.order = new Date(book.createdAt).getTime();
+          }
+        });
+
       } else {
         const legacyData = loadFromLS(LOCAL_STORAGE_KEY_WORLDBOOK_LEGACY);
         const newCollection: WorldBookCollection = {
@@ -55,6 +63,7 @@ export function useWorldBookCollection() {
               createdAt: now,
               updatedAt: now,
               description: "这是从旧版本自动迁移的世界书。",
+              order: 0,
             };
             newCollection.activeBookId = newBookId;
             ElMessage.success("旧的世界书数据已成功迁移！");
@@ -71,6 +80,7 @@ export function useWorldBookCollection() {
             createdAt: now,
             updatedAt: now,
             description: "在这里开始你的创作吧！",
+            order: 0,
           };
           newCollection.activeBookId = newBookId;
         }
@@ -112,6 +122,10 @@ export function useWorldBookCollection() {
 
       const newBookId = uuidv4();
       const now = new Date().toISOString();
+      //   为新书设置 order  
+      const existingOrders = Object.values(worldBookCollection.value.books).map(b => b.order).filter(o => typeof o === 'number');
+      const maxOrder = existingOrders.length > 0 ? Math.max(...existingOrders) : -1;
+
       const newBook: WorldBook = {
         id: newBookId,
         name: bookName,
@@ -119,6 +133,7 @@ export function useWorldBookCollection() {
         createdAt: now,
         updatedAt: now,
         description: `创建于 ${new Date().toLocaleString()}`,
+        order: maxOrder + 1,
       };
 
       worldBookCollection.value.books[newBookId] = newBook;
@@ -215,6 +230,10 @@ export function useWorldBookCollection() {
         const now = new Date().toISOString();
         const fileName = file.name.replace(/\.json$/i, '').replace(/\.world$/i, '');
 
+        //   为导入的书设置 order  
+        const existingOrders = Object.values(worldBookCollection.value.books).map(b => b.order).filter(o => typeof o === 'number');
+        const maxOrder = existingOrders.length > 0 ? Math.max(...existingOrders) : -1;
+
         const newBook: WorldBook = {
           id: newBookId,
           name: jsonData.name || fileName || `导入的世界书`,
@@ -223,6 +242,7 @@ export function useWorldBookCollection() {
           createdAt: now,
           updatedAt: now,
           metadata: jsonData.metadata || {},
+          order: maxOrder + 1,
         };
 
         worldBookCollection.value.books[newBookId] = newBook;
@@ -297,6 +317,17 @@ export function useWorldBookCollection() {
     }
   };
 
+  const updateBookOrder = (bookIdsInOrder: string[]) => {
+    bookIdsInOrder.forEach((bookId, index) => {
+      const book = worldBookCollection.value.books[bookId];
+      if (book) {
+        book.order = index;
+        book.updatedAt = new Date().toISOString();
+      }
+    });
+    saveWorldBookToLocalStorage();
+  };
+
   return {
     worldBookCollection,
     activeBookId,
@@ -309,5 +340,6 @@ export function useWorldBookCollection() {
     saveWorldBookToLocalStorage,
     moveEntryBetweenBooks,
     updateBookEntries,
+    updateBookOrder,
   };
 }

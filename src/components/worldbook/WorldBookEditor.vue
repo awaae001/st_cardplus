@@ -35,8 +35,8 @@
               </div>
             </div>
             <div>
-              <label class="form-label">条目内容 (Content)</label><el-input v-model="localModel.content" type="textarea"
-                :autosize="{ minRows: 4, maxRows: 10 }" placeholder="当条目激活时，这段文本会被插入到AI的提示中..." />
+              <label class="form-label">条目内容 (Content)</label><el-input v-model="localModel.content" type="textarea" :rows="8"
+                placeholder="当条目激活时，这段文本会被插入到AI的提示中..." />
             </div>
             <div class="form-checkbox-padding">
               <el-checkbox v-model="localModel.addMemo" label="插入时附带备注 (Add Memo)" />
