@@ -1,13 +1,11 @@
-import { toRefs } from 'vue';
+import type { Ref } from 'vue';
 import type { CharacterCard } from '../../types/character';
 import { copyToClipboard as copyUtil } from '../../utils/clipboard';
 import { ElMessage } from 'element-plus';
 
-export function useCardSections(form: CharacterCard) {
-  const { traits, skills, relationships, attires, notes } = toRefs(form);
-
+export function useCardSections(form: Ref<CharacterCard>) {
   const addTrait = (): void => {
-    traits.value.push({
+    form.value.traits.push({
       name: '',
       description: '',
       dialogueExamples: [''],
@@ -16,11 +14,11 @@ export function useCardSections(form: CharacterCard) {
   };
 
   const removeTrait = (index: number): void => {
-    traits.value.splice(index, 1);
+    form.value.traits.splice(index, 1);
   };
 
   const addSkill = (): void => {
-    skills.value.push({
+    form.value.skills.push({
       name: '',
       description: '',
       dialogExample: '',
@@ -29,11 +27,11 @@ export function useCardSections(form: CharacterCard) {
   };
 
   const removeSkill = (index: number): void => {
-    skills.value.splice(index, 1);
+    form.value.skills.splice(index, 1);
   };
 
   const addRelationship = (): void => {
-    relationships.value.push({
+    form.value.relationships.push({
       name: '',
       description: '',
       features: '',
@@ -42,22 +40,22 @@ export function useCardSections(form: CharacterCard) {
   };
 
   const removeRelationship = (index: number): void => {
-    relationships.value.splice(index, 1);
+    form.value.relationships.splice(index, 1);
   };
 
   const addNote = (): void => {
-    notes.value.push({
+    form.value.notes.push({
       name: '',
       data: ['']
     });
   };
 
   const removeNote = (index: number): void => {
-    notes.value.splice(index, 1);
+    form.value.notes.splice(index, 1);
   };
 
   const addAttire = (): void => {
-    attires.value.push({
+    form.value.attires.push({
       name: '',
       description: '',
       tops: '',
@@ -70,12 +68,12 @@ export function useCardSections(form: CharacterCard) {
   };
 
   const removeAttire = (index: number): void => {
-    attires.value.splice(index, 1);
+    form.value.attires.splice(index, 1);
   };
 
   const exportAttires = async (): Promise<void> => {
     try {
-      const processedAttires = attires.value.map(attire => ({
+      const processedAttires = form.value.attires.map(attire => ({
         ...attire,
         accessories: typeof attire.accessories === 'string'
           ? attire.accessories.split('\n').filter(a => a.trim() !== '')
@@ -95,7 +93,7 @@ export function useCardSections(form: CharacterCard) {
   };
 
   const exportSkills = async (): Promise<void> => {
-    const skillsData = skills.value;
+    const skillsData = form.value.skills;
     if (skillsData.length === 0) {
       ElMessage.warning('没有可导出的技能');
       return;
@@ -104,7 +102,7 @@ export function useCardSections(form: CharacterCard) {
   };
 
   const exportTraits = async (): Promise<void> => {
-    const traitsData = traits.value;
+    const traitsData = form.value.traits;
     if (traitsData.length === 0) {
       ElMessage.warning('没有可导出的性格特质');
       return;
@@ -113,7 +111,7 @@ export function useCardSections(form: CharacterCard) {
   };
 
   const exportRelationships = async (): Promise<void> => {
-    const relationshipsData = relationships.value;
+    const relationshipsData = form.value.relationships;
     if (relationshipsData.length === 0) {
       ElMessage.warning('没有可导出的人际关系');
       return;
