@@ -2,7 +2,7 @@
   <div class="about-page">
     <div class="title-container">
       <h1>关于与设置</h1>
-      <p class="subtitle">管理自己的自定义</p>
+      <p class="subtitle">管理自己的自定义设置</p>
     </div>
 
     <el-tabs v-model="activeTab" class="settings-tabs">

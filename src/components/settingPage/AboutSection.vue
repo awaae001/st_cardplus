@@ -10,16 +10,18 @@
     </p>
   </div>
 
-  <a href="https://github.com/awaae001/st_cardplus" target="_blank" class="github-link">
-    <Icon icon="mdi:github" width="24" height="24" style="margin-right: 4px;" />
-    GitHub 仓库
-  </a>
-  <div style="margin: 6px; display: inline;"></div>
-  <a href="https://autopatchcn.yuanshen.com/client_app/download/launcher/20241225164539_9oyGHAOXvzP4uaBW/mihoyo/yuanshen_setup_202412201736.exe"
-    target="_blank" class="pro">
-    <Icon icon="material-symbols:key-vertical-outline" width="24" height="24" style="margin-right: 4px;" />
-    解锁高级版
-  </a>
+  <div style="display: flex;">
+    <a href="https://github.com/awaae001/st_cardplus" target="_blank" class="github-link">
+      <Icon icon="mdi:github" width="24" height="24" style="margin-right: 4px;" />
+      GitHub 仓库
+    </a>
+    <div style="margin: 6px; display: inline;"></div>
+    <a href="https://autopatchcn.yuanshen.com/client_app/download/launcher/20241225164539_9oyGHAOXvzP4uaBW/mihoyo/yuanshen_setup_202412201736.exe"
+      target="_blank" class="pro">
+      <Icon icon="material-symbols:key-vertical-outline" width="24" height="24" style="margin-right: 4px;" />
+      解锁高级版
+    </a>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -32,13 +34,7 @@ const appCommitCount = __APP_COMMIT_COUNT__;
 <style scoped>
 .about-section {
   margin: 24px 0;
-  padding: 24px;
-  border: 1px solid var(--el-border-color);
-  border-radius: 12px;
-  background-color: var(--el-bg-color);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   transition: all 0.3s ease;
-  text-align: center;
 }
 
 .about-section:hover {
@@ -67,7 +63,7 @@ const appCommitCount = __APP_COMMIT_COUNT__;
 }
 
 .github-link {
-  display: inline-block;
+  display: flex;
   margin: 16px 8px 0 0;
   padding: 12px 20px;
   background-color: #24292e;
@@ -80,7 +76,7 @@ const appCommitCount = __APP_COMMIT_COUNT__;
 }
 
 .pro {
-  display: inline-block;
+  display: flex;
   margin: 16px 0 0 8px;
   padding: 12px 20px;
   background-color: #37b466;
