@@ -1,23 +1,36 @@
 <template>
   <div class="about-page">
-    <h1>设置与关于</h1>
-
-    <div class="settings-section">
-      <h2>应用设置</h2>
-      <AppSettings />
-      <DataManagement />
-      <WebDAVSettings />
+    <div class="title-container">
+      <h1>关于与设置</h1>
+      <p class="subtitle">管理自己的自定义</p>
     </div>
 
-    <AboutSection />
+    <el-tabs v-model="activeTab" class="settings-tabs">
+      <el-tab-pane label="设置" name="settings">
+        <div class="settings-section">
+          <AppSettings />
+          <div style="margin: 16px;"></div>
+          <DataManagement />
+        </div>
+      </el-tab-pane>
+      <el-tab-pane label="WebDAV 同步" name="webdav">
+        <WebDAVSettings />
+      </el-tab-pane>
+      <el-tab-pane label="关于" name="about">
+        <AboutSection />
+      </el-tab-pane>
+    </el-tabs>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue';
 import AppSettings from './settingPage/AppSettings.vue';
 import DataManagement from './settingPage/DataManagement.vue';
 import WebDAVSettings from './settingPage/WebDAVSettings.vue';
 import AboutSection from './settingPage/AboutSection.vue';
+
+const activeTab = ref('settings');
 </script>
 
 <style scoped>
@@ -27,59 +40,46 @@ import AboutSection from './settingPage/AboutSection.vue';
   margin: 0 auto;
 }
 
-.about-page h1 {
-  color: var(--el-text-color-primary);
-  margin-bottom: 32px;
-  font-size: 32px;
+.title-container {
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.title-container h1 {
+  font-size: 24px;
   font-weight: 700;
-  text-align: center;
-  background: linear-gradient(135deg, var(--el-color-primary), var(--el-color-success));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--el-text-color-primary);
+  margin: 0;
+}
+
+.title-container .subtitle {
+  font-size: 14px;
+  color: var(--el-text-color-secondary);
+  margin-top: 4px;
+}
+
+.settings-tabs {
+  margin-top: 20px;
+}
+
+:deep(.el-tabs__header) {
+  margin: 0 0 25px;
+}
+
+:deep(.el-tabs__item) {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+:deep(.el-tabs__item.is-active) {
+  color: var(--el-color-primary);
+}
+
+:deep(.el-tabs__active-bar) {
+  background-color: var(--el-color-primary);
 }
 
 .settings-section {
-  margin: 24px 0;
-  padding: 24px;
-  border: 1px solid var(--el-border-color);
-  border-radius: 12px;
-  background-color: var(--el-bg-color);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  transition: all 0.3s ease;
   text-align: left;
-}
-
-.settings-section:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-}
-
-.settings-section h2 {
-  margin: 0 0 20px 0;
-  color: var(--el-text-color-primary);
-  font-size: 20px;
-  font-weight: 600;
-  border-bottom: 2px solid var(--el-color-primary);
-  padding-bottom: 8px;
-  display: inline-block;
-}
-
-@media (max-width: 768px) {
-  .about-page {
-    padding: 16px;
-  }
-
-  .about-page h1 {
-    font-size: 28px;
-  }
-
-  .settings-section {
-    padding: 20px;
-    margin: 20px 0;
-  }
-
-  .settings-section h2 {
-    font-size: 18px;
-  }
 }
 </style>

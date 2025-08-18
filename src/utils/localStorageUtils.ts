@@ -151,3 +151,31 @@ export const setAutoSaveInterval = (interval: number) => {
     console.error('保存自动保存间隔设置失败:', error);
   }
 };
+
+
+/**
+ * 获取是否使用旧版侧边栏的设置
+ * @returns 是否使用旧版侧边栏
+ */
+export const getUseOldSidebar = (): boolean => {
+  try {
+    const enabled = localStorage.getItem('useOldSidebar');
+    return enabled !== 'false'; 
+  } catch (error) {
+    console.error('获取旧版侧边栏设置失败:', error);
+    return true; // 默认开启
+  }
+};
+
+/**
+ * 设置是否使用旧版侧边栏
+ * @param enabled - 是否使用旧版侧边栏
+ */
+export const setUseOldSidebar = (enabled: boolean) => {
+  try {
+    localStorage.setItem('useOldSidebar', enabled.toString());
+    console.log('旧版侧边栏设置已保存:', enabled);
+  } catch (error) {
+    console.error('保存旧版侧边栏设置失败:', error);
+  }
+};

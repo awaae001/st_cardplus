@@ -1,38 +1,32 @@
 <template>
   <div class="setting-group">
-    <el-collapse v-model="activeCollapseNames">
-      <el-collapse-item name="webdav">
-        <template #title>
-          <div class="setting-item-title">
-            <span class="setting-label">WebDAV 同步</span>
-            <Icon icon="material-symbols:cloud-sync-outline" width="20" height="20"
-              style="margin-left: 8px; color: var(--el-color-warning);" />
-          </div>
-        </template>
-        <p class="setting-description" style="margin-top: -10px; margin-bottom: 15px;">
-          将数据备份到你的 WebDAV 服务器。这将会上传一个包含所有设置、角色卡和项目的单一备份文件。
-        </p>
-        <div class="webdav-settings">
-          <el-input v-model="webdavConfig.url" placeholder="WebDAV URL" />
-          <el-input v-model="webdavConfig.username" placeholder="用户名" />
-          <el-input v-model="webdavConfig.password" placeholder="密码" type="password" show-password />
-          <div class="webdav-buttons">
-            <el-button @click="testWebDAV">
-              <Icon icon="material-symbols:add-link-rounded" style="margin-right: 8px;" />
-              测试链接
-            </el-button>
-            <el-button @click="pushToWebDAV" type="primary">
-              <Icon icon="material-symbols:cloud-upload" style="margin-right: 8px;" />
-              推送
-            </el-button>
-            <el-button @click="pullFromWebDAV" type="success">
-              <Icon icon="material-symbols:cloud-download-outline" style="margin-right: 8px;" />
-              拉取
-            </el-button>
-          </div>
-        </div>
-      </el-collapse-item>
-    </el-collapse>
+    <div class="setting-item-title">
+      <span class="setting-label">WebDAV 同步</span>
+      <Icon icon="material-symbols:cloud-sync-outline" width="20" height="20"
+        style="margin-left: 8px; color: var(--el-color-warning);" />
+    </div>
+    <p class="setting-description" style="margin-top: 10px; margin-bottom: 15px;">
+      将数据备份到你的 WebDAV 服务器。这将会上传一个包含所有设置、角色卡和项目的单一备份文件。
+    </p>
+    <div class="webdav-settings">
+      <el-input v-model="webdavConfig.url" placeholder="WebDAV URL" />
+      <el-input v-model="webdavConfig.username" placeholder="用户名" />
+      <el-input v-model="webdavConfig.password" placeholder="密码" type="password" show-password />
+      <div class="webdav-buttons">
+        <el-button @click="testWebDAV">
+          <Icon icon="material-symbols:add-link-rounded" style="margin-right: 8px;" />
+          测试链接
+        </el-button>
+        <el-button @click="pushToWebDAV" type="primary">
+          <Icon icon="material-symbols:cloud-upload" style="margin-right: 8px;" />
+          推送
+        </el-button>
+        <el-button @click="pullFromWebDAV" type="success">
+          <Icon icon="material-symbols:cloud-download-outline" style="margin-right: 8px;" />
+          拉取
+        </el-button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -48,7 +42,6 @@ interface WebDAVConfig {
   password: string;
 }
 
-const activeCollapseNames = ref<string[]>([]);
 const webdavConfig = ref<WebDAVConfig>({
   url: '',
   username: '',
@@ -159,30 +152,6 @@ const pullFromWebDAV = async () => {
   margin-bottom: 16px;
 }
 
-.setting-group :deep(.el-collapse-item__header) {
-  padding: 10px 20px;
-  background-color: var(--el-fill-color-lighter);
-  border-radius: 10px;
-  border: 1px solid transparent;
-  transition: all 0.2s ease;
-  height: auto;
-  line-height: normal;
-}
-
-.setting-group :deep(.el-collapse-item__header:hover) {
-  border-color: var(--el-color-primary-light-5);
-  background-color: var(--el-color-primary-light-9);
-}
-
-.setting-group :deep(.el-collapse-item__wrap) {
-  background-color: transparent;
-  border-bottom: none;
-  padding: 16px 20px 10px;
-}
-
-.setting-group :deep(.el-collapse-item__content) {
-  padding-bottom: 0;
-}
 
 .setting-item-title {
   display: flex;

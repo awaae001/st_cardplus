@@ -1,25 +1,27 @@
 <template>
-  <div class="setting-group">
-    <div class="setting-item">
-      <div class="setting-info">
-        <span class="setting-label">本地数据迁移</span>
-        <Icon icon="material-symbols:folder-open-outline" width="20" height="20"
-          style="margin-left: 8px; color: var(--el-color-primary);" />
+  <div class="setting-card">
+    <div class="setting-content">
+      <div class="setting-header">
+        <div class="setting-info">
+          <span class="setting-label">本地数据迁移</span>
+          <Icon icon="material-symbols:folder-open-outline" width="20" height="20"
+            style="margin-left: 8px; color: var(--el-color-primary);" />
+        </div>
+        <div>
+          <el-button @click="exportData" type="primary" plain>
+            <Icon icon="material-symbols:upload" width="20" height="20" style="margin-right: 8px;" />
+            导出到文件
+          </el-button>
+          <el-button @click="importData" type="success" plain>
+            <Icon icon="material-symbols:download" width="20" height="20" style="margin-right: 8px;" />
+            从文件导入
+          </el-button>
+        </div>
       </div>
-      <div>
-        <el-button @click="exportData" type="primary" plain>
-          <Icon icon="material-symbols:upload" width="20" height="20" style="margin-right: 8px;" />
-          导出到文件
-        </el-button>
-        <el-button @click="importData" type="success" plain>
-          <Icon icon="material-symbols:download" width="20" height="20" style="margin-right: 8px;" />
-          从文件导入
-        </el-button>
-      </div>
+      <p class="setting-description">
+        将所有应用内数据导出到一个 JSON 文件进行备份，或从备份文件导入以恢复状态。
+      </p>
     </div>
-    <p class="setting-description">
-      将所有应用内数据导出到一个 JSON 文件进行备份，或从备份文件导入以恢复状态。
-    </p>
   </div>
 </template>
 
@@ -120,26 +122,29 @@ const importData = () => {
 </script>
 
 <style scoped>
-.setting-group {
+.setting-card {
+  background-color: var(--el-bg-color-overlay);
+  border: 1px solid var(--el-border-color);
+  border-radius: 8px;
+  padding: 16px;
+  transition: box-shadow 0.3s ease;
   margin-bottom: 16px;
 }
 
-.setting-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  padding: 20px;
-  background-color: var(--el-fill-color-lighter);
-  border-radius: 10px;
-  border: 1px solid transparent;
-  transition: all 0.2s ease;
+.setting-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-.setting-item:hover {
-  border-color: var(--el-color-primary-light-5);
-  background-color: var(--el-color-primary-light-9);
-  transform: translateY(-1px);
+.setting-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.setting-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
 }
 
 .setting-info {
@@ -148,20 +153,16 @@ const importData = () => {
 }
 
 .setting-label {
+  font-size: 16px;
   font-weight: 600;
   color: var(--el-text-color-primary);
-  font-size: 16px;
 }
 
 .setting-description {
   font-size: 13px;
   color: var(--el-text-color-secondary);
-  text-align: left;
-  margin: 8px 0 0 0;
   line-height: 1.5;
-  background-color: var(--el-fill-color-light);
-  padding: 8px 12px;
-  border-radius: 6px;
-  border-left: 3px solid var(--el-color-info);
+  margin: 0;
+  text-align: left;
 }
 </style>
