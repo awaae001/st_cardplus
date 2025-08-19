@@ -7,56 +7,73 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: () => import('../pages/HomePage.vue')
+      component: () => import('../pages/HomePage.vue'),
+      meta: { title: '主页' }
     },
     {
       path: '/card',
       name: 'card',
-      component: () => import('../pages/CardPage.vue')
+      component: () => import('../pages/CardPage.vue'),
+      meta: { title: '角色卡编辑器' }
     },
     {
       path: '/world',
       name: 'world',
-      component: () => import('../pages/WorldPage.vue')
+      component: () => import('../pages/WorldPage.vue'),
+      meta: { title: '世界设定' }
     },
     {
       path:'/cardoutput',
       name:'cardoutput',
-      component: () => import('../pages/CardOutput.vue')
+      component: () => import('../pages/CardOutput.vue'),
+      meta: { title: '角色卡导出' }
     },
     {
       path:'/worldbook',
       name:'worldbook',
-      component: () => import('../pages/WorldBook.vue')
+      component: () => import('../pages/WorldBook.vue'),
+      meta: { title: '世界书' }
     },
     {
       path: '/about',
       name: 'about',
-      component: () => import('../pages/About.vue')
+      component: () => import('../pages/About.vue'),
+      meta: { title: '关于' }
     },
     {
       path: '/toolbox',
       name: 'toolbox',
-      component: () => import('../pages/ToolboxPage.vue')
+      component: () => import('../pages/ToolboxPage.vue'),
+      meta: { title: '工具箱' }
     },
     {
       path: '/toolbox/json-formatter',
       name: 'jsonFormatter',
-      component: () => import('../components/toolsbox/JsonFormatter.vue')
+      component: () => import('../components/toolsbox/JsonFormatter.vue'),
+      meta: { title: 'JSON 格式化' }
     },
     {
       path: '/toolbox/separator',
       name: 'separator',
-      component: () => import('../components/toolsbox/separator.vue')
+      component: () => import('../components/toolsbox/separator.vue'),
+      meta: { title: '分隔符工具' }
     },
     {
       path: '/ejs-editor',
       name: 'ejsEditor',
-      component: () => import('../pages/EjsEditorPage.vue')
+      component: () => import('../pages/EjsEditorPage.vue'),
+      meta: { title: 'EJS 编辑器' }
     }
   ]
 })
 
+router.afterEach((to) => {
+  if (to.meta.title) {
+    document.title = `酒馆角色卡工具箱 · ${to.meta.title}`
+  } else {
+    document.title = '酒馆角色卡工具箱'
+  }
+})
 // router.beforeEach((to, from, next) => {
 //   if (from.name) { // 如果不是首次加载
 //     const confirmLeave = window.confirm('确定离开？离开后数据清空')

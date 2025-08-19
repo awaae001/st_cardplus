@@ -252,11 +252,11 @@ onUnmounted(() => {
 
 .content-container {
   overflow: hidden;
-  padding: 16px;
+  padding: 8px;
   position: relative;
   /* 为浮动按钮留出空间 */
   padding-top: 60px;
-  margin-top: -50px;
+  margin-top: -54px;
 }
 
 .toggle-button {
