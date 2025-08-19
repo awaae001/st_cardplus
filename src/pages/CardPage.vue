@@ -1,16 +1,218 @@
 <template>
-  <div class="card-page">
-    <CharacterCardEditor />
+  <div class="card-page-container">
+    <!-- Mobile Layout -->
+    <div class="card-page-mobile-layout" v-if="useNewEditor">
+      <el-tabs v-model="activeTab" type="border-card" class="card-page-tabs-mobile">
+        <el-tab-pane name="list">
+          <template #label>
+            <span>
+              <i class="el-icon-user"></i> 角色列表
+            </span>
+          </template>
+          <CharacterListSidebar
+            :characters="characters"
+            :active-character-id="activeCharacterId"
+            @select="handleSelectCharacterWithTabSwitch"
+            @create="handleCreateCharacter"
+            @delete="handleDeleteCharacter"
+            @import="handleImportCharacter"
+          />
+        </el-tab-pane>
+        <el-tab-pane name="editor" :disabled="!activeCharacter">
+          <template #label>
+            <span>
+              <i class="el-icon-edit"></i> {{ activeCharacter ? activeCharacter.chineseName || '编辑中' : '编辑角色' }}
+            </span>
+          </template>
+          <div class="editor-area">
+            <component
+              :is="editorComponent"
+              v-if="activeCharacter"
+              :character="activeCharacter"
+              @update:character="handleUpdateCharacter"
+            />
+            <div v-else class="editor-empty-state">
+              <el-empty description="请在左侧选择一个角色进行编辑，或创建一个新角色。" />
+            </div>
+          </div>
+        </el-tab-pane>
+      </el-tabs>
+    </div>
+
+    <!-- Desktop Layout -->
+    <div class="card-page-desktop-layout" v-if="useNewEditor">
+      <Splitpanes class="default-theme" style="width: 100%; height: 100%">
+        <Pane size="15" min-size="10" max-size="25">
+          <CharacterListSidebar
+            :characters="characters"
+            :active-character-id="activeCharacterId"
+            @select="handleSelectCharacter"
+            @create="handleCreateCharacter"
+            @delete="handleDeleteCharacter"
+            @import="handleImportCharacter"
+          />
+        </Pane>
+        <Pane size="85">
+          <div class="editor-area">
+            <component
+              :is="editorComponent"
+              v-if="activeCharacter"
+              :character="activeCharacter"
+              @update:character="handleUpdateCharacter"
+            />
+            <div v-else class="editor-empty-state">
+              <el-empty description="请在左侧选择一个角色进行编辑，或创建一个新角色。" />
+            </div>
+          </div>
+        </Pane>
+      </Splitpanes>
+    </div>
+
+    <div v-if="!useNewEditor" class="editor-area-full">
+        <component :is="editorComponent" />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import CharacterCardEditor from '../components/CharacterCardEditor.vue'
+import { computed, watch, onUnmounted, nextTick, ref, shallowRef, onMounted } from 'vue';
+import type { Component } from 'vue';
+import { ElEmpty, ElTabs, ElTabPane } from 'element-plus';
+import { Splitpanes, Pane } from 'splitpanes';
+import 'splitpanes/dist/splitpanes.css';
+import CharacterListSidebar from '../components/charcard/CharacterListSidebar.vue';
+import { useCharacterCollection } from '../composables/characterCard/useCharacterCollection';
+import { useDevice } from '../composables/useDevice';
+import { getUseNewCharCardEditor } from '@/utils/localStorageUtils';
+
+const { isMobile } = useDevice();
+const activeTab = ref('list');
+const useNewEditor = ref(false);
+const editorComponent = shallowRef<Component | null>(null);
+
+const {
+  characterCollection,
+  activeCharacterId,
+  activeCharacter,
+  handleSelectCharacter,
+  handleCreateCharacter,
+  handleDeleteCharacter,
+  handleImportCharacter,
+} = useCharacterCollection();
+
+const handleSelectCharacterWithTabSwitch = (characterId: string) => {
+  handleSelectCharacter(characterId);
+  if (isMobile.value) {
+    activeTab.value = 'editor';
+  }
+};
+
+watch(activeCharacterId, (newId) => {
+  if (isMobile.value && !newId) {
+    activeTab.value = 'list';
+  }
+});
+
+const characters = computed(() => Object.values(characterCollection.value.characters));
+
+const handleUpdateCharacter = (updatedCharacter: any) => {
+  if (updatedCharacter && updatedCharacter.id) {
+    nextTick(() => {
+      // 确保响应式更新，创建新的引用
+      characterCollection.value = {
+        ...characterCollection.value,
+        characters: {
+          ...characterCollection.value.characters,
+          [updatedCharacter.id]: { ...updatedCharacter }
+        }
+      };
+    });
+  }
+};
+
+// Store the original title
+const originalTitle = document.title;
+
+// Watch for changes in the active character and update the document title
+watch(activeCharacter, (newCharacter) => {
+  if (newCharacter && newCharacter.chineseName) {
+    document.title = `角色卡 : ${newCharacter.chineseName}`;
+  } else {
+    document.title = '角色卡编辑器';
+  }
+}, { immediate: true, deep: true });
+
+onMounted(async () => {
+  useNewEditor.value = getUseNewCharCardEditor();
+  if (useNewEditor.value) {
+    const module = await import('../components/CharacterCardEditor.vue');
+    editorComponent.value = module.default;
+  } else {
+    const module = await import('../components/old/charainfo/CharacterCardEditor.vue');
+    editorComponent.value = module.default;
+  }
+});
+
+// Restore the original title when the component is unmounted
+onUnmounted(() => {
+  document.title = originalTitle;
+});
 </script>
 
 <style scoped>
-.card-page {
+.card-page-container {
   width: 100%;
   height: 100%;
+}
+
+.card-page-mobile-layout {
+  display: block;
+  height: 100%;
+}
+
+.card-page-desktop-layout {
+  display: none;
+}
+
+.card-page-tabs-mobile {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+:deep(.el-tabs__content) {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.editor-area {
+  flex-grow: 1;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.editor-empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.editor-area-full {
+    width: 100%;
+    height: 100%;
+}
+
+@media (min-width: 768px) {
+  .card-page-mobile-layout {
+    display: none;
+  }
+
+  .card-page-desktop-layout {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
 }
 </style>

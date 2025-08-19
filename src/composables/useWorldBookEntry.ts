@@ -211,6 +211,21 @@ export function useWorldBookEntry(
     return null;
   });
 
+  //监听 activeBook 的变化
+  watch(
+    activeBook,
+    (newBook, oldBook) => {
+      // 当世界书切换时，重置选择
+      if (newBook?.id !== oldBook?.id) {
+        selectedEntryIndex.value = null;
+        editableEntry.value = {};
+        // 切换到列表视图可能是一个好主意，除非新书有条目
+        activeTab.value = newBook && newBook.entries.length > 0 ? 'editor' : 'list';
+      }
+    },
+    { deep: true }
+  );
+  
   watch(
     selectedEntryIndex,
     (newIndex) => {

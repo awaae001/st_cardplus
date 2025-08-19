@@ -60,7 +60,7 @@
 import { defineProps, ref, watch } from 'vue';
 import { Icon } from "@iconify/vue";
 import draggable from 'vuedraggable';
-import type { CharacterCard, Note } from '../../types/character';
+import type { CharacterCard, Note } from '../../../../types/character';
 
 const props = defineProps<{
   form: CharacterCard;

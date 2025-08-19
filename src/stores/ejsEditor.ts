@@ -369,7 +369,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
   }
 
   function generateSingleCondition(condition: Condition): string {
-    const varGetter = `getvar('${condition.variablePath}')`
+    const varGetter = `getvar('stat_data.${condition.variablePath}')`
     const value = !isNaN(parseFloat(condition.value)) && isFinite(condition.value)
       ? condition.value
       : `'${condition.value}'`

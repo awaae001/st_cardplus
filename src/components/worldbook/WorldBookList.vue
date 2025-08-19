@@ -25,6 +25,8 @@
         :allow-drag="props.dragDropHandlers.allowDrag"
         :allow-drop="props.dragDropHandlers.allowDrop"
         @node-drop="onNodeDrop"
+        @node-expand="handleNodeExpand"
+        @node-collapse="handleNodeCollapse"
       >
         <template #default="{ node, data }">
           <div class="custom-tree-node" :class="{ 'is-disabled': data.isEntry && data.raw.disable }">
@@ -140,7 +142,7 @@ const treeProps = {
 
 const treeData = computed(() => {
   return Object.values(props.collection.books)
-    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
     .map(book => ({
       id: book.id,
       label: book.name,
@@ -171,6 +173,21 @@ const handleNodeClick = (data: any) => {
     emit('select-entry', data.bookId, data.entryIndex);
   } else {
     emit('select-book', data.id);
+  }
+};
+
+const handleNodeExpand = (data: any) => {
+  if (data.id && !expandedKeys.value.includes(data.id)) {
+    expandedKeys.value.push(data.id);
+  }
+};
+
+const handleNodeCollapse = (data: any) => {
+  if (data.id) {
+    const index = expandedKeys.value.indexOf(data.id);
+    if (index > -1) {
+      expandedKeys.value.splice(index, 1);
+    }
   }
 };
 </script>

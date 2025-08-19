@@ -1,9 +1,6 @@
 <template>
   <div id="tiltleMain">
-    <h2>
-      角色信息
-      <span v-if="props.characterName" class="title-character-name">: {{ props.characterName }}</span>
-    </h2>
+    <h1  >角色信息编辑器</h1>
     <div class="btnSL">
       <div class="btnSL2">
         <el-button type="success" @click="loadCharacterCard">
@@ -33,13 +30,9 @@
 </template>
 
 <script setup lang="ts">
-import { defineEmits, defineProps } from 'vue';
+import { defineEmits } from 'vue';
 import { Icon } from "@iconify/vue";
 import { ElMessageBox } from 'element-plus';
-
-const props = defineProps<{
-  characterName?: string;
-}>();
 
 const emit = defineEmits<{
   (e: 'saveCharacterCard'): void;
@@ -120,17 +113,6 @@ const showImportDialog = () => {
   display: flex;
   justify-content: flex-start;
   align-items: center;
-}
-
-#tiltleMain h1 {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.title-character-name {
-  font-weight: 500;
-  color: var(--el-color-primary);
 }
 
 #tiltleMain {

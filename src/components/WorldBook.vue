@@ -120,6 +120,7 @@ const {
   saveWorldBookToLocalStorage,
   moveEntryBetweenBooks,
   updateBookEntries,
+  updateBookOrder,
 } = useWorldBookCollection();
 
 // Manage entries of the active world book
@@ -154,6 +155,7 @@ const dragDropHandlers = useWorldBookDragDrop(
   worldBookCollection,
   moveEntryBetweenBooks,
   updateBookEntries,
+  updateBookOrder,
   forceUpdateEntries
 );
 

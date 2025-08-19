@@ -37,6 +37,7 @@ export interface WorldBook {
   entries: WorldBookEntry[];
   createdAt: string; // ISO 8601 格式
   updatedAt: string; // ISO 8601 格式
+  order: number; // 用于排序
   // 可选的元数据
   description?: string; 
   // 为将来的功能预留

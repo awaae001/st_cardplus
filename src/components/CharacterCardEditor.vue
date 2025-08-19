@@ -1,692 +1,214 @@
 <template>
-  <div class="p-2 md:p-4 min-h-screen">
-    <CharacterCardButtons @saveCharacterCard="saveCharacterCard" @loadCharacterCard="loadCharacterCard"
-      @resetForm="resetForm" @copyToClipboard="copyToClipboard"
-      @importFromClipboard="(data) => importFromClipboard(data)" />
+  <el-scrollbar class="character-card-editor-scrollbar">
+    <div class="content-panel-body">
+      <CharacterCardButtons
+        :characterName="form.chineseName"
+        @saveCharacterCard="saveCharacterCard" @loadCharacterCard="loadCharacterCard"
+        @resetForm="resetForm" @copyToClipboard="copyToClipboard"
+        @importFromClipboard="(data) => importFromClipboard(data)" />
+      <el-form :model="form" label-position="top" ref="characterFormRef" class="character-card-editor-form">
+        <section class="form-section">
+          <h3 class="form-section-title">
+            <Icon icon="ph:info-duotone" class="form-section-icon" />基本信息
+          </h3>
+          <div class="form-section-content">
+            <div class="form-row-responsive">
+              <div class="form-group-responsive">
+                <label class="form-label">中文名</label>
+                <el-input v-model="form.chineseName" placeholder="请输入中文名" />
+              </div>
+              <div class="form-group-responsive">
+                <label class="form-label">日文名</label>
+                <el-input v-model="form.japaneseName" disabled placeholder="逻辑未处理" />
+              </div>
+            </div>
+            <div class="form-row-responsive">
+              <div class="form-group-responsive">
+                <label class="form-label">性别</label>
+                <el-select v-model="form.gender" placeholder="请选择性别" class="form-full-width">
+                  <el-option label="女性" value="female" />
+                  <el-option label="男性" value="male" />
+                  <el-option label="秀吉（伪娘、正太）" value="秀吉（伪娘、正太）" />
+                  <el-option label="武装直升机" value="helicopter" />
+                  <el-option label="牢大" value="Prison_big" />
+                  <el-option label="永雏塔菲" value="tiffany" />
+                  <el-option label="赛马娘" value="horse" />
+                  <el-option label="沃尔玛购物袋" value="walmartShopingBag" />
+                  <el-option label="其他(自定义)" value="other" />
+                </el-select>
+                <el-input v-if="form.gender === 'other'" v-model="form.customGender" placeholder="请输入角色的性别（other）"
+                  style="margin-top: 10px;" />
+              </div>
+              <div class="form-group-responsive">
+                <label class="form-label">年龄</label>
+                <el-input-number v-model="form.age" controls-position="right" :min="-Infinity" :max="Infinity"
+                  :precision="0" class="form-full-width" />
+                <p class="form-help-text">限制为数字，请勿输入其他字段</p>
+              </div>
+            </div>
+            <div>
+              <label class="form-label">身份</label>
+              <el-input v-model="form.identity" type="textarea" :rows="5" placeholder="请输入身份 · 一行一条" />
+            </div>
+          </div>
+        </section>
 
-    <div class="section-container flex-col md:flex-row">
-      <BasicInfo :form="form" />
-      <BackgroundStory :form="form" />
+        <section class="form-section">
+          <h3 class="form-section-title">
+            <Icon icon="ph:book-open-duotone" class="form-section-icon" />背景故事
+          </h3>
+          <div class="form-section-content">
+            <div>
+              <label class="form-label">背景故事</label>
+              <el-input v-model="form.background" type="textarea" :rows="6" placeholder="请输入背景故事（每行一条）" />
+            </div>
+            <div style="margin-top: 1rem;">
+              <div class="title-Btn" style="display: flex;align-items: center;justify-content: space-between;">
+                <label class="form-label">MBTI性格</label>
+                <el-button type="primary" @click="validateMBTI">
+                  <Icon icon="material-symbols:question-exchange" width="18" height="18" style="margin-right: 4px;" />验证
+                </el-button>
+              </div>
+              <p class="form-help-text">必须是有效的MBTI数值或者是 none </p>
+              <el-input v-model="form.mbti" placeholder="请输入MBTI性格" />
+            </div>
+          </div>
+        </section>
+
+        <el-tabs v-model="activeTab" class="settings-tabs">
+          <el-tab-pane label="外观与服装" name="appearance">
+            <AppearanceAndAttireTab :form="form" @addAttire="addAttire" @removeAttire="removeAttire"
+              @exportAttires="exportAttires" v-model:attires="form.attires" />
+          </el-tab-pane>
+          <el-tab-pane label="角色特质" name="traits">
+            <TraitsTab :form="form" @addTrait="addTrait" @removeTrait="removeTrait" @exportTraits="exportTraits"
+              v-model:traits="form.traits" @addRelationship="addRelationship" @removeRelationship="removeRelationship"
+              @exportRelationships="exportRelationships" v-model:relationships="form.relationships" @addSkill="addSkill"
+              @removeSkill="removeSkill" @exportSkills="exportSkills" v-model:skills="form.skills" />
+          </el-tab-pane>
+          <el-tab-pane label="日常与笔记" name="notes">
+            <DailyAndNotesTab :form="form" @update:form-likes="form.likes = $event"
+              @update:form-dislikes="form.dislikes = $event" @addNote="addNote" @removeNote="removeNote"
+              v-model:notes="form.notes" />
+          </el-tab-pane>
+        </el-tabs>
+      </el-form>
     </div>
-
-    <AppearanceFeatures :form="form" />
-
-    <div style="margin-top: 4px;"></div>
-
-    <AttireSettings :form="form" :addAttire="addAttire" :removeAttire="removeAttire" :exportAttires="exportAttires" />
-
-    <PersonalityTraits :form="form" :addTrait="addTrait" :removeTrait="removeTrait" :exportTraits="exportTraits" />
-
-    <div style="margin: 4px;"></div>
-
-    <Relationships :form="form" :addRelationship="addRelationship" :removeRelationship="removeRelationship"
-      :exportRelationships="exportRelationships" />
-
-    <CharacterNotes :form="form" :addNote="addNote" :removeNote="removeNote" />
-
-    <div style="margin: 4px;"></div>
-
-    <SkillsEditor :form="form" :addSkill="addSkill" :removeSkill="removeSkill" :exportSkills="exportSkills" />
-
-    <div style="margin: 4px;"></div>
-
-    <LikesDislikesRoutine :form="form" />
-
-  </div>
+  </el-scrollbar>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
-import { saveAs } from 'file-saver';
-
-// 导入组件
+import { ref, watch, nextTick } from 'vue';
+import { ElScrollbar, ElForm, ElInput, ElSelect, ElOption, ElInputNumber, ElTabs, ElTabPane, ElButton, ElMessageBox } from 'element-plus';
+import { Icon } from '@iconify/vue';
 import CharacterCardButtons from './charcard/CharacterCardButtons.vue';
-import {
-  saveToLocalStorage,
-  loadFromLocalStorage,
-  clearLocalStorage,
-  initAutoSave,
-  clearAutoSave
-} from '../utils/localStorageUtils';
-import { copyToClipboard as copyUtil } from '../utils/clipboard';
-import BasicInfo from './charcard/BasicInfo.vue';
-import BackgroundStory from './charcard/BackgroundStory.vue';
-import AppearanceFeatures from './charcard/AppearanceFeatures.vue';
-import AttireSettings from './charcard/AttireSettings.vue';
-import PersonalityTraits from './charcard/PersonalityTraits.vue';
-import Relationships from './charcard/Relationships.vue';
-import LikesDislikesRoutine from './charcard/LikesDislikesRoutine.vue';
-import SkillsEditor from './charcard/SkillsEditor.vue';
-import CharacterNotes from './charcard/CharacterNotes.vue';
-import type {
-  Appearance,
-  Attire,
-  Trait,
-  Relationship,
-  Skill,
-  Note,
-  CharacterCard
-} from '../types/character';
+import AppearanceAndAttireTab from './charcard/tabs/AppearanceAndAttireTab.vue';
+import TraitsTab from './charcard/tabs/TraitsTab.vue';
+import DailyAndNotesTab from './charcard/tabs/DailyAndNotesTab.vue';
+import type { CharacterCard } from '../types/character';
+import { useCardDataHandler } from '../composables/characterCard/useCardDataHandler';
+import { useCardSections } from '../composables/characterCard/useCardSections';
+import { useCharacterCardLifecycle } from '../composables/characterCard/useCharacterCardLifecycle';
 
-/**
- * 创建默认的角色卡数据
- * 用于初始化表单和重置表单
- */
-const createDefaultCharacterCard = (): CharacterCard => ({
-  chineseName: '',
-  japaneseName: '',
-  gender: '',
-  customGender: '',
-  age: 0,
-  identity: '',
-  background: '',
-  appearance: {
-    height: '',
-    hairColor: '',
-    hairstyle: '',
-    eyes: '',
-    nose: '',
-    lips: '',
-    skin: '',
-    body: '',
-    bust: '',
-    waist: '',
-    hips: '',
-    breasts: '',
-    genitals: '',
-    anus: '',
-    pubes: '',
-    thighs: '',
-    butt: '',
-    feet: '',
-  },
-  attires: [],
-  mbti: '',
-  traits: [],
-  relationships: [],
-  likes: '',
-  dislikes: '',
-  dailyRoutine: {
-    earlyMorning: '',
-    morning: '',
-    afternoon: '',
-    evening: '',
-    night: '',
-    lateNight: '',
-  },
-  skills: [],
-  notes: [],
-});
+const props = defineProps<{
+  character: CharacterCard;
+}>();
 
-// 角色卡表单数据
-const form = ref<CharacterCard>(createDefaultCharacterCard());
-let autoSaveTimer: number | null = null;
+const emit = defineEmits<{
+  (e: 'update:character', character: CharacterCard): void;
+}>();
 
-// 组件挂载时加载保存的数据
-onMounted(() => {
-  const loadedData = loadFromLocalStorage('characterCardData', processLoadedData);
-  if (loadedData) {
-    form.value = loadedData;
+const activeTab = ref('appearance');
+const characterFormRef = ref<InstanceType<typeof ElForm> | null>(null);
+
+const form = ref({ ...props.character });
+
+// 监听props变化，同步到本地form
+watch(() => props.character, (newCharacter) => {
+  if (newCharacter && newCharacter.id !== form.value.id) {
+    // 只在角色ID不同时才更新，避免循环更新
+    form.value = { ...newCharacter };
   }
-  autoSaveTimer = initAutoSave(
-    () => saveToLocalStorage(form.value),
-    () => !!form.value.chineseName
-  );
-});
+}, { deep: true, immediate: true });
 
-// 组件卸载前清除定时器
-onBeforeUnmount(() => {
-  if (autoSaveTimer) {
-    clearAutoSave(autoSaveTimer);
-  }
-});
-
-/**
- * 添加性格特质
- * 向性格特质数组中添加一个新的空特质对象
- */
-const addTrait = (): void => {
-  form.value.traits.push({
-    name: '',
-    description: '',
-    dialogueExamples: [''],
-    behaviorExamples: ['']
+// 监听本地form变化，同步到父组件
+watch(form, (updatedCharacter) => {
+  nextTick(() => {
+    emit('update:character', { ...updatedCharacter });
   });
+}, { deep: true });
+
+const {
+  saveCharacterCard,
+  loadCharacterCard,
+  resetForm,
+  copyToClipboard,
+  importFromClipboard,
+  processLoadedData,
+} = useCardDataHandler(form);
+
+const {
+  addTrait,
+  removeTrait,
+  addSkill,
+  removeSkill,
+  addRelationship,
+  removeRelationship,
+  addNote,
+  removeNote,
+  addAttire,
+  removeAttire,
+  exportAttires,
+  exportSkills,
+  exportTraits,
+  exportRelationships,
+} = useCardSections(form);
+
+useCharacterCardLifecycle(form, processLoadedData);
+
+// MBTI Validation
+const isValidMBTI = (mbti: string) => {
+  return mbti.toLowerCase() === 'none' || /^[EI][SN][TF][JP]$/i.test(mbti);
 };
 
-/**
- * 删除性格特质
- * @param index - 要删除的特质索引
- */
-const removeTrait = (index: number): void => {
-  form.value.traits.splice(index, 1);
+interface MBTIDescriptions {
+  [key: string]: string;
+}
+
+const mbtiDescriptions: MBTIDescriptions = {
+  INTP: '逻辑学家',
+  INTJ: '建筑师',
+  ENTP: '辩论家',
+  ENTJ: '指挥官',
+  INFP: '调停者',
+  INFJ: '提倡者',
+  ENFJ: '主人公',
+  ENFP: '竞选者',
+  ISTJ: '物流师',
+  ISFJ: '守卫者',
+  ESTJ: '总经理',
+  ESFJ: '执政官',
+  ISTP: '鉴赏家',
+  ISFP: '探险家',
+  ESTP: '企业家',
+  ESFP: '表演者',
+  none: '未指定'
 };
 
-/**
- * 添加技能
- * 向技能数组中添加一个新的空技能对象
- */
-const addSkill = (): void => {
-  form.value.skills.push({
-    name: '',
-    description: '',
-    dialogExample: '',
-    behaviorExample: ''
-  });
-};
-
-/**
- * 删除技能
- * @param index - 要删除的技能索引
- */
-const removeSkill = (index: number): void => {
-  form.value.skills.splice(index, 1);
-};
-
-/**
- * 添加人际关系
- * 向人际关系数组中添加一个新的空关系对象
- */
-const addRelationship = (): void => {
-  form.value.relationships.push({
-    name: '',
-    description: '',
-    features: '',
-    dialogueExamples: ['']
-  });
-};
-
-/**
- * 删除人际关系
- * @param index - 要删除的关系索引
- */
-const removeRelationship = (index: number): void => {
-  form.value.relationships.splice(index, 1);
-};
-
-/**
- * 添加角色备注
- */
-const addNote = (): void => {
-  form.value.notes.push({
-    name: '',
-    data: ['']
-  });
-};
-
-/**
- * 删除角色备注
- * @param index - 要删除的备注索引
- */
-const removeNote = (index: number): void => {
-  form.value.notes.splice(index, 1);
-};
-
-/**
- * 处理文本字段，将多行文本转换为数组
- * @param text - 要处理的文本
- * @returns 处理后的字符串数组
- */
-const processTextToArray = (text: string): string[] => {
-  return text.split('\n').filter(line => line.trim() !== '');
-};
-
-/**
- * 处理服装配饰，将字符串转换为数组
- * @param accessories - 配饰字符串或数组
- * @returns 处理后的配饰数组
- */
-const processAccessories = (accessories: string | string[]): string[] => {
-  if (typeof accessories === 'string') {
-    return processTextToArray(accessories);
-  }
-  return accessories || [];
-};
-
-/**
- * 保存角色卡
- * 将当前表单数据处理后保存为JSON文件
- */
-const saveCharacterCard = async (): Promise<void> => {
-  try {
-    // 处理服装数据
-    const processedAttires = form.value.attires.map((attire: Attire) => ({
-      ...attire,
-      accessories: processAccessories(attire.accessories)
-    }));
-
-    // 处理原始数据
-    const processedNotes = form.value.notes.reduce((acc, note) => {
-      if (note.name) {
-        acc[`{{${note.name}}}`] = {
-          name: note.name,
-          data: note.data.filter(d => d.trim() !== '')
-        };
-      }
-      return acc;
-    }, {} as Record<string, { name: string; data: string[] }>);
-
-    const rawData = {
-      ...form.value,
-      attires: processedAttires,
-      gender: form.value.gender === 'other' ? form.value.customGender : form.value.gender,
-      background: processTextToArray(form.value.background),
-      likes: processTextToArray(form.value.likes),
-      dislikes: processTextToArray(form.value.dislikes),
-      notes: processedNotes
-    };
-
-    // 过滤空值
-    const dataToSave = filterEmptyValues(rawData);
-
-    // 验证数据
-    if (!dataToSave || Object.keys(dataToSave).length === 0) {
-      ElMessage.warning('没有可保存的数据，请先填写角色卡信息');
-      return;
-    }
-
-    // 生成随机数作为文件名的一部分
-    const generateRandomNumber = (): number => Math.floor(10000000 + Math.random() * 90000000);
-
-    // 创建并保存文件
-    const jsonData = JSON.stringify(dataToSave, null, 2);
-    const blob = new Blob([jsonData], { type: 'application/json' });
-    saveAs(blob, `${form.value.chineseName || 'character_card'}_${generateRandomNumber()}.json`);
-
-    ElMessage.success('角色卡保存成功！');
-  } catch (error) {
-    ElMessage.error("保存失败");
-    console.error('保存角色卡时出错:', error);
-  }
-};
-
-/**
- * 将数组转换为多行文本
- * @param arr - 要转换的数组
- * @returns 转换后的多行文本
- */
-const arrayToText = (arr: string[] | undefined): string => {
-  if (!arr || !Array.isArray(arr)) return '';
-  return arr.join('\n');
-};
-
-/**
- * 递归过滤空值
- * 过滤掉对象或数组中的空值
- * @param obj - 要过滤的对象或数组
- * @returns 过滤后的对象或数组
- */
-const filterEmptyValues = (obj: any): any => {
-  if (Array.isArray(obj)) {
-    const filtered = obj
-      .map(item => filterEmptyValues(item))
-      .filter(item => item !== null && item !== undefined && item !== '');
-    return filtered.length > 0 ? filtered : null;
-  }
-
-  if (typeof obj === 'object' && obj !== null) {
-    const result: any = {};
-    for (const key in obj) {
-      const filtered = filterEmptyValues(obj[key]);
-      if (filtered !== null && filtered !== undefined && filtered !== '') {
-        result[key] = filtered;
-      }
-    }
-    return Object.keys(result).length > 0 ? result : null;
-  }
-
-  if (obj === '') return null;
-  if (typeof obj === 'number' && obj === 0) return null;
-  return obj;
-};
-
-/**
- * 处理加载的角色卡数据
- * @param parsedData - 解析后的JSON数据
- * @returns 转换后的角色卡数据
- */
-const processLoadedData = (parsedData: any): CharacterCard => {
-
-  // 简化外观数据处理逻辑
-  // 直接使用导入文件中的 appearance 对象，如果不存在则为空对象
-  const appearance: Appearance = parsedData.appearance || {};
-
-  // 处理服装数据
-  const attires: Attire[] = Array.isArray(parsedData.attires)
-    ? parsedData.attires.map((attire: any) => ({
-      name: attire.name || '',
-      description: attire.description || '',
-      tops: attire.tops || '',
-      bottoms: attire.bottoms || '',
-      shoes: attire.shoes || '',
-      socks: attire.socks || '',
-      underwears: attire.underwears || '',
-      // 处理配饰：数组转为多行文本
-      accessories: Array.isArray(attire.accessories)
-        ? attire.accessories.join('\n')
-        : typeof attire.accessories === 'string'
-          ? attire.accessories
-          : ''
-    }))
-    : [];
-
-  // 处理性格特质
-  const traits: Trait[] = Array.isArray(parsedData.traits)
-    ? parsedData.traits.map((trait: any) => ({
-      name: trait.name || '',
-      description: trait.description || '',
-      dialogueExamples: Array.isArray(trait.dialogueExamples) ? trait.dialogueExamples : [''],
-      behaviorExamples: Array.isArray(trait.behaviorExamples) ? trait.behaviorExamples : ['']
-    }))
-    : [];
-
-  // 处理人际关系
-  const relationships: Relationship[] = Array.isArray(parsedData.relationships)
-    ? parsedData.relationships.map((rel: any) => ({
-      name: rel.name || '',
-      description: rel.description || '',
-      features: rel.features || '',
-      dialogueExamples: Array.isArray(rel.dialogueExamples) ? rel.dialogueExamples : ['']
-    }))
-    : [];
-
-  // 处理技能
-  const skills: Skill[] = Array.isArray(parsedData.skills)
-    ? parsedData.skills.map((skill: any) => ({
-      name: skill.name || '',
-      description: skill.description || '',
-      dialogExample: skill.dialogExample || '',
-      behaviorExample: skill.behaviorExample || ''
-    }))
-    : [];
-
-  // 处理角色备注
-  let notes: Note[] = [];
-  if (parsedData.notes) {
-    if (Array.isArray(parsedData.notes)) {
-      notes = parsedData.notes.map((note: any) => ({
-        name: note.name || '',
-        data: Array.isArray(note.data) ? note.data : ['']
-      }));
-    } else if (typeof parsedData.notes === 'object') {
-      notes = Object.values(parsedData.notes).map((note: any) => ({
-        name: note.name || '',
-        data: Array.isArray(note.data) ? note.data : ['']
-      }));
-    }
-  }
-
-  // 返回转换后的数据
-  return {
-    chineseName: parsedData.chineseName || '',
-    japaneseName: parsedData.japaneseName || '',
-    gender: parsedData.gender || '',
-    customGender: parsedData.customGender || '',
-    age: Number(parsedData.age) || 0,
-    identity: Array.isArray(parsedData.identity) ? arrayToText(parsedData.identity) : parsedData.identity || '',
-    background: Array.isArray(parsedData.background) ? arrayToText(parsedData.background) : parsedData.background || '',
-    appearance,
-    attires,
-    mbti: parsedData.mbti || '',
-    traits,
-    relationships,
-    likes: Array.isArray(parsedData.likes) ? arrayToText(parsedData.likes) : parsedData.likes || '',
-    dislikes: Array.isArray(parsedData.dislikes) ? arrayToText(parsedData.dislikes) : parsedData.dislikes || '',
-    dailyRoutine: {
-      earlyMorning: parsedData.dailyRoutine?.earlyMorning || '',
-      morning: parsedData.dailyRoutine?.morning || '',
-      afternoon: parsedData.dailyRoutine?.afternoon || '',
-      evening: parsedData.dailyRoutine?.evening || '',
-      night: parsedData.dailyRoutine?.night || '',
-      lateNight: parsedData.dailyRoutine?.lateNight || ''
-    },
-    skills,
-    notes
-  };
-};
-
-/**
- * 加载角色卡
- * 从JSON文件中加载角色卡数据
- */
-const loadCharacterCard = async (): Promise<void> => {
-  try {
-    // 创建文件输入元素
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-
-    // 设置文件选择事件处理
-    input.onchange = async (event) => {
-      const file = (event.target as HTMLInputElement).files?.[0];
-      if (!file) return;
-
-      try {
-        // 读取并解析文件内容
-        const content = await file.text();
-        const parsedData = JSON.parse(content);
-
-        // 验证基本结构
-        if (!parsedData.chineseName) {
-          throw new Error('无效的角色卡文件格式');
-        }
-
-        // 处理数据并更新表单
-        const convertedData = processLoadedData(parsedData);
-        form.value = convertedData;
-
-        ElMessage.success('角色卡加载成功！');
-      } catch (error) {
-        ElMessage.error(`加载失败：${error instanceof Error ? error.message : '未知错误'}`);
-      }
-    };
-    input.click();
-  } catch (error) {
-    ElMessage.error(`加载失败：${error instanceof Error ? error.message : '未知错误'}`);
-  }
-};
-
-/**
- * 重置表单数据
- * 弹出确认对话框，确认后重置表单
- */
-const resetForm = (): void => {
-  ElMessageBox.confirm('确定要重置所有数据吗？', '警告', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning',
-  }).then(() => {
-    // 清除本地存储的数据
-    clearLocalStorage();
-    // 完全重置表单数据，包括自定义字段
-    const newForm = createDefaultCharacterCard();
-    const standardFields = {
-      height: '',
-      hairColor: '',
-      hairstyle: '',
-      eyes: '',
-      nose: '',
-      lips: '',
-      skin: '',
-      body: '',
-      bust: '',
-      waist: '',
-      hips: '',
-      breasts: '',
-      genitals: '',
-      anus: '',
-      pubes: '',
-      thighs: '',
-      butt: '',
-      feet: ''
-    };
-
-    newForm.appearance = { ...standardFields };
-    form.value = newForm;
-
-    ElMessage.success('数据已重置，包括自定义字段');
-  }).catch(() => {
-    ElMessage.info('取消重置');
-  });
-};
-
-/**
- * 添加服装套装
- * 向服装套装数组中添加一个新的空套装对象
- */
-const addAttire = (): void => {
-  form.value.attires.push({
-    name: '',
-    description: '',
-    tops: '',
-    bottoms: '',
-    shoes: '',
-    socks: '',
-    underwears: '',
-    accessories: ''
-  });
-};
-
-/**
- * 删除服装套装
- * @param index - 要删除的套装索引
- */
-const removeAttire = (index: number): void => {
-  form.value.attires.splice(index, 1);
-};
-
-/**
- * 导出服装套装
- * 将服装套装数据复制到剪贴板
- */
-const exportAttires = async (): Promise<void> => {
-  try {
-    const processedAttires = form.value.attires.map(attire => ({
-      ...attire,
-      accessories: typeof attire.accessories === 'string'
-        ? attire.accessories.split('\n').filter(a => a.trim() !== '')
-        : attire.accessories || []
-    }));
-
-    if (processedAttires.length === 0) {
-      ElMessage.warning('没有可导出的服装套装');
-      return;
-    }
-    await navigator.clipboard.writeText(JSON.stringify(processedAttires, null, 2));
-    ElMessage.success('服装套装已复制到剪贴板！');
-  } catch (error) {
-    ElMessage.error("导出失败");
-    console.error('导出服装套装时出错:', error);
-  }
-};
-
-/**
- * 复制到剪贴板
- * 将当前表单数据处理后复制到剪贴板
- */
-const copyToClipboard = async (): Promise<void> => {
-  // 处理服装数据
-  const processedAttires = form.value.attires.map(attire => ({
-    ...attire,
-    accessories: typeof attire.accessories === 'string'
-      ? attire.accessories.split('\n').filter(a => a.trim() !== '')
-      : attire.accessories || []
-  }));
-
-  // 处理原始数据
-  const processedNotes = form.value.notes.reduce((acc, note) => {
-    if (note.name) {
-      acc[`{{${note.name}}}`] = {
-        name: note.name,
-        data: note.data.filter(d => d.trim() !== '')
-      };
-    }
-    return acc;
-  }, {} as Record<string, { name: string; data: string[] }>);
-
-  const rawData = {
-    ...form.value,
-    attires: processedAttires,
-    gender: form.value.gender === 'other' ? form.value.customGender : form.value.gender,
-    identity: processTextToArray(form.value.identity),
-    background: processTextToArray(form.value.background),
-    likes: processTextToArray(form.value.likes),
-    dislikes: processTextToArray(form.value.dislikes),
-    notes: processedNotes
-  };
-
-  // 过滤空值
-  const dataToSave = filterEmptyValues(rawData);
-
-  // 验证数据
-  if (!dataToSave || Object.keys(dataToSave).length === 0) {
-    ElMessage.warning('没有可复制的数据，请先填写角色卡信息');
+const validateMBTI = () => {
+  if (!form.value.mbti) {
+    ElMessageBox.alert('请输入MBTI类型', '警告');
     return;
   }
-
-  // 复制到剪贴板
-  const jsonData = JSON.stringify(dataToSave, null, 2);
-  await copyUtil(jsonData, '已复制到剪贴板！', '复制失败');
-};
-
-/**
- * 从剪贴板导入
- * 从剪贴板中导入角色卡数据
- * @param data - 剪贴板中的JSON数据
- */
-const importFromClipboard = async (data: string): Promise<void> => {
-  try {
-    // 先重置表单
-    form.value = createDefaultCharacterCard();
-
-    const parsedData = JSON.parse(data);
-
-    // 验证基本结构
-    if (!parsedData.chineseName) {
-      throw new Error('剪贴板内容不是有效的角色卡数据');
-    }
-
-    // 处理数据并更新表单
-    const convertedData = processLoadedData(parsedData);
-    form.value = convertedData;
-    ElMessage.success('从剪贴板导入成功！');
-  } catch (error) {
-    ElMessage.error(`导入失败：${error instanceof Error ? error.message : '未知错误'}`);
-    console.error('从剪贴板导入时出错:', error);
+  const type = form.value.mbti.toUpperCase();
+  if (isValidMBTI(form.value.mbti)) {
+    const description = mbtiDescriptions[type] || mbtiDescriptions['none'];
+    ElMessageBox.alert(`MBTI格式正确，类型：${type} - ${description}`, '正确');
+  } else {
+    ElMessageBox.alert(`MBTI格式无效：${type}，请输入4个字母的组合或"none"`, '不合规');
   }
 };
-const exportSkills = async (): Promise<void> => {
-  const skillsData = form.value.skills;
-  if (skillsData.length === 0) {
-    ElMessage.warning('没有可导出的技能');
-    return;
-  }
-  await copyUtil(JSON.stringify(skillsData, null, 2), '技能已复制到剪贴板！', '导出失败');
-};
-const exportTraits = async (): Promise<void> => {
-  const traitsData = form.value.traits;
-  if (traitsData.length === 0) {
-    ElMessage.warning('没有可导出的性格特质');
-    return;
-  }
-  await copyUtil(JSON.stringify(traitsData, null, 2), '性格特质已复制到剪贴板！', '导出失败');
-};
 
-const exportRelationships = async (): Promise<void> => {
-  const relationshipsData = form.value.relationships;
-  if (relationshipsData.length === 0) {
-    ElMessage.warning('没有可导出的人际关系');
-    return;
-  }
-  await copyUtil(JSON.stringify(relationshipsData, null, 2), '人际关系已复制到剪贴板！', '导出失败');
-};
-
-
-/**
- * 暴露组件方法
- * 使父组件可以访问这些方法
- */
 defineExpose({
   saveCharacterCard,
   loadCharacterCard,
@@ -703,45 +225,108 @@ defineExpose({
 </script>
 
 <style scoped>
-/* 使用 Tailwind CSS 进行样式控制 */
-.section-container {
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
+/* 主容器样式 - 采用 worldbook 设计语言 */
+.character-card-editor-scrollbar {
+  height: 100vh;
 }
 
-.section-container>* {
-  flex: 1;
-  min-width: 100%;
+.content-panel-body {
+  background: var(--el-bg-color);
+  border-radius: 4px;
+  border: 1px solid var(--el-border-color-lighter);
+  padding: 16px;
+}
+
+/* 表单区块样式 - 统一 worldbook 风格 */
+.character-card-editor-form .form-section {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: var(--el-fill-color-extra-light);
+  border-radius: 4px;
+  border: 1px solid var(--el-border-color-extra-light);
+}
+
+.character-card-editor-form .form-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+  margin: 0 0 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+}
+
+.character-card-editor-form .form-section-icon {
+  font-size: 18px;
+  color: #409eff;
+}
+
+.character-card-editor-form .form-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--el-text-color-primary);
+  margin-bottom: 4px;
+  display: block;
+}
+
+/* 响应式布局 - 统一 worldbook 网格系统 */
+.form-row-responsive {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 @media (min-width: 768px) {
-  .section-container {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-
-  .section-container>* {
-    min-width: auto;
+  .form-row-responsive {
+    flex-direction: row;
+    gap: 24px;
   }
 }
 
-.ps-text {
-  font-style: italic;
-  color: #373737;
-  font-weight: 50;
+.form-group-responsive {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
 }
 
-.title-Btn {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
+.form-full-width {
+  width: 100%;
 }
 
-.title-Btn-add {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
+.form-help-text {
+  font-size: 12px;
+  color: var(--el-text-color-regular);
+  margin: 4px 0 0 0;
+  line-height: 1.4;
+}
+
+/* 标签页样式优化 */
+.settings-tabs {
+  margin-top: 20px;
+}
+
+:deep(.el-tabs__header) {
+  margin: 0 0 20px;
+}
+
+:deep(.el-tabs__item) {
+  font-size: 14px;
+  font-weight: 500;
+  padding: 0 16px;
+}
+
+:deep(.el-tabs__item.is-active) {
+  color: var(--el-color-primary);
+  font-weight: 600;
+}
+
+:deep(.el-tabs__active-bar) {
+  background-color: var(--el-color-primary);
+}
+
+:deep(.el-tabs__content) {
+  padding-top: 0;
 }
 </style>
