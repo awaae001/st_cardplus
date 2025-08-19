@@ -1,7 +1,7 @@
 <template>
   <div class="card-page-container">
     <!-- Mobile Layout -->
-    <div class="card-page-mobile-layout">
+    <div class="card-page-mobile-layout" v-if="useNewEditor">
       <el-tabs v-model="activeTab" type="border-card" class="card-page-tabs-mobile">
         <el-tab-pane name="list">
           <template #label>
@@ -25,7 +25,8 @@
             </span>
           </template>
           <div class="editor-area">
-            <CharacterCardEditor
+            <component
+              :is="editorComponent"
               v-if="activeCharacter"
               :character="activeCharacter"
               @update:character="handleUpdateCharacter"
@@ -39,7 +40,7 @@
     </div>
 
     <!-- Desktop Layout -->
-    <div class="card-page-desktop-layout">
+    <div class="card-page-desktop-layout" v-if="useNewEditor">
       <Splitpanes class="default-theme" style="width: 100%; height: 100%">
         <Pane size="15" min-size="10" max-size="25">
           <CharacterListSidebar
@@ -53,7 +54,8 @@
         </Pane>
         <Pane size="85">
           <div class="editor-area">
-            <CharacterCardEditor
+            <component
+              :is="editorComponent"
               v-if="activeCharacter"
               :character="activeCharacter"
               @update:character="handleUpdateCharacter"
@@ -65,21 +67,28 @@
         </Pane>
       </Splitpanes>
     </div>
+
+    <div v-if="!useNewEditor" class="editor-area-full">
+        <component :is="editorComponent" />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, watch, onUnmounted, nextTick, ref } from 'vue';
+import { computed, watch, onUnmounted, nextTick, ref, shallowRef, onMounted } from 'vue';
+import type { Component } from 'vue';
 import { ElEmpty, ElTabs, ElTabPane } from 'element-plus';
 import { Splitpanes, Pane } from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
-import CharacterCardEditor from '../components/CharacterCardEditor.vue';
 import CharacterListSidebar from '../components/charcard/CharacterListSidebar.vue';
 import { useCharacterCollection } from '../composables/characterCard/useCharacterCollection';
 import { useDevice } from '../composables/useDevice';
+import { getUseNewCharCardEditor } from '@/utils/localStorageUtils';
 
 const { isMobile } = useDevice();
 const activeTab = ref('list');
+const useNewEditor = ref(false);
+const editorComponent = shallowRef<Component | null>(null);
 
 const {
   characterCollection,
@@ -133,6 +142,17 @@ watch(activeCharacter, (newCharacter) => {
   }
 }, { immediate: true, deep: true });
 
+onMounted(async () => {
+  useNewEditor.value = getUseNewCharCardEditor();
+  if (useNewEditor.value) {
+    const module = await import('../components/CharacterCardEditor.vue');
+    editorComponent.value = module.default;
+  } else {
+    const module = await import('../components/old/charainfo/CharacterCardEditor.vue');
+    editorComponent.value = module.default;
+  }
+});
+
 // Restore the original title when the component is unmounted
 onUnmounted(() => {
   document.title = originalTitle;
@@ -176,6 +196,11 @@ onUnmounted(() => {
   justify-content: center;
   align-items: center;
   height: 100%;
+}
+
+.editor-area-full {
+    width: 100%;
+    height: 100%;
 }
 
 @media (min-width: 768px) {

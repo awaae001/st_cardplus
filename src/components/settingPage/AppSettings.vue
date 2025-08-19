@@ -4,6 +4,21 @@
       <div class="setting-content">
         <div class="setting-header">
           <div class="setting-info">
+            <span class="setting-label">启用新版本角色信息编辑页面</span>
+            <Icon icon="material-symbols:experiment-outline" width="20" height="20"
+              style="margin-left: 8px; color: var(--el-color-warning);" />
+          </div>
+          <el-switch v-model="useNewCharCardEditor" @change="onUseNewCharCardEditorToggle" size="large" />
+        </div>
+        <p class="setting-description">
+          开启后将使用新版本的角色信息编辑页面，带来更好的编辑体验。
+        </p>
+      </div>
+    </div>
+    <div class="setting-card">
+      <div class="setting-content">
+        <div class="setting-header">
+          <div class="setting-info">
             <span class="setting-label">显示测试版功能</span>
             <Icon icon="material-symbols:experiment-outline" width="20" height="20"
               style="margin-left: 8px; color: var(--el-color-warning);" />
@@ -74,12 +89,13 @@
 import { Icon } from '@iconify/vue';
 import { ref, onMounted } from 'vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
-import { getBetaFeaturesEnabled, setBetaFeaturesEnabled, getUmamiEnabled, setUmamiEnabled, getAutoSaveInterval, setAutoSaveInterval, getUseOldSidebar, setUseOldSidebar } from '@/utils/localStorageUtils';
+import { getBetaFeaturesEnabled, setBetaFeaturesEnabled, getUmamiEnabled, setUmamiEnabled, getAutoSaveInterval, setAutoSaveInterval, getUseOldSidebar, setUseOldSidebar, getUseNewCharCardEditor, setUseNewCharCardEditor } from '@/utils/localStorageUtils';
 
 const betaFeaturesEnabled = ref(false);
 const umamiEnabled = ref(true);
 const autoSaveInterval = ref(5);
 const useOldSidebar = ref(true);
+const useNewCharCardEditor = ref(false);
 
 const onBetaFeaturesToggle = (value: boolean) => {
   if (value) {
@@ -183,6 +199,21 @@ const onUseOldSidebarToggle = (value: boolean) => {
   });
 };
 
+const onUseNewCharCardEditorToggle = (value: boolean) => {
+  setUseNewCharCardEditor(value);
+  ElMessageBox.confirm(
+    '此设置将在您下次刷新页面 (Ctrl+R) 后生效。',
+    '提示',
+    {
+      confirmButtonText: '立即刷新',
+      cancelButtonText: '稍后',
+      type: 'info',
+    }
+  ).then(() => {
+    window.location.reload();
+  });
+};
+
 const toggleUmamiScript = (enabled: boolean) => {
   const existingScript = document.querySelector('script[data-website-id="6685fde6-dad1-49c1-b952-3a487d6991da"]');
 
@@ -202,6 +233,7 @@ onMounted(() => {
   umamiEnabled.value = getUmamiEnabled();
   autoSaveInterval.value = getAutoSaveInterval();
   useOldSidebar.value = getUseOldSidebar();
+  useNewCharCardEditor.value = getUseNewCharCardEditor();
   toggleUmamiScript(umamiEnabled.value);
 });
 </script>

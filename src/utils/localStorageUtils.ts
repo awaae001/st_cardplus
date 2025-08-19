@@ -179,3 +179,30 @@ export const setUseOldSidebar = (enabled: boolean) => {
     console.error('保存旧版侧边栏设置失败:', error);
   }
 };
+
+/**
+ * 获取是否启用新版角色卡编辑器
+ * @returns 是否启用新版编辑器
+ */
+export const getUseNewCharCardEditor = (): boolean => {
+  try {
+    const enabled = localStorage.getItem('useNewCharCardEditor');
+    return enabled === 'true'; // 默认关闭
+  } catch (error) {
+    console.error('获取新版编辑器设置失败:', error);
+    return false;
+  }
+};
+
+/**
+ * 设置是否启用新版角色卡编辑器
+ * @param enabled - 是否启用新版编辑器
+ */
+export const setUseNewCharCardEditor = (enabled: boolean) => {
+  try {
+    localStorage.setItem('useNewCharCardEditor', enabled.toString());
+    console.log('新版编辑器设置已保存:', enabled);
+  } catch (error) {
+    console.error('保存新版编辑器设置失败:', error);
+  }
+};
