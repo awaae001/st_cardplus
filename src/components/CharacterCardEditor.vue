@@ -1,7 +1,9 @@
 <template>
   <el-scrollbar class="character-card-editor-scrollbar">
     <div class="content-panel-body">
-      <CharacterCardButtons @saveCharacterCard="saveCharacterCard" @loadCharacterCard="loadCharacterCard"
+      <CharacterCardButtons
+        :characterName="form.chineseName"
+        @saveCharacterCard="saveCharacterCard" @loadCharacterCard="loadCharacterCard"
         @resetForm="resetForm" @copyToClipboard="copyToClipboard"
         @importFromClipboard="(data) => importFromClipboard(data)" />
       <el-form :model="form" label-position="top" ref="characterFormRef" class="character-card-editor-form">
@@ -28,6 +30,7 @@
                   <el-option label="男性" value="male" />
                   <el-option label="秀吉（伪娘、正太）" value="秀吉（伪娘、正太）" />
                   <el-option label="武装直升机" value="helicopter" />
+                  <el-option label="牢大" value="Prison_big" />
                   <el-option label="永雏塔菲" value="tiffany" />
                   <el-option label="赛马娘" value="horse" />
                   <el-option label="沃尔玛购物袋" value="walmartShopingBag" />
@@ -95,23 +98,46 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch, nextTick } from 'vue';
 import { ElScrollbar, ElForm, ElInput, ElSelect, ElOption, ElInputNumber, ElTabs, ElTabPane, ElButton, ElMessageBox } from 'element-plus';
 import { Icon } from '@iconify/vue';
 import CharacterCardButtons from './charcard/CharacterCardButtons.vue';
 import AppearanceAndAttireTab from './charcard/tabs/AppearanceAndAttireTab.vue';
 import TraitsTab from './charcard/tabs/TraitsTab.vue';
 import DailyAndNotesTab from './charcard/tabs/DailyAndNotesTab.vue';
-
-import { useCharacterCard } from '../composables/characterCard/useCharacterCard';
+import type { CharacterCard } from '../types/character';
 import { useCardDataHandler } from '../composables/characterCard/useCardDataHandler';
 import { useCardSections } from '../composables/characterCard/useCardSections';
 import { useCharacterCardLifecycle } from '../composables/characterCard/useCharacterCardLifecycle';
 
+const props = defineProps<{
+  character: CharacterCard;
+}>();
+
+const emit = defineEmits<{
+  (e: 'update:character', character: CharacterCard): void;
+}>();
+
 const activeTab = ref('appearance');
 const characterFormRef = ref<InstanceType<typeof ElForm> | null>(null);
 
-const { form } = useCharacterCard();
+const form = ref({ ...props.character });
+
+// 监听props变化，同步到本地form
+watch(() => props.character, (newCharacter) => {
+  if (newCharacter && newCharacter.id !== form.value.id) {
+    // 只在角色ID不同时才更新，避免循环更新
+    form.value = { ...newCharacter };
+  }
+}, { deep: true, immediate: true });
+
+// 监听本地form变化，同步到父组件
+watch(form, (updatedCharacter) => {
+  nextTick(() => {
+    emit('update:character', { ...updatedCharacter });
+  });
+}, { deep: true });
+
 const {
   saveCharacterCard,
   loadCharacterCard,

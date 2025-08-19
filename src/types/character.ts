@@ -81,6 +81,7 @@ export interface Note {
 * 包含角色的所有信息
 */
 export interface CharacterCard {
+  id?: string;             // 唯一标识符，用于本地管理
   chineseName: string;     // 中文名
   japaneseName: string;    // 日文名
   gender: string;          // 性别

@@ -173,38 +173,52 @@ const processLoadedData = (parsedData: any): CharacterCard => {
   };
 };
 
+/**
+* 准备用于导出的角色卡数据，移除内部使用的字段（如 id）
+* @param character - 原始角色卡数据
+* @returns 清理后的角色卡数据
+*/
+const prepareForExport = (character: CharacterCard): Partial<CharacterCard> => {
+const exportData = { ...character };
+delete exportData.id;
+return exportData;
+};
+
 export function useCardDataHandler(form: Ref<CharacterCard>) {
-  const saveCharacterCard = async (): Promise<void> => {
-    try {
-      // 处理服装数据
-      const processedAttires = form.value.attires.map((attire: Attire) => ({
-        ...attire,
-        accessories: processAccessories(attire.accessories)
-      }));
+const saveCharacterCard = async (): Promise<void> => {
+  try {
+    // 准备导出数据
+    const characterToExport = prepareForExport(form.value);
 
-      // 处理原始数据
-      const processedNotes = form.value.notes.reduce((acc: Record<string, { name: string; data: string[] }>, note: Note) => {
-        if (note.name) {
-          acc[`{{${note.name}}}`] = {
-            name: note.name,
-            data: note.data.filter((d: string) => d.trim() !== '')
-          };
-        }
-        return acc;
-      }, {} as Record<string, { name: string; data: string[] }>);
+    // 处理服装数据
+    const processedAttires = characterToExport.attires?.map((attire: Attire) => ({
+      ...attire,
+      accessories: processAccessories(attire.accessories)
+    })) || [];
 
-      const rawData = {
-        ...form.value,
-        attires: processedAttires,
-        gender: form.value.gender === 'other' ? form.value.customGender : form.value.gender,
-        background: processTextToArray(form.value.background),
-        likes: processTextToArray(form.value.likes),
-        dislikes: processTextToArray(form.value.dislikes),
-        notes: processedNotes
-      };
+    // 处理原始数据
+    const processedNotes = characterToExport.notes?.reduce((acc: Record<string, { name: string; data: string[] }>, note: Note) => {
+      if (note.name) {
+        acc[`{{${note.name}}}`] = {
+          name: note.name,
+          data: note.data.filter((d: string) => d.trim() !== '')
+        };
+      }
+      return acc;
+    }, {} as Record<string, { name: string; data: string[] }>) || {};
 
-      // 过滤空值
-      const dataToSave = filterEmptyValues(rawData);
+    const rawData = {
+      ...characterToExport,
+      attires: processedAttires,
+      gender: characterToExport.gender === 'other' ? characterToExport.customGender : characterToExport.gender,
+      background: processTextToArray(characterToExport.background || ''),
+      likes: processTextToArray(characterToExport.likes || ''),
+      dislikes: processTextToArray(characterToExport.dislikes || ''),
+      notes: processedNotes
+    };
+
+    // 过滤空值
+    const dataToSave = filterEmptyValues(rawData);
 
       // 验证数据
       if (!dataToSave || Object.keys(dataToSave).length === 0) {
@@ -305,16 +319,19 @@ export function useCardDataHandler(form: Ref<CharacterCard>) {
   };
 
   const copyToClipboard = async (): Promise<void> => {
+    // 准备导出数据
+    const characterToExport = prepareForExport(form.value);
+
     // 处理服装数据
-    const processedAttires = form.value.attires.map((attire: Attire) => ({
+    const processedAttires = characterToExport.attires?.map((attire: Attire) => ({
       ...attire,
       accessories: typeof attire.accessories === 'string'
         ? attire.accessories.split('\n').filter((a: string) => a.trim() !== '')
         : attire.accessories || []
-    }));
+    })) || [];
 
     // 处理原始数据
-    const processedNotes = form.value.notes.reduce((acc: Record<string, { name: string; data: string[] }>, note: Note) => {
+    const processedNotes = characterToExport.notes?.reduce((acc: Record<string, { name: string; data: string[] }>, note: Note) => {
       if (note.name) {
         acc[`{{${note.name}}}`] = {
           name: note.name,
@@ -322,22 +339,22 @@ export function useCardDataHandler(form: Ref<CharacterCard>) {
         };
       }
       return acc;
-    }, {} as Record<string, { name: string; data: string[] }>);
+    }, {} as Record<string, { name: string; data: string[] }>) || {};
 
     const rawData = {
-      ...form.value,
+      ...characterToExport,
       attires: processedAttires,
-      gender: form.value.gender === 'other' ? form.value.customGender : form.value.gender,
-      identity: processTextToArray(form.value.identity),
-      background: processTextToArray(form.value.background),
-      likes: processTextToArray(form.value.likes),
-      dislikes: processTextToArray(form.value.dislikes),
+      gender: characterToExport.gender === 'other' ? characterToExport.customGender : characterToExport.gender,
+      identity: processTextToArray(characterToExport.identity || ''),
+      background: processTextToArray(characterToExport.background || ''),
+      likes: processTextToArray(characterToExport.likes || ''),
+      dislikes: processTextToArray(characterToExport.dislikes || ''),
       notes: processedNotes
     };
 
     // 过滤空值
     const dataToSave = filterEmptyValues(rawData);
-
+    
     // 验证数据
     if (!dataToSave || Object.keys(dataToSave).length === 0) {
       ElMessage.warning('没有可复制的数据，请先填写角色卡信息');
