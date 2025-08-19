@@ -187,7 +187,7 @@ onUnmounted(() => {
 
 .editor-area {
   flex-grow: 1;
-  overflow-y: auto;
+  overflow-y: hidden;
   height: 100%;
 }
 

@@ -251,7 +251,7 @@ onUnmounted(() => {
 }
 
 .content-container {
-  overflow: auto;
+  overflow: hidden;
   padding: 16px;
   position: relative;
   /* 为浮动按钮留出空间 */

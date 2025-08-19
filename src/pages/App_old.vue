@@ -140,7 +140,7 @@ onUnmounted(() => {
 <style scoped>
 .content-container {
   flex: 1;
-  overflow: auto;
+  overflow: hidden;
   padding: 16px;
 }
 
@@ -185,6 +185,7 @@ onUnmounted(() => {
 .content-container {
   margin-left: 200px;
   transition: margin-left 0.3s ease;
+  overflow: hidden;
 }
 
 .menu-bar:not(.mobile-open) ~ .content-container {
@@ -231,6 +232,7 @@ onUnmounted(() => {
 
   .content-container {
     margin-left: 0;
+    overflow: hidden;
   }
 
   .menu-bar:not(.mobile-open) ~ .content-container {
