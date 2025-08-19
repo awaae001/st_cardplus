@@ -8,28 +8,28 @@ export const createDefaultEntryData = (uid: number): WorldBookEntry => ({
   comment: "",
   key: [],
   content: "",
-  addMemo: false,
-  order: 0,
+  addMemo: true,
+  order: 100,
   constant: false,
   disable: false,
   keysecondary: [],
   selectiveLogic: 0,
-  selective: false,
+  selective: true,
   excludeRecursion: false,
   preventRecursion: false,
   delayUntilRecursion: false,
   probability: 100,
-  useProbability: false,
+  useProbability: true,
   position: 1,
-  role: 0,
-  depth: 0,
-  caseSensitive: false,
-  matchWholeWords: false,
+  role: null,
+  depth: 4,
+  caseSensitive: null,
+  matchWholeWords: null,
   vectorized: false,
   group: "",
   groupPriority: 0,
   groupOverride: false,
-  useGroupScoring: false,
+  useGroupScoring: null,
   sticky: 0,
   cooldown: 0,
   delay: 0,
@@ -48,25 +48,19 @@ export const processImportedWorldBookData = (
     (jsonData as { entries: unknown }).entries !== null
   ) {
     const data = jsonData as { entries: Record<string, any> };
+    // 忽略原始的key，直接处理entry对象的值
+    const entriesFromFile = Object.values(data.entries);
     const loadedEntries: WorldBookEntry[] = [];
-    let uidCounter = Date.now();
-    Object.keys(data.entries).forEach((entryKey) => {
-      const entryFromFile = data.entries[entryKey];
-      let currentUid: number;
-      const uidFromKey = parseInt(entryKey, 10);
-      if (!Number.isNaN(uidFromKey)) {
-        currentUid = uidFromKey;
-      } else if (entryFromFile.uid && typeof entryFromFile.uid === "number") {
-        currentUid = entryFromFile.uid;
-      } else {
-        currentUid = uidCounter++;
-      }
 
-      const baseEntry = createDefaultEntryData(currentUid);
+    entriesFromFile.forEach((entryFromFile, index) => {
+      // 为每个条目创建一个全新的、连续的uid，与它在数组中的索引一致
+      const newUid = index;
+      const baseEntry = createDefaultEntryData(newUid);
+
       const newEntry: WorldBookEntry = {
         ...baseEntry,
         ...entryFromFile,
-        uid: currentUid,
+        uid: newUid, // 强制使用新的、干净的uid
         key: Array.isArray(entryFromFile.key)
           ? entryFromFile.key.map(String)
           : baseEntry.key,
@@ -125,10 +119,7 @@ export const processImportedWorldBookData = (
           typeof entryFromFile.useGroupScoring === "boolean"
             ? entryFromFile.useGroupScoring
             : baseEntry.useGroupScoring,
-        order:
-          typeof entryFromFile.order === "number"
-            ? entryFromFile.order
-            : baseEntry.order,
+        order: (typeof entryFromFile.order === "number" && entryFromFile.order >= 10) ? entryFromFile.order : 100,
         selectiveLogic:
           typeof entryFromFile.selectiveLogic === "number"
             ? entryFromFile.selectiveLogic
@@ -184,6 +175,7 @@ export const processImportedWorldBookData = (
       };
       loadedEntries.push(newEntry);
     });
+
     return loadedEntries;
   }
   return null;
@@ -225,7 +217,7 @@ export function useWorldBookEntry(
     },
     { deep: true }
   );
-  
+
   watch(
     selectedEntryIndex,
     (newIndex) => {
@@ -411,13 +403,17 @@ export function useWorldBookEntry(
     }
   };
 
-  const formatWorldBookForExport = (): { entries: Record<string, Omit<WorldBookEntry, "uid">> } => {
-    const exportData: { entries: Record<string, Omit<WorldBookEntry, "uid">> } = {
+  const formatWorldBookForExport = (): { entries: Record<string, WorldBookEntry> } => {
+    const exportData: { entries: Record<string, WorldBookEntry> } = {
       entries: {},
     };
-    activeBookEntries.value.forEach((entry) => {
-      const { uid, ...entryDataToExport } = entry;
-      exportData.entries[String(entry.uid)] = entryDataToExport;
+    // 重新索引，确保uid和key的绝对一致性
+    activeBookEntries.value.forEach((entry, index) => {
+      const reIndexedEntry: WorldBookEntry = {
+        ...entry,
+        uid: index,
+      };
+      exportData.entries[String(index)] = reIndexedEntry;
     });
     return exportData;
   };
