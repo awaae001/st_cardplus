@@ -36,7 +36,7 @@
   </div>
   <section class="form-section">
     <div class="title-Btn-add form-section-title">
-      <h3>
+      <h3 class="title-fixed">
         <Icon icon="ph:note-duotone" class="form-section-icon" />角色备注
       </h3>
       <div style="display: flex; gap: 8px; margin-left: 16px;">
@@ -53,7 +53,13 @@
           <div class="drag-handle">
             <Icon icon="material-symbols:drag-handle" width="20" height="20" />
           </div>
-          <el-input v-model="note.name" placeholder="备注名称" />
+          <el-form-item
+            :prop="`notes.${noteIndex}.name`"
+            :rules="{ required: true, message: '备注名称是必填项', trigger: 'blur' }"
+            style="margin-bottom: 0"
+          >
+            <el-input v-model="note.name" placeholder="备注名称" />
+          </el-form-item>
           <div v-for="( dataIndex) in note.data" :key="dataIndex" class="cardInput">
             <el-input v-model="note.data[dataIndex]" type="textarea" :rows="2"
               :placeholder="`备注内容 ${dataIndex + 1}`" />
@@ -65,6 +71,7 @@
             style="width: 100%; margin-top: 4px;">
             添加备注内容
           </el-button>
+          <div></div>
           <el-button type="danger" @click="$emit('removeNote', noteIndex)" style="margin-top: 1rem; width: 100%;">
             <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
             删除备注
@@ -77,13 +84,17 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted, toRefs } from 'vue';
-import { ElInput, ElButton, ElCard, ElMessageBox } from 'element-plus';
+import { ElInput, ElButton, ElCard, ElMessageBox, ElFormItem } from 'element-plus';
 import { Icon } from '@iconify/vue';
 import draggable from 'vuedraggable';
 
 const props = defineProps({
   form: {
     type: Object,
+    required: true
+  },
+  notes: {
+    type: Array,
     required: true
   }
 });
@@ -366,5 +377,12 @@ watch(() => form.value.dailyRoutine, () => {
   #routine-form {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   }
+}
+
+.title-fixed {
+  display: flex;
+  padding: 4px;
+  gap: 8px;
+  align-items: center;
 }
 </style>

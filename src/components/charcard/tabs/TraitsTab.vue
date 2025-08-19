@@ -1,7 +1,7 @@
 <template>
   <section class="form-section">
     <div class="title-Btn-add form-section-title">
-      <h3>
+      <h3 class="title-fixed">
         <Icon icon="ph:smiley-duotone" class="form-section-icon" />性格特质
       </h3>
       <div style="display: flex; gap: 8px; margin-left: 16px;">
@@ -47,6 +47,7 @@
             style="width: 100%; margin-top: 4px;">
             添加行为示例
           </el-button>
+          <div></div>
           <el-button type="danger" @click="$emit('removeTrait', index)" style="margin-top: 1rem; width: 100%;">
             <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
             删除特质
@@ -57,7 +58,7 @@
   </section>
   <section class="form-section">
     <div class="title-Btn-add form-section-title">
-      <h3>
+      <h3 class="title-fixed">
         <Icon icon="ph:users-duotone" class="form-section-icon" />人际关系
       </h3>
       <div style="display: flex; gap: 8px; margin-left: 16px;">
@@ -115,7 +116,7 @@
   </section>
   <section class="form-section">
     <div class="title-Btn-add form-section-title">
-      <h3>
+      <h3 class="title-fixed">
         <Icon icon="ph:magic-wand-duotone" class="form-section-icon" />角色技能
       </h3>
       <div style="display: flex; gap: 8px; margin-left: 16px;">
@@ -159,6 +160,18 @@ import draggable from 'vuedraggable';
 const props = defineProps({
   form: {
     type: Object,
+    required: true
+  },
+  traits: {
+    type: Array,
+    required: true
+  },
+  relationships: {
+    type: Array,
+    required: true
+  },
+  skills: {
+    type: Array,
     required: true
   }
 });
@@ -311,5 +324,12 @@ const removeBehaviorExample = (traitIndex: number, exampleIndex: number) => {
   .form-grid-4-col {
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   }
+}
+
+.title-fixed {
+  display: flex;
+  padding: 4px;
+  gap: 8px;
+  align-items: center;
 }
 </style>

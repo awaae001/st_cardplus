@@ -28,8 +28,8 @@
     </div>
   </section>
   <section class="form-section">
-    <div class="title-Btn-add form-section-title">
-      <h3>
+    <div class="form-section-title title-Btn-add">
+      <h3 class="title-fixed">
         <Icon icon="ph:t-shirt-duotone" class="form-section-icon" />服装设定
       </h3>
       <div style="display: flex; gap: 8px; margin-left: 16px;">
@@ -77,6 +77,10 @@ import draggable from 'vuedraggable';
 const props = defineProps({
   form: {
     type: Object,
+    required: true
+  },
+  attires: {
+    type: Array,
     required: true
   }
 });
@@ -379,5 +383,12 @@ watch(() => form.value.appearance, () => {
   #routine-form {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   }
+}
+
+.title-fixed {
+  display: flex;
+  padding: 4px;
+  gap: 8px;
+  align-items: center;
 }
 </style>

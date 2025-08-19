@@ -60,7 +60,7 @@
               <el-input v-model="form.background" type="textarea" :rows="6" placeholder="请输入背景故事（每行一条）" />
             </div>
             <div style="margin-top: 1rem;">
-              <div class="title-Btn">
+              <div class="title-Btn" style="display: flex;align-items: center;justify-content: space-between;">
                 <label class="form-label">MBTI性格</label>
                 <el-button type="primary" @click="validateMBTI">
                   <Icon icon="material-symbols:question-exchange" width="18" height="18" style="margin-right: 4px;" />验证
