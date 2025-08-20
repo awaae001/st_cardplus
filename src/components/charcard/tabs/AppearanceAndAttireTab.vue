@@ -377,11 +377,13 @@ watch(() => form.value.appearance, () => {
 @media (min-width: 1200px) {
   .form-grid-4-col {
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    align-items: flex-start
   }
 
   #appearance-form,
   #routine-form {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    align-items: flex-start
   }
 }
 

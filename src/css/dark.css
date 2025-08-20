@@ -1,6 +1,6 @@
 html.dark {
     /* 恢复原来喜欢的黑色背景 */
     --el-bg-color: rgb(51, 51, 51);
-    background-color: #000000;
+    background-color: #090909;
     color: rgba(255, 255, 255, 0.85);
 }

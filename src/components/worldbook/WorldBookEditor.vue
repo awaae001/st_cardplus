@@ -63,7 +63,7 @@
               </div>
             </div>
             <div>
-              <label class="form-label">顺序</label><el-input-number v-model="localModel.order" :min="0"
+              <label class="form-label">顺序</label><el-input-number v-model="localModel.order" :min="100"
                 controls-position="right" class="form-full-width" />
             </div>
             <div>

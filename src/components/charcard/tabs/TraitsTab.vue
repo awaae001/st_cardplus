@@ -114,7 +114,7 @@
       </template>
     </draggable>
   </section>
-  <section class="form-section">
+  <section class="form-section" style="align-items: flex-start">
     <div class="title-Btn-add form-section-title">
       <h3 class="title-fixed">
         <Icon icon="ph:magic-wand-duotone" class="form-section-icon" />角色技能
@@ -323,6 +323,7 @@ const removeBehaviorExample = (traitIndex: number, exampleIndex: number) => {
 @media (min-width: 1200px) {
   .form-grid-4-col {
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    align-items: flex-start
   }
 }
 

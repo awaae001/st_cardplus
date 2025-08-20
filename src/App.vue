@@ -17,13 +17,13 @@
             <el-icon>
               <EditPen />
             </el-icon>
-            <span>角色卡编辑器</span>
+            <span>角色信息</span>
           </el-menu-item>
           <el-menu-item index="/world">
             <el-icon>
               <Location />
             </el-icon>
-            <span>地标编辑器</span>
+            <span>世界地标</span>
           </el-menu-item>
           <el-menu-item index="/cardoutput">
             <el-icon>
@@ -251,12 +251,12 @@ onUnmounted(() => {
 }
 
 .content-container {
-  overflow: auto;
-  padding: 16px;
+  overflow: hidden;
+  padding: 8px;
   position: relative;
   /* 为浮动按钮留出空间 */
   padding-top: 60px;
-  margin-top: -50px;
+  margin-top: -54px;
 }
 
 .toggle-button {

@@ -59,10 +59,10 @@ export default defineConfig({
         manualChunks(id) {
           if (id.includes('node_modules')) {
             if (id.includes('element-plus')) {
-              return 'element-plus'; // 将element-plus单独打包
+              return 'element-plus'; 
             }
             if (id.includes('lodash-es')) {
-              return 'lodash'; // 将lodash-es单独打包
+              return 'lodash';
             }
             return 'vendor'; // 其他node_modules依赖
           }
@@ -74,7 +74,7 @@ export default defineConfig({
     sourcemap: false, 
     terserOptions: {
       compress: {
-        // drop_console: true, // 移除console.log
+        // drop_console: true, 
         drop_debugger: true, // 移除debugger
       },
     },
