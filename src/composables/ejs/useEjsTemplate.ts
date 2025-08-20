@@ -51,7 +51,7 @@ export function useEjsTemplate(
           } else {
             blockTemplate += `<%_ } else if (${condition}) { _%>\n`
           }
-          blockTemplate += `<%- ${JSON.stringify(formattedContent)} %>`
+          blockTemplate += formattedContent
         })
 
         if (block.stages.length > 0) {

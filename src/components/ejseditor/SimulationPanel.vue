@@ -52,13 +52,13 @@
               </label>
               <div class="input-with-delete">
                 <el-input
-                  v-model="store.simulationValues[variable.readablePath]"
+                  v-model="store.simulationValues[`stat_data.${variable.readablePath}`]"
                   style="width: 100%"
                   :placeholder="`输入 ${variable.alias} 的测试值`"
                 />
                 <el-button
                   :icon="Delete"
-                  @click="removeVariable(variable.readablePath)"
+                  @click="removeVariable(`stat_data.${variable.readablePath}`)"
                   circle
                   plain
                   type="danger"
@@ -151,24 +151,39 @@ const allStages = computed(() => store.logicBlocks.flatMap(block => block.stages
 
 const availableVariables = computed(() => {
   const simulatedPaths = Object.keys(store.simulationValues)
-  return store.flatVariables.filter(v => !simulatedPaths.includes(v.readablePath))
+  return store.flatVariables.filter(v => {
+    const statDataPath = `stat_data.${v.readablePath}`
+    return !simulatedPaths.includes(v.readablePath) && !simulatedPaths.includes(statDataPath)
+  })
 })
 
 // 已添加到模拟中的变量
 const simulatedVariables = computed(() => {
   const simulatedPaths = Object.keys(store.simulationValues)
-  return store.flatVariables.filter(v => simulatedPaths.includes(v.readablePath))
+  return store.flatVariables.filter(v => {
+    const statDataPath = `stat_data.${v.readablePath}`
+    return simulatedPaths.includes(v.readablePath) || simulatedPaths.includes(statDataPath)
+  })
 })
 
 function addVariable() {
   if (variableToAdd.value) {
-    store.simulationValues[variableToAdd.value] = '' // 默认值为空字符串
+    // 如果变量路径不包含stat_data前缀，则添加它
+    const key = variableToAdd.value.startsWith('stat_data.')
+      ? variableToAdd.value
+      : `stat_data.${variableToAdd.value}`
+    store.simulationValues[key] = '' // 默认值为空字符串
     variableToAdd.value = null
   }
 }
 
 function removeVariable(path: string) {
+  // 尝试删除带stat_data前缀和不带前缀的版本
   delete store.simulationValues[path]
+  const statDataPath = path.startsWith('stat_data.') ? path : `stat_data.${path}`
+  const plainPath = path.startsWith('stat_data.') ? path.substring(10) : path
+  delete store.simulationValues[statDataPath]
+  delete store.simulationValues[plainPath]
 }
 
 function formatSingleCondition(condition: Condition): string {
@@ -213,7 +228,12 @@ function isStageMatched(stage: Stage): boolean {
   }
 
   const checkCondition = (cond: Condition): boolean => {
-    const simValue = store.simulationValues[cond.variablePath];
+    // 寻找对应的扁平变量来获取正确的readablePath
+    const flatVariable = store.flatVariables.find(v => v.id === cond.variablePath);
+    const readablePath = flatVariable ? flatVariable.readablePath : cond.variablePath;
+    // 构建完整的stat_data路径来匹配存储的值
+    const fullPath = `stat_data.${readablePath}`;
+    const simValue = store.simulationValues[fullPath] || store.simulationValues[readablePath];
     if (simValue === undefined) return false; // Variable not simulated
 
     const condValue = cond.value;
