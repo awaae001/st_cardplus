@@ -14,7 +14,7 @@ const router = createRouter({
       path: '/card',
       name: 'card',
       component: () => import('../pages/CardPage.vue'),
-      meta: { title: '角色卡编辑器' }
+      meta: { title: '角色卡' }
     },
     {
       path: '/world',
