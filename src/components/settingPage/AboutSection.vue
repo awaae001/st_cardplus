@@ -21,6 +21,12 @@
       <Icon icon="material-symbols:key-vertical-outline" width="24" height="24" style="margin-right: 4px;" />
       解锁高级版
     </a>
+    <div style="margin: 6px; display: inline;"></div>
+    <a href="https://dev.st-cardplus-1kl.pages.dev/" style="background-color: rgb(218 204 76);"
+      target="_blank" class="pro">
+      <Icon icon="material-symbols:build-circle-outline" width="24" height="24" style="margin-right: 4px;" />
+      访问滚动测试
+    </a>
   </div>
 </template>
 
