@@ -51,6 +51,22 @@
       <div class="setting-content">
         <div class="setting-header">
           <div class="setting-info">
+            <span class="setting-label">使用旧版本地标编辑器</span>
+            <Icon icon="gis:globe-users" width="20" height="20"
+              style="margin-left: 8px; color: var(--el-color-primary);" />
+          </div>
+          <el-switch v-model="useOldWorldEditor" @change="onUseOldWorldEditorToggle" size="large" />
+        </div>
+        <p class="setting-description">
+          开启后将使用旧版本的地标编辑器，它将缺乏维护，并且功能落后。
+        </p>
+      </div>
+    </div>
+
+    <div class="setting-card">
+      <div class="setting-content">
+        <div class="setting-header">
+          <div class="setting-info">
             <span class="setting-label">umami匿名遥测</span>
             <Icon icon="material-symbols:analytics-outline" width="20" height="20"
               style="margin-left: 8px; color: var(--el-color-info);" />
@@ -89,13 +105,14 @@
 import { Icon } from '@iconify/vue';
 import { ref, onMounted } from 'vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
-import { getBetaFeaturesEnabled, setBetaFeaturesEnabled, getUmamiEnabled, setUmamiEnabled, getAutoSaveInterval, setAutoSaveInterval, getUseOldSidebar, setUseOldSidebar, getUseNewCharCardEditor, setUseNewCharCardEditor } from '@/utils/localStorageUtils';
+import { getBetaFeaturesEnabled, setBetaFeaturesEnabled, getUmamiEnabled, setUmamiEnabled, getAutoSaveInterval, setAutoSaveInterval, getUseOldSidebar, setUseOldSidebar, getUseNewCharCardEditor, setUseNewCharCardEditor, getUseOldWorldEditor, setUseOldWorldEditor } from '@/utils/localStorageUtils';
 
 const betaFeaturesEnabled = ref(false);
 const umamiEnabled = ref(true);
 const autoSaveInterval = ref(5);
 const useOldSidebar = ref(true);
 const useNewCharCardEditor = ref(false);
+const useOldWorldEditor = ref(false);
 
 const onBetaFeaturesToggle = (value: boolean) => {
   if (value) {
@@ -214,6 +231,21 @@ const onUseNewCharCardEditorToggle = (value: boolean) => {
   });
 };
 
+const onUseOldWorldEditorToggle = (value: boolean) => {
+  setUseOldWorldEditor(value);
+  ElMessageBox.confirm(
+    '此设置将在您下次刷新页面 (Ctrl+R) 后生效。',
+    '提示',
+    {
+      confirmButtonText: '立即刷新',
+      cancelButtonText: '稍后',
+      type: 'info',
+    }
+  ).then(() => {
+    window.location.reload();
+  });
+};
+
 const toggleUmamiScript = (enabled: boolean) => {
   const existingScript = document.querySelector('script[data-website-id="6685fde6-dad1-49c1-b952-3a487d6991da"]');
 
@@ -234,6 +266,7 @@ onMounted(() => {
   autoSaveInterval.value = getAutoSaveInterval();
   useOldSidebar.value = getUseOldSidebar();
   useNewCharCardEditor.value = getUseNewCharCardEditor();
+  useOldWorldEditor.value = getUseOldWorldEditor();
   toggleUmamiScript(umamiEnabled.value);
 });
 </script>

@@ -206,3 +206,30 @@ export const setUseNewCharCardEditor = (enabled: boolean) => {
     console.error('保存新版编辑器设置失败:', error);
   }
 };
+
+/**
+ * 获取是否使用旧版世界编辑器
+ * @returns 是否使用旧版世界编辑器
+ */
+export const getUseOldWorldEditor = (): boolean => {
+  try {
+    const enabled = localStorage.getItem('useOldWorldEditor');
+    return enabled === 'true'; // 默认关闭
+  } catch (error) {
+    console.error('获取旧版世界编辑器设置失败:', error);
+    return false;
+  }
+};
+
+/**
+ * 设置是否使用旧版世界编辑器
+ * @param enabled - 是否使用旧版世界编辑器
+ */
+export const setUseOldWorldEditor = (enabled: boolean) => {
+  try {
+    localStorage.setItem('useOldWorldEditor', enabled.toString());
+    console.log('旧版世界编辑器设置已保存:', enabled);
+  } catch (error) {
+    console.error('保存旧版世界编辑器设置失败:', error);
+  }
+};

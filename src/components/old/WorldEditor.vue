@@ -135,8 +135,8 @@ import {
   clearLocalStorage,
   initAutoSave,
   clearAutoSave
-} from '../../../utils/localStorageUtils';
-import { copyToClipboard as copyUtil } from '../../../utils/clipboard';
+} from '../../utils/localStorageUtils';
+import { copyToClipboard as copyUtil } from '../../utils/clipboard';
 
 interface Landmark {
   name: string
