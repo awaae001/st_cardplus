@@ -14,7 +14,10 @@
           @delete="handleDelete"
           @undo="handleUndo"
           @redo="handleRedo"
-          @edit="handleEditProject"
+          @edit="handleEdit"
+          @copy="handleCopy"
+          @node-drop="() => {}"
+          :drag-drop-handlers="dragDropHandlers"
         />
       </div>
       <div class="main-panel-container">
@@ -39,8 +42,6 @@ import ProjectModal from './worldeditor/ProjectModal.vue';
 import { v4 as uuidv4 } from 'uuid';
 import { useHistory } from '@/composables/worldeditor/useHistory';
 import { saveToLocalStorage, loadFromLocalStorage } from '@/utils/localStorageUtils';
-
-console.log('WorldEditorV2.vue loaded');
 
 // Storage Keys
 const PROJECTS_STORAGE_KEY = 'world-editor-projects';
@@ -353,9 +354,144 @@ const handleDelete = (item: Project | EnhancedLandmark | EnhancedForce) => {
     // Add delete action to history
 };
 
-const handleEditProject = (project: Project) => {
-    editingProject.value = project;
-    isModalVisible.value = true;
+const handleEdit = (item: Project | EnhancedLandmark | EnhancedForce) => {
+   if ('projectId' in item) { // Is a Landmark or Force
+       selectedItem.value = item;
+   } else { // Is a Project
+       editingProject.value = item;
+       isModalVisible.value = true;
+   }
+};
+
+const handleCopy = (item: EnhancedLandmark | EnhancedForce) => {
+    if ('region' in item) {
+        const landmarkItem = item as EnhancedLandmark;
+        const newLandmark: EnhancedLandmark = {
+            ...landmarkItem,
+            id: uuidv4(),
+            name: `${landmarkItem.name} (复制)`,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        };
+        landmarks.value.unshift(newLandmark);
+        selectedItem.value = newLandmark;
+    } else {
+        const forceItem = item as EnhancedForce;
+        const newForce: EnhancedForce = {
+            ...forceItem,
+            id: uuidv4(),
+            name: `${forceItem.name} (复制)`,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        };
+        forces.value.unshift(newForce);
+        selectedItem.value = newForce;
+    }
+};
+
+const dragDropHandlers = {
+    allowDrag: (draggingNode: any) => {
+       const type = draggingNode.data.type;
+       return type === 'landmark' || type === 'force';
+   },
+   allowDrop: (draggingNode: any, dropNode: any, type: any) => {
+       const draggedType = draggingNode.data.type;
+       const dropType = dropNode.data.type;
+       const dropIsCategory = !dropNode.data.isEntry;
+
+       // Cannot drop on itself
+       if (draggingNode.data.id === dropNode.data.id) {
+           return false;
+       }
+
+       // New Rule: Prevent dropping 'before' or 'after' a category folder
+       if (dropIsCategory && type !== 'inner') {
+           return false;
+       }
+
+       // 1. Drop into a project (or its category folders)
+       if (dropType === 'project' && type === 'inner') return true;
+       if (dropIsCategory && type === 'inner') {
+            const dropParentType = dropNode.parent.data.type;
+            // Allow dropping into the category folders directly under a project
+            if (dropParentType === 'project') return true;
+       }
+
+
+       // 2. Sorting within the same category
+       if (draggedType === dropType && (type === 'prev' || type === 'next')) {
+           return true;
+       }
+
+       return false;
+   },
+   handleNodeDrop: (draggingNode: any, dropNode: any, dropType: any): boolean => {
+       const draggedItem = draggingNode.data.raw;
+       const dropItemRaw = dropNode.data.raw;
+
+       if ('region' in draggedItem) { // Dragged item is a Landmark
+           const list = landmarks.value;
+           const fromIndex = list.findIndex(item => item.id === draggedItem.id);
+           if (fromIndex === -1) return false;
+
+           let newProjectId: string | null = null;
+           if (dropNode.data.type === 'project') {
+               newProjectId = dropNode.data.id;
+           } else if (!dropNode.data.isEntry) { // Dropped on a category folder
+               newProjectId = dropNode.parent.data.id;
+           } else if ('projectId' in dropItemRaw && draggedItem.projectId !== dropItemRaw.projectId) {
+               newProjectId = dropItemRaw.projectId;
+           }
+
+           if (newProjectId && draggedItem.projectId !== newProjectId) {
+               draggedItem.projectId = newProjectId;
+               const [item] = list.splice(fromIndex, 1);
+               list.unshift(item);
+               return true;
+           }
+           
+           if (dropType === 'inner' || !('projectId' in dropItemRaw)) return false;
+           
+           const toIndex = list.findIndex(item => item.id === dropItemRaw.id);
+           if (toIndex === -1) return false;
+
+           const [item] = list.splice(fromIndex, 1);
+           const insertIndex = dropType === 'before' ? toIndex : toIndex + 1;
+           list.splice(insertIndex, 0, item);
+           return true;
+
+       } else { // Dragged item is a Force
+           const list = forces.value;
+           const fromIndex = list.findIndex(item => item.id === draggedItem.id);
+           if (fromIndex === -1) return false;
+
+           let newProjectId: string | null = null;
+           if (dropNode.data.type === 'project') {
+               newProjectId = dropNode.data.id;
+           } else if (!dropNode.data.isEntry) { // Dropped on a category folder
+               newProjectId = dropNode.parent.data.id;
+           } else if ('projectId' in dropItemRaw && draggedItem.projectId !== dropItemRaw.projectId) {
+               newProjectId = dropItemRaw.projectId;
+           }
+
+           if (newProjectId && draggedItem.projectId !== newProjectId) {
+               draggedItem.projectId = newProjectId;
+               const [item] = list.splice(fromIndex, 1);
+               list.unshift(item);
+               return true;
+           }
+
+           if (dropType === 'inner' || !('projectId' in dropItemRaw)) return false;
+
+           const toIndex = list.findIndex(item => item.id === dropItemRaw.id);
+           if (toIndex === -1) return false;
+
+           const [item] = list.splice(fromIndex, 1);
+           const insertIndex = dropType === 'before' ? toIndex : toIndex + 1;
+           list.splice(insertIndex, 0, item);
+           return true;
+       }
+   },
 };
 
 const handleModalSubmit = (projectData: Project) => {
