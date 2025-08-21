@@ -123,7 +123,7 @@ onMounted(() => {
       type: ForceType.CRIMINAL,
       power: PowerLevel.STRONG,
       structure: { hierarchy: ['导师', '刺客大师', '刺客'], decisionMaking: '独裁', recruitment: '选拔' },
-      leaders: [{ name: '夜刃', title: '大导师' }],
+      leaders: [{ id: uuidv4(), name: '夜刃', title: '大导师' }],
       members: [],
       totalMembers: 200,
       controlledTerritories: [],
@@ -287,7 +287,6 @@ const handleDelete = (item: EnhancedLandmark | EnhancedForce) => {
 .editor-layout {
   display: flex;
   flex-grow: 1;
-  margin-top: 1rem;
   gap: 16px;
 }
 

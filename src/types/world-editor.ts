@@ -163,6 +163,7 @@ export interface OrganizationStructure {
  * 领导者信息
  */
 export interface Leader {
+  id: string; // 前端使用的唯一ID
   name: string;
   title: string;
   description?: string;
