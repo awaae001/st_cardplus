@@ -43,6 +43,7 @@
             <div class="form-grid-span-3">
               <label class="form-label">标签</label>
               <el-select v-model="landmark.tags" multiple filterable allow-create default-first-option placeholder="例如：山脉, 险峻, 神秘" class="form-full-width">
+                <el-option v-for="tag in props.allTags" :key="tag" :label="tag" :value="tag" />
               </el-select>
             </div>
           </div>
@@ -121,6 +122,7 @@ import '@/css/worldbook.css';
 
 interface Props {
   landmark: EnhancedLandmark | null;
+  allTags?: string[];
 }
 
 const props = defineProps<Props>();

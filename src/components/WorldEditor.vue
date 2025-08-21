@@ -21,7 +21,7 @@
         />
       </div>
       <div class="main-panel-container">
-        <WorldEditorMainPanel :selected-item="selectedItem" />
+        <WorldEditorMainPanel :selected-item="selectedItem" :all-tags="allTags" />
       </div>
     </div>
     <ProjectModal
@@ -74,6 +74,21 @@ watch(forces, (newForces) => {
   saveToLocalStorage(newForces, FORCES_STORAGE_KEY);
 }, { deep: true });
 
+// Compute all unique tags from landmarks and forces
+const allTags = computed(() => {
+  const tags = new Set<string>();
+  landmarks.value.forEach(item => {
+    if (item.tags) {
+      item.tags.forEach(tag => tags.add(tag));
+    }
+  });
+  forces.value.forEach(item => {
+    if (item.tags) {
+      item.tags.forEach(tag => tags.add(tag));
+    }
+  });
+  return Array.from(tags);
+});
 
 // Watch for changes in the selected item to add to history
 watch(

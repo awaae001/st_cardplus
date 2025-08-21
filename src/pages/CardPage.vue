@@ -83,7 +83,7 @@ import 'splitpanes/dist/splitpanes.css';
 import CharacterListSidebar from '../components/charcard/CharacterListSidebar.vue';
 import { useCharacterCollection } from '../composables/characterCard/useCharacterCollection';
 import { useDevice } from '../composables/useDevice';
-import { getUseNewCharCardEditor } from '@/utils/localStorageUtils';
+import { getUseOldCharCardEditor } from '@/utils/localStorageUtils';
 
 const { isMobile } = useDevice();
 const activeTab = ref('list');
@@ -143,7 +143,7 @@ watch(activeCharacter, (newCharacter) => {
 }, { immediate: true, deep: true });
 
 onMounted(async () => {
-  useNewEditor.value = getUseNewCharCardEditor();
+  useNewEditor.value = !getUseOldCharCardEditor();
   if (useNewEditor.value) {
     const module = await import('../components/CharacterCardEditor.vue');
     editorComponent.value = module.default;

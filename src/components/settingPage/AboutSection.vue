@@ -1,8 +1,11 @@
 <template>
   <div class="about-section">
-    <h2>关于应用</h2>
+    <h2>关于应用 <span v-if="isDevDomain" style="color: #e6a23c; font-size: 16px;">滚动测试</span></h2>
     <p>这是一个用于创建和管理 SillyTavern 角色卡的在线应用程序。</p>
-    <p>访问我们的 GitHub 页面获取更多信息或贡献代码：</p>
+    <p style="display: flex;align-items: center;gap: 8px;">你可以访问
+      <Icon icon="qlementine-icons:discord-fill-16" width="16" height="16" /><a href="https://discord.gg/2wKPQHCydk"
+        target="_blank" style="color: #409eff;">discord 频道</a> 发送反馈或者访问我的 GitHub 页面获取更多信息或贡献代码：
+    </p>
     <p>
       开发版本：
       <b v-if="appCommitCount === '1'">在线版_{{ appVersion }}</b>
@@ -15,26 +18,38 @@
       <Icon icon="mdi:github" width="24" height="24" style="margin-right: 4px;" />
       GitHub 仓库
     </a>
-    <div style="margin: 6px; display: inline;"></div>
-    <a href="https://autopatchcn.yuanshen.com/client_app/download/launcher/20241225164539_9oyGHAOXvzP4uaBW/mihoyo/yuanshen_setup_202412201736.exe"
-      target="_blank" class="pro">
-      <Icon icon="material-symbols:key-vertical-outline" width="24" height="24" style="margin-right: 4px;" />
-      解锁高级版
-    </a>
-    <div style="margin: 6px; display: inline;"></div>
-    <a href="https://dev.st-cardplus-1kl.pages.dev/" style="background-color: rgb(218 204 76);"
-      target="_blank" class="pro">
-      <Icon icon="material-symbols:build-circle-outline" width="24" height="24" style="margin-right: 4px;" />
-      访问滚动测试
-    </a>
+    <template v-if="isMainDomain">
+      <div style="margin: 6px; display: inline;"></div>
+      <a href="https://autopatchcn.yuanshen.com/client_app/download/launcher/20241225164539_9oyGHAOXvzP4uaBW/mihoyo/yuanshen_setup_202412201736.exe"
+        target="_blank" class="pro">
+        <Icon icon="material-symbols:key-vertical-outline" width="24" height="24"
+          style="margin-right: 4px; display: inline-block;" />
+        解锁高级版
+      </a>
+      <div style="margin: 6px; display: inline;"></div>
+      <a href="https://dev.st-cardplus-1kl.pages.dev/" style="background-color: rgb(218 204 76);" target="_blank"
+        class="pro">
+        <Icon icon="material-symbols:build-circle-outline" width="24" height="24" style="margin-right: 4px;" />
+        访问滚动测试
+      </a>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
+import { computed } from 'vue';
 
 const appVersion = __APP_VERSION__;
 const appCommitCount = __APP_COMMIT_COUNT__;
+
+const isMainDomain = computed(() => {
+  return window.location.hostname === 'cardplus.jiuci.top';
+});
+
+const isDevDomain = computed(() => {
+  return window.location.hostname === 'dev.st-cardplus-1kl.pages.dev';
+});
 </script>
 
 <style scoped>

@@ -12,8 +12,8 @@
       </div>
       <div class="editor-content">
         <ProjectEditor v-if="isProject(props.selectedItem)" :project="props.selectedItem" />
-        <LandmarkEditor v-else-if="isLandmark(props.selectedItem)" :landmark="props.selectedItem" />
-        <ForceEditor v-else-if="isForce(props.selectedItem)" :force="props.selectedItem" />
+        <LandmarkEditor v-else-if="isLandmark(props.selectedItem)" :landmark="props.selectedItem" :all-tags="props.allTags" />
+        <ForceEditor v-else-if="isForce(props.selectedItem)" :force="props.selectedItem" :all-tags="props.allTags" />
         <div v-else class="editor-placeholder">
           <p>未知项目类型</p>
         </div>
@@ -36,6 +36,7 @@ import { cleanObject } from '@/utils/objectUtils';
 
 interface Props {
   selectedItem: Project | EnhancedLandmark | EnhancedForce | null;
+  allTags?: string[];
 }
 
 const props = defineProps<Props>();

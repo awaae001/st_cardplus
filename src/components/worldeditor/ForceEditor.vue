@@ -128,6 +128,7 @@
             <div>
               <label class="form-label">标签</label>
               <el-select v-model="force.tags" multiple filterable allow-create default-first-option placeholder="例如：王国, 守序善良, 军事" class="form-full-width">
+                <el-option v-for="tag in props.allTags" :key="tag" :label="tag" :value="tag" />
               </el-select>
             </div>
             <div>
@@ -153,6 +154,7 @@ import '@/css/worldbook.css';
 
 interface Props {
   force: EnhancedForce | null;
+  allTags?: string[];
 }
 const props = defineProps<Props>();
 const { errors, validate } = useValidation();

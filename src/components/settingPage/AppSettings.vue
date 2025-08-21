@@ -1,101 +1,24 @@
 <template>
   <div class="app-settings">
-    <div class="setting-card">
+    <div v-for="setting in settings" :key="setting.id" class="setting-card">
       <div class="setting-content">
         <div class="setting-header">
           <div class="setting-info">
-            <span class="setting-label">启用新版本角色信息编辑页面</span>
-            <Icon icon="material-symbols:experiment-outline" width="20" height="20"
-              style="margin-left: 8px; color: var(--el-color-warning);" />
+            <span class="setting-label">{{ setting.label }}</span>
+            <Icon :icon="setting.icon" width="20" height="20" :style="{ marginLeft: '8px', color: setting.iconColor }" />
           </div>
-          <el-switch v-model="useNewCharCardEditor" @change="onUseNewCharCardEditorToggle" size="large" />
+          <template v-if="setting.type === 'switch'">
+            <el-switch v-model="setting.model.value" @change="setting.handler" size="large" />
+          </template>
+          <template v-else-if="setting.type === 'numberInput'">
+            <div class="interval-control">
+              <el-input-number v-model="setting.model.value" @change="setting.handler" :min="setting.min" :max="setting.max"
+                :step="setting.step" size="small" style="width: 100px;" />
+              <span class="interval-unit">{{ setting.unit }}</span>
+            </div>
+          </template>
         </div>
-        <p class="setting-description">
-          开启后将使用新版本的角色信息编辑页面，带来更好的编辑体验。
-        </p>
-      </div>
-    </div>
-    <div class="setting-card">
-      <div class="setting-content">
-        <div class="setting-header">
-          <div class="setting-info">
-            <span class="setting-label">显示测试版功能</span>
-            <Icon icon="material-symbols:experiment-outline" width="20" height="20"
-              style="margin-left: 8px; color: var(--el-color-warning);" />
-          </div>
-          <el-switch v-model="betaFeaturesEnabled" @change="onBetaFeaturesToggle" size="large" />
-        </div>
-        <p class="setting-description">
-          开启后将在侧边栏显示测试版功能，包括 EJS 模板编辑器和世界书功能。
-        </p>
-      </div>
-    </div>
-
-    <div class="setting-card">
-      <div class="setting-content">
-        <div class="setting-header">
-          <div class="setting-info">
-            <span class="setting-label">使用旧版本侧边栏特性</span>
-            <Icon icon="material-symbols:view-sidebar-outline" width="20" height="20"
-              style="margin-left: 8px; color: var(--el-color-primary);" />
-          </div>
-          <el-switch v-model="useOldSidebar" @change="onUseOldSidebarToggle" size="large" />
-        </div>
-        <p class="setting-description">
-          开启后将使用旧版本的侧边栏（缺乏维护），这可能解决一些新版本侧边栏在较老设备上的显示问题。
-        </p>
-      </div>
-    </div>
-
-    <div class="setting-card">
-      <div class="setting-content">
-        <div class="setting-header">
-          <div class="setting-info">
-            <span class="setting-label">使用旧版本地标编辑器</span>
-            <Icon icon="gis:globe-users" width="20" height="20"
-              style="margin-left: 8px; color: var(--el-color-primary);" />
-          </div>
-          <el-switch v-model="useOldWorldEditor" @change="onUseOldWorldEditorToggle" size="large" />
-        </div>
-        <p class="setting-description">
-          开启后将使用旧版本的地标编辑器，它将缺乏维护，并且功能落后。
-        </p>
-      </div>
-    </div>
-
-    <div class="setting-card">
-      <div class="setting-content">
-        <div class="setting-header">
-          <div class="setting-info">
-            <span class="setting-label">umami匿名遥测</span>
-            <Icon icon="material-symbols:analytics-outline" width="20" height="20"
-              style="margin-left: 8px; color: var(--el-color-info);" />
-          </div>
-          <el-switch v-model="umamiEnabled" @change="onUmamiToggle" size="large" />
-        </div>
-        <p class="setting-description">
-          开启后将收集匿名使用数据以帮助改进应用，不会收集任何个人信息或角色卡内容。
-        </p>
-      </div>
-    </div>
-
-    <div class="setting-card">
-      <div class="setting-content">
-        <div class="setting-header">
-          <div class="setting-info">
-            <span class="setting-label">自动保存间隔</span>
-            <Icon icon="material-symbols:save-outline" width="20" height="20"
-              style="margin-left: 8px; color: var(--el-color-success);" />
-          </div>
-          <div class="interval-control">
-            <el-input-number v-model="autoSaveInterval" @change="onAutoSaveIntervalChange" :min="1" :max="60"
-              :step="1" size="small" style="width: 100px;" />
-            <span class="interval-unit">秒</span>
-          </div>
-        </div>
-        <p class="setting-description">
-          设置编辑器中内容的自动保存间隔，范围：1-60秒。
-        </p>
+        <p class="setting-description">{{ setting.description }}</p>
       </div>
     </div>
   </div>
@@ -103,15 +26,23 @@
 
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
-import { getBetaFeaturesEnabled, setBetaFeaturesEnabled, getUmamiEnabled, setUmamiEnabled, getAutoSaveInterval, setAutoSaveInterval, getUseOldSidebar, setUseOldSidebar, getUseNewCharCardEditor, setUseNewCharCardEditor, getUseOldWorldEditor, setUseOldWorldEditor } from '@/utils/localStorageUtils';
+import { 
+  getBetaFeaturesEnabled, setBetaFeaturesEnabled, 
+  getUmamiEnabled, setUmamiEnabled, 
+  getAutoSaveInterval, setAutoSaveInterval, 
+  getUseOldSidebar, setUseOldSidebar, 
+  getUseOldCharCardEditor, setUseOldCharCardEditor,
+  getUseOldWorldEditor, setUseOldWorldEditor 
+} from '@/utils/localStorageUtils';
+import { getAppSettings } from '@/composables/appSettings';
 
 const betaFeaturesEnabled = ref(false);
 const umamiEnabled = ref(true);
 const autoSaveInterval = ref(5);
 const useOldSidebar = ref(true);
-const useNewCharCardEditor = ref(false);
+const useOldCharCardEditor = ref(false);
 const useOldWorldEditor = ref(false);
 
 const onBetaFeaturesToggle = (value: boolean) => {
@@ -196,7 +127,8 @@ const onUmamiToggle = (value: boolean) => {
   }
 };
 
-const onAutoSaveIntervalChange = (value: number) => {
+const onAutoSaveIntervalChange = (value: number | undefined) => {
+  if (value === undefined) return;
   setAutoSaveInterval(value);
   window.dispatchEvent(new CustomEvent('autoSaveIntervalChange', { detail: value }));
 };
@@ -216,8 +148,8 @@ const onUseOldSidebarToggle = (value: boolean) => {
   });
 };
 
-const onUseNewCharCardEditorToggle = (value: boolean) => {
-  setUseNewCharCardEditor(value);
+const onUseOldCharCardEditorToggle = (value: boolean) => {
+  setUseOldCharCardEditor(value);
   ElMessageBox.confirm(
     '此设置将在您下次刷新页面 (Ctrl+R) 后生效。',
     '提示',
@@ -246,6 +178,25 @@ const onUseOldWorldEditorToggle = (value: boolean) => {
   });
 };
 
+const settings = computed(() => getAppSettings(
+  { 
+    useOldCharCardEditor,
+    betaFeaturesEnabled, 
+    useOldSidebar, 
+    useOldWorldEditor, 
+    umamiEnabled, 
+    autoSaveInterval 
+  },
+  { 
+    onUseOldCharCardEditorToggle,
+    onBetaFeaturesToggle, 
+    onUseOldSidebarToggle, 
+    onUseOldWorldEditorToggle, 
+    onUmamiToggle, 
+    onAutoSaveIntervalChange 
+  }
+));
+
 const toggleUmamiScript = (enabled: boolean) => {
   const existingScript = document.querySelector('script[data-website-id="6685fde6-dad1-49c1-b952-3a487d6991da"]');
 
@@ -265,7 +216,7 @@ onMounted(() => {
   umamiEnabled.value = getUmamiEnabled();
   autoSaveInterval.value = getAutoSaveInterval();
   useOldSidebar.value = getUseOldSidebar();
-  useNewCharCardEditor.value = getUseNewCharCardEditor();
+  useOldCharCardEditor.value = getUseOldCharCardEditor();
   useOldWorldEditor.value = getUseOldWorldEditor();
   toggleUmamiScript(umamiEnabled.value);
 });
