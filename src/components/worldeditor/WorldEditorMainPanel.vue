@@ -11,7 +11,8 @@
         />
       </div>
       <div class="editor-content">
-        <LandmarkEditor v-if="isLandmark(props.selectedItem)" :landmark="props.selectedItem" />
+        <ProjectEditor v-if="isProject(props.selectedItem)" :project="props.selectedItem" />
+        <LandmarkEditor v-else-if="isLandmark(props.selectedItem)" :landmark="props.selectedItem" />
         <ForceEditor v-else-if="isForce(props.selectedItem)" :force="props.selectedItem" />
         <div v-else class="editor-placeholder">
           <p>未知项目类型</p>
@@ -25,7 +26,8 @@
 </template>
 
 <script setup lang="ts">
-import type { EnhancedLandmark, EnhancedForce } from '@/types/world-editor';
+import type { Project, EnhancedLandmark, EnhancedForce } from '@/types/world-editor';
+import ProjectEditor from './ProjectEditor.vue';
 import LandmarkEditor from './LandmarkEditor.vue';
 import ForceEditor from './ForceEditor.vue';
 import WorldEditorActionButtons from './WorldEditorActionButtons.vue';
@@ -33,13 +35,13 @@ import { ElMessage } from 'element-plus';
 import { cleanObject } from '@/utils/objectUtils';
 
 interface Props {
-  selectedItem: EnhancedLandmark | EnhancedForce | null;
+  selectedItem: Project | EnhancedLandmark | EnhancedForce | null;
 }
 
 const props = defineProps<Props>();
 
 const emit = defineEmits<{
-  (e: 'update:selectedItem', item: EnhancedLandmark | EnhancedForce): void;
+  (e: 'update:selectedItem', item: Project | EnhancedLandmark | EnhancedForce): void;
 }>();
 
 const sanitizeItem = (item: any) => {
@@ -120,14 +122,19 @@ const updateSelectedItem = (importedData: any) => {
   ElMessage.success('导入成功！');
 };
 
+// Type guard to check if the selected item is a Project
+const isProject = (item: any): item is Project => {
+  return item && 'createdAt' in item && !('projectId' in item);
+}
+
 // Type guard to check if the selected item is a Landmark
 const isLandmark = (item: any): item is EnhancedLandmark => {
-  return 'region' in item && 'importance' in item;
+  return item && 'projectId' in item && 'region' in item;
 };
 
 // Type guard to check if the selected item is a Force
 const isForce = (item: any): item is EnhancedForce => {
-  return 'power' in item && 'structure' in item;
+  return item && 'projectId' in item && 'power' in item;
 }
 </script>
 

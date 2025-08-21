@@ -1,0 +1,35 @@
+<template>
+  <div class="project-editor">
+    <el-form :model="project" label-position="top">
+      <el-form-item label="项目名称">
+        <el-input v-model="project.name" placeholder="请输入项目名称"></el-input>
+      </el-form-item>
+      <el-form-item label="项目描述">
+        <el-input
+          type="textarea"
+          :rows="4"
+          v-model="project.description"
+          placeholder="请输入项目描述"
+        ></el-input>
+      </el-form-item>
+    </el-form>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { defineProps } from 'vue';
+import type { Project } from '@/types/world-editor';
+import { ElForm, ElFormItem, ElInput } from 'element-plus';
+
+interface Props {
+  project: Project;
+}
+
+const props = defineProps<Props>();
+</script>
+
+<style scoped>
+.project-editor {
+  padding: 20px;
+}
+</style>

@@ -3,6 +3,7 @@
     <div class="editor-layout">
       <div class="toolbar-container">
         <WorldEditorToolbar
+          :projects="projects"
           :landmarks="landmarks"
           :forces="forces"
           :selected-item="selectedItem"
@@ -13,21 +14,28 @@
           @delete="handleDelete"
           @undo="handleUndo"
           @redo="handleRedo"
+          @edit="handleEditProject"
         />
       </div>
       <div class="main-panel-container">
         <WorldEditorMainPanel :selected-item="selectedItem" />
       </div>
     </div>
+    <ProjectModal
+      v-model:visible="isModalVisible"
+      :project-data="editingProject"
+      @submit="handleModalSubmit"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
-import type { EnhancedLandmark, EnhancedForce } from '@/types/world-editor';
+import { ref, onMounted, watch, computed } from 'vue';
+import type { Project, EnhancedLandmark, EnhancedForce } from '@/types/world-editor';
 import { LandmarkType, ImportanceLevel, ForceType, PowerLevel, ActionType } from '@/types/world-editor';
 import WorldEditorToolbar from './worldeditor/WorldEditorToolbar.vue';
 import WorldEditorMainPanel from './worldeditor/WorldEditorMainPanel.vue';
+import ProjectModal from './worldeditor/ProjectModal.vue';
 import { v4 as uuidv4 } from 'uuid';
 import { useHistory } from '@/composables/worldeditor/useHistory';
 import { saveToLocalStorage, loadFromLocalStorage } from '@/utils/localStorageUtils';
@@ -35,18 +43,28 @@ import { saveToLocalStorage, loadFromLocalStorage } from '@/utils/localStorageUt
 console.log('WorldEditorV2.vue loaded');
 
 // Storage Keys
+const PROJECTS_STORAGE_KEY = 'world-editor-projects';
 const LANDMARKS_STORAGE_KEY = 'world-editor-landmarks';
 const FORCES_STORAGE_KEY = 'world-editor-forces';
 
 // State Management
+const projects = ref<Project[]>([]);
 const landmarks = ref<EnhancedLandmark[]>([]);
 const forces = ref<EnhancedForce[]>([]);
-const selectedItem = ref<EnhancedLandmark | EnhancedForce | null>(null);
+const selectedItem = ref<Project | EnhancedLandmark | EnhancedForce | null>(null);
+
+// Modal Management
+const isModalVisible = ref(false);
+const editingProject = ref<Project | null>(null);
 
 // History Management
 const { canUndo, canRedo, add, undo, redo } = useHistory('world-editor-history');
 
 // Watch for changes and save to local storage
+watch(projects, (newProjects) => {
+    saveToLocalStorage(newProjects, PROJECTS_STORAGE_KEY);
+}, { deep: true });
+
 watch(landmarks, (newLandmarks) => {
   saveToLocalStorage(newLandmarks, LANDMARKS_STORAGE_KEY);
 }, { deep: true });
@@ -82,15 +100,33 @@ watch(
 
 // Load data or generate mock data on mount
 onMounted(() => {
+  const savedProjects = loadFromLocalStorage(PROJECTS_STORAGE_KEY);
   const savedLandmarks = loadFromLocalStorage(LANDMARKS_STORAGE_KEY);
   const savedForces = loadFromLocalStorage(FORCES_STORAGE_KEY);
+
+  if (savedProjects && savedProjects.length > 0) {
+    projects.value = savedProjects;
+  } else {
+    // Create a default project if none exists
+    const defaultProject = {
+      id: uuidv4(),
+      name: '默认项目',
+      description: '这是一个默认项目',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    projects.value.push(defaultProject);
+  }
+
+  const defaultProjectId = projects.value[0]?.id;
 
   if (savedLandmarks && savedLandmarks.length > 0) {
     landmarks.value = savedLandmarks;
   } else {
-    // Mock Data Generation for landmarks
-    landmarks.value.push({
+    if (defaultProjectId) {
+        landmarks.value.push({
       id: uuidv4(),
+      projectId: defaultProjectId,
       name: '晨星城',
       description: '一座位于北境山脉中的坚固矮人城市，以其精湛的工艺和丰富的矿产而闻名。',
       type: LandmarkType.CITY,
@@ -110,14 +146,17 @@ onMounted(() => {
       updatedAt: new Date().toISOString(),
       version: 1,
     });
+    }
   }
 
   if (savedForces && savedForces.length > 0) {
     forces.value = savedForces;
   } else {
     // Mock Data Generation for forces
-    forces.value.push({
+    if (defaultProjectId) {
+        forces.value.push({
       id: uuidv4(),
+      projectId: defaultProjectId,
       name: '暗影兄弟会',
       description: '一个在大陆阴影中运作的秘密刺客组织，以其高效和无情而著称。',
       type: ForceType.CRIMINAL,
@@ -141,6 +180,7 @@ onMounted(() => {
       updatedAt: new Date().toISOString(),
       version: 1,
     });
+    }
   }
 
   // Select the first landmark by default for demonstration
@@ -149,9 +189,22 @@ onMounted(() => {
   }
 });
 
-const handleSelection = (item: EnhancedLandmark | EnhancedForce) => {
+const handleSelection = (item: Project | EnhancedLandmark | EnhancedForce) => {
   selectedItem.value = item;
 };
+
+const activeProjectId = computed(() => {
+    if (!selectedItem.value) return projects.value[0]?.id;
+    if ('projectId' in selectedItem.value) {
+        return selectedItem.value.projectId;
+    }
+    // if selected item is a project
+    if ('createdAt' in selectedItem.value) {
+        return selectedItem.value.id;
+    }
+    return projects.value[0]?.id;
+});
+
 const handleUndo = () => {
   const restoredState = undo();
   if (!restoredState) return;
@@ -197,8 +250,9 @@ const handleRedo = () => {
 };
 
 
-const createNewLandmark = (): EnhancedLandmark => ({
+const createNewLandmark = (projectId: string): EnhancedLandmark => ({
   id: uuidv4(),
+  projectId: projectId,
   name: '新地标',
   description: '',
   type: LandmarkType.CUSTOM,
@@ -214,8 +268,9 @@ const createNewLandmark = (): EnhancedLandmark => ({
   version: 1,
 });
 
-const createNewForce = (): EnhancedForce => ({
+const createNewForce = (projectId: string): EnhancedForce => ({
     id: uuidv4(),
+    projectId: projectId,
     name: '新势力',
     description: '',
     type: ForceType.CUSTOM,
@@ -240,38 +295,89 @@ const createNewForce = (): EnhancedForce => ({
     version: 1,
 });
 
-const handleAdd = (type: 'landmark' | 'force') => {
+const handleAdd = (type: 'project' | 'landmark' | 'force') => {
+  if (type === 'project') {
+    editingProject.value = null;
+    isModalVisible.value = true;
+    return;
+  }
+
+  const projectId = activeProjectId.value;
+  if (!projectId) {
+    console.error("No active project to add the item to.");
+    return;
+  }
+
   if (type === 'landmark') {
-    const newLandmark = createNewLandmark();
+    const newLandmark = createNewLandmark(projectId);
     landmarks.value.unshift(newLandmark);
     selectedItem.value = newLandmark;
     // Add create action to history
   } else {
-    const newForce = createNewForce();
+    const newForce = createNewForce(projectId);
     forces.value.unshift(newForce);
     selectedItem.value = newForce;
     // Add create action to history
   }
 };
 
-const handleDelete = (item: EnhancedLandmark | EnhancedForce) => {
-  if ('region' in item) { // is landmark
-    const index = landmarks.value.findIndex(l => l.id === item.id);
-    if (index > -1) {
-      landmarks.value.splice(index, 1);
+const handleDelete = (item: Project | EnhancedLandmark | EnhancedForce) => {
+    if ('projectId' in item) { // Landmark or Force
+        if ('region' in item) { // Landmark
+            const index = landmarks.value.findIndex(l => l.id === item.id);
+            if (index > -1) landmarks.value.splice(index, 1);
+        } else { // Force
+            const index = forces.value.findIndex(f => f.id === item.id);
+            if (index > -1) forces.value.splice(index, 1);
+        }
+    } else if ('createdAt' in item) { // Project
+        const project = item as Project;
+        // Prevent deleting the last project
+        if (projects.value.length <= 1) {
+            console.warn("Cannot delete the last project.");
+            // Optionally, show a user-facing message
+            return;
+        }
+        const index = projects.value.findIndex(p => p.id === project.id);
+        if (index > -1) {
+            // Also delete associated landmarks and forces
+            landmarks.value = landmarks.value.filter(l => l.projectId !== project.id);
+            forces.value = forces.value.filter(f => f.projectId !== project.id);
+            projects.value.splice(index, 1);
+        }
     }
-  } else { // is force
-    const index = forces.value.findIndex(f => f.id === item.id);
-    if (index > -1) {
-      forces.value.splice(index, 1);
+
+    if (selectedItem.value?.id === item.id) {
+        selectedItem.value = projects.value[0] || landmarks.value[0] || forces.value[0] || null;
     }
-  }
-  if (selectedItem.value?.id === item.id) {
-    selectedItem.value = landmarks.value[0] || forces.value[0] || null;
-  }
-   // Add delete action to history
+    // Add delete action to history
 };
 
+const handleEditProject = (project: Project) => {
+    editingProject.value = project;
+    isModalVisible.value = true;
+};
+
+const handleModalSubmit = (projectData: Project) => {
+    if (editingProject.value) {
+        // Update existing project
+        const index = projects.value.findIndex(p => p.id === editingProject.value!.id);
+        if (index !== -1) {
+            projects.value[index] = { ...projects.value[index], ...projectData, updatedAt: new Date().toISOString() };
+        }
+    } else {
+        // Create new project
+        const newProject = {
+            ...projectData,
+            id: uuidv4(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        };
+        projects.value.unshift(newProject);
+        selectedItem.value = newProject;
+    }
+    editingProject.value = null;
+};
 </script>
 
 <style scoped>

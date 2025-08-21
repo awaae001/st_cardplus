@@ -26,7 +26,13 @@ export function useValidation() {
             isValid = false;
           }
           break;
-        // Other rules like UNIQUE, MAX_LENGTH, PATTERN can be added here
+        case ValidationType.MAX_LENGTH:
+          if (value && value.length > rule.params.max) {
+            errors[rule.field] = rule.message;
+            isValid = false;
+          }
+          break;
+        // Other rules like UNIQUE, PATTERN can be added here
       }
     }
     return isValid;
@@ -47,6 +53,12 @@ export const landmarkValidationRules: ValidationRule[] = [
     rule: ValidationType.MIN_LENGTH,
     message: '描述至少需要10个字符',
     params: { min: 10 },
+  },
+  {
+    field: 'headquarters',
+    rule: ValidationType.MAX_LENGTH,
+    message: '总部位置名称不能超过50个字符',
+    params: { max: 50 },
   },
 ];
 

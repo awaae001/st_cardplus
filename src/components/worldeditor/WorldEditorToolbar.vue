@@ -4,6 +4,11 @@
     <div class="toolbar-header">
       <h3 class="toolbar-title">世界编辑器</h3>
       <div class="header-actions">
+        <el-tooltip content="新增项目" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+            <button @click="emit('add', 'project')" class="btn-primary-adv action-button">
+                <Icon icon="ph:folder-plus-duotone" />
+            </button>
+        </el-tooltip>
         <el-tooltip content="新增地标" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
           <button @click="emit('add', 'landmark')" class="btn-primary-adv action-button">
             <Icon icon="ph:map-pin-duotone" />
@@ -47,7 +52,7 @@
         :props="treeProps"
         node-key="id"
         :key="treeKey"
-        :default-expanded-keys="['landmarks-root', 'forces-root']"
+        :default-expanded-keys="defaultExpandedKeys"
         :current-node-key="currentNodeKey"
         highlight-current
         @node-click="handleNodeClick"
@@ -62,6 +67,11 @@
               <span class="node-label">{{ node.label }}</span>
             </div>
             <div class="node-actions" v-if="data.isEntry">
+                <el-tooltip v-if="data.type === 'project'" content="编辑" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+                    <button @click.stop="emit('edit', data.raw)" class="list-item-action-button">
+                        <Icon icon="ph:pencil-duotone" />
+                    </button>
+                </el-tooltip>
                <el-tooltip content="删除" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
                 <button @click.stop="emit('delete', data.raw)" class="list-item-action-button is-danger">
                   <Icon icon="ph:trash-duotone" />
@@ -81,11 +91,12 @@ import { ref, computed, watch } from 'vue';
 import { ElScrollbar, ElTooltip, ElTree, ElInput } from 'element-plus';
 import { Icon } from '@iconify/vue';
 import { Search } from '@element-plus/icons-vue';
-import type { EnhancedLandmark, EnhancedForce } from '../../types/world-editor';
+import type { Project, EnhancedLandmark, EnhancedForce } from '../../types/world-editor';
 
-type SelectableItem = EnhancedLandmark | EnhancedForce;
+type SelectableItem = Project | EnhancedLandmark | EnhancedForce;
 
 interface Props {
+  projects: Project[];
   landmarks: EnhancedLandmark[];
   forces: EnhancedForce[];
   selectedItem: SelectableItem | null;
@@ -96,7 +107,8 @@ interface Props {
 const props = defineProps<Props>();
 const emit = defineEmits<{
   (e: 'select', item: SelectableItem): void;
-  (e: 'add', type: 'landmark' | 'force'): void;
+  (e: 'add', type: 'project' | 'landmark' | 'force'): void;
+  (e: 'edit', item: Project): void;
   (e: 'delete', item: SelectableItem): void;
   (e: 'undo'): void;
   (e: 'redo'): void;
@@ -123,36 +135,53 @@ const treeProps = {
 };
 
 const treeData = computed(() => {
-  return [
-    {
-      id: 'landmarks-root',
-      label: `地标 (${props.landmarks.length})`,
-      icon: 'ph:map-trifold-duotone',
-      isEntry: false,
-      children: props.landmarks.map(landmark => ({
-        id: landmark.id,
-        label: landmark.name,
-        icon: 'ph:map-pin-line-duotone',
-        isEntry: true,
-        type: 'landmark',
-        raw: landmark,
-      })),
-    },
-    {
-      id: 'forces-root',
-      label: `势力 (${props.forces.length})`,
-      icon: 'ph:users-three-duotone',
-      isEntry: false,
-      children: props.forces.map(force => ({
-        id: force.id,
-        label: force.name,
-        icon: 'ph:flag-duotone',
-        isEntry: true,
-        type: 'force',
-        raw: force,
-      })),
-    }
-  ];
+    return props.projects.map(project => {
+        const projectLandmarks = props.landmarks.filter(l => l.projectId === project.id);
+        const projectForces = props.forces.filter(f => f.projectId === project.id);
+
+        return {
+            id: project.id,
+            label: project.name,
+            icon: 'ph:folder-duotone',
+            isEntry: true,
+            type: 'project',
+            raw: project,
+            children: [
+                {
+                    id: `${project.id}-landmarks`,
+                    label: `地标 (${projectLandmarks.length})`,
+                    icon: 'ph:map-trifold-duotone',
+                    isEntry: false,
+                    children: projectLandmarks.map(landmark => ({
+                        id: landmark.id,
+                        label: landmark.name,
+                        icon: 'ph:map-pin-line-duotone',
+                        isEntry: true,
+                        type: 'landmark',
+                        raw: landmark,
+                    })),
+                },
+                {
+                    id: `${project.id}-forces`,
+                    label: `势力 (${projectForces.length})`,
+                    icon: 'ph:users-three-duotone',
+                    isEntry: false,
+                    children: projectForces.map(force => ({
+                        id: force.id,
+                        label: force.name,
+                        icon: 'ph:flag-duotone',
+                        isEntry: true,
+                        type: 'force',
+                        raw: force,
+                    })),
+                },
+            ],
+        };
+    });
+});
+
+const defaultExpandedKeys = computed(() => {
+    return props.projects.map(p => p.id);
 });
 
 const currentNodeKey = computed(() => {

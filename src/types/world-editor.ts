@@ -1,11 +1,23 @@
 // src/types/world-editor.ts
 
 /**
+ * 项目接口
+ */
+export interface Project {
+  id: string;      // UUID
+  name: string;    // 项目名称
+  description: string; // 项目描述
+  createdAt: string; // 创建时间
+  updatedAt: string; // 更新时间
+}
+
+/**
  * 增强的地标实体接口
  */
 export interface EnhancedLandmark {
   // 基础信息
   id: string;                    // UUID 唯一标识
+  projectId: string;             // 所属项目ID
   name: string;                  // 地标名称
   description: string;           // 详细描述
 
@@ -81,6 +93,7 @@ export interface Coordinates {
 export interface EnhancedForce {
   // 基础信息
   id: string;
+  projectId: string;             // 所属项目ID
   name: string;
   description: string;
 
@@ -98,6 +111,7 @@ export interface EnhancedForce {
   controlledTerritories: string[];  // 控制地标ID
   influenceAreas: string[];         // 影响区域ID
   headquarters?: string;            // 总部地标ID
+  branchLocations?: string[];       // 分部位置地标ID列表
 
   // 外交关系
   allies: Relationship[];       // 盟友关系

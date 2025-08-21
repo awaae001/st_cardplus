@@ -33,7 +33,7 @@
             <div>
               <label class="form-label">类型</label>
               <el-select v-model="landmark.type" class="form-full-width">
-                <el-option v-for="type in landmarkTypes" :key="type" :label="type" :value="type" />
+                <el-option v-for="type in landmarkTypes" :key="type" :label="localizeLandmarkType(type)" :value="type" />
               </el-select>
             </div>
             <div class="form-grid-span-2">
@@ -130,6 +130,25 @@ const props = defineProps<Props>();
 const { errors } = useValidation();
 
 const landmarkTypes = Object.values(LandmarkType);
+
+const localizeLandmarkType = (type: LandmarkType): string => {
+  const map: Record<LandmarkType, string> = {
+    [LandmarkType.CITY]: '城市',
+    [LandmarkType.TOWN]: '城镇',
+    [LandmarkType.VILLAGE]: '村庄',
+    [LandmarkType.FORTRESS]: '要塞',
+    [LandmarkType.RUINS]: '遗迹',
+    [LandmarkType.DUNGEON]: '地下城',
+    [LandmarkType.TEMPLE]: '神殿',
+    [LandmarkType.ACADEMY]: '学院',
+    [LandmarkType.HARBOR]: '港口',
+    [LandmarkType.MARKET]: '市场',
+    [LandmarkType.NATURAL]: '自然景观',
+    [LandmarkType.MYSTICAL]: '神秘地点',
+    [LandmarkType.CUSTOM]: '自定义',
+  };
+  return map[type] || type;
+};
 
 // 确保 coordinates 对象存在
 watch(() => props.landmark, (newLandmark) => {

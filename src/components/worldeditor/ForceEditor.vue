@@ -33,7 +33,7 @@
             <div>
               <label class="form-label">类型</label>
               <el-select v-model="force.type" class="form-full-width">
-                <el-option v-for="type in forceTypes" :key="type" :label="type" :value="type" />
+                <el-option v-for="type in forceTypes" :key="type" :label="localizeForceType(type)" :value="type" />
               </el-select>
             </div>
             <div>
@@ -69,6 +69,33 @@
               <el-button @click="addLeader" type="primary" plain class="form-full-width">
                 <Icon icon="ph:plus-circle-duotone" /> 添加领导者
               </el-button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 地域控制 -->
+        <section class="form-section">
+          <h3 class="form-section-title">
+            <Icon icon="ph:map-pin-duotone" class="form-section-icon" />地域控制
+          </h3>
+          <div class="form-section-content">
+            <div>
+              <label class="form-label">总部位置</label>
+              <el-input v-model="force.headquarters" placeholder="例如：暴风城要塞" />
+              <p v-if="errors.headquarters" class="error-message">{{ errors.headquarters }}</p>
+            </div>
+            <div>
+              <label class="form-label">分部位置</label>
+              <el-select
+                v-model="force.branchLocations"
+                multiple
+                filterable
+                allow-create
+                default-first-option
+                placeholder="输入分部位置，按回车确认"
+                class="form-full-width"
+              >
+              </el-select>
             </div>
           </div>
         </section>
@@ -132,6 +159,23 @@ const { errors, validate } = useValidation();
 const { force } = toRefs(props);
 const forceTypes = Object.values(ForceType);
 
+const localizeForceType = (type: ForceType): string => {
+  const map: Record<ForceType, string> = {
+    [ForceType.POLITICAL]: '政治组织',
+    [ForceType.MILITARY]: '军事组织',
+    [ForceType.RELIGIOUS]: '宗教组织',
+    [ForceType.COMMERCIAL]: '商业组织',
+    [ForceType.CRIMINAL]: '犯罪组织',
+    [ForceType.ACADEMIC]: '学术组织',
+    [ForceType.MAGICAL]: '魔法组织',
+    [ForceType.TRIBAL]: '部族组织',
+    [ForceType.GUILD]: '行会',
+    [ForceType.CULT]: '教派',
+    [ForceType.CUSTOM]: '自定义',
+  };
+  return map[type] || type;
+};
+
 const addLeader = () => {
   if (props.force) {
     if (!props.force.leaders) {
@@ -158,6 +202,10 @@ watch(
       // Ensure leaders array exists
       if (!newForce.leaders) {
         newForce.leaders = [];
+      }
+      // Ensure branchLocations array exists
+      if (!newForce.branchLocations) {
+        newForce.branchLocations = [];
       }
       validate(newForce, forceValidationRules);
     }
