@@ -376,7 +376,7 @@
 
 /* 编辑器滚动区域 */
 .worldbook-editor-scrollbar {
-  height: calc(100vh - 200px);
+  height: calc(112vh - 200px);
   min-height: 400px;
 }
 

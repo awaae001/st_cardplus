@@ -1,500 +1,307 @@
 <template>
-  <div class="p-4 min-h-screen">
-    <div id="tiltleMain">
-      <h1  >地标编辑器</h1>
-      <div class="btnSL">
-        <div class="btnSL2">
-          <el-button type="success" @click="loadWorld">
-            <Icon icon="material-symbols:folder-open-outline-sharp" width="18" height="18" style="margin-right: 4px;" />
-            加载 json
-          </el-button>
-          <el-button type="primary" @click="saveWorld">
-            <Icon icon="material-symbols:file-save-outline-sharp" width="18" height="18" style="margin-right: 4px;" />
-            保存 json
-          </el-button>
-          <el-button plain @click="resetForm">
-            <Icon icon="material-symbols:refresh" width="18" height="18" style="margin-right: 4px;" />
-            重置数据
-          </el-button>
-        </div>
-        <div class="btnSL2">
-          <el-button type="info" @click="copyToClipboard" title="复制到剪贴板">
-            <Icon icon="material-symbols:content-copy-outline" width="18" height="18" />
-          </el-button>
-          <el-button type="warning" @click="showImportDialog" title="导入数据">
-            <Icon icon="material-symbols:content-paste-go-rounded" width="18" height="18" />
-          </el-button>
-        </div>
+  <div class="world-editor-v2">
+    <div class="editor-layout">
+      <div class="toolbar-container">
+        <WorldEditorToolbar
+          :landmarks="landmarks"
+          :forces="forces"
+          :selected-item="selectedItem"
+          :can-undo="canUndo"
+          :can-redo="canRedo"
+          @select="handleSelection"
+          @add="handleAdd"
+          @delete="handleDelete"
+          @undo="handleUndo"
+          @redo="handleRedo"
+        />
+      </div>
+      <div class="main-panel-container">
+        <WorldEditorMainPanel :selected-item="selectedItem" />
       </div>
     </div>
-
-    <!-- 基本信息 -->
-    <div class="section-container">
-      <div>
-        <el-card>
-          <h2  >基本信息</h2>
-          <el-form :model="form" label-width="80px">
-            <el-form-item label="名称">
-              <el-input v-model="form.name" placeholder="请输入地标名称" />
-            </el-form-item>
-            <el-form-item label="所属空间">
-              <el-input v-model="form.space" placeholder="请输入所属空间" />
-            </el-form-item>
-          </el-form>
-        </el-card>
-        <el-card style="margin-top: 10px;">
-          <h2  >关键词（每行一条）</h2>
-          <el-input v-model="form.keywords" type="textarea" :rows="3" placeholder="请输入关键词" />
-        </el-card>
-      </div>
-      <el-card   style="width: 75%;">
-        <h2  >介绍（每行一段）</h2>
-        <el-input v-model="form.info" type="textarea" :rows="12" placeholder="请输入介绍" />
-      </el-card>
-    </div>
-
-    <div style="margin: 4px;"></div>
-
-    <!-- 地标 -->
-    <el-card  >
-      <div class="title-Btn-add">
-        <h2  >地标</h2>
-        <div style="display: flex; gap: 8px;">
-          <el-button type="primary" @click="addLandmark"   style="margin-left: 16px;">
-            <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
-              style="margin-right: 4px;" />
-            添加地标（卡片）
-          </el-button>
-          <el-button type="success" @click="exportLandmarks" title="导出地标">
-            <Icon icon="material-symbols:content-copy-outline" width="18" height="18" />
-          </el-button>
-        </div>
-      </div>
-      <draggable 
-        v-model="form.landmarks"
-        item-key="index"
-        class="el-row"
-        :gutter="16"
-      >
-        <template #item="{element}">
-          <el-col :xs="24" :sm="12" :md="8" :lg="6">
-            <el-card class="mb-4 landmark-card">
-              <el-input v-model="element.name" placeholder="地标名称"   />
-              <el-input v-model="element.description" type="textarea" :rows="3" placeholder="地标介绍"   />
-              <div style="margin: 4px;"></div>
-              <el-button type="danger" @click="removeLandmark(element)"  >
-                <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
-                删除地标
-              </el-button>
-            </el-card>
-          </el-col>
-        </template>
-      </draggable>
-    </el-card>
-
-    <div style="margin: 4px;"></div>
-    <!-- 势力 -->
-    <el-card  >
-      <div class="title-Btn-add">
-        <h2  >势力</h2>
-        <div style="display: flex; gap: 8px;">
-          <el-button type="primary" @click="addForce"   style="margin-left: 16px;">
-            <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
-              style="margin-right: 4px;" />
-            添加势力（卡片）
-          </el-button>
-          <el-button type="success" @click="exportForces" title="导出势力">
-            <Icon icon="material-symbols:content-copy-outline" width="18" height="18" />
-          </el-button>
-        </div>
-      </div>
-      <draggable 
-        v-model="form.forces"
-        item-key="index"
-        class="el-row"
-        :gutter="16"
-      >
-        <template #item="{element}">
-          <el-col :xs="24" :sm="12" :md="8" :lg="6">
-            <el-card class="mb-4 force-card">
-              <el-input v-model="element.name" placeholder="势力名称"   />
-              <el-input v-model="element.members" type="textarea" :rows="2" placeholder="成员（每行一个）"   />
-              <el-input v-model="element.description" type="textarea" :rows="2" placeholder="势力描述"   />
-              <div style="margin: 4px;"></div>
-              <el-button type="danger" @click="removeForce(element)"  >
-                <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
-                删除势力
-              </el-button>
-            </el-card>
-          </el-col>
-        </template>
-      </draggable>
-    </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
-import draggable from 'vuedraggable'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { saveAs } from 'file-saver'
-import { Icon } from "@iconify/vue";
-import {
-  saveToLocalStorage,
-  loadFromLocalStorage,
-  clearLocalStorage,
-  initAutoSave,
-  clearAutoSave
-} from '../utils/localStorageUtils';
-import { copyToClipboard as copyUtil } from '../utils/clipboard';
+import { ref, onMounted, watch } from 'vue';
+import type { EnhancedLandmark, EnhancedForce } from '@/types/world-editor';
+import { LandmarkType, ImportanceLevel, ForceType, PowerLevel, ActionType } from '@/types/world-editor';
+import WorldEditorToolbar from './worldeditor/WorldEditorToolbar.vue';
+import WorldEditorMainPanel from './worldeditor/WorldEditorMainPanel.vue';
+import { v4 as uuidv4 } from 'uuid';
+import { useHistory } from '@/composables/worldeditor/useHistory';
+import { saveToLocalStorage, loadFromLocalStorage } from '@/utils/localStorageUtils';
 
-interface Landmark {
-  name: string
-  description: string
-}
+console.log('WorldEditorV2.vue loaded');
 
-interface Force {
-  name: string
-  members: string
-  description: string
-}
+// Storage Keys
+const LANDMARKS_STORAGE_KEY = 'world-editor-landmarks';
+const FORCES_STORAGE_KEY = 'world-editor-forces';
 
-interface WorldForm {
-  name: string
-  space: string
-  keywords: string
-  info: string
-  landmarks: Landmark[]
-  forces: Force[]
-}
+// State Management
+const landmarks = ref<EnhancedLandmark[]>([]);
+const forces = ref<EnhancedForce[]>([]);
+const selectedItem = ref<EnhancedLandmark | EnhancedForce | null>(null);
 
-const form = ref<WorldForm>({
-  name: '',
-  space: '',
-  keywords: '',
-  info: '',
-  landmarks: [],
-  forces: []
-})
-let autoSaveTimer: number | null = null
+// History Management
+const { canUndo, canRedo, add, undo, redo } = useHistory('world-editor-history');
 
-// 组件挂载时加载保存的数据
+// Watch for changes and save to local storage
+watch(landmarks, (newLandmarks) => {
+  saveToLocalStorage(newLandmarks, LANDMARKS_STORAGE_KEY);
+}, { deep: true });
+
+watch(forces, (newForces) => {
+  saveToLocalStorage(newForces, FORCES_STORAGE_KEY);
+}, { deep: true });
+
+
+// Watch for changes in the selected item to add to history
+watch(
+  () => selectedItem.value ? JSON.stringify(selectedItem.value) : '',
+  (newJson, oldJson) => {
+    if (oldJson && newJson) {
+      const oldState = JSON.parse(oldJson);
+      const newState = JSON.parse(newJson);
+
+      // Only add to history if the ID is the same (i.e., it's an edit, not a selection change)
+      if (oldState.id === newState.id) {
+        add({
+          action: ActionType.UPDATE,
+          target: 'region' in newState ? 'landmark' : 'force',
+          targetId: newState.id,
+          previousState: oldState,
+          newState: newState,
+          description: `Updated ${newState.name}`,
+        });
+      }
+    }
+  },
+  { deep: true }
+);
+
+// Load data or generate mock data on mount
 onMounted(() => {
-  const loadedData = loadFromLocalStorage('worldEditorData');
-  if (loadedData) {
-    form.value = loadedData;
+  const savedLandmarks = loadFromLocalStorage(LANDMARKS_STORAGE_KEY);
+  const savedForces = loadFromLocalStorage(FORCES_STORAGE_KEY);
+
+  if (savedLandmarks && savedLandmarks.length > 0) {
+    landmarks.value = savedLandmarks;
+  } else {
+    // Mock Data Generation for landmarks
+    landmarks.value.push({
+      id: uuidv4(),
+      name: '晨星城',
+      description: '一座位于北境山脉中的坚固矮人城市，以其精湛的工艺和丰富的矿产而闻名。',
+      type: LandmarkType.CITY,
+      importance: ImportanceLevel.MAJOR,
+      tags: ['矮人', '矿业', '山城'],
+      coordinates: { x: 120, y: 350 },
+      region: '北境',
+      controllingForces: [],
+      relatedLandmarks: [],
+      climate: '寒带',
+      population: 15000,
+      resources: ['秘银', '精金', '黑铁'],
+      defenseLevel: 9,
+      notes: '城市的防御工事几乎坚不可摧。',
+      imageUrl: '',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      version: 1,
+    });
   }
-  autoSaveTimer = initAutoSave(
-    () => saveToLocalStorage(form.value, 'worldEditorData'),
-    () => !!form.value.name
-  );
-})
 
-// 组件卸载前清除定时器
-onBeforeUnmount(() => {
-  if (autoSaveTimer) {
-    clearAutoSave(autoSaveTimer);
+  if (savedForces && savedForces.length > 0) {
+    forces.value = savedForces;
+  } else {
+    // Mock Data Generation for forces
+    forces.value.push({
+      id: uuidv4(),
+      name: '暗影兄弟会',
+      description: '一个在大陆阴影中运作的秘密刺客组织，以其高效和无情而著称。',
+      type: ForceType.CRIMINAL,
+      power: PowerLevel.STRONG,
+      structure: { hierarchy: ['导师', '刺客大师', '刺客'], decisionMaking: '独裁', recruitment: '选拔' },
+      leaders: [{ name: '夜刃', title: '大导师' }],
+      members: [],
+      totalMembers: 200,
+      controlledTerritories: [],
+      influenceAreas: [],
+      allies: [],
+      enemies: [],
+      neutral: [],
+      resources: [],
+      capabilities: ['潜行', '毒药'],
+      weaknesses: ['光明魔法'],
+      history: [],
+      tags: ['秘密', '刺客', '混乱中立'],
+      notes: '他们的总部位置是一个严守的秘密。',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      version: 1,
+    });
   }
-})
 
-const addLandmark = () => {
-  form.value.landmarks.push({
-    name: '',
-    description: ''
-  })
-  ElMessage.success('已添加新地标')
-}
-
-const addForce = () => {
-  form.value.forces.push({
-    name: '',
-    members: '',
-    description: ''
-  })
-}
-
-const removeForce = (force: Force) => {
-  const index = form.value.forces.indexOf(force)
-  if (index !== -1) {
-    form.value.forces.splice(index, 1)
-    // ElMessage.warning('已删除势力')
+  // Select the first landmark by default for demonstration
+  if (!selectedItem.value) {
+    selectedItem.value = landmarks.value[0] || forces.value[0] || null;
   }
-}
+});
 
-const removeLandmark = (landmark: Landmark) => {
-  const index = form.value.landmarks.indexOf(landmark)
-  if (index !== -1) {
-    form.value.landmarks.splice(index, 1)
-    // ElMessage.warning('已删除地标')
-  }
-}
-
-const exportLandmarks = async () => {
-  const landmarksData = form.value.landmarks;
-  if (landmarksData.length === 0) {
-    ElMessage.warning('没有可导出的地标');
-    return;
-  }
-  await copyUtil(JSON.stringify(landmarksData, null, 2), '地标已复制到剪贴板！', '导出失败');
+const handleSelection = (item: EnhancedLandmark | EnhancedForce) => {
+  selectedItem.value = item;
 };
+const handleUndo = () => {
+  const restoredState = undo();
+  if (!restoredState) return;
 
-const exportForces = async () => {
-  const forcesData = form.value.forces;
-  if (forcesData.length === 0) {
-    ElMessage.warning('没有可导出的势力');
-    return;
-  }
-  await copyUtil(JSON.stringify(forcesData, null, 2), '势力已复制到剪贴板！', '导出失败');
-};
-
-const showImportDialog = () => {
-  ElMessageBox.prompt('请输入要导入的JSON数据', '导入数据', {
-    confirmButtonText: '导入',
-    cancelButtonText: '取消',
-    type: 'info',
-    inputType: 'textarea',
-    inputPlaceholder: '在此粘贴或输入JSON数据',
-    inputValidator: (value) => {
-      if (!value) {
-        return '请输入要导入的数据';
-      }
-      try {
-        JSON.parse(value);
-        return true;
-      } catch (e) {
-        return '请输入有效的JSON格式数据';
-      }
+  const updateEntity = (collection: any[], updatedEntity: any) => {
+    const index = collection.findIndex(e => e.id === updatedEntity.id);
+    if (index !== -1) {
+      collection[index] = updatedEntity;
+      selectedItem.value = collection[index];
+      return true;
     }
-  }).then(({ value }) => {
-    importFromClipboard(value);
-  }).catch(() => {
-    // 用户取消操作
-  });
-};
-
-const importFromClipboard = async (data: string) => {
-  try {
-    const parsedData = JSON.parse(data);
-
-    // 检查是否是标准的地标/世界书格式
-    if (parsedData.name || parsedData.landmarks || parsedData.forces) {
-      // 保持原有的逻辑，但使其更健壮
-      form.value = {
-        name: parsedData.name || '',
-        space: parsedData.space || '',
-        keywords: Array.isArray(parsedData.keywords) ? parsedData.keywords.join('\n') : (parsedData.keywords || ''),
-        info: Array.isArray(parsedData.info) ? parsedData.info.join('\n') : (parsedData.info || ''),
-        landmarks: parsedData.landmarks?.map((l: any) => ({
-          name: l.name || '',
-          description: l.description || ''
-        })) || [],
-        forces: parsedData.forces?.map((f: any) => ({
-          name: f.name || '',
-          members: Array.isArray(f.members) ? f.members.join('\n') : (f.members || ''),
-          description: f.description || ''
-        })) || []
-      };
-    } else {
-      // 新增逻辑：处理其他类型的JSON对象（例如角色卡）
-      const name = parsedData.chineseName || parsedData.name || '未命名导入';
-      const keywords = parsedData.identity || [];
-      
-      // 将整个对象作为一个新的地标实体导入
-      form.value = {
-        name: name,
-        space: '', // 空间信息在角色卡中不明确
-        keywords: Array.isArray(keywords) ? keywords.join('\n') : '',
-        info: `导入数据：\n${JSON.stringify(parsedData, null, 2)}`,
-        landmarks: [],
-        forces: []
-      };
-    }
-
-    ElMessage.success('从剪贴板导入成功！');
-  } catch (error) {
-    ElMessage.error(`导入失败：${error instanceof Error ? error.message : '未知错误'}`);
-  }
-};
-
-const copyToClipboard = async () => {
-  const dataToSave = {
-    ...form.value,
-    keywords: form.value.keywords.split('\n').filter(line => line.trim() !== ''),
-    info: form.value.info.split('\n').filter(line => line.trim() !== ''),
-    forces: form.value.forces.map(force => ({
-      ...force,
-      members: force.members.split('\n').filter(line => line.trim() !== '')
-    }))
+    return false;
   };
-  const jsonData = JSON.stringify(dataToSave, null, 2);
-  await copyUtil(jsonData, '已复制到剪贴板！', '复制失败');
-};
 
-const saveWorld = async () => {
-  try {
-    const dataToSave = {
-      ...form.value,
-      keywords: form.value.keywords.split('\n').filter(line => line.trim() !== ''),
-      info: form.value.info.split('\n').filter(line => line.trim() !== ''),
-      forces: form.value.forces.map(force => ({
-        ...force,
-        members: force.members.split('\n').filter(line => line.trim() !== '')
-      }))
-    };
-    const generateRandomNumber = () => Math.floor(10000000 + Math.random() * 90000000);
-    const jsonData = JSON.stringify(dataToSave, null, 2)
-    const blob = new Blob([jsonData], { type: 'application/json' })
-    saveAs(blob, `${form.value.name || 'world'}_${generateRandomNumber()}.json`)
-    ElMessage.success('世界书保存成功！')
-  } catch (error) {
-    ElMessage.error('保存失败')
-  }
-}
-
-const loadWorld = async () => {
-  try {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = '.json'
-    input.onchange = (event) => {
-      const file = (event.target as HTMLInputElement).files?.[0]
-      if (file) {
-        const reader = new FileReader()
-        reader.onload = (e) => {
-          try {
-            const content = e.target?.result as string
-            const data = JSON.parse(content)
-
-            // 验证并转换数据格式
-            form.value = {
-              name: data.name || '',
-              space: data.space || '',
-              keywords: Array.isArray(data.keywords) ? data.keywords.join('\n') : (data.keywords || ''),
-              info: Array.isArray(data.info) ? data.info.join('\n') : (data.info || ''),
-              landmarks: data.landmarks?.map((l: any) => ({
-                name: l.name || '',
-                description: l.description || ''
-              })) || [],
-              forces: data.forces?.map((f: any) => ({
-                name: f.name || '',
-                members: Array.isArray(f.members) ? f.members.join('\n') : (f.members || ''),
-                description: f.description || ''
-              })) || []
-            }
-
-            ElMessage.success('世界书加载成功！')
-          } catch (error) {
-            ElMessage.error('文件格式错误，请检查文件内容')
-          }
-        }
-        reader.readAsText(file)
-      }
+  if (!updateEntity(landmarks.value, restoredState) && !updateEntity(forces.value, restoredState)) {
+    // If the entity wasn't in the list, it might have been deleted, so we add it back.
+    if ('region' in restoredState) { // is landmark
+        landmarks.value.push(restoredState as EnhancedLandmark);
+    } else { // is force
+        forces.value.push(restoredState as EnhancedForce);
     }
-    input.click()
-  } catch (error) {
-    ElMessage.error('加载失败')
+    selectedItem.value = restoredState;
   }
-}
-// 重置表单数据
-// const onLandmarkDragEnd = () => {
-//   ElMessage.success('地标顺序已更新')
-// }
-
-// const onForceDragEnd = () => {
-//   ElMessage.success('势力顺序已更新')
-// }
-
-const resetForm = () => {
-  ElMessageBox.confirm('确定要重置所有数据吗？', '警告', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning',
-  }).then(() => {
-    form.value = {
-      name: '',
-      space: '',
-      keywords: '',
-      info: '',
-      landmarks: [],
-      forces: []
-    };
-    clearLocalStorage('worldEditorData');
-    ElMessage.success('数据已重置');
-  }).catch(() => {
-    ElMessage.info('取消重置');
-  });
 };
 
-defineExpose({
-  saveWorld,
-  loadWorld,
-  resetForm
-})
+const handleRedo = () => {
+  const restoredState = redo();
+  if (!restoredState) return;
+  
+  const updateEntity = (collection: any[], updatedEntity: any) => {
+    const index = collection.findIndex(e => e.id === updatedEntity.id);
+    if (index !== -1) {
+      collection[index] = updatedEntity;
+      selectedItem.value = collection[index];
+      return true;
+    }
+    return false;
+  };
+
+  if (!updateEntity(landmarks.value, restoredState)) {
+    updateEntity(forces.value, restoredState);
+  }
+};
+
+
+const createNewLandmark = (): EnhancedLandmark => ({
+  id: uuidv4(),
+  name: '新地标',
+  description: '',
+  type: LandmarkType.CUSTOM,
+  importance: ImportanceLevel.NORMAL,
+  tags: [],
+  region: '', // Add region to satisfy the type guard
+  controllingForces: [],
+  relatedLandmarks: [],
+  resources: [],
+  notes: '',
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+  version: 1,
+});
+
+const createNewForce = (): EnhancedForce => ({
+    id: uuidv4(),
+    name: '新势力',
+    description: '',
+    type: ForceType.CUSTOM,
+    power: PowerLevel.MODERATE,
+    structure: { hierarchy: [], decisionMaking: '', recruitment: '' },
+    leaders: [],
+    members: [],
+    totalMembers: 0,
+    controlledTerritories: [],
+    influenceAreas: [],
+    allies: [],
+    enemies: [],
+    neutral: [],
+    resources: [],
+    capabilities: [],
+    weaknesses: [],
+    history: [],
+    tags: [],
+    notes: '',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    version: 1,
+});
+
+const handleAdd = (type: 'landmark' | 'force') => {
+  if (type === 'landmark') {
+    const newLandmark = createNewLandmark();
+    landmarks.value.unshift(newLandmark);
+    selectedItem.value = newLandmark;
+    // Add create action to history
+  } else {
+    const newForce = createNewForce();
+    forces.value.unshift(newForce);
+    selectedItem.value = newForce;
+    // Add create action to history
+  }
+};
+
+const handleDelete = (item: EnhancedLandmark | EnhancedForce) => {
+  if ('region' in item) { // is landmark
+    const index = landmarks.value.findIndex(l => l.id === item.id);
+    if (index > -1) {
+      landmarks.value.splice(index, 1);
+    }
+  } else { // is force
+    const index = forces.value.findIndex(f => f.id === item.id);
+    if (index > -1) {
+      forces.value.splice(index, 1);
+    }
+  }
+  if (selectedItem.value?.id === item.id) {
+    selectedItem.value = landmarks.value[0] || forces.value[0] || null;
+  }
+   // Add delete action to history
+};
+
 </script>
 
 <style scoped>
-/* 使用 Tailwind CSS 进行样式控制 */
-
-.section-container {
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.section-container>* {
-  flex: 1;
-  min-width: 100%;
-}
-
-.title-Btn-add {
+.world-editor-v2 {
   display: flex;
-  align-items: center;
-  justify-content: flex-start;
-}
-
-@media (min-width: 768px) {
-  .section-container {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-
-  .section-container>* {
-    min-width: auto;
-  }
-}
-
-#tiltleMain {
-  justify-content: space-between;
-}
-
-.btnSL {
-  display: flex;
-  align-items: flex-start;
   flex-direction: column;
+  height: 100%;
+  padding: 4px;
+  background-color: var(--el-bg-color-page);
+  box-sizing: border-box;
 }
 
-.btnSL2 {
-  margin: 8px 4px 8px 0px;
+.editor-layout {
   display: flex;
+  flex-grow: 1;
+  margin-top: 1rem;
+  gap: 16px;
 }
 
+.toolbar-container {
+  width: 300px; /* Adjusted width */
+  flex-shrink: 0;
+  /* Padding is removed, managed by toolbar internally */
+}
 
-
-@media (min-width: 768px) {
-  #tiltleMain {
-    display: flex;
-    justify-content: space-between;
-  }
-
-  .btnSL {
-    display: flex;
-    align-items: center;
-    flex-direction: row;
-  }
-
-  .btnSL2 {
-    display: flex;
-  }
-
+.main-panel-container {
+  flex-grow: 1;
+  background-color: var(--el-bg-color);
+  border-radius: 4px;
+  padding: 16px;
+  border: 1px solid var(--el-border-color-lighter);
 }
 </style>

@@ -101,10 +101,10 @@
               </h3>
               <div class="form-grid-3-col-top-align">
                 <div class="form-flex-col-start">
-                  <label class="form-label">大小写敏感</label><el-switch v-model="localModel.caseSensitive" />
+                  <label class="form-label">大小写敏感</label><el-switch :model-value="!!localModel.caseSensitive" @update:model-value="val => updateBooleanField('caseSensitive', !!val)" />
                 </div>
                 <div class="form-flex-col-start">
-                  <label class="form-label">匹配整个单词</label><el-switch v-model="localModel.matchWholeWords" />
+                  <label class="form-label">匹配整个单词</label><el-switch :model-value="!!localModel.matchWholeWords" @update:model-value="val => updateBooleanField('matchWholeWords', !!val)" />
                   <p class="form-help-text">非空格分词语言建议关闭。</p>
                 </div>
                 <div class="form-flex-col-start">
@@ -160,7 +160,7 @@
                   <p class="form-help-text">开启后按Order选择</p>
                 </div>
                 <div class="form-flex-col-start">
-                  <label class="form-label">启用组内评分 (Scoring)</label><el-switch v-model="localModel.useGroupScoring" />
+                  <label class="form-label">启用组内评分 (Scoring)</label><el-switch :model-value="!!localModel.useGroupScoring" @update:model-value="val => updateBooleanField('useGroupScoring', !!val)" />
                   <p class="form-help-text">匹配关键词更多者优先</p>
                 </div>
               </div>
@@ -226,6 +226,13 @@ const localModel = computed({
   get: () => props.modelValue || {},
   set: (value) => emit('update:modelValue', value)
 });
+
+// Helper functions to handle boolean properties safely
+const updateBooleanField = (field: keyof WorldBookEntry, value: boolean) => {
+  const newModel = { ...localModel.value };
+  (newModel as any)[field] = value;
+  localModel.value = newModel;
+};
 
 const combinedPosition = computed({
   get: () => {
