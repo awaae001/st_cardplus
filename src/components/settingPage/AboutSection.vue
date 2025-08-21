@@ -1,6 +1,6 @@
 <template>
   <div class="about-section">
-    <h2>关于应用 <span v-if="isDevDomain" style="color: #e6a23c; font-size: 16px;">滚动测试</span></h2>
+    <h2>关于应用 <span v-if="isDevDomain" style="color: #e6a23c; font-size: 12px;">滚动测试版本</span></h2>
     <p>这是一个用于创建和管理 SillyTavern 角色卡的在线应用程序。</p>
     <p style="display: flex;align-items: center;gap: 8px;">你可以访问
       <Icon icon="qlementine-icons:discord-fill-16" width="16" height="16" /><a href="https://discord.gg/2wKPQHCydk"

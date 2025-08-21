@@ -26,13 +26,15 @@
 </template>
 
 <script setup lang="ts">
+import { toRef } from 'vue';
 import type { Project, EnhancedLandmark, EnhancedForce } from '@/types/world-editor';
 import ProjectEditor from './ProjectEditor.vue';
 import LandmarkEditor from './LandmarkEditor.vue';
 import ForceEditor from './ForceEditor.vue';
 import WorldEditorActionButtons from './WorldEditorActionButtons.vue';
 import { ElMessage } from 'element-plus';
-import { cleanObject } from '@/utils/objectUtils';
+import { useClipboard } from '@/composables/worldeditor/useClipboard';
+import { useFileSystem } from '@/composables/worldeditor/useFileSystem';
 
 interface Props {
   selectedItem: Project | EnhancedLandmark | EnhancedForce | null;
@@ -45,75 +47,10 @@ const emit = defineEmits<{
   (e: 'update:selectedItem', item: Project | EnhancedLandmark | EnhancedForce): void;
 }>();
 
-const sanitizeItem = (item: any) => {
-  return cleanObject(item, ['id', 'imageUrl', 'createdAt', 'updatedAt', 'version'], ['_']);
-};
-
-const handleSaveToFile = () => {
-  if (!props.selectedItem) return;
-  const cleanItem = sanitizeItem(props.selectedItem);
-  const dataStr = JSON.stringify(cleanItem, null, 2);
-  const blob = new Blob([dataStr], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `${props.selectedItem.name || 'world-item'}.json`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-  ElMessage.success('已导出为 JSON 文件。');
-};
-
-const handleLoadFromFile = () => {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.json';
-  input.onchange = (event) => {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const content = e.target?.result;
-          if (typeof content === 'string') {
-            const importedData = JSON.parse(content);
-            updateSelectedItem(importedData);
-          }
-        } catch (error) {
-          ElMessage.error('无法解析JSON文件，请检查文件格式。');
-        }
-      };
-      reader.readAsText(file);
-    }
-  };
-  input.click();
-};
-
-const handleCopyToClipboard = async () => {
-  if (!props.selectedItem) return;
-  try {
-    const cleanItem = sanitizeItem(props.selectedItem);
-    const dataStr = JSON.stringify(cleanItem, null, 2);
-    await navigator.clipboard.writeText(dataStr);
-    ElMessage.success('已复制到剪贴板。');
-  } catch (err) {
-    ElMessage.error('复制失败。');
-  }
-};
-
-const handleImportFromClipboard = (data: string) => {
-  try {
-    const importedData = JSON.parse(data);
-    updateSelectedItem(importedData);
-  } catch (error) {
-    ElMessage.error('无效的JSON格式。');
-  }
-};
+const selectedItemRef = toRef(props, 'selectedItem');
 
 const updateSelectedItem = (importedData: any) => {
   if (!props.selectedItem) return;
-  // 保留原有的uuid和内部字段，只更新其他字段
   const updatedItem = {
     ...props.selectedItem,
     ...importedData,
@@ -123,17 +60,17 @@ const updateSelectedItem = (importedData: any) => {
   ElMessage.success('导入成功！');
 };
 
-// Type guard to check if the selected item is a Project
+const { handleCopyToClipboard, handleImportFromClipboard } = useClipboard(selectedItemRef, updateSelectedItem);
+const { handleSaveToFile, handleLoadFromFile } = useFileSystem(selectedItemRef, updateSelectedItem);
+
 const isProject = (item: any): item is Project => {
   return item && 'createdAt' in item && !('projectId' in item);
 }
 
-// Type guard to check if the selected item is a Landmark
 const isLandmark = (item: any): item is EnhancedLandmark => {
   return item && 'projectId' in item && 'region' in item;
 };
 
-// Type guard to check if the selected item is a Force
 const isForce = (item: any): item is EnhancedForce => {
   return item && 'projectId' in item && 'power' in item;
 }
@@ -162,15 +99,9 @@ const isForce = (item: any): item is EnhancedForce => {
   border-bottom: 1px solid var(--el-border-color);
 }
 
-.page-title {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-
 .editor-content {
   flex-grow: 1;
-  overflow-y: auto; /* 如果内容超长，则显示滚动条 */
+  overflow-y: auto;
 }
 
 .editor-placeholder {

@@ -16,7 +16,6 @@
           @redo="handleRedo"
           @edit="handleEdit"
           @copy="handleCopy"
-          @node-drop="() => {}"
           :drag-drop-handlers="dragDropHandlers"
         />
       </div>
@@ -33,193 +32,63 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue';
+import { watch } from 'vue';
 import type { Project, EnhancedLandmark, EnhancedForce } from '@/types/world-editor';
-import { LandmarkType, ImportanceLevel, ForceType, PowerLevel, ActionType } from '@/types/world-editor';
+import { ActionType } from '@/types/world-editor';
 import WorldEditorToolbar from './worldeditor/WorldEditorToolbar.vue';
 import WorldEditorMainPanel from './worldeditor/WorldEditorMainPanel.vue';
 import ProjectModal from './worldeditor/ProjectModal.vue';
-import { v4 as uuidv4 } from 'uuid';
 import { useHistory } from '@/composables/worldeditor/useHistory';
-import { saveToLocalStorage, loadFromLocalStorage } from '@/utils/localStorageUtils';
+import { useWorldEditor } from '@/composables/worldeditor/useWorldEditor';
+import { useWorldEditorUI } from '@/composables/worldeditor/useWorldEditorUI';
+import { useDragAndDrop } from '@/composables/worldeditor/useDragAndDrop';
 
-// Storage Keys
-const PROJECTS_STORAGE_KEY = 'world-editor-projects';
-const LANDMARKS_STORAGE_KEY = 'world-editor-landmarks';
-const FORCES_STORAGE_KEY = 'world-editor-forces';
+// Core Logic
+const {
+  projects,
+  landmarks,
+  forces,
+  selectedItem,
+  allTags,
+  handleSelection,
+  handleAdd: handleAddEntity,
+  handleDelete,
+  handleCopy,
+  handleProjectSubmit
+} = useWorldEditor();
 
-// State Management
-const projects = ref<Project[]>([]);
-const landmarks = ref<EnhancedLandmark[]>([]);
-const forces = ref<EnhancedForce[]>([]);
-const selectedItem = ref<Project | EnhancedLandmark | EnhancedForce | null>(null);
+// UI Logic
+const {
+  isModalVisible,
+  editingProject,
+  handleAddProject,
+  handleEdit: handleEditProject,
+  handleModalSubmit
+} = useWorldEditorUI(handleProjectSubmit);
 
-// Modal Management
-const isModalVisible = ref(false);
-const editingProject = ref<Project | null>(null);
+// Drag and Drop Logic
+const dragDropHandlers = useDragAndDrop(landmarks, forces);
 
 // History Management
 const { canUndo, canRedo, add, undo, redo } = useHistory('world-editor-history');
 
-// Watch for changes and save to local storage
-watch(projects, (newProjects) => {
-    saveToLocalStorage(newProjects, PROJECTS_STORAGE_KEY);
-}, { deep: true });
-
-watch(landmarks, (newLandmarks) => {
-  saveToLocalStorage(newLandmarks, LANDMARKS_STORAGE_KEY);
-}, { deep: true });
-
-watch(forces, (newForces) => {
-  saveToLocalStorage(newForces, FORCES_STORAGE_KEY);
-}, { deep: true });
-
-// Compute all unique tags from landmarks and forces
-const allTags = computed(() => {
-  const tags = new Set<string>();
-  landmarks.value.forEach(item => {
-    if (item.tags) {
-      item.tags.forEach(tag => tags.add(tag));
-    }
-  });
-  forces.value.forEach(item => {
-    if (item.tags) {
-      item.tags.forEach(tag => tags.add(tag));
-    }
-  });
-  return Array.from(tags);
-});
-
-// Watch for changes in the selected item to add to history
-watch(
-  () => selectedItem.value ? JSON.stringify(selectedItem.value) : '',
-  (newJson, oldJson) => {
-    if (oldJson && newJson) {
-      const oldState = JSON.parse(oldJson);
-      const newState = JSON.parse(newJson);
-
-      // Only add to history if the ID is the same (i.e., it's an edit, not a selection change)
-      if (oldState.id === newState.id) {
-        add({
-          action: ActionType.UPDATE,
-          target: 'region' in newState ? 'landmark' : 'force',
-          targetId: newState.id,
-          previousState: oldState,
-          newState: newState,
-          description: `Updated ${newState.name}`,
-        });
-      }
-    }
-  },
-  { deep: true }
-);
-
-// Load data or generate mock data on mount
-onMounted(() => {
-  const savedProjects = loadFromLocalStorage(PROJECTS_STORAGE_KEY);
-  const savedLandmarks = loadFromLocalStorage(LANDMARKS_STORAGE_KEY);
-  const savedForces = loadFromLocalStorage(FORCES_STORAGE_KEY);
-
-  if (savedProjects && savedProjects.length > 0) {
-    projects.value = savedProjects;
+// Event Handlers
+const handleAdd = (type: 'project' | 'landmark' | 'force') => {
+  if (type === 'project') {
+    handleAddProject();
   } else {
-    // Create a default project if none exists
-    const defaultProject = {
-      id: uuidv4(),
-      name: '默认项目',
-      description: '这是一个默认项目',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    projects.value.push(defaultProject);
+    handleAddEntity(type);
   }
-
-  const defaultProjectId = projects.value[0]?.id;
-
-  if (savedLandmarks && savedLandmarks.length > 0) {
-    landmarks.value = savedLandmarks;
-  } else {
-    if (defaultProjectId) {
-        landmarks.value.push({
-      id: uuidv4(),
-      projectId: defaultProjectId,
-      name: '晨星城',
-      description: '一座位于北境山脉中的坚固矮人城市，以其精湛的工艺和丰富的矿产而闻名。',
-      type: LandmarkType.CITY,
-      importance: ImportanceLevel.MAJOR,
-      tags: ['矮人', '矿业', '山城'],
-      coordinates: { x: 120, y: 350 },
-      region: '北境',
-      controllingForces: [],
-      relatedLandmarks: [],
-      climate: '寒带',
-      population: 15000,
-      resources: ['秘银', '精金', '黑铁'],
-      defenseLevel: 9,
-      notes: '城市的防御工事几乎坚不可摧。',
-      imageUrl: '',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      version: 1,
-    });
-    }
-  }
-
-  if (savedForces && savedForces.length > 0) {
-    forces.value = savedForces;
-  } else {
-    // Mock Data Generation for forces
-    if (defaultProjectId) {
-        forces.value.push({
-      id: uuidv4(),
-      projectId: defaultProjectId,
-      name: '暗影兄弟会',
-      description: '一个在大陆阴影中运作的秘密刺客组织，以其高效和无情而著称。',
-      type: ForceType.CRIMINAL,
-      power: PowerLevel.STRONG,
-      structure: { hierarchy: ['导师', '刺客大师', '刺客'], decisionMaking: '独裁', recruitment: '选拔' },
-      leaders: [{ id: uuidv4(), name: '夜刃', title: '大导师' }],
-      members: [],
-      totalMembers: 200,
-      controlledTerritories: [],
-      influenceAreas: [],
-      allies: [],
-      enemies: [],
-      neutral: [],
-      resources: [],
-      capabilities: ['潜行', '毒药'],
-      weaknesses: ['光明魔法'],
-      history: [],
-      tags: ['秘密', '刺客', '混乱中立'],
-      notes: '他们的总部位置是一个严守的秘密。',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      version: 1,
-    });
-    }
-  }
-
-  // Select the first landmark by default for demonstration
-  if (!selectedItem.value) {
-    selectedItem.value = landmarks.value[0] || forces.value[0] || null;
-  }
-});
-
-const handleSelection = (item: Project | EnhancedLandmark | EnhancedForce) => {
-  selectedItem.value = item;
 };
 
-const activeProjectId = computed(() => {
-    if (!selectedItem.value) return projects.value[0]?.id;
-    if ('projectId' in selectedItem.value) {
-        return selectedItem.value.projectId;
-    }
-    // if selected item is a project
-    if ('createdAt' in selectedItem.value) {
-        return selectedItem.value.id;
-    }
-    return projects.value[0]?.id;
-});
+const handleEdit = (item: Project | EnhancedLandmark | EnhancedForce) => {
+  if ('createdAt' in item && !('projectId' in item)) { // Is a Project
+    handleEditProject(item);
+  } else {
+    // Selecting is the "edit" action for landmarks and forces
+    handleSelection(item);
+  }
+};
 
 const handleUndo = () => {
   const restoredState = undo();
@@ -236,7 +105,6 @@ const handleUndo = () => {
   };
 
   if (!updateEntity(landmarks.value, restoredState) && !updateEntity(forces.value, restoredState)) {
-    // If the entity wasn't in the list, it might have been deleted, so we add it back.
     if ('region' in restoredState) { // is landmark
         landmarks.value.push(restoredState as EnhancedLandmark);
     } else { // is force
@@ -265,270 +133,29 @@ const handleRedo = () => {
   }
 };
 
+// Watch for changes in the selected item to add to history
+watch(
+  () => selectedItem.value ? JSON.stringify(selectedItem.value) : '',
+  (newJson, oldJson) => {
+    if (oldJson && newJson) {
+      const oldState = JSON.parse(oldJson);
+      const newState = JSON.parse(newJson);
 
-const createNewLandmark = (projectId: string): EnhancedLandmark => ({
-  id: uuidv4(),
-  projectId: projectId,
-  name: '新地标',
-  description: '',
-  type: LandmarkType.CUSTOM,
-  importance: ImportanceLevel.NORMAL,
-  tags: [],
-  region: '', // Add region to satisfy the type guard
-  controllingForces: [],
-  relatedLandmarks: [],
-  resources: [],
-  notes: '',
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-  version: 1,
-});
-
-const createNewForce = (projectId: string): EnhancedForce => ({
-    id: uuidv4(),
-    projectId: projectId,
-    name: '新势力',
-    description: '',
-    type: ForceType.CUSTOM,
-    power: PowerLevel.MODERATE,
-    structure: { hierarchy: [], decisionMaking: '', recruitment: '' },
-    leaders: [],
-    members: [],
-    totalMembers: 0,
-    controlledTerritories: [],
-    influenceAreas: [],
-    allies: [],
-    enemies: [],
-    neutral: [],
-    resources: [],
-    capabilities: [],
-    weaknesses: [],
-    history: [],
-    tags: [],
-    notes: '',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    version: 1,
-});
-
-const handleAdd = (type: 'project' | 'landmark' | 'force') => {
-  if (type === 'project') {
-    editingProject.value = null;
-    isModalVisible.value = true;
-    return;
-  }
-
-  const projectId = activeProjectId.value;
-  if (!projectId) {
-    console.error("No active project to add the item to.");
-    return;
-  }
-
-  if (type === 'landmark') {
-    const newLandmark = createNewLandmark(projectId);
-    landmarks.value.unshift(newLandmark);
-    selectedItem.value = newLandmark;
-    // Add create action to history
-  } else {
-    const newForce = createNewForce(projectId);
-    forces.value.unshift(newForce);
-    selectedItem.value = newForce;
-    // Add create action to history
-  }
-};
-
-const handleDelete = (item: Project | EnhancedLandmark | EnhancedForce) => {
-    if ('projectId' in item) { // Landmark or Force
-        if ('region' in item) { // Landmark
-            const index = landmarks.value.findIndex(l => l.id === item.id);
-            if (index > -1) landmarks.value.splice(index, 1);
-        } else { // Force
-            const index = forces.value.findIndex(f => f.id === item.id);
-            if (index > -1) forces.value.splice(index, 1);
-        }
-    } else if ('createdAt' in item) { // Project
-        const project = item as Project;
-        // Prevent deleting the last project
-        if (projects.value.length <= 1) {
-            console.warn("Cannot delete the last project.");
-            // Optionally, show a user-facing message
-            return;
-        }
-        const index = projects.value.findIndex(p => p.id === project.id);
-        if (index > -1) {
-            // Also delete associated landmarks and forces
-            landmarks.value = landmarks.value.filter(l => l.projectId !== project.id);
-            forces.value = forces.value.filter(f => f.projectId !== project.id);
-            projects.value.splice(index, 1);
-        }
+      if (oldState.id === newState.id) {
+        add({
+          action: ActionType.UPDATE,
+          target: 'region' in newState ? 'landmark' : 'force',
+          targetId: newState.id,
+          previousState: oldState,
+          newState: newState,
+          description: `Updated ${newState.name}`,
+        });
+      }
     }
+  },
+  { deep: true }
+);
 
-    if (selectedItem.value?.id === item.id) {
-        selectedItem.value = projects.value[0] || landmarks.value[0] || forces.value[0] || null;
-    }
-    // Add delete action to history
-};
-
-const handleEdit = (item: Project | EnhancedLandmark | EnhancedForce) => {
-   if ('projectId' in item) { // Is a Landmark or Force
-       selectedItem.value = item;
-   } else { // Is a Project
-       editingProject.value = item;
-       isModalVisible.value = true;
-   }
-};
-
-const handleCopy = (item: EnhancedLandmark | EnhancedForce) => {
-    if ('region' in item) {
-        const landmarkItem = item as EnhancedLandmark;
-        const newLandmark: EnhancedLandmark = {
-            ...landmarkItem,
-            id: uuidv4(),
-            name: `${landmarkItem.name} (复制)`,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-        };
-        landmarks.value.unshift(newLandmark);
-        selectedItem.value = newLandmark;
-    } else {
-        const forceItem = item as EnhancedForce;
-        const newForce: EnhancedForce = {
-            ...forceItem,
-            id: uuidv4(),
-            name: `${forceItem.name} (复制)`,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-        };
-        forces.value.unshift(newForce);
-        selectedItem.value = newForce;
-    }
-};
-
-const dragDropHandlers = {
-    allowDrag: (draggingNode: any) => {
-       const type = draggingNode.data.type;
-       return type === 'landmark' || type === 'force';
-   },
-   allowDrop: (draggingNode: any, dropNode: any, type: any) => {
-       const draggedType = draggingNode.data.type;
-       const dropType = dropNode.data.type;
-       const dropIsCategory = !dropNode.data.isEntry;
-
-       // Cannot drop on itself
-       if (draggingNode.data.id === dropNode.data.id) {
-           return false;
-       }
-
-       // New Rule: Prevent dropping 'before' or 'after' a category folder
-       if (dropIsCategory && type !== 'inner') {
-           return false;
-       }
-
-       // 1. Drop into a project (or its category folders)
-       if (dropType === 'project' && type === 'inner') return true;
-       if (dropIsCategory && type === 'inner') {
-            const dropParentType = dropNode.parent.data.type;
-            // Allow dropping into the category folders directly under a project
-            if (dropParentType === 'project') return true;
-       }
-
-
-       // 2. Sorting within the same category
-       if (draggedType === dropType && (type === 'prev' || type === 'next')) {
-           return true;
-       }
-
-       return false;
-   },
-   handleNodeDrop: (draggingNode: any, dropNode: any, dropType: any): boolean => {
-       const draggedItem = draggingNode.data.raw;
-       const dropItemRaw = dropNode.data.raw;
-
-       if ('region' in draggedItem) { // Dragged item is a Landmark
-           const list = landmarks.value;
-           const fromIndex = list.findIndex(item => item.id === draggedItem.id);
-           if (fromIndex === -1) return false;
-
-           let newProjectId: string | null = null;
-           if (dropNode.data.type === 'project') {
-               newProjectId = dropNode.data.id;
-           } else if (!dropNode.data.isEntry) { // Dropped on a category folder
-               newProjectId = dropNode.parent.data.id;
-           } else if ('projectId' in dropItemRaw && draggedItem.projectId !== dropItemRaw.projectId) {
-               newProjectId = dropItemRaw.projectId;
-           }
-
-           if (newProjectId && draggedItem.projectId !== newProjectId) {
-               draggedItem.projectId = newProjectId;
-               const [item] = list.splice(fromIndex, 1);
-               list.unshift(item);
-               return true;
-           }
-           
-           if (dropType === 'inner' || !('projectId' in dropItemRaw)) return false;
-           
-           const toIndex = list.findIndex(item => item.id === dropItemRaw.id);
-           if (toIndex === -1) return false;
-
-           const [item] = list.splice(fromIndex, 1);
-           const insertIndex = dropType === 'before' ? toIndex : toIndex + 1;
-           list.splice(insertIndex, 0, item);
-           return true;
-
-       } else { // Dragged item is a Force
-           const list = forces.value;
-           const fromIndex = list.findIndex(item => item.id === draggedItem.id);
-           if (fromIndex === -1) return false;
-
-           let newProjectId: string | null = null;
-           if (dropNode.data.type === 'project') {
-               newProjectId = dropNode.data.id;
-           } else if (!dropNode.data.isEntry) { // Dropped on a category folder
-               newProjectId = dropNode.parent.data.id;
-           } else if ('projectId' in dropItemRaw && draggedItem.projectId !== dropItemRaw.projectId) {
-               newProjectId = dropItemRaw.projectId;
-           }
-
-           if (newProjectId && draggedItem.projectId !== newProjectId) {
-               draggedItem.projectId = newProjectId;
-               const [item] = list.splice(fromIndex, 1);
-               list.unshift(item);
-               return true;
-           }
-
-           if (dropType === 'inner' || !('projectId' in dropItemRaw)) return false;
-
-           const toIndex = list.findIndex(item => item.id === dropItemRaw.id);
-           if (toIndex === -1) return false;
-
-           const [item] = list.splice(fromIndex, 1);
-           const insertIndex = dropType === 'before' ? toIndex : toIndex + 1;
-           list.splice(insertIndex, 0, item);
-           return true;
-       }
-   },
-};
-
-const handleModalSubmit = (projectData: Project) => {
-    if (editingProject.value) {
-        // Update existing project
-        const index = projects.value.findIndex(p => p.id === editingProject.value!.id);
-        if (index !== -1) {
-            projects.value[index] = { ...projects.value[index], ...projectData, updatedAt: new Date().toISOString() };
-        }
-    } else {
-        // Create new project
-        const newProject = {
-            ...projectData,
-            id: uuidv4(),
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-        };
-        projects.value.unshift(newProject);
-        selectedItem.value = newProject;
-    }
-    editingProject.value = null;
-};
 </script>
 
 <style scoped>
@@ -548,9 +175,8 @@ const handleModalSubmit = (projectData: Project) => {
 }
 
 .toolbar-container {
-  width: 300px; /* Adjusted width */
+  width: 300px;
   flex-shrink: 0;
-  /* Padding is removed, managed by toolbar internally */
 }
 
 .main-panel-container {
