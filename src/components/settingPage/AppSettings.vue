@@ -1,19 +1,28 @@
 <template>
+  <el-alert type="warning" show-icon :closable="false" style="margin-bottom: 20px;">
+    <template #title>
+      所有兼容性项目（侧边栏除外）将在 0.2.0 新版本到来后被移除
+    </template>
+    <template #default>
+      0.2.0 将在所有页面完成重构后到来
+    </template>
+  </el-alert>
   <div class="app-settings">
     <div v-for="setting in settings" :key="setting.id" class="setting-card">
       <div class="setting-content">
         <div class="setting-header">
           <div class="setting-info">
             <span class="setting-label">{{ setting.label }}</span>
-            <Icon :icon="setting.icon" width="20" height="20" :style="{ marginLeft: '8px', color: setting.iconColor }" />
+            <Icon :icon="setting.icon" width="20" height="20"
+              :style="{ marginLeft: '8px', color: setting.iconColor }" />
           </div>
           <template v-if="setting.type === 'switch'">
             <el-switch v-model="setting.model.value" @change="setting.handler" size="large" />
           </template>
           <template v-else-if="setting.type === 'numberInput'">
             <div class="interval-control">
-              <el-input-number v-model="setting.model.value" @change="setting.handler" :min="setting.min" :max="setting.max"
-                :step="setting.step" size="small" style="width: 100px;" />
+              <el-input-number v-model="setting.model.value" @change="setting.handler" :min="setting.min"
+                :max="setting.max" :step="setting.step" size="small" style="width: 100px;" />
               <span class="interval-unit">{{ setting.unit }}</span>
             </div>
           </template>
@@ -28,13 +37,13 @@
 import { Icon } from '@iconify/vue';
 import { ref, onMounted, computed } from 'vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
-import { 
-  getBetaFeaturesEnabled, setBetaFeaturesEnabled, 
-  getUmamiEnabled, setUmamiEnabled, 
-  getAutoSaveInterval, setAutoSaveInterval, 
-  getUseOldSidebar, setUseOldSidebar, 
+import {
+  getBetaFeaturesEnabled, setBetaFeaturesEnabled,
+  getUmamiEnabled, setUmamiEnabled,
+  getAutoSaveInterval, setAutoSaveInterval,
+  getUseOldSidebar, setUseOldSidebar,
   getUseOldCharCardEditor, setUseOldCharCardEditor,
-  getUseOldWorldEditor, setUseOldWorldEditor 
+  getUseOldWorldEditor, setUseOldWorldEditor
 } from '@/utils/localStorageUtils';
 import { getAppSettings } from '@/composables/appSettings';
 
@@ -179,21 +188,21 @@ const onUseOldWorldEditorToggle = (value: boolean) => {
 };
 
 const settings = computed(() => getAppSettings(
-  { 
+  {
     useOldCharCardEditor,
-    betaFeaturesEnabled, 
-    useOldSidebar, 
-    useOldWorldEditor, 
-    umamiEnabled, 
-    autoSaveInterval 
+    betaFeaturesEnabled,
+    useOldSidebar,
+    useOldWorldEditor,
+    umamiEnabled,
+    autoSaveInterval
   },
-  { 
+  {
     onUseOldCharCardEditorToggle,
-    onBetaFeaturesToggle, 
-    onUseOldSidebarToggle, 
-    onUseOldWorldEditorToggle, 
-    onUmamiToggle, 
-    onAutoSaveIntervalChange 
+    onBetaFeaturesToggle,
+    onUseOldSidebarToggle,
+    onUseOldWorldEditorToggle,
+    onUmamiToggle,
+    onAutoSaveIntervalChange
   }
 ));
 

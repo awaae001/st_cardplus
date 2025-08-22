@@ -4,7 +4,6 @@
       <h1>关于与设置</h1>
       <p class="subtitle">管理自己的自定义设置</p>
     </div>
-
     <el-tabs v-model="activeTab" class="settings-tabs">
       <el-tab-pane label="设置" name="settings">
         <div class="settings-section">
