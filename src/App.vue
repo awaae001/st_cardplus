@@ -43,6 +43,12 @@
             </el-icon>
             <span>世界书 · 测试版</span>
           </el-menu-item>
+          <el-menu-item v-if="betaFeaturesEnabled" index="/regex-editor">
+            <el-icon>
+              <Tickets />
+            </el-icon>
+            <span>正则编辑器 · 测试版</span>
+          </el-menu-item>
           <el-menu-item index="/toolbox">
             <el-icon>
               <Tools />
@@ -105,6 +111,12 @@
             </el-icon>
             <span>世界书 · 测试版</span>
           </el-menu-item>
+          <el-menu-item v-if="betaFeaturesEnabled" index="/regex-editor">
+            <el-icon>
+              <Tickets />
+            </el-icon>
+            <span>正则编辑器 · 测试版</span>
+          </el-menu-item>
           <el-menu-item index="/toolbox">
             <el-icon>
               <Tools />
@@ -144,7 +156,7 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
 import {
-  Menu as IconMenu, Moon, Sunny, House, EditPen, Location, Postcard, Tools, DataLine, Collection, InfoFilled
+  Menu as IconMenu, Moon, Sunny, House, EditPen, Location, Postcard, Tools, DataLine, Collection, InfoFilled, Tickets
 } from '@element-plus/icons-vue'
 import { ElLoading, ElContainer, ElAside, ElMain, ElMenu, ElMenuItem, ElIcon, ElButton, ElDrawer } from 'element-plus'
 import { useRouter } from 'vue-router'
