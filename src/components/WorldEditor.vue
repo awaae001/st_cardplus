@@ -35,7 +35,13 @@
               }}</span>
             </span>
           </template>
-          <WorldEditorMainPanel :selected-item="selectedItem" :all-tags="allTags" />
+          <WorldEditorMainPanel 
+            :selected-item="selectedItem" 
+            :all-tags="allTags"
+            :landmarks="landmarks"
+            :forces="forces"
+            :projects="projects"
+          />
         </el-tab-pane>
       </el-tabs>
     </div>
@@ -64,7 +70,13 @@
         </Pane>
         <Pane size="85" min-size="70">
           <div class="main-panel-container">
-            <WorldEditorMainPanel :selected-item="selectedItem" :all-tags="allTags" />
+            <WorldEditorMainPanel 
+              :selected-item="selectedItem" 
+              :all-tags="allTags"
+              :landmarks="landmarks"
+              :forces="forces"
+              :projects="projects"
+            />
           </div>
         </Pane>
       </Splitpanes>
@@ -84,7 +96,7 @@ import { Icon } from "@iconify/vue";
 import { Splitpanes, Pane } from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
 import '@/css/worldeditor.css';
-import type { Project, EnhancedLandmark, EnhancedForce } from '@/types/world-editor';
+import type { Project, EnhancedLandmark, EnhancedForce, ProjectIntegration } from '@/types/world-editor';
 import { ActionType } from '@/types/world-editor';
 import WorldEditorToolbar from './worldeditor/WorldEditorToolbar.vue';
 import WorldEditorMainPanel from './worldeditor/WorldEditorMainPanel.vue';
@@ -110,7 +122,7 @@ const {
   handleProjectSubmit
 } = useWorldEditor();
 
-const handleSelection = (item: Project | EnhancedLandmark | EnhancedForce) => {
+const handleSelection = (item: Project | EnhancedLandmark | EnhancedForce | ProjectIntegration) => {
   coreHandleSelection(item);
   activeTab.value = 'editor';
 };
@@ -139,11 +151,11 @@ const handleAdd = (type: 'project' | 'landmark' | 'force') => {
   }
 };
 
-const handleEdit = (item: Project | EnhancedLandmark | EnhancedForce) => {
+const handleEdit = (item: Project | EnhancedLandmark | EnhancedForce | ProjectIntegration) => {
   if ('createdAt' in item && !('projectId' in item)) { // Is a Project
-    handleEditProject(item);
+    handleEditProject(item as Project);
   } else {
-    // Selecting is the "edit" action for landmarks and forces
+    // Selecting is the "edit" action for landmarks, forces, and integration
     handleSelection(item);
   }
 };
@@ -213,6 +225,7 @@ watch(
   },
   { deep: true }
 );
+
 
 </script>
 

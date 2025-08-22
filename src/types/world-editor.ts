@@ -12,6 +12,16 @@ export interface Project {
 }
 
 /**
+ * 项目整合视图接口 - 用于统一管理项目下的地标和势力
+ */
+export interface ProjectIntegration {
+  id: string;           // 对应的项目ID
+  projectId: string;    // 项目ID
+  type: 'integration'; // 固定类型标识
+  name: string;        // 显示名称（通常为"整合"）
+}
+
+/**
  * 增强的地标实体接口
  */
 export interface EnhancedLandmark {

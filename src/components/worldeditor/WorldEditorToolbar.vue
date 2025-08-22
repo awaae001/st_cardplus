@@ -55,17 +55,19 @@
             <div class="node-actions"
               v-if="data.isEntry && (data.type === 'project' || data.type === 'landmark' || data.type === 'force')">
               <el-tooltip content="复制" placement="top" :show-arrow="false" :offset="8" :hide-after="0"
-                v-if="data.type !== 'project'">
+                v-if="data.type !== 'project' && data.type !== 'integration'">
                 <button @click.stop="emit('copy', data.raw)" class="list-item-action-button">
                   <Icon icon="ph:copy-duotone" />
                 </button>
               </el-tooltip>
-              <el-tooltip content="编辑" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+              <el-tooltip content="编辑" placement="top" :show-arrow="false" :offset="8" :hide-after="0"
+                v-if="data.type !== 'integration'">
                 <button @click.stop="emit('edit', data.raw)" class="list-item-action-button">
                   <Icon icon="ph:pencil-duotone" />
                 </button>
               </el-tooltip>
-              <el-tooltip content="删除" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+              <el-tooltip content="删除" placement="top" :show-arrow="false" :offset="8" :hide-after="0"
+                v-if="data.type !== 'integration'">
                 <button @click.stop="emit('delete', data.raw)" class="list-item-action-button is-danger">
                   <Icon icon="ph:trash-duotone" />
                 </button>
@@ -84,9 +86,9 @@ import { ref, computed, watch } from 'vue';
 import { ElScrollbar, ElTooltip, ElTree, ElInput } from 'element-plus';
 import { Icon } from '@iconify/vue';
 import { Search } from '@element-plus/icons-vue';
-import type { Project, EnhancedLandmark, EnhancedForce } from '../../types/world-editor';
+import type { Project, EnhancedLandmark, EnhancedForce, ProjectIntegration } from '../../types/world-editor';
 
-type SelectableItem = Project | EnhancedLandmark | EnhancedForce;
+type SelectableItem = Project | EnhancedLandmark | EnhancedForce | ProjectIntegration;
 
 interface Props {
   projects: Project[];
@@ -139,6 +141,14 @@ const treeData = computed(() => {
     const projectLandmarks = props.landmarks.filter(l => l.projectId === project.id);
     const projectForces = props.forces.filter(f => f.projectId === project.id);
 
+    // 创建整合节点数据
+    const integrationNode: ProjectIntegration = {
+      id: `${project.id}-integration`,
+      projectId: project.id,
+      type: 'integration',
+      name: '整合'
+    };
+
     return {
       id: project.id,
       label: project.name,
@@ -174,6 +184,14 @@ const treeData = computed(() => {
             type: 'force',
             raw: force,
           })),
+        },
+        {
+          id: `${project.id}-integration`,
+          label: '整合',
+          icon: 'ph:circles-four-duotone',
+          isEntry: true,
+          type: 'integration',
+          raw: integrationNode,
         },
       ],
     };

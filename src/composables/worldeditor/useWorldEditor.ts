@@ -1,5 +1,5 @@
 import { ref, onMounted, watch, computed } from 'vue';
-import type { Project, EnhancedLandmark, EnhancedForce } from '@/types/world-editor';
+import type { Project, EnhancedLandmark, EnhancedForce, ProjectIntegration } from '@/types/world-editor';
 import { LandmarkType, ImportanceLevel, ForceType, PowerLevel } from '@/types/world-editor';
 import { v4 as uuidv4 } from 'uuid';
 import { saveToLocalStorage, loadFromLocalStorage } from '@/utils/localStorageUtils';
@@ -11,7 +11,7 @@ export function useWorldEditor() {
   const projects = ref<Project[]>([]);
   const landmarks = ref<EnhancedLandmark[]>([]);
   const forces = ref<EnhancedForce[]>([]);
-  const selectedItem = ref<Project | EnhancedLandmark | EnhancedForce | null>(null);
+  const selectedItem = ref<Project | EnhancedLandmark | EnhancedForce | ProjectIntegration | null>(null);
 
   // Data Persistence
   watch(
@@ -56,7 +56,7 @@ export function useWorldEditor() {
   });
 
   // Methods
-  const handleSelection = (item: Project | EnhancedLandmark | EnhancedForce) => {
+  const handleSelection = (item: Project | EnhancedLandmark | EnhancedForce | ProjectIntegration) => {
     selectedItem.value = item;
   };
 
@@ -123,7 +123,13 @@ export function useWorldEditor() {
     }
   };
 
-  const handleDelete = (item: Project | EnhancedLandmark | EnhancedForce) => {
+  const handleDelete = (item: Project | EnhancedLandmark | EnhancedForce | ProjectIntegration) => {
+      // ProjectIntegration cannot be deleted, it's a virtual node
+      if ('type' in item && item.type === 'integration') {
+          console.warn("Integration nodes cannot be deleted.");
+          return;
+      }
+      
       if ('projectId' in item) { // Landmark or Force
           if ('region' in item) { // Landmark
               const index = landmarks.value.findIndex(l => l.id === item.id);
