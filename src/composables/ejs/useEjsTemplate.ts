@@ -72,23 +72,34 @@ export function useEjsTemplate(
     }
   }
 
+  function formatConditionValue(value: string | undefined | null): string {
+    if (value === null || typeof value === 'undefined' || value.trim() === '') {
+      return "''"; // Treat empty or null/undefined values as empty strings
+    }
+    const num = parseFloat(value);
+    if (!isNaN(num) && isFinite(num) && num.toString() === value) {
+      return value; // It's a valid number, return as is
+    }
+    // It's a string, enclose in single quotes, escaping existing single quotes
+    return `'${value.replace(/'/g, "\\'")}'`;
+  }
+
   function generateSingleCondition(condition: Condition): string {
-    const varGetter = `getvar('stat_data.${condition.variablePath}')`
-    const value = !isNaN(parseFloat(condition.value)) && isFinite(condition.value)
-      ? condition.value
-      : `'${condition.value}'`
+    const varGetter = `getvar('stat_data.${condition.variablePath}')`;
+    const value = formatConditionValue(condition.value);
+
     switch (condition.type) {
-      case 'less': return `${varGetter} < ${value}`
-      case 'lessEqual': return `${varGetter} <= ${value}`
-      case 'equal': return `${varGetter} == ${value}`
-      case 'greater': return `${varGetter} > ${value}`
-      case 'greaterEqual': return `${varGetter} >= ${value}`
+      case 'less': return `${varGetter} < ${value}`;
+      case 'lessEqual': return `${varGetter} <= ${value}`;
+      case 'equal': return `${varGetter} == ${value}`;
+      case 'greater': return `${varGetter} > ${value}`;
+      case 'greaterEqual': return `${varGetter} >= ${value}`;
       case 'range':
-        const endValue = typeof condition.endValue === 'string' ? `'${condition.endValue}'` : condition.endValue
-        return `${varGetter} >= ${value} && ${varGetter} < ${endValue}`
-      case 'is': return `${varGetter} === ${value}`
-      case 'isNot': return `${varGetter} !== ${value}`
-      default: return 'true'
+        const endValue = formatConditionValue(condition.endValue);
+        return `${varGetter} >= ${value} && ${varGetter} < ${endValue}`;
+      case 'is': return `${varGetter} === ${value}`;
+      case 'isNot': return `${varGetter} !== ${value}`;
+      default: return 'true';
     }
   }
 
