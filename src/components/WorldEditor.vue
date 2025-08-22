@@ -1,500 +1,253 @@
 <template>
-  <div class="p-4 min-h-screen">
-    <div id="tiltleMain">
-      <h1  >地标编辑器</h1>
-      <div class="btnSL">
-        <div class="btnSL2">
-          <el-button type="success" @click="loadWorld">
-            <Icon icon="material-symbols:folder-open-outline-sharp" width="18" height="18" style="margin-right: 4px;" />
-            加载 json
-          </el-button>
-          <el-button type="primary" @click="saveWorld">
-            <Icon icon="material-symbols:file-save-outline-sharp" width="18" height="18" style="margin-right: 4px;" />
-            保存 json
-          </el-button>
-          <el-button plain @click="resetForm">
-            <Icon icon="material-symbols:refresh" width="18" height="18" style="margin-right: 4px;" />
-            重置数据
-          </el-button>
-        </div>
-        <div class="btnSL2">
-          <el-button type="info" @click="copyToClipboard" title="复制到剪贴板">
-            <Icon icon="material-symbols:content-copy-outline" width="18" height="18" />
-          </el-button>
-          <el-button type="warning" @click="showImportDialog" title="导入数据">
-            <Icon icon="material-symbols:content-paste-go-rounded" width="18" height="18" />
-          </el-button>
-        </div>
-      </div>
+  <div class="world-editor-container">
+    <div class="world-editor-mobile-layout">
+      <el-tabs v-model="activeTab" type="border-card" class="world-editor-tabs-mobile">
+        <el-tab-pane name="list" class="world-editor-tab-pane">
+          <template #label>
+            <span class="world-editor-tab-label">
+              <Icon icon="ph:list-bullets-duotone" class="world-editor-tab-icon" />
+              <span class="world-editor-tab-text">项目列表</span>
+            </span>
+          </template>
+          <WorldEditorToolbar
+            :projects="projects"
+            :landmarks="landmarks"
+            :forces="forces"
+            :selected-item="selectedItem"
+            :can-undo="canUndo"
+            :can-redo="canRedo"
+            @select="handleSelection"
+            @add="handleAdd"
+            @delete="handleDelete"
+            @undo="handleUndo"
+            @redo="handleRedo"
+            @edit="handleEdit"
+            @copy="handleCopy"
+            :drag-drop-handlers="dragDropHandlers"
+          />
+        </el-tab-pane>
+        <el-tab-pane name="editor" class="world-editor-tab-pane" :disabled="!selectedItem">
+          <template #label>
+            <span class="world-editor-tab-label">
+              <Icon icon="ph:note-pencil-duotone" class="world-editor-tab-icon" />
+              <span class="world-editor-tab-text-truncated">{{
+                selectedItem ? selectedItem.name || "编辑中" : "编辑条目"
+              }}</span>
+            </span>
+          </template>
+          <WorldEditorMainPanel 
+            :selected-item="selectedItem" 
+            :all-tags="allTags"
+            :landmarks="landmarks"
+            :forces="forces"
+            :projects="projects"
+          />
+        </el-tab-pane>
+      </el-tabs>
     </div>
 
-    <!-- 基本信息 -->
-    <div class="section-container">
-      <div>
-        <el-card>
-          <h2  >基本信息</h2>
-          <el-form :model="form" label-width="80px">
-            <el-form-item label="名称">
-              <el-input v-model="form.name" placeholder="请输入地标名称" />
-            </el-form-item>
-            <el-form-item label="所属空间">
-              <el-input v-model="form.space" placeholder="请输入所属空间" />
-            </el-form-item>
-          </el-form>
-        </el-card>
-        <el-card style="margin-top: 10px;">
-          <h2  >关键词（每行一条）</h2>
-          <el-input v-model="form.keywords" type="textarea" :rows="3" placeholder="请输入关键词" />
-        </el-card>
-      </div>
-      <el-card   style="width: 75%;">
-        <h2  >介绍（每行一段）</h2>
-        <el-input v-model="form.info" type="textarea" :rows="12" placeholder="请输入介绍" />
-      </el-card>
+    <div class="world-editor-desktop-layout">
+      <Splitpanes class="default-theme" style="height: 100%">
+        <Pane size="15" min-size="12" max-size="30">
+          <div class="toolbar-container">
+            <WorldEditorToolbar
+              :projects="projects"
+              :landmarks="landmarks"
+              :forces="forces"
+              :selected-item="selectedItem"
+              :can-undo="canUndo"
+              :can-redo="canRedo"
+              @select="handleSelection"
+              @add="handleAdd"
+              @delete="handleDelete"
+              @undo="handleUndo"
+              @redo="handleRedo"
+              @edit="handleEdit"
+              @copy="handleCopy"
+              :drag-drop-handlers="dragDropHandlers"
+            />
+          </div>
+        </Pane>
+        <Pane size="85" min-size="70">
+          <div class="main-panel-container">
+            <WorldEditorMainPanel 
+              :selected-item="selectedItem" 
+              :all-tags="allTags"
+              :landmarks="landmarks"
+              :forces="forces"
+              :projects="projects"
+            />
+          </div>
+        </Pane>
+      </Splitpanes>
     </div>
-
-    <div style="margin: 4px;"></div>
-
-    <!-- 地标 -->
-    <el-card  >
-      <div class="title-Btn-add">
-        <h2  >地标</h2>
-        <div style="display: flex; gap: 8px;">
-          <el-button type="primary" @click="addLandmark"   style="margin-left: 16px;">
-            <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
-              style="margin-right: 4px;" />
-            添加地标（卡片）
-          </el-button>
-          <el-button type="success" @click="exportLandmarks" title="导出地标">
-            <Icon icon="material-symbols:content-copy-outline" width="18" height="18" />
-          </el-button>
-        </div>
-      </div>
-      <draggable 
-        v-model="form.landmarks"
-        item-key="index"
-        class="el-row"
-        :gutter="16"
-      >
-        <template #item="{element}">
-          <el-col :xs="24" :sm="12" :md="8" :lg="6">
-            <el-card class="mb-4 landmark-card">
-              <el-input v-model="element.name" placeholder="地标名称"   />
-              <el-input v-model="element.description" type="textarea" :rows="3" placeholder="地标介绍"   />
-              <div style="margin: 4px;"></div>
-              <el-button type="danger" @click="removeLandmark(element)"  >
-                <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
-                删除地标
-              </el-button>
-            </el-card>
-          </el-col>
-        </template>
-      </draggable>
-    </el-card>
-
-    <div style="margin: 4px;"></div>
-    <!-- 势力 -->
-    <el-card  >
-      <div class="title-Btn-add">
-        <h2  >势力</h2>
-        <div style="display: flex; gap: 8px;">
-          <el-button type="primary" @click="addForce"   style="margin-left: 16px;">
-            <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
-              style="margin-right: 4px;" />
-            添加势力（卡片）
-          </el-button>
-          <el-button type="success" @click="exportForces" title="导出势力">
-            <Icon icon="material-symbols:content-copy-outline" width="18" height="18" />
-          </el-button>
-        </div>
-      </div>
-      <draggable 
-        v-model="form.forces"
-        item-key="index"
-        class="el-row"
-        :gutter="16"
-      >
-        <template #item="{element}">
-          <el-col :xs="24" :sm="12" :md="8" :lg="6">
-            <el-card class="mb-4 force-card">
-              <el-input v-model="element.name" placeholder="势力名称"   />
-              <el-input v-model="element.members" type="textarea" :rows="2" placeholder="成员（每行一个）"   />
-              <el-input v-model="element.description" type="textarea" :rows="2" placeholder="势力描述"   />
-              <div style="margin: 4px;"></div>
-              <el-button type="danger" @click="removeForce(element)"  >
-                <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
-                删除势力
-              </el-button>
-            </el-card>
-          </el-col>
-        </template>
-      </draggable>
-    </el-card>
+    <ProjectModal
+      v-model:visible="isModalVisible"
+      :project-data="editingProject"
+      @submit="handleModalSubmit"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
-import draggable from 'vuedraggable'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { saveAs } from 'file-saver'
+import { ref, watch } from 'vue';
+import { ElTabs, ElTabPane } from "element-plus";
 import { Icon } from "@iconify/vue";
-import {
-  saveToLocalStorage,
-  loadFromLocalStorage,
-  clearLocalStorage,
-  initAutoSave,
-  clearAutoSave
-} from '../utils/localStorageUtils';
-import { copyToClipboard as copyUtil } from '../utils/clipboard';
+import { Splitpanes, Pane } from 'splitpanes';
+import 'splitpanes/dist/splitpanes.css';
+import '@/css/worldeditor.css';
+import type { Project, EnhancedLandmark, EnhancedForce, ProjectIntegration } from '@/types/world-editor';
+import { ActionType } from '@/types/world-editor';
+import WorldEditorToolbar from './worldeditor/WorldEditorToolbar.vue';
+import WorldEditorMainPanel from './worldeditor/WorldEditorMainPanel.vue';
+import ProjectModal from './worldeditor/ProjectModal.vue';
+import { useHistory } from '@/composables/worldeditor/useHistory';
+import { useWorldEditor } from '@/composables/worldeditor/useWorldEditor';
+import { useWorldEditorUI } from '@/composables/worldeditor/useWorldEditorUI';
+import { useDragAndDrop } from '@/composables/worldeditor/useDragAndDrop';
 
-interface Landmark {
-  name: string
-  description: string
-}
+const activeTab = ref('list');
 
-interface Force {
-  name: string
-  members: string
-  description: string
-}
+// Core Logic
+const {
+  projects,
+  landmarks,
+  forces,
+  selectedItem,
+  allTags,
+  handleSelection: coreHandleSelection,
+  handleAdd: handleAddEntity,
+  handleDelete,
+  handleCopy,
+  handleProjectSubmit
+} = useWorldEditor();
 
-interface WorldForm {
-  name: string
-  space: string
-  keywords: string
-  info: string
-  landmarks: Landmark[]
-  forces: Force[]
-}
-
-const form = ref<WorldForm>({
-  name: '',
-  space: '',
-  keywords: '',
-  info: '',
-  landmarks: [],
-  forces: []
-})
-let autoSaveTimer: number | null = null
-
-// 组件挂载时加载保存的数据
-onMounted(() => {
-  const loadedData = loadFromLocalStorage('worldEditorData');
-  if (loadedData) {
-    form.value = loadedData;
-  }
-  autoSaveTimer = initAutoSave(
-    () => saveToLocalStorage(form.value, 'worldEditorData'),
-    () => !!form.value.name
-  );
-})
-
-// 组件卸载前清除定时器
-onBeforeUnmount(() => {
-  if (autoSaveTimer) {
-    clearAutoSave(autoSaveTimer);
-  }
-})
-
-const addLandmark = () => {
-  form.value.landmarks.push({
-    name: '',
-    description: ''
-  })
-  ElMessage.success('已添加新地标')
-}
-
-const addForce = () => {
-  form.value.forces.push({
-    name: '',
-    members: '',
-    description: ''
-  })
-}
-
-const removeForce = (force: Force) => {
-  const index = form.value.forces.indexOf(force)
-  if (index !== -1) {
-    form.value.forces.splice(index, 1)
-    // ElMessage.warning('已删除势力')
-  }
-}
-
-const removeLandmark = (landmark: Landmark) => {
-  const index = form.value.landmarks.indexOf(landmark)
-  if (index !== -1) {
-    form.value.landmarks.splice(index, 1)
-    // ElMessage.warning('已删除地标')
-  }
-}
-
-const exportLandmarks = async () => {
-  const landmarksData = form.value.landmarks;
-  if (landmarksData.length === 0) {
-    ElMessage.warning('没有可导出的地标');
-    return;
-  }
-  await copyUtil(JSON.stringify(landmarksData, null, 2), '地标已复制到剪贴板！', '导出失败');
+const handleSelection = (item: Project | EnhancedLandmark | EnhancedForce | ProjectIntegration) => {
+  coreHandleSelection(item);
+  activeTab.value = 'editor';
 };
 
-const exportForces = async () => {
-  const forcesData = form.value.forces;
-  if (forcesData.length === 0) {
-    ElMessage.warning('没有可导出的势力');
-    return;
+// UI Logic
+const {
+  isModalVisible,
+  editingProject,
+  handleAddProject,
+  handleEdit: handleEditProject,
+  handleModalSubmit
+} = useWorldEditorUI(handleProjectSubmit);
+
+// Drag and Drop Logic
+const dragDropHandlers = useDragAndDrop(landmarks, forces);
+
+// History Management
+const { canUndo, canRedo, add, undo, redo } = useHistory('world-editor-history');
+
+// Event Handlers
+const handleAdd = (type: 'project' | 'landmark' | 'force') => {
+  if (type === 'project') {
+    handleAddProject();
+  } else {
+    handleAddEntity(type);
   }
-  await copyUtil(JSON.stringify(forcesData, null, 2), '势力已复制到剪贴板！', '导出失败');
 };
 
-const showImportDialog = () => {
-  ElMessageBox.prompt('请输入要导入的JSON数据', '导入数据', {
-    confirmButtonText: '导入',
-    cancelButtonText: '取消',
-    type: 'info',
-    inputType: 'textarea',
-    inputPlaceholder: '在此粘贴或输入JSON数据',
-    inputValidator: (value) => {
-      if (!value) {
-        return '请输入要导入的数据';
-      }
-      try {
-        JSON.parse(value);
-        return true;
-      } catch (e) {
-        return '请输入有效的JSON格式数据';
-      }
+const handleEdit = (item: Project | EnhancedLandmark | EnhancedForce | ProjectIntegration) => {
+  if ('createdAt' in item && !('projectId' in item)) { // Is a Project
+    handleEditProject(item as Project);
+  } else {
+    // Selecting is the "edit" action for landmarks, forces, and integration
+    handleSelection(item);
+  }
+};
+
+const handleUndo = () => {
+  const restoredState = undo();
+  if (!restoredState) return;
+
+  const updateEntity = (collection: any[], updatedEntity: any) => {
+    const index = collection.findIndex(e => e.id === updatedEntity.id);
+    if (index !== -1) {
+      collection[index] = updatedEntity;
+      selectedItem.value = collection[index];
+      return true;
     }
-  }).then(({ value }) => {
-    importFromClipboard(value);
-  }).catch(() => {
-    // 用户取消操作
-  });
-};
-
-const importFromClipboard = async (data: string) => {
-  try {
-    const parsedData = JSON.parse(data);
-
-    // 检查是否是标准的地标/世界书格式
-    if (parsedData.name || parsedData.landmarks || parsedData.forces) {
-      // 保持原有的逻辑，但使其更健壮
-      form.value = {
-        name: parsedData.name || '',
-        space: parsedData.space || '',
-        keywords: Array.isArray(parsedData.keywords) ? parsedData.keywords.join('\n') : (parsedData.keywords || ''),
-        info: Array.isArray(parsedData.info) ? parsedData.info.join('\n') : (parsedData.info || ''),
-        landmarks: parsedData.landmarks?.map((l: any) => ({
-          name: l.name || '',
-          description: l.description || ''
-        })) || [],
-        forces: parsedData.forces?.map((f: any) => ({
-          name: f.name || '',
-          members: Array.isArray(f.members) ? f.members.join('\n') : (f.members || ''),
-          description: f.description || ''
-        })) || []
-      };
-    } else {
-      // 新增逻辑：处理其他类型的JSON对象（例如角色卡）
-      const name = parsedData.chineseName || parsedData.name || '未命名导入';
-      const keywords = parsedData.identity || [];
-      
-      // 将整个对象作为一个新的地标实体导入
-      form.value = {
-        name: name,
-        space: '', // 空间信息在角色卡中不明确
-        keywords: Array.isArray(keywords) ? keywords.join('\n') : '',
-        info: `导入数据：\n${JSON.stringify(parsedData, null, 2)}`,
-        landmarks: [],
-        forces: []
-      };
-    }
-
-    ElMessage.success('从剪贴板导入成功！');
-  } catch (error) {
-    ElMessage.error(`导入失败：${error instanceof Error ? error.message : '未知错误'}`);
-  }
-};
-
-const copyToClipboard = async () => {
-  const dataToSave = {
-    ...form.value,
-    keywords: form.value.keywords.split('\n').filter(line => line.trim() !== ''),
-    info: form.value.info.split('\n').filter(line => line.trim() !== ''),
-    forces: form.value.forces.map(force => ({
-      ...force,
-      members: force.members.split('\n').filter(line => line.trim() !== '')
-    }))
+    return false;
   };
-  const jsonData = JSON.stringify(dataToSave, null, 2);
-  await copyUtil(jsonData, '已复制到剪贴板！', '复制失败');
+
+  if (!updateEntity(landmarks.value, restoredState) && !updateEntity(forces.value, restoredState)) {
+    if ('region' in restoredState) { // is landmark
+        landmarks.value.push(restoredState as EnhancedLandmark);
+    } else { // is force
+        forces.value.push(restoredState as EnhancedForce);
+    }
+    selectedItem.value = restoredState;
+  }
 };
 
-const saveWorld = async () => {
-  try {
-    const dataToSave = {
-      ...form.value,
-      keywords: form.value.keywords.split('\n').filter(line => line.trim() !== ''),
-      info: form.value.info.split('\n').filter(line => line.trim() !== ''),
-      forces: form.value.forces.map(force => ({
-        ...force,
-        members: force.members.split('\n').filter(line => line.trim() !== '')
-      }))
-    };
-    const generateRandomNumber = () => Math.floor(10000000 + Math.random() * 90000000);
-    const jsonData = JSON.stringify(dataToSave, null, 2)
-    const blob = new Blob([jsonData], { type: 'application/json' })
-    saveAs(blob, `${form.value.name || 'world'}_${generateRandomNumber()}.json`)
-    ElMessage.success('世界书保存成功！')
-  } catch (error) {
-    ElMessage.error('保存失败')
+const handleRedo = () => {
+  const restoredState = redo();
+  if (!restoredState) return;
+  
+  const updateEntity = (collection: any[], updatedEntity: any) => {
+    const index = collection.findIndex(e => e.id === updatedEntity.id);
+    if (index !== -1) {
+      collection[index] = updatedEntity;
+      selectedItem.value = collection[index];
+      return true;
+    }
+    return false;
+  };
+
+  if (!updateEntity(landmarks.value, restoredState)) {
+    updateEntity(forces.value, restoredState);
   }
-}
+};
 
-const loadWorld = async () => {
-  try {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = '.json'
-    input.onchange = (event) => {
-      const file = (event.target as HTMLInputElement).files?.[0]
-      if (file) {
-        const reader = new FileReader()
-        reader.onload = (e) => {
-          try {
-            const content = e.target?.result as string
-            const data = JSON.parse(content)
+// Watch for changes in the selected item to add to history
+watch(
+  () => selectedItem.value ? JSON.stringify(selectedItem.value) : '',
+  (newJson, oldJson) => {
+    if (oldJson && newJson) {
+      const oldState = JSON.parse(oldJson);
+      const newState = JSON.parse(newJson);
 
-            // 验证并转换数据格式
-            form.value = {
-              name: data.name || '',
-              space: data.space || '',
-              keywords: Array.isArray(data.keywords) ? data.keywords.join('\n') : (data.keywords || ''),
-              info: Array.isArray(data.info) ? data.info.join('\n') : (data.info || ''),
-              landmarks: data.landmarks?.map((l: any) => ({
-                name: l.name || '',
-                description: l.description || ''
-              })) || [],
-              forces: data.forces?.map((f: any) => ({
-                name: f.name || '',
-                members: Array.isArray(f.members) ? f.members.join('\n') : (f.members || ''),
-                description: f.description || ''
-              })) || []
-            }
-
-            ElMessage.success('世界书加载成功！')
-          } catch (error) {
-            ElMessage.error('文件格式错误，请检查文件内容')
-          }
-        }
-        reader.readAsText(file)
+      if (oldState.id === newState.id) {
+        add({
+          action: ActionType.UPDATE,
+          target: 'region' in newState ? 'landmark' : 'force',
+          targetId: newState.id,
+          previousState: oldState,
+          newState: newState,
+          description: `Updated ${newState.name}`,
+        });
       }
     }
-    input.click()
-  } catch (error) {
-    ElMessage.error('加载失败')
-  }
-}
-// 重置表单数据
-// const onLandmarkDragEnd = () => {
-//   ElMessage.success('地标顺序已更新')
-// }
+  },
+  { deep: true }
+);
 
-// const onForceDragEnd = () => {
-//   ElMessage.success('势力顺序已更新')
-// }
 
-const resetForm = () => {
-  ElMessageBox.confirm('确定要重置所有数据吗？', '警告', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning',
-  }).then(() => {
-    form.value = {
-      name: '',
-      space: '',
-      keywords: '',
-      info: '',
-      landmarks: [],
-      forces: []
-    };
-    clearLocalStorage('worldEditorData');
-    ElMessage.success('数据已重置');
-  }).catch(() => {
-    ElMessage.info('取消重置');
-  });
-};
-
-defineExpose({
-  saveWorld,
-  loadWorld,
-  resetForm
-})
 </script>
 
 <style scoped>
-/* 使用 Tailwind CSS 进行样式控制 */
-
-.section-container {
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.section-container>* {
-  flex: 1;
-  min-width: 100%;
-}
-
-.title-Btn-add {
+.world-editor-container {
   display: flex;
-  align-items: center;
-  justify-content: flex-start;
-}
-
-@media (min-width: 768px) {
-  .section-container {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-
-  .section-container>* {
-    min-width: auto;
-  }
-}
-
-#tiltleMain {
-  justify-content: space-between;
-}
-
-.btnSL {
-  display: flex;
-  align-items: flex-start;
   flex-direction: column;
+  height: 100%;
+  padding: 4px;
+  background-color: var(--el-bg-color-page);
+  box-sizing: border-box;
 }
 
-.btnSL2 {
-  margin: 8px 4px 8px 0px;
-  display: flex;
+.toolbar-container {
+  height: 100%;
 }
 
-
-
-@media (min-width: 768px) {
-  #tiltleMain {
-    display: flex;
-    justify-content: space-between;
-  }
-
-  .btnSL {
-    display: flex;
-    align-items: center;
-    flex-direction: row;
-  }
-
-  .btnSL2 {
-    display: flex;
-  }
-
+.main-panel-container {
+  height: 100%;
+  background-color: var(--el-bg-color);
+  border-radius: 4px;
+  padding: 16px;
+  border: 1px solid var(--el-border-color-lighter);
 }
 </style>

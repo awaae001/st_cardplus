@@ -1,0 +1,52 @@
+.world-editor-mobile-layout {
+    display: none;
+}
+
+.world-editor-desktop-layout {
+    display: flex;
+    flex-grow: 1;
+}
+
+@media (max-width: 768px) {
+    .world-editor-desktop-layout {
+        display: none;
+    }
+
+    .world-editor-mobile-layout {
+        display: block;
+        height: 100%;
+    }
+}
+
+.world-editor-tabs-mobile {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.world-editor-tabs-mobile .el-tabs__content {
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.world-editor-tab-pane {
+    height: 100%;
+}
+
+.world-editor-tab-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.world-editor-tab-icon {
+    font-size: 16px;
+}
+
+.world-editor-tab-text-truncated {
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+}

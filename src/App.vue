@@ -79,13 +79,13 @@
             <el-icon>
               <EditPen />
             </el-icon>
-            <span>角色卡编辑器</span>
+            <span>角色信息</span>
           </el-menu-item>
           <el-menu-item index="/world">
             <el-icon>
               <Location />
             </el-icon>
-            <span>地标编辑器</span>
+            <span>世界地标</span>
           </el-menu-item>
           <el-menu-item index="/cardoutput">
             <el-icon>
@@ -134,7 +134,7 @@
         </el-menu>
       </el-aside>
       <el-button v-if="isMobile" class="toggle-button" @click="toggleSidebar" :icon="IconMenu" circle />
-      <el-main class="content-container">
+      <el-main class="content-container" :class="{ 'overflow-hidden': isOverflowHidden }">
         <RouterView />
       </el-main>
     </el-container>
@@ -152,7 +152,9 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useDark, useToggle, useWindowSize } from '@vueuse/core'
 import { getBetaFeaturesEnabled, getUseOldSidebar } from '@/utils/localStorageUtils'
 import App_old from '@/pages/App_old.vue'
+import { provideOverflowControl } from '@/composables/useOverflowControl'
 
+const { isOverflowHidden } = provideOverflowControl();
 const isDark = useDark()
 const toggleDark = useToggle(isDark)
 const useOldSidebar = ref(true)
@@ -188,7 +190,7 @@ let loadingInstance: ReturnType<typeof ElLoading.service>
 router.beforeEach(() => {
   loadingInstance = ElLoading.service({
     lock: true,
-    text: '获取资源……请稍后',
+    text: '正在获取资源……请稍后',
     background: 'rgba(0, 0, 0, 0.7)',
   })
 })
@@ -251,12 +253,15 @@ onUnmounted(() => {
 }
 
 .content-container {
-  overflow: hidden;
   padding: 8px;
   position: relative;
   /* 为浮动按钮留出空间 */
   padding-top: 60px;
   margin-top: -54px;
+}
+
+.content-container.overflow-hidden {
+  overflow: hidden;
 }
 
 .toggle-button {

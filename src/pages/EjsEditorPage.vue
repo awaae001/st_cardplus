@@ -141,8 +141,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useOverflowControl } from '@/composables/useOverflowControl';
 import {
   DocumentAdd,
   Download,
@@ -164,6 +165,7 @@ import TemplateEditor from '@/components/ejseditor/TemplateEditor.vue'
 import PreviewPanel from '@/components/ejseditor/PreviewPanel.vue'
 import SimulationPanel from '@/components/ejseditor/SimulationPanel.vue'
 
+const { setOverflowHidden } = useOverflowControl();
 const store = useEjsEditorStore()
 const { isMobileOrTablet } = useDevice()
 const activeSidebarTab = ref('projects')
@@ -275,7 +277,7 @@ async function copyToClipboard() {
 onMounted(() => {
   // 初始化项目管理
   store.initializeStore()
-  
+  setOverflowHidden(true);
   // 可以在这里加载本地存储的数据
   const saved = localStorage.getItem('ejs-editor-projects')
   if (saved) {
@@ -296,6 +298,10 @@ onMounted(() => {
     }
   }
 })
+
+onUnmounted(() => {
+  setOverflowHidden(false);
+});
 
 // 监听状态变化，自动保存到本地存储
 import { watch } from 'vue'

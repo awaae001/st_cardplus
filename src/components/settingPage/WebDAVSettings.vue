@@ -1,5 +1,8 @@
 <template>
   <div class="setting-group">
+    <div v-if="snapshotAvailable" class="snapshot-revert-container">
+      <p>已从 WebDAV 获取新数据<br/>您可以在这里 <el-button type="primary" link @click="revertPull">撤销</el-button> 此操作，本次会话有效</p>
+    </div>
     <div class="setting-item-title">
       <span class="setting-label">WebDAV 同步</span>
       <Icon icon="material-symbols:cloud-sync-outline" width="20" height="20"
@@ -48,11 +51,17 @@ const webdavConfig = ref<WebDAVConfig>({
   password: '',
 });
 const webdavBackupFileName = 'st-cardplus-webdav-backup.json';
+const snapshotAvailable = ref(false);
 
 onMounted(() => {
   const savedWebDAVConfig = localStorage.getItem('webdavConfig');
   if (savedWebDAVConfig) {
     webdavConfig.value = JSON.parse(savedWebDAVConfig);
+  }
+  
+  const snapshot = sessionStorage.getItem('webdav-snapshot');
+  if (snapshot) {
+    snapshotAvailable.value = true;
   }
 });
 
@@ -112,7 +121,7 @@ const pullFromWebDAV = async () => {
     const data = JSON.parse(json);
 
     ElMessageBox.confirm(
-      '这将用服务器上的备份覆盖所有现有本地数据。此操作无法撤销。您确定要继续吗？',
+      '这将用服务器上的备份覆盖所有现有本地数据。此操作可能会丢失你没有保存的想法。您确定要继续吗？',
       '警告',
       {
         confirmButtonText: '确认覆盖',
@@ -121,6 +130,16 @@ const pullFromWebDAV = async () => {
       }
     )
       .then(() => {
+        // 创建快照
+        const snapshotData: { [key: string]: any } = {};
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key) {
+            snapshotData[key] = localStorage.getItem(key);
+          }
+        }
+        sessionStorage.setItem('webdav-snapshot', JSON.stringify(snapshotData));
+
         const preservedWebDAVConfig = localStorage.getItem('webdavConfig');
         localStorage.clear();
         if (preservedWebDAVConfig) {
@@ -145,6 +164,37 @@ const pullFromWebDAV = async () => {
     ElMessage.error(`拉取失败: ${error instanceof Error ? error.message : '未知错误'}`);
   }
 };
+
+const revertPull = () => {
+  const snapshot = sessionStorage.getItem('webdav-snapshot');
+  if (snapshot) {
+    try {
+      const data = JSON.parse(snapshot);
+
+      // 恢复 localStorage
+      localStorage.clear();
+      for (const key in data) {
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
+          localStorage.setItem(key, data[key]);
+        }
+      }
+
+      // 清除快照并重新加载
+      sessionStorage.removeItem('webdav-snapshot');
+      ElMessage.success('操作已撤销。应用将重新加载。');
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+
+    } catch (error) {
+      console.error('恢复快照失败:', error);
+      ElMessage.error('恢复快照失败，请检查控制台。');
+    }
+  } else {
+    ElMessage.error('没有可用的快照。请检查是否已执行拉取操作。');
+  }
+  snapshotAvailable.value = false;
+};
 </script>
 
 <style scoped>
@@ -152,6 +202,14 @@ const pullFromWebDAV = async () => {
   margin-bottom: 16px;
 }
 
+.snapshot-revert-container {
+  padding: 8px 12px;
+  background-color: var(--el-color-success-light-9);
+  border: 1px solid var(--el-color-success-light-5);
+  border-radius: 4px;
+  margin-bottom: 15px;
+  color: var(--el-color-success-dark-2);
+}
 
 .setting-item-title {
   display: flex;

@@ -1,10 +1,8 @@
 <template>
   <el-scrollbar class="character-card-editor-scrollbar">
     <div class="content-panel-body">
-      <CharacterCardButtons
-        :characterName="form.chineseName"
-        @saveCharacterCard="saveCharacterCard" @loadCharacterCard="loadCharacterCard"
-        @resetForm="resetForm" @copyToClipboard="copyToClipboard"
+      <CharacterCardButtons :characterName="form.chineseName" @saveCharacterCard="saveCharacterCard"
+        @loadCharacterCard="loadCharacterCard" @resetForm="resetForm" @copyToClipboard="copyToClipboard"
         @importFromClipboard="(data) => importFromClipboard(data)" />
       <el-form :model="form" label-position="top" ref="characterFormRef" class="character-card-editor-form">
         <section class="form-section">
@@ -17,11 +15,12 @@
                 <label class="form-label">中文名</label>
                 <el-input v-model="form.chineseName" placeholder="请输入中文名" />
               </div>
-              <div class="form-group-responsive">
+            </div>
+            <!-- <div class="form-group-responsive">
                 <label class="form-label">日文名</label>
                 <el-input v-model="form.japaneseName" disabled placeholder="逻辑未处理" />
               </div>
-            </div>
+            </div> -->
             <div class="form-row-responsive">
               <div class="form-group-responsive">
                 <label class="form-label">性别</label>

@@ -105,7 +105,18 @@ import { useWorldBookCollection } from "../composables/useWorldBookCollection";
 import { useWorldBookEntry } from "../composables/useWorldBookEntry";
 import { useWorldBookDragDrop } from "../composables/useWorldBookDragDrop";
 
-import { computed, nextTick } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted } from 'vue';
+import { useOverflowControl } from '../composables/useOverflowControl';
+
+const { setOverflowHidden } = useOverflowControl();
+
+onMounted(() => {
+  setOverflowHidden(true);
+});
+
+onUnmounted(() => {
+  setOverflowHidden(false);
+});
 
 // Manage the collection of world books
 const {

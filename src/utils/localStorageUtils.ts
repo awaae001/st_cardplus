@@ -1,3 +1,167 @@
+// --- Settings Management ---
+
+const SETTINGS_KEY = 'settings';
+
+interface AppSettings {
+  betaFeaturesEnabled: boolean;
+  umamiEnabled: boolean;
+  autoSaveInterval: number;
+  useOldSidebar: boolean;
+  useOldCharCardEditor: boolean;
+  useOldWorldEditor: boolean;
+}
+
+const defaultSettings: AppSettings = {
+  betaFeaturesEnabled: false,
+  umamiEnabled: true,
+  autoSaveInterval: 5,
+  useOldSidebar: true,
+  useOldCharCardEditor: false,
+  useOldWorldEditor: false,
+};
+
+/**
+ * 从本地存储加载设置
+ * @returns AppSettings object
+ */
+const getSettings = (): AppSettings => {
+  try {
+    const savedSettings = localStorage.getItem(SETTINGS_KEY);
+    if (savedSettings) {
+      const parsed = JSON.parse(savedSettings);
+      // Merge with defaults to ensure all keys are present and handle migrations
+      return { ...defaultSettings, ...parsed };
+    }
+  } catch (error) {
+    console.error('从本地存储加载设置失败:', error);
+  }
+  // Return a copy of default settings
+  return { ...defaultSettings };
+};
+
+/**
+ * 保存部分或全部设置到本地存储
+ * @param settings - a partial AppSettings object
+ */
+const saveSettings = (settings: Partial<AppSettings>) => {
+  try {
+    const currentSettings = getSettings();
+    const newSettings = { ...currentSettings, ...settings };
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings));
+  } catch (error) {
+    console.error('保存设置到本地存储失败:', error);
+  }
+};
+
+/**
+ * 获取测试版功能开关状态
+ * @returns 测试版功能是否启用
+ */
+export const getBetaFeaturesEnabled = (): boolean => {
+  return getSettings().betaFeaturesEnabled;
+};
+
+/**
+ * 设置测试版功能开关状态
+ * @param enabled - 是否启用测试版功能
+ */
+export const setBetaFeaturesEnabled = (enabled: boolean) => {
+  saveSettings({ betaFeaturesEnabled: enabled });
+  console.log('测试版功能设置已保存:', enabled);
+};
+
+/**
+ * 获取遥测功能开关状态
+ * @returns 遥测功能是否启用
+ */
+export const getUmamiEnabled = (): boolean => {
+  return getSettings().umamiEnabled;
+};
+
+/**
+ * 设置遥测功能开关状态
+ * @param enabled - 是否启用遥测功能
+ */
+export const setUmamiEnabled = (enabled: boolean) => {
+  saveSettings({ umamiEnabled: enabled });
+  console.log('遥测设置已保存:', enabled);
+};
+
+/**
+ * 获取自动保存间隔设置
+ * @returns 自动保存间隔（秒）
+ */
+export const getAutoSaveInterval = (): number => {
+    const interval = getSettings().autoSaveInterval;
+    // 确保间隔在合理范围内（1-60秒）
+    return Math.max(1, Math.min(60, interval));
+};
+
+/**
+ * 设置自动保存间隔
+ * @param interval - 自动保存间隔（秒）
+ */
+export const setAutoSaveInterval = (interval: number) => {
+  // 确保间隔在合理范围内（1-60秒）
+  const validInterval = Math.max(1, Math.min(60, interval));
+  saveSettings({ autoSaveInterval: validInterval });
+  console.log('自动保存间隔设置已保存:', validInterval + '秒');
+};
+
+/**
+ * 获取是否使用旧版侧边栏的设置
+ * @returns 是否使用旧版侧边栏
+ */
+export const getUseOldSidebar = (): boolean => {
+  return getSettings().useOldSidebar;
+};
+
+/**
+ * 设置是否使用旧版侧边栏
+ * @param enabled - 是否使用旧版侧边栏
+ */
+export const setUseOldSidebar = (enabled: boolean) => {
+  saveSettings({ useOldSidebar: enabled });
+  console.log('旧版侧边栏设置已保存:', enabled);
+};
+
+/**
+ * 获取是否使用旧版角色卡编辑器
+ * @returns 是否使用旧版编辑器
+ */
+export const getUseOldCharCardEditor = (): boolean => {
+  return getSettings().useOldCharCardEditor;
+};
+
+/**
+ * 设置是否使用旧版角色卡编辑器
+ * @param enabled - 是否使用旧版编辑器
+ */
+export const setUseOldCharCardEditor = (enabled: boolean) => {
+  saveSettings({ useOldCharCardEditor: enabled });
+  console.log('旧版编辑器设置已保存:', enabled);
+};
+
+/**
+ * 获取是否使用旧版世界编辑器
+ * @returns 是否使用旧版世界编辑器
+ */
+export const getUseOldWorldEditor = (): boolean => {
+  return getSettings().useOldWorldEditor;
+};
+
+/**
+ * 设置是否使用旧版世界编辑器
+ * @param enabled - 是否使用旧版世界编辑器
+ */
+export const setUseOldWorldEditor = (enabled: boolean) => {
+  saveSettings({ useOldWorldEditor: enabled });
+  console.log('旧版世界编辑器设置已保存:', enabled);
+};
+
+
+// --- Data Management ---
+
 /**
  * 保存数据到本地存储
  * @param data - 要保存的数据
@@ -39,6 +203,8 @@ export const clearLocalStorage = (key = 'characterCardData') => {
   localStorage.removeItem(key);
 };
 
+// --- Auto Save ---
+
 /**
  * 初始化自动保存
  * @param saveFn - 保存函数
@@ -65,144 +231,4 @@ export const initAutoSave = (
  */
 export const clearAutoSave = (timerId: number) => {
   clearInterval(timerId);
-};
-
-/**
- * 获取测试版功能开关状态
- * @returns 测试版功能是否启用
- */
-export const getBetaFeaturesEnabled = (): boolean => {
-  try {
-    const enabled = localStorage.getItem('betaFeaturesEnabled');
-    return enabled === 'true';
-  } catch (error) {
-    console.error('获取测试版功能设置失败:', error);
-    return false; // 默认关闭
-  }
-};
-
-/**
- * 设置测试版功能开关状态
- * @param enabled - 是否启用测试版功能
- */
-export const setBetaFeaturesEnabled = (enabled: boolean) => {
-  try {
-    localStorage.setItem('betaFeaturesEnabled', enabled.toString());
-    console.log('测试版功能设置已保存:', enabled);
-  } catch (error) {
-    console.error('保存测试版功能设置失败:', error);
-  }
-};
-
-/**
- * 获取遥测功能开关状态
- * @returns 遥测功能是否启用
- */
-export const getUmamiEnabled = (): boolean => {
-  try {
-    const enabled = localStorage.getItem('umamiEnabled');
-    return enabled !== 'false'; // 默认开启，只有显式设置为false才关闭
-  } catch (error) {
-    console.error('获取遥测设置失败:', error);
-    return true; // 默认开启
-  }
-};
-
-/**
- * 设置遥测功能开关状态
- * @param enabled - 是否启用遥测功能
- */
-export const setUmamiEnabled = (enabled: boolean) => {
-  try {
-    localStorage.setItem('umamiEnabled', enabled.toString());
-    console.log('遥测设置已保存:', enabled);
-  } catch (error) {
-    console.error('保存遥测设置失败:', error);
-  }
-};
-
-/**
- * 获取自动保存间隔设置
- * @returns 自动保存间隔（秒）
- */
-export const getAutoSaveInterval = (): number => {
-  try {
-    const interval = localStorage.getItem('autoSaveInterval');
-    const parsedInterval = interval ? parseInt(interval, 10) : 5;
-    // 确保间隔在合理范围内（1-60秒）
-    return Math.max(1, Math.min(60, parsedInterval));
-  } catch (error) {
-    console.error('获取自动保存间隔设置失败:', error);
-    return 5; // 默认5秒
-  }
-};
-
-/**
- * 设置自动保存间隔
- * @param interval - 自动保存间隔（秒）
- */
-export const setAutoSaveInterval = (interval: number) => {
-  try {
-    // 确保间隔在合理范围内（1-60秒）
-    const validInterval = Math.max(1, Math.min(60, interval));
-    localStorage.setItem('autoSaveInterval', validInterval.toString());
-    console.log('自动保存间隔设置已保存:', validInterval + '秒');
-  } catch (error) {
-    console.error('保存自动保存间隔设置失败:', error);
-  }
-};
-
-
-/**
- * 获取是否使用旧版侧边栏的设置
- * @returns 是否使用旧版侧边栏
- */
-export const getUseOldSidebar = (): boolean => {
-  try {
-    const enabled = localStorage.getItem('useOldSidebar');
-    return enabled !== 'false'; 
-  } catch (error) {
-    console.error('获取旧版侧边栏设置失败:', error);
-    return true; // 默认开启
-  }
-};
-
-/**
- * 设置是否使用旧版侧边栏
- * @param enabled - 是否使用旧版侧边栏
- */
-export const setUseOldSidebar = (enabled: boolean) => {
-  try {
-    localStorage.setItem('useOldSidebar', enabled.toString());
-    console.log('旧版侧边栏设置已保存:', enabled);
-  } catch (error) {
-    console.error('保存旧版侧边栏设置失败:', error);
-  }
-};
-
-/**
- * 获取是否启用新版角色卡编辑器
- * @returns 是否启用新版编辑器
- */
-export const getUseNewCharCardEditor = (): boolean => {
-  try {
-    const enabled = localStorage.getItem('useNewCharCardEditor');
-    return enabled === 'true'; // 默认关闭
-  } catch (error) {
-    console.error('获取新版编辑器设置失败:', error);
-    return false;
-  }
-};
-
-/**
- * 设置是否启用新版角色卡编辑器
- * @param enabled - 是否启用新版编辑器
- */
-export const setUseNewCharCardEditor = (enabled: boolean) => {
-  try {
-    localStorage.setItem('useNewCharCardEditor', enabled.toString());
-    console.log('新版编辑器设置已保存:', enabled);
-  } catch (error) {
-    console.error('保存新版编辑器设置失败:', error);
-  }
 };
