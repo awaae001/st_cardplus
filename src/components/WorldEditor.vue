@@ -1,27 +1,73 @@
 <template>
-  <div class="world-editor-v2">
-    <div class="editor-layout">
-      <div class="toolbar-container">
-        <WorldEditorToolbar
-          :projects="projects"
-          :landmarks="landmarks"
-          :forces="forces"
-          :selected-item="selectedItem"
-          :can-undo="canUndo"
-          :can-redo="canRedo"
-          @select="handleSelection"
-          @add="handleAdd"
-          @delete="handleDelete"
-          @undo="handleUndo"
-          @redo="handleRedo"
-          @edit="handleEdit"
-          @copy="handleCopy"
-          :drag-drop-handlers="dragDropHandlers"
-        />
-      </div>
-      <div class="main-panel-container">
-        <WorldEditorMainPanel :selected-item="selectedItem" :all-tags="allTags" />
-      </div>
+  <div class="world-editor-container">
+    <div class="world-editor-mobile-layout">
+      <el-tabs v-model="activeTab" type="border-card" class="world-editor-tabs-mobile">
+        <el-tab-pane name="list" class="world-editor-tab-pane">
+          <template #label>
+            <span class="world-editor-tab-label">
+              <Icon icon="ph:list-bullets-duotone" class="world-editor-tab-icon" />
+              <span class="world-editor-tab-text">项目列表</span>
+            </span>
+          </template>
+          <WorldEditorToolbar
+            :projects="projects"
+            :landmarks="landmarks"
+            :forces="forces"
+            :selected-item="selectedItem"
+            :can-undo="canUndo"
+            :can-redo="canRedo"
+            @select="handleSelection"
+            @add="handleAdd"
+            @delete="handleDelete"
+            @undo="handleUndo"
+            @redo="handleRedo"
+            @edit="handleEdit"
+            @copy="handleCopy"
+            :drag-drop-handlers="dragDropHandlers"
+          />
+        </el-tab-pane>
+        <el-tab-pane name="editor" class="world-editor-tab-pane" :disabled="!selectedItem">
+          <template #label>
+            <span class="world-editor-tab-label">
+              <Icon icon="ph:note-pencil-duotone" class="world-editor-tab-icon" />
+              <span class="world-editor-tab-text-truncated">{{
+                selectedItem ? selectedItem.name || "编辑中" : "编辑条目"
+              }}</span>
+            </span>
+          </template>
+          <WorldEditorMainPanel :selected-item="selectedItem" :all-tags="allTags" />
+        </el-tab-pane>
+      </el-tabs>
+    </div>
+
+    <div class="world-editor-desktop-layout">
+      <Splitpanes class="default-theme" style="height: 100%">
+        <Pane size="15" min-size="12" max-size="30">
+          <div class="toolbar-container">
+            <WorldEditorToolbar
+              :projects="projects"
+              :landmarks="landmarks"
+              :forces="forces"
+              :selected-item="selectedItem"
+              :can-undo="canUndo"
+              :can-redo="canRedo"
+              @select="handleSelection"
+              @add="handleAdd"
+              @delete="handleDelete"
+              @undo="handleUndo"
+              @redo="handleRedo"
+              @edit="handleEdit"
+              @copy="handleCopy"
+              :drag-drop-handlers="dragDropHandlers"
+            />
+          </div>
+        </Pane>
+        <Pane size="85" min-size="70">
+          <div class="main-panel-container">
+            <WorldEditorMainPanel :selected-item="selectedItem" :all-tags="allTags" />
+          </div>
+        </Pane>
+      </Splitpanes>
     </div>
     <ProjectModal
       v-model:visible="isModalVisible"
@@ -32,7 +78,12 @@
 </template>
 
 <script setup lang="ts">
-import { watch } from 'vue';
+import { ref, watch } from 'vue';
+import { ElTabs, ElTabPane } from "element-plus";
+import { Icon } from "@iconify/vue";
+import { Splitpanes, Pane } from 'splitpanes';
+import 'splitpanes/dist/splitpanes.css';
+import '@/css/worldeditor.css';
 import type { Project, EnhancedLandmark, EnhancedForce } from '@/types/world-editor';
 import { ActionType } from '@/types/world-editor';
 import WorldEditorToolbar from './worldeditor/WorldEditorToolbar.vue';
@@ -43,6 +94,8 @@ import { useWorldEditor } from '@/composables/worldeditor/useWorldEditor';
 import { useWorldEditorUI } from '@/composables/worldeditor/useWorldEditorUI';
 import { useDragAndDrop } from '@/composables/worldeditor/useDragAndDrop';
 
+const activeTab = ref('list');
+
 // Core Logic
 const {
   projects,
@@ -50,12 +103,17 @@ const {
   forces,
   selectedItem,
   allTags,
-  handleSelection,
+  handleSelection: coreHandleSelection,
   handleAdd: handleAddEntity,
   handleDelete,
   handleCopy,
   handleProjectSubmit
 } = useWorldEditor();
+
+const handleSelection = (item: Project | EnhancedLandmark | EnhancedForce) => {
+  coreHandleSelection(item);
+  activeTab.value = 'editor';
+};
 
 // UI Logic
 const {
@@ -159,7 +217,7 @@ watch(
 </script>
 
 <style scoped>
-.world-editor-v2 {
+.world-editor-container {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -168,19 +226,12 @@ watch(
   box-sizing: border-box;
 }
 
-.editor-layout {
-  display: flex;
-  flex-grow: 1;
-  gap: 16px;
-}
-
 .toolbar-container {
-  width: 300px;
-  flex-shrink: 0;
+  height: 100%;
 }
 
 .main-panel-container {
-  flex-grow: 1;
+  height: 100%;
   background-color: var(--el-bg-color);
   border-radius: 4px;
   padding: 16px;

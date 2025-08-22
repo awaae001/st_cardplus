@@ -25,7 +25,10 @@
               class="title-input"
               @click.stop
             />
-            <span v-else @dblclick="startEditing(block.id)">{{ block.name }}</span>
+            <div v-else class="title-display">
+              <span @dblclick="startEditing(block.id)">{{ block.name }}</span>
+              <el-button :icon="Edit" text circle size="small" @click.stop="startEditing(block.id)" />
+            </div>
             <el-switch
               :model-value="block.enabled"
               @change="toggleBlockEnabled(block.id, $event as boolean)"
@@ -52,7 +55,7 @@
 import { ref, onMounted } from 'vue';
 import { useEjsEditorStore } from '@/stores/ejsEditor';
 import { ElMessageBox, ElMessage } from 'element-plus';
-import { Plus, Delete} from '@element-plus/icons-vue';
+import { Plus, Delete, Edit } from '@element-plus/icons-vue';
 import StageList from './StageList.vue'; // We will create this component next
 
 const store = useEjsEditorStore();
@@ -125,6 +128,13 @@ async function removeBlock(blockId: string) {
   align-items: center;
   width: 100%;
   gap: 8px;
+}
+
+.title-display {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+  gap: 4px;
 }
 
 .title-input {
