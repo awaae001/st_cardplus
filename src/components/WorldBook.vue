@@ -138,6 +138,8 @@ const {
   updateBookEntries,
   updateBookOrder,
   handleUpdateEntry,
+  handleAddEntry,
+  handleDeleteEntry,
 } = useWorldBookCollection();
 
 // Manage entries of the active world book
@@ -163,6 +165,8 @@ const {
     return updateBookEntries(activeBook.value.id, entries);
   },
   updateEntry: handleUpdateEntry,
+  addEntry: handleAddEntry,
+  deleteEntry: handleDeleteEntry,
 });
 
 const allKeywords = computed(() => {

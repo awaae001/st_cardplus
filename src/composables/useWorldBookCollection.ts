@@ -275,9 +275,9 @@ const loadInitialData = async () => {
       toBook.updatedAt = now;
       
       // 更新书籍的 updatedAt 字段
-      const fromBookToUpdate: StoredWorldBook = { ...fromBook, updatedAt: now };
+      const fromBookToUpdate: StoredWorldBook = { ...JSON.parse(JSON.stringify(fromBook)), updatedAt: now };
       delete (fromBookToUpdate as any).entries;
-      const toBookToUpdate: StoredWorldBook = { ...toBook, updatedAt: now };
+      const toBookToUpdate: StoredWorldBook = { ...JSON.parse(JSON.stringify(toBook)), updatedAt: now };
       delete (toBookToUpdate as any).entries;
       
       await Promise.all([
@@ -298,7 +298,7 @@ const loadInitialData = async () => {
       const now = new Date().toISOString();
       await worldBookService.replaceEntriesForBook(bookId, entries);
       
-      const bookToUpdate: StoredWorldBook = { ...book, updatedAt: now };
+      const bookToUpdate: StoredWorldBook = { ...JSON.parse(JSON.stringify(book)), updatedAt: now };
       delete (bookToUpdate as any).entries;
       await worldBookService.updateBook(bookToUpdate);
 
@@ -345,6 +345,59 @@ const loadInitialData = async () => {
     }
   };
 
+  const handleAddEntry = async (entry: WorldBookEntry): Promise<WorldBookEntry | null> => {
+    if (!activeBook.value) {
+      ElMessage.error("无法添加条目：缺少活动书籍。");
+      return null;
+    }
+    try {
+      const newId = await worldBookService.addEntry(activeBook.value.id, entry);
+      const newEntry = { ...entry, id: newId };
+      
+      // 更新本地状态
+      activeBook.value.entries.unshift(newEntry);
+      
+      const now = new Date().toISOString();
+      activeBook.value.updatedAt = now;
+      const bookToUpdate: StoredWorldBook = { ...activeBook.value, updatedAt: now };
+      delete (bookToUpdate as any).entries;
+      await worldBookService.updateBook(bookToUpdate);
+      
+      return newEntry;
+    } catch (error) {
+      console.error("添加条目失败:", error);
+      ElMessage.error("添加条目失败！");
+      return null;
+    }
+  };
+
+  const handleDeleteEntry = async (entryId: number): Promise<void> => {
+    if (!activeBook.value) {
+      ElMessage.error("无法删除条目：缺少活动书籍。");
+      return;
+    }
+    try {
+      await worldBookService.deleteEntry(entryId);
+      
+      // 更新本地状态
+      const entryIndex = activeBook.value.entries.findIndex(e => e.id === entryId);
+      if (entryIndex > -1) {
+        activeBook.value.entries.splice(entryIndex, 1);
+      }
+      
+      const now = new Date().toISOString();
+      activeBook.value.updatedAt = now;
+      const bookToUpdate: StoredWorldBook = { ...activeBook.value, updatedAt: now };
+      delete (bookToUpdate as any).entries;
+      await worldBookService.updateBook(bookToUpdate);
+      
+    } catch (error) {
+      console.error("删除条目失败:", error);
+      ElMessage.error("删除条目失败！");
+    }
+  };
+
+
   return {
     worldBookCollection,
     activeBookId,
@@ -359,5 +412,7 @@ const loadInitialData = async () => {
     updateBookEntries,
     updateBookOrder,
     handleUpdateEntry,
+    handleAddEntry,
+    handleDeleteEntry,
   };
 }

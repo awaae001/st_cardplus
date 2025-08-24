@@ -110,7 +110,10 @@ export const worldBookService = {
    * 完全替换一本书的所有条目 (用于导入、拖拽等操作)
    */
   async replaceEntriesForBook(bookId: string, entries: WorldBookEntry[]): Promise<void> {
-    const storedEntries: StoredWorldBookEntry[] = entries.map(entry => ({
+    // 确保 `entries` 是一个普通的 JavaScript 数组，而不是 Vue 的响应式代理
+    const plainEntries = JSON.parse(JSON.stringify(entries));
+
+    const storedEntries: StoredWorldBookEntry[] = plainEntries.map((entry: WorldBookEntry) => ({
       ...entry,
       bookId,
     }));
@@ -120,6 +123,7 @@ export const worldBookService = {
       await db.entries.where('bookId').equals(bookId).delete();
       // 2. 添加新的所有条目
       if (storedEntries.length > 0) {
+        // 使用 bulkAdd 而不是 bulkPut，因为我们已经删除了旧条目，并且 id 可能不存在
         await db.entries.bulkAdd(storedEntries);
       }
     });
@@ -129,7 +133,8 @@ export const worldBookService = {
    * 添加一个新条目
    */
   async addEntry(bookId: string, entry: WorldBookEntry): Promise<number> {
-    const storedEntry: StoredWorldBookEntry = { ...entry, bookId };
+    const plainEntry = JSON.parse(JSON.stringify(entry));
+    const storedEntry: StoredWorldBookEntry = { ...plainEntry, bookId };
     return await db.entries.add(storedEntry);
   },
 
@@ -141,7 +146,8 @@ export const worldBookService = {
     if (entry.id === undefined) {
       throw new Error("更新条目需要提供数据库主键 'id'");
     }
-    await db.entries.put(entry);
+    const plainEntry = JSON.parse(JSON.stringify(entry));
+    await db.entries.put(plainEntry);
   },
 
   /**
@@ -179,7 +185,7 @@ export const worldBookService = {
 
       // 2. 批量导入新数据
       await db.books.bulkAdd(data.books);
-      await db.entries.bulkAdd(data.entries);
+      await db.entries.bulkPut(data.entries);
     });
   },
 

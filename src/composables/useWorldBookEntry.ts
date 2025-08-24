@@ -78,6 +78,8 @@ export const processImportedWorldBookData = (
 type EntryCallbacks = {
   updateEntries: (entries: WorldBookEntry[]) => Promise<void>;
   updateEntry: (entry: WorldBookEntry) => Promise<void>;
+  addEntry: (entry: WorldBookEntry) => Promise<WorldBookEntry | null>;
+  deleteEntry: (entryId: number) => Promise<void>;
 };
 
 export function useWorldBookEntry(
@@ -132,11 +134,14 @@ export function useWorldBookEntry(
     const newEntryData = createDefaultEntryData(newUid);
     newEntryData.comment = `新条目 ${activeBook.value.entries.length + 1}`;
     
-    activeBook.value.entries.unshift(newEntryData);
-    await callbacks.updateEntries(activeBook.value.entries);
-
-    selectedEntryIndex.value = 0;
-    activeTab.value = "editor";
+    const addedEntry = await callbacks.addEntry(newEntryData);
+    
+    if (addedEntry) {
+      // The local state `activeBook.value.entries` is already updated in `handleAddEntry`
+      // We just need to select the new entry.
+      selectedEntryIndex.value = 0;
+      activeTab.value = "editor";
+    }
   };
   
   const handleSelectEntry = (indexStr: string | null) => {
@@ -176,20 +181,25 @@ export function useWorldBookEntry(
   };
 
   const deleteSelectedEntry = async (): Promise<void> => {
-    if (selectedEntryIndex.value !== null && activeBook.value) {
-      activeBook.value.entries.splice(selectedEntryIndex.value, 1);
+    const entryToDelete = selectedEntry.value;
+    if (entryToDelete && entryToDelete.id !== undefined && activeBook.value) {
+      await callbacks.deleteEntry(entryToDelete.id);
       
-      await callbacks.updateEntries(activeBook.value.entries);
-      
+      // The local state is updated in `handleDeleteEntry`.
+      // Now, adjust the selection.
       if (activeBook.value.entries.length > 0) {
-        selectedEntryIndex.value = Math.min(
-          selectedEntryIndex.value,
+        // If the deleted item was not the last one, keep the index, otherwise select the new last one
+        const newIndex = Math.min(
+          selectedEntryIndex.value ?? 0,
           activeBook.value.entries.length - 1
         );
+        selectedEntryIndex.value = newIndex;
       } else {
         selectedEntryIndex.value = null;
         activeTab.value = "list";
       }
+    } else {
+      ElMessage.error("无法删除条目，未找到或缺少ID。");
     }
   };
 
@@ -219,10 +229,11 @@ export function useWorldBookEntry(
         ...createDefaultEntryData(newUid), ...parsedEntryData, uid: newUid,
       };
       
-      activeBook.value.entries.unshift(newEntry);
-      await callbacks.updateEntries(activeBook.value.entries);
-      
-      selectedEntryIndex.value = 0;
+      // Use the new single-add mechanism
+      const addedEntry = await callbacks.addEntry(newEntry);
+      if (addedEntry) {
+        selectedEntryIndex.value = 0;
+      }
       activeTab.value = "editor";
     } catch (error) {
        if (error !== 'cancel' && error !== 'close') { ElMessage.error("导入失败"); }
@@ -303,6 +314,7 @@ export function useWorldBookEntry(
       const loadedEntries = processImportedWorldBookData(jsonData);
 
       if (loadedEntries) {
+        // This is a replace operation, so updateEntries is correct here.
         activeBook.value.entries = loadedEntries;
         await callbacks.updateEntries(loadedEntries);
         ElMessage.success(`条目已成功从剪贴板导入`);
