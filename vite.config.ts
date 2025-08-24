@@ -45,6 +45,8 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, 'src'), // 定义 @ 别名指向 src 目录
       'fs': path.resolve(__dirname, 'src/polyfills/fs.js'),
+      'path': path.resolve(__dirname, 'src/polyfills/path.js'),
+      'os': path.resolve(__dirname, 'src/polyfills/os.js'),
       // 确保 Vue 在生产环境中正确解析
       'vue': 'vue/dist/vue.esm-bundler.js',
     },
@@ -66,8 +68,8 @@ export default defineConfig({
     __VUE_PROD_DEVTOOLS__: false,
   },
   optimizeDeps: {
-    exclude: ['fs', 'path', 'os'],
-    include: ['js-yaml', 'ejs', 'vue', '@vue/runtime-core', '@vue/runtime-dom'],
+    exclude: [],
+    include: ['js-yaml', 'ejs', 'vue', '@vue/runtime-core', '@vue/runtime-dom', 'vuedraggable'],
     force: true, // 强制重新预优化
   },
   build: {
