@@ -54,7 +54,7 @@
           </div>
           <div class="variable-tree-editable">
             <div v-if="store.variableTree.length === 0" class="empty-tree">
-              <el-text type="info">没有变量，请点击上方按钮添加根节点。</el-text>
+              <el-text type="info">没有变量，请点击上方按钮添加根节点 </el-text>
             </div>
             <EditableVariableTreeNode
               v-for="node in store.variableTree"

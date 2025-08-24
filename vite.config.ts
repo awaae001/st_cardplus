@@ -10,18 +10,24 @@ const getGitVersionInfo = () => {
   try {
     const commitHash = execSync('git rev-parse --short HEAD').toString().trim();
     const commitCount = execSync('git rev-list --count HEAD').toString().trim();
-    return { commitHash, commitCount };
+    // 获取最近10条的提交日志
+    let gitLog: string[] = [];
+    if (!process.env.CF_PAGES) {
+      gitLog = execSync('git log --pretty=format:"%h - %s (%cr)" -n 10').toString().trim().split('\n');
+    }
+    return { commitHash, commitCount, gitLog };
   } catch (e) {
     console.error('Failed to get git info:', e);
-    return { commitHash: 'unknown', commitCount: 'unknown' };
+    return { commitHash: 'unknown', commitCount: 'unknown', gitLog: ['Failed to get git log'] };
   }
 };
 
-const { commitHash, commitCount } = getGitVersionInfo();
+const { commitHash, commitCount, gitLog } = getGitVersionInfo();
 
 // 优先使用 Cloudflare Pages 的环境变量
 const appVersion = process.env.CF_PAGES_COMMIT_SHA ? process.env.CF_PAGES_COMMIT_SHA.slice(0, 7) : commitHash;
 const appCommitCount = commitCount;
+const appGitLog = gitLog;
 
 
 export default defineConfig({
@@ -38,6 +44,11 @@ export default defineConfig({
   resolve: { // 添加 resolve 配置
     alias: {
       '@': path.resolve(__dirname, 'src'), // 定义 @ 别名指向 src 目录
+      'fs': path.resolve(__dirname, 'src/polyfills/fs.js'),
+      'path': path.resolve(__dirname, 'src/polyfills/path.js'),
+      'os': path.resolve(__dirname, 'src/polyfills/os.js'),
+      // 确保 Vue 在生产环境中正确解析
+      'vue': 'vue/dist/vue.esm-bundler.js',
     },
   },
   define: {
@@ -45,10 +56,16 @@ export default defineConfig({
     global: 'globalThis',
     __APP_VERSION__: JSON.stringify(appVersion),
     __APP_COMMIT_COUNT__: JSON.stringify(appCommitCount),
+    __APP_GIT_LOG__: JSON.stringify(appGitLog),
+    // 禁用 EJS 中的文件系统访问
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+    __VUE_OPTIONS_API__: true,
+    __VUE_PROD_DEVTOOLS__: false,
   },
   optimizeDeps: {
-    exclude: ['fs', 'path', 'os'],
-    include: ['js-yaml', 'ejs'],
+    exclude: [],
+    include: ['js-yaml', 'ejs', 'vue', '@vue/runtime-core', '@vue/runtime-dom', 'vuedraggable'],
+    force: true, // 强制重新预优化
   },
   build: {
     outDir: 'dist', // 打包输出目录
@@ -58,20 +75,15 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('element-plus')) {
-              return 'element-plus'; 
-            }
-            if (id.includes('lodash-es')) {
-              return 'lodash';
-            }
-            return 'vendor'; // 其他node_modules依赖
+            return 'vendor'; // 将所有依赖项打包到一个 vendor chunk 中
           }
         },
         chunkFileNames: 'assets/[name]-[hash].js', // 分割后的文件命名规则
       },
+      external: [], // 确保不排除 Vue
     },
     chunkSizeWarningLimit: 1000, // 设置chunk大小警告限制
-    sourcemap: false, 
+    sourcemap: false,
     terserOptions: {
       compress: {
         // drop_console: true, 

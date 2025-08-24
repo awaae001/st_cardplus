@@ -32,7 +32,7 @@
               @update:character="handleUpdateCharacter"
             />
             <div v-else class="editor-empty-state">
-              <el-empty description="请在左侧选择一个角色进行编辑，或创建一个新角色。" />
+              <el-empty description="请在左侧选择一个角色进行编辑，或创建一个新角色 " />
             </div>
           </div>
         </el-tab-pane>
@@ -61,7 +61,7 @@
               @update:character="handleUpdateCharacter"
             />
             <div v-else class="editor-empty-state">
-              <el-empty description="请在左侧选择一个角色进行编辑，或创建一个新角色。" />
+              <el-empty description="请在左侧选择一个角色进行编辑，或创建一个新角色 " />
             </div>
           </div>
         </Pane>

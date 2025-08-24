@@ -1,11 +1,12 @@
 /// <reference types="vite/client" />
 
 declare module '*.vue' {
-  import type { DefineComponent } from 'vue'
-  const component: DefineComponent<{}, {}, any>
-  export default component
+  import { DefineComponent } from 'vue';
+  const component: DefineComponent;
+  export default component;
 }
 
 
 declare const __APP_VERSION__: string;
 declare const __APP_COMMIT_COUNT__: string;
+declare const __APP_GIT_LOG__: string[];

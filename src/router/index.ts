@@ -59,6 +59,12 @@ const router = createRouter({
       meta: { title: '分隔符工具' }
     },
     {
+      path: '/regex-editor',
+      name: 'regexEditor',
+      component: () => import('../pages/RegexEditorPage.vue'),
+      meta: { title: '正则表达式编辑器' }
+    },
+    {
       path: '/ejs-editor',
       name: 'ejsEditor',
       component: () => import('../pages/EjsEditorPage.vue'),

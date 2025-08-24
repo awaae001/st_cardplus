@@ -1,4 +1,5 @@
 export interface WorldBookEntry {
+  id?: number; // Database primary key
   uid?: number;
   comment: string;
   key: string[];

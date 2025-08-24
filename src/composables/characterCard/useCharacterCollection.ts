@@ -114,7 +114,7 @@ export function useCharacterCollection() {
     if (!character) return;
 
     if (Object.keys(characterCollection.value.characters).length <= 1) {
-      ElMessage.warning('不能删除最后一个角色。');
+      ElMessage.warning('不能删除最后一个角色 ');
       return;
     }
 
@@ -145,7 +145,7 @@ export function useCharacterCollection() {
         };
       });
 
-      ElMessage.success(`角色 "${character.chineseName}" 已删除。`);
+      ElMessage.success(`角色 "${character.chineseName}" 已删除 `);
 
     } catch (error) {
       if (error !== 'cancel') {
@@ -160,7 +160,7 @@ export function useCharacterCollection() {
       try {
         const result = e.target?.result;
         if (typeof result !== 'string') {
-          throw new Error('无法读取文件内容。');
+          throw new Error('无法读取文件内容 ');
         }
 
         const importedData = JSON.parse(result) as Partial<CharacterCard> & { name?: string };
@@ -168,7 +168,7 @@ export function useCharacterCollection() {
 
         // 基本验证 (可以根据需要扩展)
         if (!importedData.chineseName && !importedData.japaneseName && !importedData.name) {
-          throw new Error('导入的数据缺少角色名称。');
+          throw new Error('导入的数据缺少角色名称 ');
         }
 
         const newId = uuidv4();
@@ -198,11 +198,11 @@ export function useCharacterCollection() {
         ElMessage.success(`角色 "${newCharacter.chineseName}" 已成功导入！`);
       } catch (error) {
         console.error("导入角色失败:", error);
-        ElMessage.error(`导入失败: ${error instanceof Error ? error.message : '无效的文件格式。'}`);
+        ElMessage.error(`导入失败: ${error instanceof Error ? error.message : '无效的文件格式 '}`);
       }
     };
     reader.onerror = () => {
-      ElMessage.error('读取文件时发生错误。');
+      ElMessage.error('读取文件时发生错误 ');
     };
     reader.readAsText(file);
   };

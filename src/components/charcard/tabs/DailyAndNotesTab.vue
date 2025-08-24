@@ -168,7 +168,7 @@ const addCustomRoutineField = async () => {
         const keyExists = Object.keys(form.value.dailyRoutine).includes(trimmedName);
         const labelExists = Object.values(standardRoutineFieldsMap).includes(trimmedName);
         if (keyExists || labelExists) {
-          ElMessageBox.alert(`字段 "${trimmedName}" 已存在或为预设字段，请使用其他名称。`, '提示', { confirmButtonText: '确定' });
+          ElMessageBox.alert(`字段 "${trimmedName}" 已存在或为预设字段，请使用其他名称 `, '提示', { confirmButtonText: '确定' });
           continue;
         }
         form.value.dailyRoutine[trimmedName] = fieldValue;

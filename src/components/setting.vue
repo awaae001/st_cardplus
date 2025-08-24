@@ -4,14 +4,14 @@
       <h1>关于与设置</h1>
       <p class="subtitle">管理自己的自定义设置</p>
     </div>
-
     <el-tabs v-model="activeTab" class="settings-tabs">
       <el-tab-pane label="设置" name="settings">
         <div class="settings-section">
           <AppSettings />
-          <div style="margin: 16px;"></div>
-          <DataManagement />
         </div>
+      </el-tab-pane>
+      <el-tab-pane label="迁移" name="data">
+        <DataManagement />
       </el-tab-pane>
       <el-tab-pane label="WebDAV 同步" name="webdav">
         <WebDAVSettings />

@@ -34,7 +34,7 @@
     >
       <template #item="{ element: stage, index }">
         <div class="stage-item-wrapper">
-          <div class="stage-item" :class="{ 'is-expanded': expandedStageId === stage.id }" @click="toggleExpand(stage.id)">
+          <div class="stage-item" :class="{ 'is-expanded': expandedStageId.includes(stage.id) }" @click="toggleExpand(stage.id)">
             <div class="stage-header">
               <div class="stage-info">
                 <el-icon class="drag-handle" @click.stop><Menu /></el-icon>
@@ -53,7 +53,7 @@
             </div>
           </div>
           <el-collapse-transition>
-            <div v-show="expandedStageId === stage.id">
+            <div v-show="expandedStageId.includes(stage.id)">
               <StageEditor :stage="stage" :logic-block-id="props.logicBlock.id" />
             </div>
           </el-collapse-transition>
@@ -79,7 +79,7 @@ const props = defineProps<{
 
 const store = useEjsEditorStore();
 const { isMobile } = useDevice();
-const expandedStageId = ref<string | null>(null);
+const expandedStageId = ref<string[]>([]);
 
 // Use a local ref for draggable to work correctly with props
 const localStages = ref([...props.logicBlock.stages]);
@@ -101,10 +101,11 @@ function updateDefaultContent(content: string) {
 }
 
 function toggleExpand(stageId: string) {
-  if (expandedStageId.value === stageId) {
-    expandedStageId.value = null;
+  const index = expandedStageId.value.indexOf(stageId);
+  if (index > -1) {
+    expandedStageId.value.splice(index, 1);
   } else {
-    expandedStageId.value = stageId;
+    expandedStageId.value.push(stageId);
     store.selectedStageId = `${props.logicBlock.id}/${stageId}`;
   }
 }
@@ -114,8 +115,9 @@ async function removeStage(stageId: string) {
     await ElMessageBox.confirm('确定要删除这个阶段吗？', '确认删除', { type: 'warning' });
     store.removeStage(props.logicBlock.id, stageId);
     ElMessage.success('阶段已删除');
-    if (expandedStageId.value === stageId) {
-      expandedStageId.value = null;
+    const index = expandedStageId.value.indexOf(stageId);
+    if (index > -1) {
+      expandedStageId.value.splice(index, 1);
     }
   } catch {
     // User cancelled

@@ -26,3 +26,5 @@ dist-electron/main.js
 
 doc/
 pnpm-lock.yaml
+
+temp/*

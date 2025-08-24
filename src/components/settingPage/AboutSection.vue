@@ -1,7 +1,7 @@
 <template>
   <div class="about-section">
     <h2>关于应用 <span v-if="isDevDomain" style="color: #e6a23c; font-size: 12px;">滚动测试版本</span></h2>
-    <p>这是一个用于创建和管理 SillyTavern 角色卡的在线应用程序。</p>
+    <p>这是一个用于创建和管理 SillyTavern 角色卡的在线应用程序 </p>
     <p style="display: flex;align-items: center;gap: 8px;">你可以访问
       <Icon icon="qlementine-icons:discord-fill-16" width="16" height="16" /><a href="https://discord.gg/2wKPQHCydk"
         target="_blank" style="color: #409eff;">discord 频道</a> 发送反馈或者访问我的 GitHub 页面获取更多信息或贡献代码：
@@ -10,7 +10,15 @@
       开发版本：
       <b v-if="appCommitCount === '1'">在线版_{{ appVersion }}</b>
       <b v-else>dev_{{ appVersion }}({{ appCommitCount }})</b>
+      [0.1.6]
     </p>
+  </div>
+
+  <div class="changelog-section">
+    <h3>更新日志</h3>
+    <ul>
+      <li v-for="(log, index) in gitLogs" :key="index">{{ log }}</li>
+    </ul>
   </div>
 
   <div style="display: flex;">
@@ -42,6 +50,7 @@ import { computed } from 'vue';
 
 const appVersion = __APP_VERSION__;
 const appCommitCount = __APP_COMMIT_COUNT__;
+const gitLogs = __APP_GIT_LOG__;
 
 const isMainDomain = computed(() => {
   return window.location.hostname === 'cardplus.jiuci.top';
@@ -53,6 +62,28 @@ const isDevDomain = computed(() => {
 </script>
 
 <style scoped>
+.changelog-section {
+  margin: 24px 0;
+  padding: 16px;
+  border: 1px solid var(--el-border-color);
+  border-radius: 8px;
+}
+
+.changelog-section h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.changelog-section ul {
+  padding-left: 20px;
+  margin: 0;
+}
+
+.changelog-section li {
+  margin-bottom: 8px;
+  color: var(--el-text-color-regular);
+}
 .about-section {
   margin: 24px 0;
   transition: all 0.3s ease;

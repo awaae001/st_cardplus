@@ -15,7 +15,7 @@ const tools = ref([
     icon: 'material-symbols:image-outline',
     description: '分离角色卡的 json 和图片',
     route: '/toolbox/separator'
-  }
+  },
 ])
 </script>
 

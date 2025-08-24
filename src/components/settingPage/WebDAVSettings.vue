@@ -9,7 +9,7 @@
         style="margin-left: 8px; color: var(--el-color-warning);" />
     </div>
     <p class="setting-description" style="margin-top: 10px; margin-bottom: 15px;">
-      将数据备份到你的 WebDAV 服务器。这将会上传一个包含所有设置、角色卡和项目的单一备份文件。
+      将数据备份到你的 WebDAV 服务器 这将会上传一个包含所有设置、角色卡和项目的单一备份文件 
     </p>
     <div class="webdav-settings">
       <el-input v-model="webdavConfig.url" placeholder="WebDAV URL" />
@@ -38,6 +38,7 @@ import { ref, onMounted, watch } from 'vue';
 import { Icon } from '@iconify/vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { uploadToWebDAV, downloadFromWebDAV, testWebDAVConnection } from '@/utils/webdav';
+import { worldBookService } from '@/database/worldBookService';
 
 interface WebDAVConfig {
   url: string;
@@ -92,12 +93,23 @@ const pushToWebDAV = async () => {
   try {
     ElMessage.info('正在准备数据并上传...');
     const data: { [key: string]: any } = {};
+    // 1. 备份 localStorage
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (key) {
         if (key === 'webdavConfig') continue;
         data[key] = localStorage.getItem(key);
       }
+    }
+
+    // 2. 备份世界书 IndexedDB
+    try {
+      const worldBookExport = await worldBookService.exportDatabase();
+      data['ST_CARDPLUS_WORLDBOOK_V1'] = JSON.stringify(worldBookExport);
+    } catch (dbError) {
+      console.error('备份世界书数据到 WebDAV 失败:', dbError);
+      ElMessage.error('备份世界书数据失败，推送中止。');
+      return;
     }
 
     const json = JSON.stringify(data, null, 2);
@@ -121,7 +133,7 @@ const pullFromWebDAV = async () => {
     const data = JSON.parse(json);
 
     ElMessageBox.confirm(
-      '这将用服务器上的备份覆盖所有现有本地数据。此操作可能会丢失你没有保存的想法。您确定要继续吗？',
+      '这将用服务器上的备份覆盖所有现有本地数据 此操作可能会丢失你没有保存的想法 您确定要继续吗？',
       '警告',
       {
         confirmButtonText: '确认覆盖',
@@ -129,32 +141,47 @@ const pullFromWebDAV = async () => {
         type: 'warning',
       }
     )
-      .then(() => {
-        // 创建快照
-        const snapshotData: { [key: string]: any } = {};
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key) {
-            snapshotData[key] = localStorage.getItem(key);
+      .then(async () => {
+        try {
+          // 1. 创建快照 (包含 localStorage 和 IndexedDB)
+          const snapshotData: { [key: string]: any } = {};
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key) {
+              snapshotData[key] = localStorage.getItem(key);
+            }
           }
-        }
-        sessionStorage.setItem('webdav-snapshot', JSON.stringify(snapshotData));
+          const worldBookSnapshot = await worldBookService.exportDatabase();
+          snapshotData['ST_CARDPLUS_WORLDBOOK_V1'] = JSON.stringify(worldBookSnapshot);
+          sessionStorage.setItem('webdav-snapshot', JSON.stringify(snapshotData));
 
-        const preservedWebDAVConfig = localStorage.getItem('webdavConfig');
-        localStorage.clear();
-        if (preservedWebDAVConfig) {
-          localStorage.setItem('webdavConfig', preservedWebDAVConfig);
-        }
-
-        for (const key in data) {
-          if (Object.prototype.hasOwnProperty.call(data, key)) {
-            localStorage.setItem(key, data[key]);
+          // 2. 恢复世界书数据
+          if (data['ST_CARDPLUS_WORLDBOOK_V1']) {
+            const worldBookData = JSON.parse(data['ST_CARDPLUS_WORLDBOOK_V1']);
+            await worldBookService.importDatabase(worldBookData);
+            delete data['ST_CARDPLUS_WORLDBOOK_V1'];
           }
+
+          // 3. 恢复 localStorage 数据
+          const preservedWebDAVConfig = localStorage.getItem('webdavConfig');
+          localStorage.clear();
+          if (preservedWebDAVConfig) {
+            localStorage.setItem('webdavConfig', preservedWebDAVConfig);
+          }
+          for (const key in data) {
+            if (Object.prototype.hasOwnProperty.call(data, key)) {
+              localStorage.setItem(key, data[key]);
+            }
+          }
+
+          ElMessage.success('数据已成功从服务器恢复，应用将重新加载。');
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        } catch (restoreError) {
+          console.error('从 WebDAV 恢复数据失败:', restoreError);
+          ElMessage.error('恢复数据时发生错误，操作已终止。');
         }
-        ElMessage.success('数据已成功从服务器恢复。应用将重新加载以应用更改。');
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
       })
       .catch(() => {
         ElMessage.info('操作已取消');
@@ -165,13 +192,20 @@ const pullFromWebDAV = async () => {
   }
 };
 
-const revertPull = () => {
+const revertPull = async () => {
   const snapshot = sessionStorage.getItem('webdav-snapshot');
   if (snapshot) {
     try {
       const data = JSON.parse(snapshot);
 
-      // 恢复 localStorage
+      // 1. 恢复世界书 IndexedDB
+      if (data['ST_CARDPLUS_WORLDBOOK_V1']) {
+        const worldBookData = JSON.parse(data['ST_CARDPLUS_WORLDBOOK_V1']);
+        await worldBookService.importDatabase(worldBookData);
+        delete data['ST_CARDPLUS_WORLDBOOK_V1'];
+      }
+
+      // 2. 恢复 localStorage
       localStorage.clear();
       for (const key in data) {
         if (Object.prototype.hasOwnProperty.call(data, key)) {
@@ -179,19 +213,19 @@ const revertPull = () => {
         }
       }
 
-      // 清除快照并重新加载
+      // 3. 清除快照并重新加载
       sessionStorage.removeItem('webdav-snapshot');
-      ElMessage.success('操作已撤销。应用将重新加载。');
+      ElMessage.success('操作已撤销，应用将重新加载。');
       setTimeout(() => {
         window.location.reload();
       }, 1500);
 
     } catch (error) {
       console.error('恢复快照失败:', error);
-      ElMessage.error('恢复快照失败，请检查控制台。');
+      ElMessage.error('恢复快照失败，请检查控制台 ');
     }
   } else {
-    ElMessage.error('没有可用的快照。请检查是否已执行拉取操作。');
+    ElMessage.error('没有可用的快照 请检查是否已执行拉取操作 ');
   }
   snapshotAvailable.value = false;
 };

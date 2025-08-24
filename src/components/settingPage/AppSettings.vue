@@ -1,19 +1,28 @@
 <template>
+  <el-alert type="warning" show-icon :closable="false" style="margin-bottom: 20px;">
+    <template #title>
+      所有兼容性项目（侧边栏除外）将在 0.2.0 新版本到来后被移除
+    </template>
+    <template #default>
+      0.2.0 将在所有页面完成重构后到来
+    </template>
+  </el-alert>
   <div class="app-settings">
     <div v-for="setting in settings" :key="setting.id" class="setting-card">
       <div class="setting-content">
         <div class="setting-header">
           <div class="setting-info">
             <span class="setting-label">{{ setting.label }}</span>
-            <Icon :icon="setting.icon" width="20" height="20" :style="{ marginLeft: '8px', color: setting.iconColor }" />
+            <Icon :icon="setting.icon" width="20" height="20"
+              :style="{ marginLeft: '8px', color: setting.iconColor }" />
           </div>
           <template v-if="setting.type === 'switch'">
             <el-switch v-model="setting.model.value" @change="setting.handler" size="large" />
           </template>
           <template v-else-if="setting.type === 'numberInput'">
             <div class="interval-control">
-              <el-input-number v-model="setting.model.value" @change="setting.handler" :min="setting.min" :max="setting.max"
-                :step="setting.step" size="small" style="width: 100px;" />
+              <el-input-number v-model="setting.model.value" @change="setting.handler" :min="setting.min"
+                :max="setting.max" :step="setting.step" size="small" style="width: 100px;" />
               <span class="interval-unit">{{ setting.unit }}</span>
             </div>
           </template>
@@ -28,13 +37,13 @@
 import { Icon } from '@iconify/vue';
 import { ref, onMounted, computed } from 'vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
-import { 
-  getBetaFeaturesEnabled, setBetaFeaturesEnabled, 
-  getUmamiEnabled, setUmamiEnabled, 
-  getAutoSaveInterval, setAutoSaveInterval, 
-  getUseOldSidebar, setUseOldSidebar, 
+import {
+  getBetaFeaturesEnabled, setBetaFeaturesEnabled,
+  getUmamiEnabled, setUmamiEnabled,
+  getAutoSaveInterval, setAutoSaveInterval,
+  getUseOldSidebar, setUseOldSidebar,
   getUseOldCharCardEditor, setUseOldCharCardEditor,
-  getUseOldWorldEditor, setUseOldWorldEditor 
+  getUseOldWorldEditor, setUseOldWorldEditor
 } from '@/utils/localStorageUtils';
 import { getAppSettings } from '@/composables/appSettings';
 
@@ -54,7 +63,7 @@ const onBetaFeaturesToggle = (value: boolean) => {
             <p>这些功能可能会在没有事先通知的情况下发生变化或被移除</p>
             <p>在一般情况下，测试版将会带来更多<b>破坏性更新</b>，这可能导致您的创意丢失或者难以寻回</p>
             <p><strong>使用测试版功能即表示您理解并接受这些风险</strong></p>
-            <p>我鼓励您通过 <a href="https://github.com/awaae001/st_cardplus/issues" target="_blank" style="color: var(--el-color-primary);">GitHub Issues</a> 反馈问题，但请注意，我可能无法提供即时支持。</p>
+            <p>我鼓励您通过 <a href="https://github.com/awaae001/st_cardplus/issues" target="_blank" style="color: var(--el-color-primary);">GitHub Issues</a> 反馈问题，但请注意，我可能无法提供即时支持 </p>
           </div>
         `,
       '启用测试版功能',
@@ -91,7 +100,7 @@ const onUmamiToggle = (value: boolean) => {
     ElMessageBox.confirm(
       `
           <div style="text-align: left;">
-            <p>我依靠匿名遥测数据来了解功能的使用情况、发现问题并指导应用的未来发展。</p>
+            <p>我依靠匿名遥测数据来了解功能的使用情况、发现问题并指导应用的未来发展 </p>
             <p>关闭遥测将使我更难改进您和其他用户的使用体验</p>
             <p><strong>您确定要关闭匿名遥测吗？</strong></p>
             <p>我承诺，所有收集的数据都是完全匿名的，绝不包含任何个人身份信息或您的创作内容</p>
@@ -136,7 +145,7 @@ const onAutoSaveIntervalChange = (value: number | undefined) => {
 const onUseOldSidebarToggle = (value: boolean) => {
   setUseOldSidebar(value);
   ElMessageBox.confirm(
-    '此设置将在您下次刷新页面 (Ctrl+R) 后生效。',
+    '此设置将在您下次刷新页面 (Ctrl+R) 后生效 ',
     '提示',
     {
       confirmButtonText: '立即刷新',
@@ -151,7 +160,7 @@ const onUseOldSidebarToggle = (value: boolean) => {
 const onUseOldCharCardEditorToggle = (value: boolean) => {
   setUseOldCharCardEditor(value);
   ElMessageBox.confirm(
-    '此设置将在您下次刷新页面 (Ctrl+R) 后生效。',
+    '此设置将在您下次刷新页面 (Ctrl+R) 后生效 ',
     '提示',
     {
       confirmButtonText: '立即刷新',
@@ -166,7 +175,7 @@ const onUseOldCharCardEditorToggle = (value: boolean) => {
 const onUseOldWorldEditorToggle = (value: boolean) => {
   setUseOldWorldEditor(value);
   ElMessageBox.confirm(
-    '此设置将在您下次刷新页面 (Ctrl+R) 后生效。',
+    '此设置将在您下次刷新页面 (Ctrl+R) 后生效 ',
     '提示',
     {
       confirmButtonText: '立即刷新',
@@ -179,21 +188,21 @@ const onUseOldWorldEditorToggle = (value: boolean) => {
 };
 
 const settings = computed(() => getAppSettings(
-  { 
+  {
     useOldCharCardEditor,
-    betaFeaturesEnabled, 
-    useOldSidebar, 
-    useOldWorldEditor, 
-    umamiEnabled, 
-    autoSaveInterval 
+    betaFeaturesEnabled,
+    useOldSidebar,
+    useOldWorldEditor,
+    umamiEnabled,
+    autoSaveInterval
   },
-  { 
+  {
     onUseOldCharCardEditorToggle,
-    onBetaFeaturesToggle, 
-    onUseOldSidebarToggle, 
-    onUseOldWorldEditorToggle, 
-    onUmamiToggle, 
-    onAutoSaveIntervalChange 
+    onBetaFeaturesToggle,
+    onUseOldSidebarToggle,
+    onUseOldWorldEditorToggle,
+    onUmamiToggle,
+    onAutoSaveIntervalChange
   }
 ));
 

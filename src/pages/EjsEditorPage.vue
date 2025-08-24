@@ -246,7 +246,7 @@ function handleExportConfig() {
 async function handleClearAll() {
   try {
     await ElMessageBox.confirm(
-      '确定要清空所有内容吗？此操作不可恢复。',
+      '确定要清空所有内容吗？此操作不可恢复 ',
       '确认清空',
       {
         type: 'warning'

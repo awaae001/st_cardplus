@@ -109,11 +109,22 @@
             <el-form-item label="更新时间">
               <span>{{ formatDate(store.currentProject.updatedAt) }}</span>
             </el-form-item>
-            <el-form-item>
-              <el-button type="danger" @click="handleDeleteCurrentProject" :disabled="store.projects.length <= 1">
-                删除当前项目
-              </el-button>
-            </el-form-item>
+            <el-form-item label="项目操作">
+               <el-button-group>
+                 <el-tooltip content="导入项目/工作区" placement="top">
+                   <el-button :icon="Download" @click="handleImport" />
+                 </el-tooltip>
+                 <el-tooltip content="导出当前项目" placement="top">
+                   <el-button :icon="Upload" @click="handleExportProject" />
+                 </el-tooltip>
+                 <el-tooltip content="导出工作区" placement="top">
+                   <el-button :icon="FolderOpened" @click="handleExportWorkspace" />
+                 </el-tooltip>
+                 <el-tooltip content="删除当前项目" placement="top">
+                   <el-button type="danger" :icon="Delete" @click="handleDeleteCurrentProject" :disabled="store.projects.length <= 1" />
+                 </el-tooltip>
+               </el-button-group>
+             </el-form-item>
           </el-form>
         </div>
 
@@ -171,7 +182,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Setting, ArrowRight, CopyDocument, Delete, Edit } from '@element-plus/icons-vue'
+import { Plus, Setting, ArrowRight, CopyDocument, Delete, Edit, Download, Upload, FolderOpened } from '@element-plus/icons-vue'
 import { useEjsEditorStore } from '@/stores/ejsEditor'
 
 const store = useEjsEditorStore()
@@ -321,7 +332,7 @@ async function handleDeleteCurrentProject() {
 
   try {
     await ElMessageBox.confirm(
-      `确定要删除项目 "${store.currentProject.name}" 吗？此操作不可恢复。`,
+      `确定要删除项目 "${store.currentProject.name}" 吗？此操作不可恢复 `,
       '确认删除',
       {
         type: 'warning'
@@ -343,7 +354,7 @@ async function handleDeleteProject(projectId: string) {
 
   try {
     await ElMessageBox.confirm(
-      `确定要删除项目 "${project.name}" 吗？此操作不可恢复。`,
+      `确定要删除项目 "${project.name}" 吗？此操作不可恢复 `,
       '确认删除',
       {
         type: 'warning'
@@ -490,7 +501,7 @@ async function handleDeleteScheme(schemeId: string) {
 
   try {
     await ElMessageBox.confirm(
-      `确定要删除方案 "${scheme.name}" 吗？此操作不可恢复。`,
+      `确定要删除方案 "${scheme.name}" 吗？此操作不可恢复 `,
       '确认删除',
       {
         type: 'warning'
@@ -503,6 +514,17 @@ async function handleDeleteScheme(schemeId: string) {
     // 用户取消
   }
 }
+const handleImport = () => {
+  store.importProjectsFromFile();
+};
+
+const handleExportProject = () => {
+  store.exportCurrentProject();
+};
+
+const handleExportWorkspace = () => {
+  store.exportWorkspace();
+};
 </script>
 
 <style scoped>

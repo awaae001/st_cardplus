@@ -1,9 +1,5 @@
 {
   "files": [],
-  "compilerOptions": {
-      "typeRoots": ["./node_modules/@types", "./node_modules/element-plus/types", "./node_modules"],
-      "types": ["element-plus"]
-    },
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }

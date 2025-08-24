@@ -1,5 +1,6 @@
 import { computed, type Ref } from 'vue'
 import type { Project, LogicBlock, StageScheme, EditorError } from '@/types/ejs-editor'
+import { ElMessage } from 'element-plus'
 
 export function useEjsProject(
   projects: Ref<Project[]>,
@@ -90,7 +91,8 @@ export function useEjsProject(
     const loadedLogicBlocks = convertLegacyData(project);
 
     if (project.stageSchemes && project.stageSchemes.length > 0) {
-      const targetSchemeId = project.currentSchemeId || project.stageSchemes[0].id
+      const firstScheme = project.stageSchemes[0];
+      const targetSchemeId = project.currentSchemeId || (firstScheme ? firstScheme.id : '');
       const targetScheme = project.stageSchemes.find(s => s.id === targetSchemeId)
 
       if (targetScheme) {
@@ -105,8 +107,12 @@ export function useEjsProject(
       currentSchemeId.value = ''
     }
 
-    if (logicBlocks.value.length > 0 && logicBlocks.value[0].stages.length > 0) {
-      selectedStageId.value = `${logicBlocks.value[0].id}/${logicBlocks.value[0].stages[0].id}`
+   const firstLogicBlock = logicBlocks.value[0];
+    if (firstLogicBlock && firstLogicBlock.stages && firstLogicBlock.stages.length > 0) {
+      const firstStage = firstLogicBlock.stages[0];
+      if (firstStage) {
+        selectedStageId.value = `${firstLogicBlock.id}/${firstStage.id}`;
+      }
     } else {
       selectedStageId.value = ''
     }
@@ -128,7 +134,10 @@ export function useEjsProject(
       projects.value.splice(index, 1)
       if (currentProjectId.value === projectId) {
         if (projects.value.length > 0) {
-          switchProject(projects.value[0].id)
+         const firstProject = projects.value[0];
+          if (firstProject) {
+           switchProject(firstProject.id)
+          }
         } else {
           createProject('默认项目')
         }
@@ -180,8 +189,12 @@ export function useEjsProject(
           yamlInput.value = config.yamlInput || ''
           logicBlocks.value = importedLogicBlocks
           if (config.yamlInput) importYamlVariables()
-          if (logicBlocks.value.length > 0 && logicBlocks.value[0].stages.length > 0) {
-            selectedStageId.value = `${logicBlocks.value[0].id}/${logicBlocks.value[0].stages[0].id}`
+         const firstLogicBlock = logicBlocks.value[0];
+          if (firstLogicBlock && firstLogicBlock.stages && firstLogicBlock.stages.length > 0) {
+           const firstStage = firstLogicBlock.stages[0];
+           if (firstStage) {
+             selectedStageId.value = `${firstLogicBlock.id}/${firstStage.id}`;
+           }
           }
           generateEjsTemplate()
         }
@@ -205,17 +218,106 @@ export function useEjsProject(
     }
   }
 
-  return {
-    currentProject,
-    createProject,
-    switchProject,
-    saveCurrentProjectState,
-    loadProjectState,
-    renameProject,
-    deleteProject,
-    importAsNewProject,
-    exportConfig,
-    importConfig,
-    initializeStore,
-  }
+ function exportCurrentProject() {
+   if (!currentProject.value) {
+     ElMessage.error('没有当前项目可供导出。');
+     return;
+   }
+
+   saveCurrentProjectState(); // 确保状态最新
+
+   const projectData = { ...currentProject.value };
+   const projectJson = JSON.stringify(projectData, null, 2);
+   const blob = new Blob([projectJson], { type: 'application/json' });
+   const url = URL.createObjectURL(blob);
+   const a = document.createElement('a');
+   a.href = url;
+   a.download = `${currentProject.value.name || 'Untitled Project'}.json`;
+   document.body.appendChild(a);
+   a.click();
+   document.body.removeChild(a);
+   URL.revokeObjectURL(url);
+   ElMessage.success(`项目 "${currentProject.value.name}" 已导出。`);
+ }
+
+ function exportWorkspace() {
+   saveCurrentProjectState(); // 保存当前项目以包含最新更改
+
+   const workspace = {
+     projects: projects.value,
+     currentProjectId: currentProjectId.value,
+     version: 1,
+     exportedAt: new Date().toISOString(),
+   };
+
+   const workspaceJson = JSON.stringify(workspace, null, 2);
+   const blob = new Blob([workspaceJson], { type: 'application/json' });
+   const url = URL.createObjectURL(blob);
+   const a = document.createElement('a');
+   a.href = url;
+   a.download = `ejs-workspace-backup-${new Date().toISOString().slice(0, 10)}.json`;
+   document.body.appendChild(a);
+   a.click();
+   document.body.removeChild(a);
+   URL.revokeObjectURL(url);
+   ElMessage.success('EJS 工作区已导出。');
+ }
+
+ function importProjectsFromFile() {
+   const input = document.createElement('input');
+   input.type = 'file';
+   input.accept = 'application/json';
+   input.onchange = (event) => {
+     const file = (event.target as HTMLInputElement).files?.[0];
+     if (!file) return;
+
+     const reader = new FileReader();
+     reader.onload = (e) => {
+       try {
+         const json = e.target?.result as string;
+         const data = JSON.parse(json);
+
+         if (data.projects && Array.isArray(data.projects)) { // Workspace import
+           if (typeof data.currentProjectId !== 'string' && data.projects.length > 0) {
+             ElMessage.warning('工作区文件缺少当前项目ID，将加载第一个项目。');
+           }
+           projects.value = data.projects;
+           const newCurrentId = data.currentProjectId || (data.projects.length > 0 ? data.projects[0].id : '');
+           if (newCurrentId) {
+               switchProject(newCurrentId);
+           }
+           ElMessage.success(`工作区导入成功，包含 ${data.projects.length} 个项目。`);
+         } else { // Single project import
+           if (!data.id || !data.name) {
+               throw new Error('无效的项目文件，缺少 `id` 或 `name` 字段。');
+           }
+           importAsNewProject(data, data.name);
+           ElMessage.success(`项目 "${data.name}" 已成功导入。`);
+         }
+       } catch (error) {
+         console.error('导入失败:', error);
+         ElMessage.error(`导入失败: ${error instanceof Error ? error.message : '未知错误'}`);
+       }
+     };
+     reader.readAsText(file);
+   };
+   input.click();
+ }
+
+ return {
+   currentProject,
+   createProject,
+   switchProject,
+   saveCurrentProjectState,
+   loadProjectState,
+   renameProject,
+   deleteProject,
+   importAsNewProject,
+   exportConfig,
+   importConfig,
+   initializeStore,
+   exportCurrentProject,
+   exportWorkspace,
+   importProjectsFromFile,
+ }
 }

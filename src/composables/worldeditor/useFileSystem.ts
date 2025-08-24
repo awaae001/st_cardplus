@@ -26,7 +26,7 @@ export function useFileSystem(
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    ElMessage.success('已导出为 JSON 文件。');
+    ElMessage.success('已导出为 JSON 文件 ');
   };
 
   const handleLoadFromFile = () => {
@@ -45,7 +45,7 @@ export function useFileSystem(
               updateSelectedItem(importedData);
             }
           } catch (error) {
-            ElMessage.error('无法解析JSON文件，请检查文件格式。');
+            ElMessage.error('无法解析JSON文件，请检查文件格式 ');
           }
         };
         reader.readAsText(file);

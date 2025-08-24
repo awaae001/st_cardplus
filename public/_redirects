@@ -1,0 +1,3 @@
+# Single Page Application fallback
+# This ensures all routes are handled by the Vue Router
+/*    /index.html   200

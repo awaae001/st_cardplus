@@ -1,5 +1,9 @@
 <template>
   <div class="worldbook-container">
+    <el-alert v-if="showUpdateBanner" title="世界书功能重大更新" type="info"
+      description="为了提升性能与稳定性，世界书的数据存储方式已从 localStorage 升级至 IndexedDB。这是一个重大的技术变更。如果您在本次更新后首次使用，且发现数据丢失，这可能是因为旧数据未能自动迁移"
+      @close="showUpdateBanner = false" class="worldbook-update-banner" />
+
     <div class="worldbook-mobile-layout">
       <el-tabs v-model="activeTab" type="border-card" class="worldbook-tabs-mobile">
         <el-tab-pane name="list" class="worldbook-tab-pane">
@@ -92,7 +96,7 @@
 </template>
 
 <script setup lang="ts">
-import { ElTabs, ElTabPane, ElTooltip, ElMessage } from "element-plus";
+import { ElTabs, ElTabPane, ElTooltip, ElMessage, ElAlert } from "element-plus";
 import { Icon } from "@iconify/vue";
 import '../css/worldbook.css'
 import { Splitpanes, Pane } from 'splitpanes';
@@ -105,8 +109,10 @@ import { useWorldBookCollection } from "../composables/useWorldBookCollection";
 import { useWorldBookEntry } from "../composables/useWorldBookEntry";
 import { useWorldBookDragDrop } from "../composables/useWorldBookDragDrop";
 
-import { computed, nextTick, onMounted, onUnmounted } from 'vue';
+import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue';
 import { useOverflowControl } from '../composables/useOverflowControl';
+
+const showUpdateBanner = ref(true);
 
 const { setOverflowHidden } = useOverflowControl();
 
@@ -128,10 +134,12 @@ const {
   handleRenameBook,
   handleDeleteBook,
   handleImportBookFile,
-  saveWorldBookToLocalStorage,
   moveEntryBetweenBooks,
   updateBookEntries,
   updateBookOrder,
+  handleUpdateEntry,
+  handleAddEntry,
+  handleDeleteEntry,
 } = useWorldBookCollection();
 
 // Manage entries of the active world book
@@ -151,7 +159,15 @@ const {
   copyWorldBookToClipboard,
   showImportWorldBookDialog,
   clearAllEntries,
-} = useWorldBookEntry(activeBook, saveWorldBookToLocalStorage);
+} = useWorldBookEntry(activeBook, {
+  updateEntries: (entries) => {
+    if (!activeBook.value) return Promise.reject("No active book selected");
+    return updateBookEntries(activeBook.value.id, entries);
+  },
+  updateEntry: handleUpdateEntry,
+  addEntry: handleAddEntry,
+  deleteEntry: handleDeleteEntry,
+});
 
 const allKeywords = computed(() => {
   if (!activeBook.value) {
@@ -199,7 +215,7 @@ const handleSelectEntry = (bookId: string, entryIndex: number) => {
 const addNewEntry = (bookId?: string) => {
   const targetBookId = bookId || activeBookId.value;
   if (!targetBookId) {
-    ElMessage.error("请先选择一个世界书。");
+    ElMessage.error("请先选择一个世界书 ");
     return;
   }
   if (activeBookId.value !== targetBookId) {
