@@ -75,16 +75,7 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('vue')) {
-              return 'vue'; // 单独打包 Vue
-            }
-            if (id.includes('element-plus')) {
-              return 'element-plus'; 
-            }
-            if (id.includes('lodash-es')) {
-              return 'lodash';
-            }
-            return 'vendor'; // 其他node_modules依赖
+            return 'vendor'; // 将所有依赖项打包到一个 vendor chunk 中
           }
         },
         chunkFileNames: 'assets/[name]-[hash].js', // 分割后的文件命名规则
