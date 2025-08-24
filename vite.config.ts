@@ -10,18 +10,24 @@ const getGitVersionInfo = () => {
   try {
     const commitHash = execSync('git rev-parse --short HEAD').toString().trim();
     const commitCount = execSync('git rev-list --count HEAD').toString().trim();
-    return { commitHash, commitCount };
+    // 获取最近10条的提交日志
+    let gitLog: string[] = [];
+    if (!process.env.CF_PAGES) {
+      gitLog = execSync('git log --pretty=format:"%h - %s (%cr)" -n 10').toString().trim().split('\n');
+    }
+    return { commitHash, commitCount, gitLog };
   } catch (e) {
     console.error('Failed to get git info:', e);
-    return { commitHash: 'unknown', commitCount: 'unknown' };
+    return { commitHash: 'unknown', commitCount: 'unknown', gitLog: ['Failed to get git log'] };
   }
 };
 
-const { commitHash, commitCount } = getGitVersionInfo();
+const { commitHash, commitCount, gitLog } = getGitVersionInfo();
 
 // 优先使用 Cloudflare Pages 的环境变量
 const appVersion = process.env.CF_PAGES_COMMIT_SHA ? process.env.CF_PAGES_COMMIT_SHA.slice(0, 7) : commitHash;
 const appCommitCount = commitCount;
+const appGitLog = gitLog;
 
 
 export default defineConfig({
@@ -46,6 +52,7 @@ export default defineConfig({
     global: 'globalThis',
     __APP_VERSION__: JSON.stringify(appVersion),
     __APP_COMMIT_COUNT__: JSON.stringify(appCommitCount),
+    __APP_GIT_LOG__: JSON.stringify(appGitLog),
     // 禁用 EJS 中的文件系统访问
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
     // 为浏览器环境提供 require 和 module 的 polyfill

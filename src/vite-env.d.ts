@@ -9,3 +9,4 @@ declare module '*.vue' {
 
 declare const __APP_VERSION__: string;
 declare const __APP_COMMIT_COUNT__: string;
+declare const __APP_GIT_LOG__: string[];

@@ -12,13 +12,15 @@
         <div class="storage-info">
           <div class="storage-bar">
             <span>核心数据库 (IndexedDB)</span>
-            <el-progress :percentage="indexedDBUsage.percentage" :text-inside="true" :stroke-width="20">
+            <el-progress :percentage="indexedDBUsage.percentage" :text-inside="true" :stroke-width="20" 
+                         :status="getProgressStatus(indexedDBUsage.percentage)">
               <span>{{ indexedDBUsage.text }}</span>
             </el-progress>
           </div>
           <div class="storage-bar">
             <span>浏览器缓存 (localStorage)</span>
-            <el-progress :percentage="localStorageUsage.percentage" :text-inside="true" :stroke-width="20" status="success">
+            <el-progress :percentage="localStorageUsage.percentage" :text-inside="true" :stroke-width="20" 
+                         :status="getProgressStatus(localStorageUsage.percentage)">
               <span>{{ localStorageUsage.text }}</span>
             </el-progress>
           </div>
@@ -127,10 +129,25 @@ const getStorageEstimate = async () => {
   if ('storage' in navigator && 'estimate' in navigator.storage) {
     const estimate = await navigator.storage.estimate();
     if (estimate.usage !== undefined && estimate.quota !== undefined) {
-      const percentage = estimate.quota > 0 ? (estimate.usage / estimate.quota) * 100 : 0;
+      const quotaGB = estimate.quota / (1024 * 1024 * 1024); // 转换为GB
+      
+      let percentage: number;
+      let displayText: string;
+      
+      if (quotaGB > 10) {
+        // 大于10GB时，按10GB计算进度条
+        const tenGB = 10 * 1024 * 1024 * 1024;
+        percentage = estimate.usage > 0 ? (estimate.usage / tenGB) * 100 : 0;
+        displayText = `${formatBytes(estimate.usage)} / 大于10GB`;
+      } else {
+        // 小于等于10GB时，正常显示
+        percentage = estimate.quota > 0 ? (estimate.usage / estimate.quota) * 100 : 0;
+        displayText = `${formatBytes(estimate.usage)} / ${formatBytes(estimate.quota)}`;
+      }
+      
       indexedDBUsage.value = {
         percentage: parseFloat(percentage.toFixed(2)),
-        text: `${formatBytes(estimate.usage)} / ${formatBytes(estimate.quota)}`
+        text: displayText
       };
     } else {
        indexedDBUsage.value.text = '无法获取使用情况';
@@ -154,7 +171,7 @@ const getLocalStorageUsage = () => {
     }
   }
 
-  // localStorage 的总配额通常是 5MB 或 10MB，这里我们用 5MB 作为基准
+  // localStorage 的总配额，默认显示为 5MB
   const quota = 5 * 1024 * 1024;
   const percentage = (totalBytes / quota) * 100;
   
@@ -164,10 +181,21 @@ const getLocalStorageUsage = () => {
   };
 };
 
+// 根据使用率返回颜色状态
+const getProgressStatus = (percentage: number): 'success' | 'warning' | 'exception' => {
+  if (percentage >= 80) return 'exception';
+  if (percentage >= 60) return 'warning';
+  return 'success';
+};
+
+// 统一的存储信息更新函数
+const updateStorageInfo = async () => {
+  await getStorageEstimate();
+  getLocalStorageUsage();
+};
 
 onMounted(() => {
-  getStorageEstimate();
-  getLocalStorageUsage();
+  updateStorageInfo();
 });
 const exportData = async () => {
   try {
@@ -261,6 +289,8 @@ const importData = () => {
               type: 'success',
               message: '数据已成功导入，应用将重新加载以应用更改。',
             });
+            // 立即更新存储显示信息
+            await updateStorageInfo();
             setTimeout(() => {
               window.location.reload();
             }, 2000);
@@ -307,6 +337,8 @@ const clearAllData = () => {
         type: 'success',
         message: '所有本地数据已清除，应用将重新加载。',
       });
+      // 立即更新存储显示信息
+      await updateStorageInfo();
       setTimeout(() => {
         window.location.reload();
       }, 1500);
@@ -322,7 +354,7 @@ const clearAllData = () => {
     });
 };
 
-const clearInvalidLocalStorage = () => {
+const clearInvalidLocalStorage = async () => {
   const whitelist = [
     'characterCardData',
     'characterManagerData',
@@ -342,7 +374,7 @@ const clearInvalidLocalStorage = () => {
       type: 'warning',
     }
   )
-    .then(() => {
+    .then(async () => {
       let removedCount = 0;
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
@@ -359,6 +391,8 @@ const clearInvalidLocalStorage = () => {
         message: `已成功清理 ${removedCount} 个无效缓存条目 应用将重新加载 `,
       });
 
+      // 立即更新存储显示信息
+      await updateStorageInfo();
       setTimeout(() => {
         window.location.reload();
       }, 1500);
