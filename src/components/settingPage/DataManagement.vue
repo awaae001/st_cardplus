@@ -20,7 +20,7 @@
           </div>
         </div>
         <p class="setting-description">
-          将所有应用内数据导出到一个 JSON 文件进行备份，或从备份文件导入以恢复状态。
+          将所有应用内数据导出到一个 JSON 文件进行备份，或从备份文件导入以恢复状态 
         </p>
       </div>
     </div>
@@ -39,7 +39,7 @@
           </div>
         </div>
         <p class="setting-description">
-          此操作将清除所有本地存储的应用数据，包括所有设置和角色卡。这是一个高危操作，请谨慎使用。
+          此操作将清除所有本地存储的应用数据，包括所有设置和角色卡 这是一个高危操作，请谨慎使用 
         </p>
       </div>
     </div>
@@ -59,7 +59,7 @@
           </div>
         </div>
         <p class="setting-description">
-          此操作将移除所有未被识别的本地缓存条目，以释放空间并可能解决一些问题。此操作仅保留核心数据，请谨慎使用。
+          此操作将移除所有未被识别的本地缓存条目，以释放空间并可能解决一些问题 此操作仅保留核心数据，请谨慎使用 
         </p>
       </div>
     </div>
@@ -119,7 +119,7 @@ const importData = () => {
         const data = JSON.parse(json);
 
         ElMessageBox.confirm(
-          '这将用导入文件中的数据覆盖所有现有本地数据。此操作无法撤销。您确定要继续吗？',
+          '这将用导入文件中的数据覆盖所有现有本地数据 此操作无法撤销 您确定要继续吗？',
           '警告',
           {
             confirmButtonText: '确认导入',
@@ -136,7 +136,7 @@ const importData = () => {
             }
             ElMessage({
               type: 'success',
-              message: '数据已成功导入。应用将重新加载以应用更改。',
+              message: '数据已成功导入 应用将重新加载以应用更改 ',
             });
             setTimeout(() => {
               window.location.reload();
@@ -152,7 +152,7 @@ const importData = () => {
         console.error('导入数据失败:', error);
         ElMessage({
           type: 'error',
-          message: '导入数据失败，文件格式可能不正确。',
+          message: '导入数据失败，文件格式可能不正确 ',
         });
       }
     };
@@ -163,7 +163,7 @@ const importData = () => {
 
 const clearLocalStorage = () => {
   ElMessageBox.confirm(
-    '您确定要清除所有本地缓存吗？此操作将删除所有角色卡和设置，且无法撤销。',
+    '您确定要清除所有本地缓存吗？此操作将删除所有角色卡和设置，且无法撤销 ',
     '高危操作警告',
     {
       confirmButtonText: '确认清除',
@@ -175,7 +175,7 @@ const clearLocalStorage = () => {
       localStorage.clear();
       ElMessage({
         type: 'success',
-        message: '本地缓存已清除。应用将重新加载。',
+        message: '本地缓存已清除 应用将重新加载 ',
       });
       setTimeout(() => {
         window.location.reload();
@@ -202,7 +202,7 @@ const clearInvalidLocalStorage = () => {
   ];
 
   ElMessageBox.confirm(
-    '您确定要清理无效的本地缓存吗？此操作将删除所有不在白名单中的本地存储条目。',
+    '您确定要清理无效的本地缓存吗？此操作将删除所有不在白名单中的本地存储条目 ',
     '清理确认',
     {
       confirmButtonText: '确认清理',
@@ -224,7 +224,7 @@ const clearInvalidLocalStorage = () => {
 
       ElMessage({
         type: 'success',
-        message: `已成功清理 ${removedCount} 个无效缓存条目。应用将重新加载。`,
+        message: `已成功清理 ${removedCount} 个无效缓存条目 应用将重新加载 `,
       });
 
       setTimeout(() => {

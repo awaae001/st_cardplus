@@ -148,7 +148,7 @@ const addCustomField = async () => {
         const keyExists = Object.keys(form.value.appearance).includes(trimmedName);
         const labelExists = Object.values(standardFieldsMap).includes(trimmedName);
         if (keyExists || labelExists) {
-          ElMessageBox.alert(`字段 "${trimmedName}" 已存在或为预设字段，请使用其他名称。`, '提示', { confirmButtonText: '确定' });
+          ElMessageBox.alert(`字段 "${trimmedName}" 已存在或为预设字段，请使用其他名称 `, '提示', { confirmButtonText: '确定' });
           continue;
         }
         form.value.appearance[trimmedName] = fieldValue;

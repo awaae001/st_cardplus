@@ -321,7 +321,7 @@ async function handleDeleteCurrentProject() {
 
   try {
     await ElMessageBox.confirm(
-      `确定要删除项目 "${store.currentProject.name}" 吗？此操作不可恢复。`,
+      `确定要删除项目 "${store.currentProject.name}" 吗？此操作不可恢复 `,
       '确认删除',
       {
         type: 'warning'
@@ -343,7 +343,7 @@ async function handleDeleteProject(projectId: string) {
 
   try {
     await ElMessageBox.confirm(
-      `确定要删除项目 "${project.name}" 吗？此操作不可恢复。`,
+      `确定要删除项目 "${project.name}" 吗？此操作不可恢复 `,
       '确认删除',
       {
         type: 'warning'
@@ -490,7 +490,7 @@ async function handleDeleteScheme(schemeId: string) {
 
   try {
     await ElMessageBox.confirm(
-      `确定要删除方案 "${scheme.name}" 吗？此操作不可恢复。`,
+      `确定要删除方案 "${scheme.name}" 吗？此操作不可恢复 `,
       '确认删除',
       {
         type: 'warning'

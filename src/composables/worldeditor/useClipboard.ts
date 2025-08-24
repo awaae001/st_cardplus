@@ -19,9 +19,9 @@ export function useClipboard(
       const cleanItem = sanitizeItem(selectedItem.value);
       const dataStr = JSON.stringify(cleanItem, null, 2);
       await navigator.clipboard.writeText(dataStr);
-      ElMessage.success('已复制到剪贴板。');
+      ElMessage.success('已复制到剪贴板 ');
     } catch (err) {
-      ElMessage.error('复制失败。');
+      ElMessage.error('复制失败 ');
     }
   };
 
@@ -30,7 +30,7 @@ export function useClipboard(
       const importedData = JSON.parse(data);
       updateSelectedItem(importedData);
     } catch (error) {
-      ElMessage.error('无效的JSON格式。');
+      ElMessage.error('无效的JSON格式 ');
     }
   };
 

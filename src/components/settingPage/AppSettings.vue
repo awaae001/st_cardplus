@@ -63,7 +63,7 @@ const onBetaFeaturesToggle = (value: boolean) => {
             <p>这些功能可能会在没有事先通知的情况下发生变化或被移除</p>
             <p>在一般情况下，测试版将会带来更多<b>破坏性更新</b>，这可能导致您的创意丢失或者难以寻回</p>
             <p><strong>使用测试版功能即表示您理解并接受这些风险</strong></p>
-            <p>我鼓励您通过 <a href="https://github.com/awaae001/st_cardplus/issues" target="_blank" style="color: var(--el-color-primary);">GitHub Issues</a> 反馈问题，但请注意，我可能无法提供即时支持。</p>
+            <p>我鼓励您通过 <a href="https://github.com/awaae001/st_cardplus/issues" target="_blank" style="color: var(--el-color-primary);">GitHub Issues</a> 反馈问题，但请注意，我可能无法提供即时支持 </p>
           </div>
         `,
       '启用测试版功能',
@@ -100,7 +100,7 @@ const onUmamiToggle = (value: boolean) => {
     ElMessageBox.confirm(
       `
           <div style="text-align: left;">
-            <p>我依靠匿名遥测数据来了解功能的使用情况、发现问题并指导应用的未来发展。</p>
+            <p>我依靠匿名遥测数据来了解功能的使用情况、发现问题并指导应用的未来发展 </p>
             <p>关闭遥测将使我更难改进您和其他用户的使用体验</p>
             <p><strong>您确定要关闭匿名遥测吗？</strong></p>
             <p>我承诺，所有收集的数据都是完全匿名的，绝不包含任何个人身份信息或您的创作内容</p>
@@ -145,7 +145,7 @@ const onAutoSaveIntervalChange = (value: number | undefined) => {
 const onUseOldSidebarToggle = (value: boolean) => {
   setUseOldSidebar(value);
   ElMessageBox.confirm(
-    '此设置将在您下次刷新页面 (Ctrl+R) 后生效。',
+    '此设置将在您下次刷新页面 (Ctrl+R) 后生效 ',
     '提示',
     {
       confirmButtonText: '立即刷新',
@@ -160,7 +160,7 @@ const onUseOldSidebarToggle = (value: boolean) => {
 const onUseOldCharCardEditorToggle = (value: boolean) => {
   setUseOldCharCardEditor(value);
   ElMessageBox.confirm(
-    '此设置将在您下次刷新页面 (Ctrl+R) 后生效。',
+    '此设置将在您下次刷新页面 (Ctrl+R) 后生效 ',
     '提示',
     {
       confirmButtonText: '立即刷新',
@@ -175,7 +175,7 @@ const onUseOldCharCardEditorToggle = (value: boolean) => {
 const onUseOldWorldEditorToggle = (value: boolean) => {
   setUseOldWorldEditor(value);
   ElMessageBox.confirm(
-    '此设置将在您下次刷新页面 (Ctrl+R) 后生效。',
+    '此设置将在您下次刷新页面 (Ctrl+R) 后生效 ',
     '提示',
     {
       confirmButtonText: '立即刷新',

@@ -53,7 +53,7 @@ export function useWorldBookDragDrop(
       let newIndex = allBooks.findIndex(b => b.id === dropBookId);
 
       if (oldIndex === -1 || newIndex === -1) {
-        ElMessage.error("排序失败：找不到世界书。");
+        ElMessage.error("排序失败：找不到世界书 ");
         return false;
       }
 
@@ -70,7 +70,7 @@ export function useWorldBookDragDrop(
       const orderedBookIds = allBooks.map(b => b.id);
       updateBookOrder(orderedBookIds);
       
-      ElMessage.success("世界书顺序已更新。");
+      ElMessage.success("世界书顺序已更新 ");
       forceUpdateEntries(); // 强制刷新UI
       return true;
     }
@@ -80,7 +80,7 @@ export function useWorldBookDragDrop(
     const fromBookId: string = draggingNode.parent?.data?.id || draggingNode.data.bookId;
 
     if (!fromBookId) {
-      ElMessage.error("拖拽失败：无法确定源世界书。");
+      ElMessage.error("拖拽失败：无法确定源世界书 ");
       return false;
     }
 
@@ -93,7 +93,7 @@ export function useWorldBookDragDrop(
       toBook = worldBookCollection.value.books[toBookId];
       const dropEntryIndex = toBook.entries.findIndex(e => e.uid === dropNode.data.raw.uid);
       if (dropEntryIndex === -1) {
-        ElMessage.error("拖拽失败：在目标世界书中找不到定位条目。");
+        ElMessage.error("拖拽失败：在目标世界书中找不到定位条目 ");
         return false;
       }
       if (dropType === 'before') {
@@ -108,7 +108,7 @@ export function useWorldBookDragDrop(
     }
 
     if (!toBook) {
-      ElMessage.error("拖拽失败：找不到目标世界书。");
+      ElMessage.error("拖拽失败：找不到目标世界书 ");
       return false;
     }
 
@@ -132,7 +132,7 @@ export function useWorldBookDragDrop(
         updateBookEntries(fromBookId, newEntries);
         ElMessage.success(`条目顺序已更新`);
       } else {
-        ElMessage.error("排序失败：找不到原始条目。");
+        ElMessage.error("排序失败：找不到原始条目 ");
         return false;
       }
     } else {

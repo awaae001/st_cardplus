@@ -149,19 +149,19 @@ const handleFileImport = (event: Event) => {
         loadSelectedScript();
         const message = importedScripts.value.length === 1
           ? '成功导入1条规则'
-          : `成功导入 ${importedScripts.value.length} 条规则，已加载第一条。`;
+          : `成功导入 ${importedScripts.value.length} 条规则，已加载第一条 `;
         ElMessage.success(message);
       } else {
-        ElMessage.warning('JSON文件不包含有效规则。');
+        ElMessage.warning('JSON文件不包含有效规则 ');
       }
 
     } catch (error) {
       console.error('Failed to parse JSON:', error);
-      ElMessage.error('导入失败，无效的JSON文件。');
+      ElMessage.error('导入失败，无效的JSON文件 ');
     }
   };
 
-  reader.onerror = () => { ElMessage.error('读取文件失败。'); };
+  reader.onerror = () => { ElMessage.error('读取文件失败 '); };
   reader.readAsText(file);
   target.value = '';
 };

@@ -62,7 +62,7 @@ export function useWorldBookCollection() {
               entries: entries,
               createdAt: now,
               updatedAt: now,
-              description: "这是从旧版本自动迁移的世界书。",
+              description: "这是从旧版本自动迁移的世界书 ",
               order: 0,
             };
             newCollection.activeBookId = newBookId;
@@ -180,7 +180,7 @@ export function useWorldBookCollection() {
     if (!book) return;
 
     if (Object.keys(worldBookCollection.value.books).length <= 1) {
-      ElMessage.warning('不能删除最后一个世界书。');
+      ElMessage.warning('不能删除最后一个世界书 ');
       return;
     }
 
@@ -201,7 +201,7 @@ export function useWorldBookCollection() {
         worldBookCollection.value.activeBookId = Object.keys(worldBookCollection.value.books)[0] || null;
       }
 
-      ElMessage.success(`世界书 "${book.name}" 已删除。`);
+      ElMessage.success(`世界书 "${book.name}" 已删除 `);
 
     } catch (error) {
       if (error !== 'cancel') {
@@ -218,12 +218,12 @@ export function useWorldBookCollection() {
         const jsonData = JSON.parse(e.target?.result as string);
 
         if (!jsonData || typeof jsonData !== 'object' || !('entries' in jsonData)) {
-          throw new Error('无效的世界书文件格式。文件必须是一个包含 "entries" 数组的JSON对象。');
+          throw new Error('无效的世界书文件格式 文件必须是一个包含 "entries" 数组的JSON对象 ');
         }
 
         const loadedEntries = processImportedWorldBookData(jsonData);
         if (loadedEntries === null) {
-          throw new Error('处理导入数据时出错。');
+          throw new Error('处理导入数据时出错 ');
         }
 
         const newBookId = uuidv4();
@@ -259,7 +259,7 @@ export function useWorldBookCollection() {
     };
 
     reader.onerror = () => {
-      ElMessage.error("读取文件时出错。");
+      ElMessage.error("读取文件时出错 ");
     };
 
     reader.readAsText(file);
@@ -275,8 +275,8 @@ export function useWorldBookCollection() {
     const toBook = worldBookCollection.value.books[toBookId];
 
     if (!fromBook || !toBook) {
-      console.error("移动条目失败：源或目标世界书未找到。");
-      ElMessage.error("移动条目失败：源或目标世界书未找到。");
+      console.error("移动条目失败：源或目标世界书未找到 ");
+      ElMessage.error("移动条目失败：源或目标世界书未找到 ");
       return;
     }
 
@@ -287,8 +287,8 @@ export function useWorldBookCollection() {
 
     const entryIndexInSource = newFromEntries.indexOf(entryToMove);
     if (entryIndexInSource === -1) {
-      console.error("移动条目失败：在源世界书中未找到该条目。");
-      ElMessage.error("移动条目失败：在源世界书中未找到该条目。");
+      console.error("移动条目失败：在源世界书中未找到该条目 ");
+      ElMessage.error("移动条目失败：在源世界书中未找到该条目 ");
       return;
     }
 

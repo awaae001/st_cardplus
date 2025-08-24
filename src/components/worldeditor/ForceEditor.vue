@@ -2,7 +2,7 @@
   <el-scrollbar class="worldbook-editor-scrollbar">
     <div class="content-panel-body">
       <div v-if="!force" class="worldbook-editor-empty-state">
-        <el-empty description="请在列表中选择或新增一个势力进行编辑。" :image-size="80"></el-empty>
+        <el-empty description="请在列表中选择或新增一个势力进行编辑 " :image-size="80"></el-empty>
       </div>
       <el-form v-if="force" :model="force" label-position="top" class="worldbook-editor-form">
         <!-- 基础信息 -->

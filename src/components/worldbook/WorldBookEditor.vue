@@ -2,7 +2,7 @@
   <el-scrollbar class="worldbook-editor-scrollbar">
     <div class="content-panel-body">
       <div v-if="!entry" class="worldbook-editor-empty-state">
-        <el-empty description="请在列表标签页中选择或新增一个条目进行编辑。" :image-size="80"></el-empty>
+        <el-empty description="请在列表标签页中选择或新增一个条目进行编辑 " :image-size="80"></el-empty>
       </div>
       <el-form v-if="entry && modelValue" :model="localModel" label-position="top" ref="entryFormRef"
         class="worldbook-editor-form">
@@ -30,7 +30,7 @@
                   <el-option v-for="item in props.allKeywords" :key="item" :label="item" :value="item" />
                 </el-select>
                 <p class="form-help-text">
-                  提示: 正则表达式需以 / 开头和结尾, 例如 /regex/i。
+                  提示: 正则表达式需以 / 开头和结尾, 例如 /regex/i 
                 </p>
               </div>
             </div>
@@ -105,7 +105,7 @@
                 </div>
                 <div class="form-flex-col-start">
                   <label class="form-label">匹配整个单词</label><el-switch :model-value="!!localModel.matchWholeWords" @update:model-value="val => updateBooleanField('matchWholeWords', !!val)" />
-                  <p class="form-help-text">非空格分词语言建议关闭。</p>
+                  <p class="form-help-text">非空格分词语言建议关闭 </p>
                 </div>
                 <div class="form-flex-col-start">
                   <label class="form-label">启用向量匹配</label><el-switch v-model="localModel.vectorized" />

@@ -9,7 +9,7 @@
         style="margin-left: 8px; color: var(--el-color-warning);" />
     </div>
     <p class="setting-description" style="margin-top: 10px; margin-bottom: 15px;">
-      将数据备份到你的 WebDAV 服务器。这将会上传一个包含所有设置、角色卡和项目的单一备份文件。
+      将数据备份到你的 WebDAV 服务器 这将会上传一个包含所有设置、角色卡和项目的单一备份文件 
     </p>
     <div class="webdav-settings">
       <el-input v-model="webdavConfig.url" placeholder="WebDAV URL" />
@@ -121,7 +121,7 @@ const pullFromWebDAV = async () => {
     const data = JSON.parse(json);
 
     ElMessageBox.confirm(
-      '这将用服务器上的备份覆盖所有现有本地数据。此操作可能会丢失你没有保存的想法。您确定要继续吗？',
+      '这将用服务器上的备份覆盖所有现有本地数据 此操作可能会丢失你没有保存的想法 您确定要继续吗？',
       '警告',
       {
         confirmButtonText: '确认覆盖',
@@ -151,7 +151,7 @@ const pullFromWebDAV = async () => {
             localStorage.setItem(key, data[key]);
           }
         }
-        ElMessage.success('数据已成功从服务器恢复。应用将重新加载以应用更改。');
+        ElMessage.success('数据已成功从服务器恢复 应用将重新加载以应用更改 ');
         setTimeout(() => {
           window.location.reload();
         }, 2000);
@@ -181,17 +181,17 @@ const revertPull = () => {
 
       // 清除快照并重新加载
       sessionStorage.removeItem('webdav-snapshot');
-      ElMessage.success('操作已撤销。应用将重新加载。');
+      ElMessage.success('操作已撤销 应用将重新加载 ');
       setTimeout(() => {
         window.location.reload();
       }, 1500);
 
     } catch (error) {
       console.error('恢复快照失败:', error);
-      ElMessage.error('恢复快照失败，请检查控制台。');
+      ElMessage.error('恢复快照失败，请检查控制台 ');
     }
   } else {
-    ElMessage.error('没有可用的快照。请检查是否已执行拉取操作。');
+    ElMessage.error('没有可用的快照 请检查是否已执行拉取操作 ');
   }
   snapshotAvailable.value = false;
 };

@@ -259,7 +259,7 @@ export function useWorldBookEntry(
     const newUid = Date.now();
     const newEntryData = createDefaultEntryData(newUid);
     if (!activeBook.value) {
-      ElMessage.error("没有活动的世界书，无法添加新条目。");
+      ElMessage.error("没有活动的世界书，无法添加新条目 ");
       return;
     }
     newEntryData.comment = `新条目 ${activeBook.value.entries.length + 1}`;
@@ -308,7 +308,7 @@ export function useWorldBookEntry(
       ElMessage.success("条目已保存！");
       saveCallback();
     } else {
-      ElMessage.error("无法保存条目，缺少UID或未选择条目。");
+      ElMessage.error("无法保存条目，缺少UID或未选择条目 ");
     }
   };
 
@@ -335,7 +335,7 @@ export function useWorldBookEntry(
 
   const copySelectedEntry = async (): Promise<void> => {
     if (!selectedEntry.value) {
-      ElMessage.warning("请先选择一个条目进行复制。");
+      ElMessage.warning("请先选择一个条目进行复制 ");
       return;
     }
     const entryToCopy = { ...selectedEntry.value };
@@ -356,14 +356,14 @@ export function useWorldBookEntry(
           inputPlaceholder: "在此处粘贴条目JSON数据...",
           customClass: "app-dialog break-all app-messagebox-textarea-6",
           inputValidator: (val) => {
-            if (!val || val.trim() === "") return "输入内容不能为空。";
+            if (!val || val.trim() === "") return "输入内容不能为空 ";
             try {
               const parsed = JSON.parse(val);
               if (typeof parsed !== "object" || parsed === null)
-                return "数据必须是一个JSON对象。";
+                return "数据必须是一个JSON对象 ";
               return true;
             } catch {
-              return "数据格式无效，请输入正确的JSON。";
+              return "数据格式无效，请输入正确的JSON ";
             }
           },
         }
@@ -388,7 +388,7 @@ export function useWorldBookEntry(
             : [],
         };
         if (!activeBook.value) {
-          ElMessage.error("没有活动的世界书，无法导入条目。");
+          ElMessage.error("没有活动的世界书，无法导入条目 ");
           return;
         }
         activeBook.value.entries.unshift(newEntry);
@@ -420,7 +420,7 @@ export function useWorldBookEntry(
 
   const exportToJson = (): void => {
     if (!activeBookEntries.value.length) {
-      ElMessage.warning("当前世界书没有条目可以导出。");
+      ElMessage.warning("当前世界书没有条目可以导出 ");
       return;
     }
     const exportData = formatWorldBookForExport();
@@ -449,7 +449,7 @@ export function useWorldBookEntry(
 
         if (loadedEntries) {
           if (!activeBook.value) {
-            ElMessage.error("没有活动的世界书，无法导入条目。");
+            ElMessage.error("没有活动的世界书，无法导入条目 ");
             return;
           }
           activeBook.value.entries = loadedEntries;
@@ -459,7 +459,7 @@ export function useWorldBookEntry(
           saveCallback();
           ElMessage.success(`条目已成功导入并替换当前世界书: ${activeBook.value.name}`);
         } else {
-          throw new Error('JSON文件格式不正确或无法处理。');
+          throw new Error('JSON文件格式不正确或无法处理 ');
         }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -480,7 +480,7 @@ export function useWorldBookEntry(
 
   const copyWorldBookToClipboard = async (): Promise<void> => {
     if (!activeBookEntries.value.length) {
-      ElMessage.warning("当前世界书没有条目可以复制。");
+      ElMessage.warning("当前世界书没有条目可以复制 ");
       return;
     }
     const exportData = formatWorldBookForExport();
@@ -491,7 +491,7 @@ export function useWorldBookEntry(
   const showImportWorldBookDialog = async (): Promise<void> => {
     try {
       const { value } = await ElMessageBox.prompt(
-        '请粘贴世界书条目的JSON数据。警告：此操作将替换当前活动世界书的所有条目。',
+        '请粘贴世界书条目的JSON数据 警告：此操作将替换当前活动世界书的所有条目 ',
         "从剪贴板导入条目",
         {
           confirmButtonText: "确认导入",
@@ -500,18 +500,18 @@ export function useWorldBookEntry(
           inputPlaceholder: "在此处粘贴世界书条目JSON数据...",
           customClass: "app-dialog break-all app-messagebox-textarea-8",
           inputValidator: (val) => {
-            if (!val || val.trim() === "") return "输入内容不能为空。";
+            if (!val || val.trim() === "") return "输入内容不能为空 ";
             try {
               const parsed = JSON.parse(val);
               if (typeof parsed !== "object" || parsed === null) {
-                return "数据格式无效，请输入正确的JSON。";
+                return "数据格式无效，请输入正确的JSON ";
               }
               if (!('entries' in parsed)) {
-                return '数据格式无效，根对象必须包含 "entries" 对象。';
+                return '数据格式无效，根对象必须包含 "entries" 对象 ';
               }
               return true;
             } catch {
-              return "数据格式无效，请输入正确的JSON。";
+              return "数据格式无效，请输入正确的JSON ";
             }
           },
         }
@@ -522,7 +522,7 @@ export function useWorldBookEntry(
 
       if (loadedEntries) {
         if (!activeBook.value) {
-          ElMessage.error("没有活动的世界书，无法导入条目。");
+          ElMessage.error("没有活动的世界书，无法导入条目 ");
           return;
         }
         activeBook.value.entries = loadedEntries;
@@ -532,7 +532,7 @@ export function useWorldBookEntry(
         saveCallback();
         ElMessage.success(`条目已成功从剪贴板导入并替换当前世界书: ${activeBook.value.name}`);
       } else {
-        throw new Error("数据结构不符合预期。");
+        throw new Error("数据结构不符合预期 ");
       }
     } catch (error) {
       if (error !== "cancel") {
@@ -545,7 +545,7 @@ export function useWorldBookEntry(
 
   const clearAllEntries = async (): Promise<void> => {
     if (!activeBook.value) {
-      ElMessage.warning("没有活动的世界书可供清空。");
+      ElMessage.warning("没有活动的世界书可供清空 ");
       return;
     }
     try {

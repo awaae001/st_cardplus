@@ -41,13 +41,13 @@ const showImportDialog = () => {
     inputPlaceholder: '在此处粘贴JSON数据',
     inputValidator: (value) => {
       if (!value) {
-        return '导入的数据不能为空。';
+        return '导入的数据不能为空 ';
       }
       try {
         JSON.parse(value);
         return true;
       } catch (e) {
-        return '请输入有效的JSON格式。';
+        return '请输入有效的JSON格式 ';
       }
     }
   }).then(({ value }) => {

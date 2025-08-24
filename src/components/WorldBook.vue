@@ -199,7 +199,7 @@ const handleSelectEntry = (bookId: string, entryIndex: number) => {
 const addNewEntry = (bookId?: string) => {
   const targetBookId = bookId || activeBookId.value;
   if (!targetBookId) {
-    ElMessage.error("请先选择一个世界书。");
+    ElMessage.error("请先选择一个世界书 ");
     return;
   }
   if (activeBookId.value !== targetBookId) {

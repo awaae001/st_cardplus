@@ -2,9 +2,9 @@ import ExifReader from 'exifreader';
 import { Base64 } from 'js-base64';
 
 /**
- * 从图片文件中提取并解码 ccv3 元数据。
+ * 从图片文件中提取并解码 ccv3 元数据 
  * @param file 图片文件对象
- * @returns 返回解码后的 ccv3 数据 (JSON 对象)，如果失败则返回 null。
+ * @returns 返回解码后的 ccv3 数据 (JSON 对象)，如果失败则返回 null 
  */
 export const extractAndDecodeCcv3 = async (file: File): Promise<any | null> => {
   try {

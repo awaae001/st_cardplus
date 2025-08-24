@@ -1,5 +1,5 @@
 /**
- * 本文件包含了用于正则表达式模拟运行的 Vue Composable。
+ * 本文件包含了用于正则表达式模拟运行的 Vue Composable 
  * @copyright 所有文件修改来自 https://github.com/SillyTavern/SillyTavern/tree/release/public/scripts/extensions/regex 修改后处理
  */
 
