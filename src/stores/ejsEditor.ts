@@ -107,6 +107,9 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     exportConfig,
     importConfig,
     initializeStore,
+    exportCurrentProject,
+    exportWorkspace,
+    importProjectsFromFile,
   } = project
   
   const hasErrors = computed(() => errors.value.length > 0)
@@ -199,5 +202,8 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     renameStageScheme,
     deleteStageScheme,
     copyStageScheme,
+    exportCurrentProject,
+    exportWorkspace,
+    importProjectsFromFile,
   }
 })
