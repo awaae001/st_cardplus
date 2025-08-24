@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import type { Ref } from 'vue'
-import * as ejs from 'ejs'
+import ejs from 'ejs'
 import type { LogicBlock } from '@/types/ejs-editor'
 
 export function useEjsSimulation(
