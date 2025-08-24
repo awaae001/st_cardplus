@@ -59,11 +59,6 @@ export default defineConfig({
     __APP_GIT_LOG__: JSON.stringify(appGitLog),
     // 禁用 EJS 中的文件系统访问
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
-    // 为浏览器环境提供 require 和 module 的 polyfill
-    'require': 'undefined',
-    'module': 'undefined',
-    'exports': 'undefined',
-    // 确保 Vue 开发工具和功能标志正确设置
     __VUE_OPTIONS_API__: true,
     __VUE_PROD_DEVTOOLS__: false,
   },
@@ -97,7 +92,7 @@ export default defineConfig({
       external: [], // 确保不排除 Vue
     },
     chunkSizeWarningLimit: 1000, // 设置chunk大小警告限制
-    sourcemap: false, 
+    sourcemap: false,
     terserOptions: {
       compress: {
         // drop_console: true, 

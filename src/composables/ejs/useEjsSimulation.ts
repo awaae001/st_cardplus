@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import type { Ref } from 'vue'
+import * as ejs from 'ejs'
 import type { LogicBlock } from '@/types/ejs-editor'
 
 export function useEjsSimulation(
@@ -9,13 +10,12 @@ export function useEjsSimulation(
   const simulationValues = ref<Record<string, any>>({})
   const testResult = ref('')
 
-  async function testSimulation() {
+  function testSimulation() {
     if (!ejsTemplate.value) {
       testResult.value = ''
       return
     }
     try {
-      const ejs = await import('ejs')
       const mockGetvar = (path: string) => {
         // 确保返回的值类型正确，特别是数字
         const simValue = simulationValues.value[path];
