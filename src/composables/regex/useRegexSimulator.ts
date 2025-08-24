@@ -21,7 +21,7 @@ export function regexFromString(input: string): RegExp | undefined {
             return new RegExp(input);
         }
 
-        return new RegExp(m[2], m[3]);
+        return new RegExp(m[2] || '', m[3] || '');
     } catch {
         return undefined;
     }
@@ -71,7 +71,7 @@ function lightweightSubstitute(content: string, macros: Record<string, string>):
     let result = content;
     for (const key of Object.keys(macros)) {
         if (result.includes(key)) {
-            result = result.replace(new RegExp(escapeRegex(key), 'g'), macros[key]);
+            result = result.replace(new RegExp(escapeRegex(key), 'g'), macros[key] || '');
         }
     }
     return result;
