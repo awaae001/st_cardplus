@@ -45,6 +45,8 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, 'src'), // 定义 @ 别名指向 src 目录
       'fs': path.resolve(__dirname, 'src/polyfills/fs.js'),
+      // 确保 Vue 在生产环境中正确解析
+      'vue': 'vue/dist/vue.esm-bundler.js',
     },
   },
   define: {
@@ -59,10 +61,14 @@ export default defineConfig({
     'require': 'undefined',
     'module': 'undefined',
     'exports': 'undefined',
+    // 确保 Vue 开发工具和功能标志正确设置
+    __VUE_OPTIONS_API__: true,
+    __VUE_PROD_DEVTOOLS__: false,
   },
   optimizeDeps: {
     exclude: ['fs', 'path', 'os'],
-    include: ['js-yaml', 'ejs'],
+    include: ['js-yaml', 'ejs', 'vue', '@vue/runtime-core', '@vue/runtime-dom'],
+    force: true, // 强制重新预优化
   },
   build: {
     outDir: 'dist', // 打包输出目录
@@ -72,6 +78,9 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
+            if (id.includes('vue')) {
+              return 'vue'; // 单独打包 Vue
+            }
             if (id.includes('element-plus')) {
               return 'element-plus'; 
             }
@@ -83,6 +92,7 @@ export default defineConfig({
         },
         chunkFileNames: 'assets/[name]-[hash].js', // 分割后的文件命名规则
       },
+      external: [], // 确保不排除 Vue
     },
     chunkSizeWarningLimit: 1000, // 设置chunk大小警告限制
     sourcemap: false, 
