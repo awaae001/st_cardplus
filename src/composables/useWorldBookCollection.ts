@@ -1,109 +1,62 @@
-import { ref, computed, watch, onMounted, nextTick } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import {
-  saveToLocalStorage as saveToLS,
-  loadFromLocalStorage as loadFromLS,
-} from "../utils/localStorageUtils";
 import type { WorldBook, WorldBookCollection, WorldBookEntry } from "../components/worldbook/types";
 import { v4 as uuidv4 } from 'uuid';
 import { processImportedWorldBookData } from "./useWorldBookEntry";
-
-const LOCAL_STORAGE_KEY_WORLDBOOK_MANAGER = "worldBookManagerData";
-const LOCAL_STORAGE_KEY_WORLDBOOK_LEGACY = "worldBookEditorData";
+import { worldBookService } from "../database/worldBookService";
+import type { StoredWorldBook } from "../database/db";
 
 export function useWorldBookCollection() {
   const worldBookCollection = ref<WorldBookCollection>({
     books: {},
     activeBookId: null,
   });
+  const isLoading = ref(true);
 
   const activeBookId = computed(() => worldBookCollection.value.activeBookId);
 
   const activeBook = computed<WorldBook | null>(() => {
-    if (activeBookId.value && worldBookCollection.value.books[activeBookId.value]) {
-      return worldBookCollection.value.books[activeBookId.value];
-    }
-    return null;
+    const bookId = activeBookId.value;
+    if (!bookId) return null;
+    return worldBookCollection.value.books[bookId] || null;
   });
+const loadInitialData = async () => {
+  isLoading.value = true;
+  try {
+    const collection = await worldBookService.getFullWorldBookCollection();
 
-  const saveWorldBookToLocalStorage = (): void => {
-    saveToLS(worldBookCollection.value, LOCAL_STORAGE_KEY_WORLDBOOK_MANAGER);
+      if (Object.keys(collection.books).length === 0) {
+        // 数据库为空，创建一本默认世界书
+        const newBookId = uuidv4();
+        const now = new Date().toISOString();
+        const defaultBook: StoredWorldBook = {
+          id: newBookId,
+          name: "我的第一个世界书",
+          createdAt: now,
+          updatedAt: now,
+          description: "在这里开始你的创作吧！",
+          order: 0,
+        };
+        await worldBookService.addBook(defaultBook);
+        // 创建后重新加载以确保状态一致
+        worldBookCollection.value = await worldBookService.getFullWorldBookCollection();
+      } else {
+        worldBookCollection.value = collection;
+      }
+    } catch (error) {
+      console.error("加载世界书数据失败:", error);
+      ElMessage.error("加载世界书数据失败！");
+    } finally {
+      isLoading.value = false;
+    }
   };
 
-  onMounted(() => {
-    const loadAndMigrateData = () => {
-      const newFormatData = loadFromLS(LOCAL_STORAGE_KEY_WORLDBOOK_MANAGER);
-
-      if (newFormatData && typeof newFormatData === 'object' && newFormatData.books && newFormatData.activeBookId) {
-        worldBookCollection.value = newFormatData as WorldBookCollection;
-
-        //数据迁移：确保旧数据有 order 字段
-        Object.values(worldBookCollection.value.books).forEach((book) => {
-          if (typeof book.order !== 'number') {
-            book.order = new Date(book.createdAt).getTime();
-          }
-        });
-
-      } else {
-        const legacyData = loadFromLS(LOCAL_STORAGE_KEY_WORLDBOOK_LEGACY);
-        const newCollection: WorldBookCollection = {
-          books: {},
-          activeBookId: null,
-        };
-
-        if (legacyData) {
-          const entries = processImportedWorldBookData(legacyData);
-          if (entries && entries.length > 0) {
-            const newBookId = uuidv4();
-            const now = new Date().toISOString();
-            newCollection.books[newBookId] = {
-              id: newBookId,
-              name: "默认世界书 (迁移)",
-              entries: entries,
-              createdAt: now,
-              updatedAt: now,
-              description: "这是从旧版本自动迁移的世界书 ",
-              order: 0,
-            };
-            newCollection.activeBookId = newBookId;
-            ElMessage.success("旧的世界书数据已成功迁移！");
-          }
-        }
-
-        if (Object.keys(newCollection.books).length === 0) {
-          const newBookId = uuidv4();
-          const now = new Date().toISOString();
-          newCollection.books[newBookId] = {
-            id: newBookId,
-            name: "我的第一个世界书",
-            entries: [],
-            createdAt: now,
-            updatedAt: now,
-            description: "在这里开始你的创作吧！",
-            order: 0,
-          };
-          newCollection.activeBookId = newBookId;
-        }
-
-        worldBookCollection.value = newCollection;
-        saveWorldBookToLocalStorage();
-      }
-    };
-
-    loadAndMigrateData();
-  });
-
-  watch(
-    worldBookCollection,
-    () => {
-      saveWorldBookToLocalStorage();
-    },
-    { deep: true }
-  );
+  onMounted(loadInitialData);
 
   const handleSelectBook = (bookId: string) => {
     if (worldBookCollection.value.books[bookId]) {
       worldBookCollection.value.activeBookId = bookId;
+      worldBookService.setActiveBookId(bookId);
     }
   };
 
@@ -122,27 +75,29 @@ export function useWorldBookCollection() {
 
       const newBookId = uuidv4();
       const now = new Date().toISOString();
-      //   为新书设置 order  
-      const existingOrders = Object.values(worldBookCollection.value.books).map(b => b.order).filter(o => typeof o === 'number');
+      const existingOrders = Object.values(worldBookCollection.value.books).map(b => b.order);
       const maxOrder = existingOrders.length > 0 ? Math.max(...existingOrders) : -1;
 
-      const newBook: WorldBook = {
+      const newBook: StoredWorldBook = {
         id: newBookId,
         name: bookName,
-        entries: [],
         createdAt: now,
         updatedAt: now,
         description: `创建于 ${new Date().toLocaleString()}`,
         order: maxOrder + 1,
       };
 
-      worldBookCollection.value.books[newBookId] = newBook;
-      worldBookCollection.value.activeBookId = newBookId;
-      ElMessage.success(`世界书 "${bookName}" 已创建！`);
+      await worldBookService.addBook(newBook);
 
+      // 立即更新本地状态以提高响应性
+      worldBookCollection.value.books[newBookId] = { ...newBook, entries: [] };
+      worldBookCollection.value.activeBookId = newBookId;
+      worldBookService.setActiveBookId(newBookId);
+      
+      ElMessage.success(`世界书 "${bookName}" 已创建！`);
     } catch (error) {
-      if (error !== 'cancel') {
-        ElMessage.info('创建操作已取消');
+      if (error !== 'cancel' && error !== 'close') {
+         ElMessage.info('创建操作已取消');
       }
     }
   };
@@ -164,12 +119,25 @@ export function useWorldBookCollection() {
         }
       );
 
-      book.name = newBookName;
-      book.updatedAt = new Date().toISOString();
-      ElMessage.success('世界书已重命名！');
+      const bookToUpdate: StoredWorldBook = {
+        id: book.id,
+        name: newBookName,
+        createdAt: book.createdAt,
+        description: book.description,
+        metadata: book.metadata,
+        order: book.order,
+        updatedAt: new Date().toISOString(),
+      };
 
+      await worldBookService.updateBook(bookToUpdate);
+
+      // 更新本地状态
+      book.name = newBookName;
+      book.updatedAt = bookToUpdate.updatedAt;
+
+      ElMessage.success('世界书已重命名！');
     } catch (error) {
-      if (error !== 'cancel') {
+      if (error !== 'cancel' && error !== 'close') {
         ElMessage.info('重命名操作已取消');
       }
     }
@@ -180,7 +148,7 @@ export function useWorldBookCollection() {
     if (!book) return;
 
     if (Object.keys(worldBookCollection.value.books).length <= 1) {
-      ElMessage.warning('不能删除最后一个世界书 ');
+      ElMessage.warning('不能删除最后一个世界书');
       return;
     }
 
@@ -195,16 +163,19 @@ export function useWorldBookCollection() {
         }
       );
 
-      delete worldBookCollection.value.books[bookId];
+      await worldBookService.deleteBook(bookId);
 
+      // 更新本地状态
+      delete worldBookCollection.value.books[bookId];
       if (worldBookCollection.value.activeBookId === bookId) {
-        worldBookCollection.value.activeBookId = Object.keys(worldBookCollection.value.books)[0] || null;
+        const newActiveId = Object.keys(worldBookCollection.value.books)[0] || null;
+        worldBookCollection.value.activeBookId = newActiveId;
+        worldBookService.setActiveBookId(newActiveId);
       }
 
-      ElMessage.success(`世界书 "${book.name}" 已删除 `);
-
+      ElMessage.success(`世界书 "${book.name}" 已删除`);
     } catch (error) {
-      if (error !== 'cancel') {
+      if (error !== 'cancel' && error !== 'close') {
         ElMessage.info('删除操作已取消');
       }
     }
@@ -213,59 +184,58 @@ export function useWorldBookCollection() {
   const handleImportBookFile = (file: File) => {
     const reader = new FileReader();
 
-    reader.onload = (e: ProgressEvent<FileReader>) => {
+    reader.onload = async (e: ProgressEvent<FileReader>) => {
       try {
         const jsonData = JSON.parse(e.target?.result as string);
 
         if (!jsonData || typeof jsonData !== 'object' || !('entries' in jsonData)) {
-          throw new Error('无效的世界书文件格式 文件必须是一个包含 "entries" 数组的JSON对象 ');
+          throw new Error('无效的世界书文件格式');
         }
 
         const loadedEntries = processImportedWorldBookData(jsonData);
         if (loadedEntries === null) {
-          throw new Error('处理导入数据时出错 ');
+          throw new Error('处理导入数据时出错');
         }
 
         const newBookId = uuidv4();
         const now = new Date().toISOString();
         const fileName = file.name.replace(/\.json$/i, '').replace(/\.world$/i, '');
-
-        //   为导入的书设置 order  
-        const existingOrders = Object.values(worldBookCollection.value.books).map(b => b.order).filter(o => typeof o === 'number');
+        const existingOrders = Object.values(worldBookCollection.value.books).map(b => b.order);
         const maxOrder = existingOrders.length > 0 ? Math.max(...existingOrders) : -1;
 
-        const newBook: WorldBook = {
+        const newBook: StoredWorldBook = {
           id: newBookId,
           name: jsonData.name || fileName || `导入的世界书`,
           description: jsonData.description || `从文件 ${file.name} 导入`,
-          entries: loadedEntries,
           createdAt: now,
           updatedAt: now,
           metadata: jsonData.metadata || {},
           order: maxOrder + 1,
         };
 
-        worldBookCollection.value.books[newBookId] = newBook;
-        worldBookCollection.value.activeBookId = newBookId;
+        await worldBookService.addBook(newBook);
+        await worldBookService.replaceEntriesForBook(newBook.id, loadedEntries);
+
+        // 更新本地状态
+        worldBookCollection.value.books[newBook.id] = { ...newBook, entries: loadedEntries };
+        worldBookCollection.value.activeBookId = newBook.id;
+        worldBookService.setActiveBookId(newBook.id);
 
         ElMessage.success(`新的世界书 "${newBook.name}" 已成功导入！`);
-        saveWorldBookToLocalStorage();
-
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         ElMessage.error(`导入失败: ${errorMessage}`);
-        console.error("从文件导入新世界书操作未成功完成:", error);
       }
     };
 
     reader.onerror = () => {
-      ElMessage.error("读取文件时出错 ");
+      ElMessage.error("读取文件时出错");
     };
 
     reader.readAsText(file);
   };
 
-  const moveEntryBetweenBooks = (
+  const moveEntryBetweenBooks = async (
     entryToMove: WorldBookEntry,
     fromBookId: string,
     toBookId: string,
@@ -275,71 +245,119 @@ export function useWorldBookCollection() {
     const toBook = worldBookCollection.value.books[toBookId];
 
     if (!fromBook || !toBook) {
-      console.error("移动条目失败：源或目标世界书未找到 ");
-      ElMessage.error("移动条目失败：源或目标世界书未找到 ");
+      ElMessage.error("移动条目失败：源或目标世界书未找到");
       return;
     }
 
-    // Create copies of the arrays to avoid direct mutation issues
-    // Create copies of the arrays to avoid direct mutation issues
-    const newFromEntries = [...fromBook.entries];
-    const newToEntries = [...toBook.entries];
-
-    const entryIndexInSource = newFromEntries.indexOf(entryToMove);
+    const entryIndexInSource = fromBook.entries.findIndex(e => e.uid === entryToMove.uid);
     if (entryIndexInSource === -1) {
-      console.error("移动条目失败：在源世界书中未找到该条目 ");
-      ElMessage.error("移动条目失败：在源世界书中未找到该条目 ");
+      ElMessage.error("移动条目失败：在源世界书中未找到该条目");
       return;
     }
 
-    // 1. Remove from the source copy
-    const [removedEntry] = newFromEntries.splice(entryIndexInSource, 1);
+    const newFromEntries = [...fromBook.entries];
+    newFromEntries.splice(entryIndexInSource, 1);
+    
+    const newToEntries = [...toBook.entries];
+    newToEntries.splice(insertIndex, 0, entryToMove);
 
-    // 2. Add to the destination copy
-    newToEntries.splice(insertIndex, 0, removedEntry);
+    try {
+      await Promise.all([
+        worldBookService.replaceEntriesForBook(fromBookId, newFromEntries),
+        worldBookService.replaceEntriesForBook(toBookId, newToEntries)
+      ]);
 
-    // 3. Atomically update the book objects by replacing the arrays
-    fromBook.entries = newFromEntries;
-    fromBook.updatedAt = new Date().toISOString();
+      // 更新本地状态
+      fromBook.entries = newFromEntries;
+      toBook.entries = newToEntries;
+      const now = new Date().toISOString();
+      fromBook.updatedAt = now;
+      toBook.updatedAt = now;
+      
+      // 更新书籍的 updatedAt 字段
+      const fromBookToUpdate: StoredWorldBook = { ...fromBook, updatedAt: now };
+      delete (fromBookToUpdate as any).entries;
+      const toBookToUpdate: StoredWorldBook = { ...toBook, updatedAt: now };
+      delete (toBookToUpdate as any).entries;
+      
+      await Promise.all([
+        worldBookService.updateBook(fromBookToUpdate),
+        worldBookService.updateBook(toBookToUpdate)
+      ]);
 
-    toBook.entries = newToEntries;
-    toBook.updatedAt = new Date().toISOString();
+    } catch(error) {
+      ElMessage.error("移动条目时发生错误");
+      console.error("moveEntryBetweenBooks error:", error);
+      // 可选：在这里重新加载数据以恢复到一致状态
+    }
   };
 
-  const updateBookEntries = (bookId: string, entries: WorldBookEntry[]) => {
+  const updateBookEntries = async (bookId: string, entries: WorldBookEntry[]) => {
     const book = worldBookCollection.value.books[bookId];
     if (book) {
+      const now = new Date().toISOString();
+      await worldBookService.replaceEntriesForBook(bookId, entries);
+      
+      const bookToUpdate: StoredWorldBook = { ...book, updatedAt: now };
+      delete (bookToUpdate as any).entries;
+      await worldBookService.updateBook(bookToUpdate);
+
+      // 更新本地状态
       book.entries = entries;
-      book.updatedAt = new Date().toISOString();
-      nextTick(() => {
-        saveWorldBookToLocalStorage();
+      book.updatedAt = now;
+    }
+  };
+
+  const updateBookOrder = async (bookIdsInOrder: string[]) => {
+    const now = new Date().toISOString();
+    const booksToUpdate: Pick<StoredWorldBook, 'id' | 'order' | 'updatedAt'>[] = [];
+    
+    bookIdsInOrder.forEach((bookId, index) => {
+      const book = worldBookCollection.value.books[bookId];
+      if (book && book.order !== index) {
+        booksToUpdate.push({ id: book.id, order: index, updatedAt: now });
+      }
+    });
+
+    if (booksToUpdate.length > 0) {
+      await worldBookService.updateBookOrder(booksToUpdate);
+      // 更新本地状态
+      booksToUpdate.forEach(({ id, order, updatedAt }) => {
+        if (worldBookCollection.value.books[id]) {
+          worldBookCollection.value.books[id].order = order;
+          worldBookCollection.value.books[id].updatedAt = updatedAt;
+        }
       });
     }
   };
 
-  const updateBookOrder = (bookIdsInOrder: string[]) => {
-    bookIdsInOrder.forEach((bookId, index) => {
-      const book = worldBookCollection.value.books[bookId];
-      if (book) {
-        book.order = index;
-        book.updatedAt = new Date().toISOString();
-      }
-    });
-    saveWorldBookToLocalStorage();
+  const handleUpdateEntry = async (entry: WorldBookEntry) => {
+    if (!activeBook.value || entry.id === undefined) {
+      ElMessage.error("无法更新条目：缺少必要信息。");
+      return;
+    }
+    try {
+      const entryToUpdate = { ...entry, bookId: activeBook.value.id };
+      await worldBookService.updateEntry(entryToUpdate);
+    } catch (error) {
+      console.error("更新条目失败:", error);
+      ElMessage.error("更新条目失败！");
+    }
   };
 
   return {
     worldBookCollection,
     activeBookId,
     activeBook,
+    isLoading,
     handleSelectBook,
     handleCreateBook,
     handleRenameBook,
     handleDeleteBook,
     handleImportBookFile,
-    saveWorldBookToLocalStorage,
     moveEntryBetweenBooks,
     updateBookEntries,
     updateBookOrder,
+    handleUpdateEntry,
   };
 }

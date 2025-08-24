@@ -38,6 +38,7 @@ export default defineConfig({
   resolve: { // 添加 resolve 配置
     alias: {
       '@': path.resolve(__dirname, 'src'), // 定义 @ 别名指向 src 目录
+      'fs': path.resolve(__dirname, 'src/polyfills/fs.js'),
     },
   },
   define: {
@@ -45,6 +46,12 @@ export default defineConfig({
     global: 'globalThis',
     __APP_VERSION__: JSON.stringify(appVersion),
     __APP_COMMIT_COUNT__: JSON.stringify(appCommitCount),
+    // 禁用 EJS 中的文件系统访问
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+    // 为浏览器环境提供 require 和 module 的 polyfill
+    'require': 'undefined',
+    'module': 'undefined',
+    'exports': 'undefined',
   },
   optimizeDeps: {
     exclude: ['fs', 'path', 'os'],
