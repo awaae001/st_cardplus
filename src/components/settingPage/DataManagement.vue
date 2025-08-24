@@ -43,6 +43,26 @@
         </p>
       </div>
     </div>
+    <div class="setting-card">
+      <div class="setting-content">
+        <div class="setting-header">
+          <div class="setting-info">
+            <span class="setting-label">清理无效本地缓存</span>
+            <Icon icon="mdi:broom" width="20" height="20"
+              style="margin-left: 8px; color: var(--el-color-warning);" />
+          </div>
+          <div>
+            <el-button @click="clearInvalidLocalStorage" type="warning" plain>
+              <Icon icon="mdi:auto-fix" width="20" height="20" style="margin-right: 8px;" />
+              立即清理
+            </el-button>
+          </div>
+        </div>
+        <p class="setting-description">
+          此操作将移除所有未被识别的本地缓存条目，以释放空间并可能解决一些问题。此操作仅保留核心数据，请谨慎使用。
+        </p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -157,6 +177,56 @@ const clearLocalStorage = () => {
         type: 'success',
         message: '本地缓存已清除。应用将重新加载。',
       });
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    })
+    .catch(() => {
+      ElMessage({
+        type: 'info',
+        message: '操作已取消',
+      });
+    });
+};
+
+const clearInvalidLocalStorage = () => {
+  const whitelist = [
+    'characterCardData',
+    'characterManagerData',
+    'ejs-editor-projects',
+    'settings',
+    'vueuse-color-scheme',
+    'webdavConfig',
+    'world-editor-data',
+    'worldBookManagerData'
+  ];
+
+  ElMessageBox.confirm(
+    '您确定要清理无效的本地缓存吗？此操作将删除所有不在白名单中的本地存储条目。',
+    '清理确认',
+    {
+      confirmButtonText: '确认清理',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  )
+    .then(() => {
+      let removedCount = 0;
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && !whitelist.includes(key)) {
+          localStorage.removeItem(key);
+          removedCount++;
+          // 因为移除了一个元素，所以需要将索引减一，以便下一次循环能正确获取到新的元素
+          i--;
+        }
+      }
+
+      ElMessage({
+        type: 'success',
+        message: `已成功清理 ${removedCount} 个无效缓存条目。应用将重新加载。`,
+      });
+
       setTimeout(() => {
         window.location.reload();
       }, 1500);
