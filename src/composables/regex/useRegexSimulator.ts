@@ -129,10 +129,6 @@ function runRegexScript(regexScript: RegexScript, rawString: string): string {
     return newString;
 }
 
-// ––––––––––––––––––––––––––––––––––––
-// Vue Composable
-// ––––––––––––––––––––––––––––––––––––
-
 /**
  * A Vue Composable for simulating regular expression replacements.
  *

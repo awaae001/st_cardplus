@@ -2,6 +2,11 @@
  * This file contains types and constants related to the regex simulator.
  */
 
+/**
+ * 本文件包含了用于正则表达式模拟运行的 TS type
+ * @copyright 所有文件修改来自 https://github.com/SillyTavern/SillyTavern/tree/release/public/scripts/extensions/regex 修改后处理
+ */
+
 // From temp/regex/engine.js
 export const REGEX_PLACEMENT = {
     USER_INPUT: 1,
