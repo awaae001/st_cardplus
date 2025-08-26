@@ -159,14 +159,24 @@ import {
   Menu as IconMenu, Moon, Sunny, House, EditPen, Location, Postcard, Tools, DataLine, Collection, InfoFilled, Tickets
 } from '@element-plus/icons-vue'
 import { ElLoading, ElContainer, ElAside, ElMain, ElMenu, ElMenuItem, ElIcon, ElButton, ElDrawer } from 'element-plus'
-import { useRouter } from 'vue-router'
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useDark, useToggle, useWindowSize } from '@vueuse/core'
 import { getBetaFeaturesEnabled, getUseOldSidebar } from '@/utils/localStorageUtils'
 import App_old from '@/pages/App_old.vue'
 import { provideOverflowControl } from '@/composables/useOverflowControl'
 
-const { isOverflowHidden } = provideOverflowControl();
+const { isOverflowHidden, setOverflowHidden } = provideOverflowControl();
+const route = useRoute();
+
+watch(() => route.path, (newPath) => {
+  const overflowHiddenRoutes = ['/worldbook', '/ejs-editor' , '/about'];
+  if (overflowHiddenRoutes.includes(newPath)) {
+    setOverflowHidden(true);
+  } else {
+    setOverflowHidden(false);
+  }
+}, { immediate: true });
 const isDark = useDark()
 const toggleDark = useToggle(isDark)
 const useOldSidebar = ref(true)
