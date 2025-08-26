@@ -59,6 +59,12 @@ const router = createRouter({
       meta: { title: '分隔符工具' }
     },
     {
+      path: '/toolbox/worldbook-converter',
+      name: 'worldbookConverter',
+      component: () => import('../components/toolsbox/WorldBookConverterTool.vue'),
+      meta: { title: '世界书转换器' }
+    },
+    {
       path: '/regex-editor',
       name: 'regexEditor',
       component: () => import('../pages/RegexEditorPage.vue'),
