@@ -58,34 +58,26 @@ pnpm build:electron
 ## 项目结构
 
 ```
-electron-ts-vite-project/
+st_cardplus/
 ├── electron/                 # Electron 主进程代码
-│   └── main.ts              # 主进程入口
 ├── public/                   # 静态资源
-│   ├── favicon.ico          # 网站图标
-│   └── vite.svg             # Vite 图标
 ├── src/                      # 前端源代码
-│   ├── assets/              # 静态资源
-│   │   └── vue.svg          # Vue 图标
-│   ├── components/          # 组件目录
-│   │   ├── CharacterCardEditor.vue   # 角色卡编辑器
-│   │   ├── CharacterCradOutput.vue   # 角色卡输出组件
-│   │   ├── WorldEditor.vue           # 世界书编辑器
-│   │   └── charcard/                 # 角色卡子组件
+│   ├── assets/              # 静态资源 (icons, etc.)
+│   ├── components/          # Vue 组件
+│   ├── composables/         # Vue Composition API 可组合函数
+│   ├── css/                 # 全局 CSS 样式
+│   ├── database/            # 数据库服务 (Dexie.js)
 │   ├── image/               # 图片资源
-│   │   └── logo.png         # 项目 Logo
-│   ├── pages/               # 页面组件
-│   │   ├── CardOutput.vue   # 角色卡输出页面
-│   │   ├── CardPage.vue     # 角色卡编辑页面
-│   │   ├── HomePage.vue     # 主页
-│   │   └── WorldPage.vue    # 世界观页面
-│   ├── router/              # 路由配置
-│   │   └── index.ts         # 路由定义
+│   ├── pages/               # 页面级组件
+│   ├── router/              # Vue Router 配置
+│   ├── stores/              # Pinia 状态管理
+│   ├── types/               # TypeScript 类型定义
+│   ├── utils/               # 工具函数
 │   ├── App.vue              # 根组件
-│   ├── main.ts              # 前端入口
-│   └── style.css            # 全局样式
+│   └── main.ts              # 前端入口
+├── .env                     # 环境变量
+├── index.html               # HTML 入口文件
 ├── package.json             # 项目依赖与脚本
-├── tsconfig.json            # TypeScript 配置
 └── vite.config.ts           # Vite 配置
 ```
 
