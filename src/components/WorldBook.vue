@@ -1,9 +1,5 @@
 <template>
   <div class="worldbook-container">
-    <el-alert v-if="showUpdateBanner" title="世界书功能重大更新" type="info"
-      description="为了提升性能与稳定性，世界书的数据存储方式已从 localStorage 升级至 IndexedDB。这是一个重大的技术变更。如果您在本次更新后首次使用，且发现数据丢失，这可能是因为旧数据未能自动迁移"
-      @close="showUpdateBanner = false" class="worldbook-update-banner" />
-
     <div class="worldbook-mobile-layout">
       <el-tabs v-model="activeTab" type="border-card" class="worldbook-tabs-mobile">
         <el-tab-pane name="list" class="worldbook-tab-pane">
@@ -96,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { ElTabs, ElTabPane, ElTooltip, ElMessage, ElAlert } from "element-plus";
+import { ElTabs, ElTabPane, ElTooltip, ElMessage } from "element-plus";
 import { Icon } from "@iconify/vue";
 import '../css/worldbook.css'
 import { Splitpanes, Pane } from 'splitpanes';
@@ -109,12 +105,7 @@ import { useWorldBookCollection } from "../composables/useWorldBookCollection";
 import { useWorldBookEntry } from "../composables/useWorldBookEntry";
 import { useWorldBookDragDrop } from "../composables/useWorldBookDragDrop";
 
-import { ref, computed, nextTick} from 'vue';
-
-const showUpdateBanner = ref(true);
-
-
-
+import { computed, nextTick} from 'vue';
 
 // Manage the collection of world books
 const {

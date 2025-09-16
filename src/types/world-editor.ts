@@ -37,8 +37,9 @@ export interface EnhancedLandmark {
   tags: string[];               // 自定义标签
 
   // 位置信息
-  coordinates?: Coordinates;     // 可选坐标信息
   region?: string;              // 所属区域
+  keyLandmarkId?: string;       // 关联的重要地标ID
+  relativePosition?: RelativePosition; // 相对位置关系
 
   // 关系管理
   controllingForces: string[];  // 控制势力ID列表
@@ -46,6 +47,7 @@ export interface EnhancedLandmark {
 
   // 扩展属性
   climate?: string;             // 气候类型
+  terrain?: string;             // 地形
   population?: number;          // 人口数量
   resources: string[];          // 可用资源
   defenseLevel?: number;        // 防御等级
@@ -89,12 +91,13 @@ export enum ImportanceLevel {
 }
 
 /**
- * 坐标信息
+ * 相对位置关系
  */
-export interface Coordinates {
-  x: number;
-  y: number;
-  z?: number;       // 可选高度信息
+export interface RelativePosition {
+  north?: string; // 北方地标ID
+  south?: string; // 南方地标ID
+  east?: string;  // 东方地标ID
+  west?: string;  // 西方地标ID
 }
 
 /**
@@ -262,7 +265,6 @@ export interface GraphNode {
   type: 'landmark' | 'force';
   name: string;
   data: EnhancedLandmark | EnhancedForce;
-  position?: { x: number; y: number };
 }
 
 export interface GraphEdge {

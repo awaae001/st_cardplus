@@ -170,7 +170,7 @@ const { isOverflowHidden, setOverflowHidden } = provideOverflowControl();
 const route = useRoute();
 
 watch(() => route.path, (newPath) => {
-  const overflowHiddenRoutes = ['/worldbook', '/ejs-editor' , '/about'];
+  const overflowHiddenRoutes = ['/worldbook', '/ejs-editor' , '/about' , '/world'];
   if (overflowHiddenRoutes.includes(newPath)) {
     setOverflowHidden(true);
   } else {
