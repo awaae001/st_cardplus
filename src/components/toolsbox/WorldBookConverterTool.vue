@@ -11,13 +11,13 @@ const fileName = ref('');
 const outputFileName = ref('converted.json');
 
 /**
- * 从解析后的 JSON 数据中提取出 Book 对象，并确保其 entries 字段为数组。
+ * 从解析后的 JSON 数据中提取出 Book 对象，并确保其 entries 字段为数组
  */
 function extractAndNormalizeBookData(data: any): object | null {
   let bookData = null;
 
   if (data?.data?.character_book) {
-    ElMessage.info('检测到角色卡文件，已自动提取 "character_book" 数据。');
+    ElMessage.info('检测到角色卡文件，已自动提取 "character_book" 数据');
     bookData = data.data.character_book;
   } else {
     bookData = data;
@@ -25,7 +25,7 @@ function extractAndNormalizeBookData(data: any): object | null {
 
   if (bookData && bookData.entries) {
     if (typeof bookData.entries === 'object' && !Array.isArray(bookData.entries)) {
-      ElMessage.info('检测到对象格式的 "entries"，已自动转换为数组。');
+      ElMessage.info('检测到对象格式的 "entries"，已自动转换为数组');
       bookData.entries = Object.values(bookData.entries);
     }
     // 确保 bookData.name 存在，以便后续使用
@@ -33,7 +33,7 @@ function extractAndNormalizeBookData(data: any): object | null {
     return bookData;
   }
   
-  ElMessage.error('转换失败：无法在文件中找到有效的 "entries" 结构。');
+  ElMessage.error('转换失败：无法在文件中找到有效的 "entries" 结构');
   outputJson.value = '';
   return null;
 }
@@ -118,7 +118,7 @@ function downloadJson() {
 <template>
   <div class="converter-container">
     <h1>世界书双向转换器</h1>
-    <p>打开一个角色卡 (`.json`) 或独立的 `WorldBook` / `CharacterBook` (`.json`) 文件，然后选择要转换的目标格式。</p>
+    <p>打开一个角色卡 (`.json`) 或独立的 `WorldBook` / `CharacterBook` (`.json`) 文件，然后选择要转换的目标格式</p>
     
     <div class="io-grid">
       <div class="file-upload-area">

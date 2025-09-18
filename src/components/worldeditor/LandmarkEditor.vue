@@ -176,22 +176,22 @@ const { errors } = useValidation();
 const landmarkTypes = Object.values(LandmarkType);
 
 const commonClimates = [
-  { name: '热带雨林', description: '全年高温多雨，物种丰富。' },
-  { name: '热带草原', description: '有明显的干湿两季，广阔的草原和稀疏的树木。' },
-  { name: '热带季风', description: '全年高温，分旱雨两季，雨季降水集中。' },
-  { name: '沙漠', description: '极端干旱，温差大，植被稀少。' },
-  { name: '亚热带季风', description: '夏季高温多雨，冬季温和少雨。' },
-  { name: '地中海', description: '夏季炎热干燥，冬季温和多雨。' },
-  { name: '温带海洋性', description: '全年温和湿润，气温年较差小。' },
-  { name: '温带大陆性', description: '冬冷夏热，年温差大，降水集中在夏季。' },
-  { name: '温带季风', description: '夏季高温多雨，冬季寒冷干燥。' },
-  { name: '亚寒带针叶林', description: '冬季漫长严寒，夏季短暂凉爽，以针叶林为主。' },
-  { name: '苔原', description: '全年低温，土壤冻结，只有苔藓、地衣等低等植物。' },
-  { name: '冰原', description: '终年严寒，地面覆盖厚厚的冰雪。' },
-  { name: '高原山地', description: '海拔高，气温随海拔升高而降低，气候垂直变化显著。' },
-  { name: '沼泽', description: '地表过湿或有薄层积水，生长着湿生和水生植物。' },
-  { name: '火山', description: '受火山活动影响，地热资源丰富，土壤肥沃。' },
-  { name: '魔法/虚空', description: '受魔法或异常能量影响的超自然气候。' }
+  { name: '热带雨林', description: '全年高温多雨，物种丰富' },
+  { name: '热带草原', description: '有明显的干湿两季，广阔的草原和稀疏的树木' },
+  { name: '热带季风', description: '全年高温，分旱雨两季，雨季降水集中' },
+  { name: '沙漠', description: '极端干旱，温差大，植被稀少' },
+  { name: '亚热带季风', description: '夏季高温多雨，冬季温和少雨' },
+  { name: '地中海', description: '夏季炎热干燥，冬季温和多雨' },
+  { name: '温带海洋性', description: '全年温和湿润，气温年较差小' },
+  { name: '温带大陆性', description: '冬冷夏热，年温差大，降水集中在夏季' },
+  { name: '温带季风', description: '夏季高温多雨，冬季寒冷干燥' },
+  { name: '亚寒带针叶林', description: '冬季漫长严寒，夏季短暂凉爽，以针叶林为主' },
+  { name: '苔原', description: '全年低温，土壤冻结，只有苔藓、地衣等低等植物' },
+  { name: '冰原', description: '终年严寒，地面覆盖厚厚的冰雪' },
+  { name: '高原山地', description: '海拔高，气温随海拔升高而降低，气候垂直变化显著' },
+  { name: '沼泽', description: '地表过湿或有薄层积水，生长着湿生和水生植物' },
+  { name: '火山', description: '受火山活动影响，地热资源丰富，土壤肥沃' },
+  { name: '魔法/虚空', description: '受魔法或异常能量影响的超自然气候' }
 ];
 
 const commonTerrains = [

@@ -1,6 +1,6 @@
 /**
  * 角色卡V3导出格式的接口定义 (SillyTavern format)
- * 这个文件定义了用于导入/导出的角色卡数据结构。
+ * 这个文件定义了用于导入/导出的角色卡数据结构
  */
 export interface CharacterCardV3 {
   spec: 'chara_card_v3';

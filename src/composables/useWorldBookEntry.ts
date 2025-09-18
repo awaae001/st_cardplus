@@ -182,7 +182,33 @@ export function useWorldBookEntry(
 
   const deleteSelectedEntry = async (): Promise<void> => {
     const entryToDelete = selectedEntry.value;
-    if (entryToDelete && entryToDelete.id !== undefined && activeBook.value) {
+    
+    // 添加详细的调试信息
+    console.log("尝试删除条目:", {
+      entryToDelete,
+      hasEntry: !!entryToDelete,
+      entryId: entryToDelete?.id,
+      entryUid: entryToDelete?.uid,
+      hasActiveBook: !!activeBook.value
+    });
+    
+    if (!entryToDelete) {
+      ElMessage.error("无法删除条目：未选择任何条目");
+      return;
+    }
+    
+    if (!activeBook.value) {
+      ElMessage.error("无法删除条目：没有活动的世界书");
+      return;
+    }
+    
+    if (entryToDelete.id === undefined) {
+      ElMessage.error("无法删除条目：条目缺少数据库ID，请刷新页面重试");
+      console.error("条目缺少数据库ID:", entryToDelete);
+      return;
+    }
+
+    try {
       await callbacks.deleteEntry(entryToDelete.id);
       
       // The local state is updated in `handleDeleteEntry`.
@@ -198,8 +224,11 @@ export function useWorldBookEntry(
         selectedEntryIndex.value = null;
         activeTab.value = "list";
       }
-    } else {
-      ElMessage.error("无法删除条目，未找到或缺少ID。");
+      
+      ElMessage.success("条目已成功删除");
+    } catch (error) {
+      console.error("删除条目时发生错误:", error);
+      ElMessage.error(`删除条目失败: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   };
 

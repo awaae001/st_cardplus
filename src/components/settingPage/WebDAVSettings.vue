@@ -108,7 +108,7 @@ const pushToWebDAV = async () => {
       data['ST_CARDPLUS_WORLDBOOK_V1'] = JSON.stringify(worldBookExport);
     } catch (dbError) {
       console.error('备份世界书数据到 WebDAV 失败:', dbError);
-      ElMessage.error('备份世界书数据失败，推送中止。');
+      ElMessage.error('备份世界书数据失败，推送中止');
       return;
     }
 
@@ -174,13 +174,13 @@ const pullFromWebDAV = async () => {
             }
           }
 
-          ElMessage.success('数据已成功从服务器恢复，应用将重新加载。');
+          ElMessage.success('数据已成功从服务器恢复，应用将重新加载');
           setTimeout(() => {
             window.location.reload();
           }, 2000);
         } catch (restoreError) {
           console.error('从 WebDAV 恢复数据失败:', restoreError);
-          ElMessage.error('恢复数据时发生错误，操作已终止。');
+          ElMessage.error('恢复数据时发生错误，操作已终止');
         }
       })
       .catch(() => {
@@ -215,7 +215,7 @@ const revertPull = async () => {
 
       // 3. 清除快照并重新加载
       sessionStorage.removeItem('webdav-snapshot');
-      ElMessage.success('操作已撤销，应用将重新加载。');
+      ElMessage.success('操作已撤销，应用将重新加载');
       setTimeout(() => {
         window.location.reload();
       }, 1500);

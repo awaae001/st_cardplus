@@ -220,7 +220,7 @@ export function useEjsProject(
 
  function exportCurrentProject() {
    if (!currentProject.value) {
-     ElMessage.error('没有当前项目可供导出。');
+     ElMessage.error('没有当前项目可供导出');
      return;
    }
 
@@ -237,7 +237,7 @@ export function useEjsProject(
    a.click();
    document.body.removeChild(a);
    URL.revokeObjectURL(url);
-   ElMessage.success(`项目 "${currentProject.value.name}" 已导出。`);
+   ElMessage.success(`项目 "${currentProject.value.name}" 已导出`);
  }
 
  function exportWorkspace() {
@@ -260,7 +260,7 @@ export function useEjsProject(
    a.click();
    document.body.removeChild(a);
    URL.revokeObjectURL(url);
-   ElMessage.success('EJS 工作区已导出。');
+   ElMessage.success('EJS 工作区已导出');
  }
 
  function importProjectsFromFile() {
@@ -279,20 +279,20 @@ export function useEjsProject(
 
          if (data.projects && Array.isArray(data.projects)) { // Workspace import
            if (typeof data.currentProjectId !== 'string' && data.projects.length > 0) {
-             ElMessage.warning('工作区文件缺少当前项目ID，将加载第一个项目。');
+             ElMessage.warning('工作区文件缺少当前项目ID，将加载第一个项目');
            }
            projects.value = data.projects;
            const newCurrentId = data.currentProjectId || (data.projects.length > 0 ? data.projects[0].id : '');
            if (newCurrentId) {
                switchProject(newCurrentId);
            }
-           ElMessage.success(`工作区导入成功，包含 ${data.projects.length} 个项目。`);
+           ElMessage.success(`工作区导入成功，包含 ${data.projects.length} 个项目`);
          } else { // Single project import
            if (!data.id || !data.name) {
-               throw new Error('无效的项目文件，缺少 `id` 或 `name` 字段。');
+               throw new Error('无效的项目文件，缺少 `id` 或 `name` 字段');
            }
            importAsNewProject(data, data.name);
-           ElMessage.success(`项目 "${data.name}" 已成功导入。`);
+           ElMessage.success(`项目 "${data.name}" 已成功导入`);
          }
        } catch (error) {
          console.error('导入失败:', error);

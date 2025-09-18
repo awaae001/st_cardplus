@@ -13,9 +13,9 @@ export const world_info_position = {
 };
 
 /**
- * 将 WorldBookEntry 对象转换为 CharacterBookEntry 对象。
- * @param worldEntry - 要转换的 WorldBookEntry 对象。
- * @returns 转换后的 CharacterBookEntry 对象。
+ * 将 WorldBookEntry 对象转换为 CharacterBookEntry 对象
+ * @param worldEntry - 要转换的 WorldBookEntry 对象
+ * @returns 转换后的 CharacterBookEntry 对象
  */
 function convertWorldEntryToCharacterEntry(worldEntry: WorldBookEntry): CharacterBookEntry {
     const extensions: Record<string, any> = {};
@@ -73,9 +73,9 @@ function convertWorldEntryToCharacterEntry(worldEntry: WorldBookEntry): Characte
 
 
 /**
- * 将 WorldBook 对象转换为 CharacterBook 对象。
- * @param worldBook - 要转换的 WorldBook 对象。
- * @returns 转换后的 CharacterBook 对象。
+ * 将 WorldBook 对象转换为 CharacterBook 对象
+ * @param worldBook - 要转换的 WorldBook 对象
+ * @returns 转换后的 CharacterBook 对象
  */
 export function convertWorldBookToCharacterBook(worldBook: WorldBook): CharacterBook {
     const characterBook: CharacterBook = {
@@ -91,9 +91,9 @@ export function convertWorldBookToCharacterBook(worldBook: WorldBook): Character
 }
 
 /**
- * 将 position 字符串转换为数字枚举。
- * @param position - 'before_char' 或 'after_char'。
- * @returns 对应的数字枚举值。
+ * 将 position 字符串转换为数字枚举
+ * @param position - 'before_char' 或 'after_char'
+ * @returns 对应的数字枚举值
  */
 function convertPositionToNumber(position?: 'before_char' | 'after_char'): number {
     if (position === 'before_char') {
@@ -104,10 +104,10 @@ function convertPositionToNumber(position?: 'before_char' | 'after_char'): numbe
 }
 
 /**
- * 将 CharacterBookEntry 对象转换为 WorldBookEntry 对象。
- * @param charEntry - 要转换的 CharacterBookEntry 对象。
- * @param index - 条目在数组中的索引，用作备用 id。
- * @returns 转换后的 WorldBookEntry 对象。
+ * 将 CharacterBookEntry 对象转换为 WorldBookEntry 对象
+ * @param charEntry - 要转换的 CharacterBookEntry 对象
+ * @param index - 条目在数组中的索引，用作备用 id
+ * @returns 转换后的 WorldBookEntry 对象
  */
 function convertCharacterEntryToWorldEntry(charEntry: CharacterBookEntry, index: number): WorldBookEntry {
     const extensions = charEntry.extensions || {};
@@ -153,10 +153,10 @@ function convertCharacterEntryToWorldEntry(charEntry: CharacterBookEntry, index:
 }
 
 /**
- * 将 CharacterBook 对象转换为 WorldBook 对象。
- * @param charBook - 要转换的 CharacterBook 对象。
- * @param worldBookId - 要分配给新 WorldBook 的唯一 ID。
- * @returns 转换后的 WorldBook 对象。
+ * 将 CharacterBook 对象转换为 WorldBook 对象
+ * @param charBook - 要转换的 CharacterBook 对象
+ * @param worldBookId - 要分配给新 WorldBook 的唯一 ID
+ * @returns 转换后的 WorldBook 对象
  */
 export function convertCharacterBookToWorldBook(charBook: CharacterBook, worldBookId: string): WorldBook {
     const now = new Date().toISOString();
