@@ -1,15 +1,15 @@
 <template>
-    <div class="card-page">
-      <CharacterCradOutput />
+    <div class="world-page">
+        <el-empty description="此页面正在完全重构……请稍后" :image-size="200"/>
     </div>
   </template>
   
   <script setup lang="ts">
-  import CharacterCradOutput from '../components/CharacterCradOutput.vue'
+
   </script>
   
   <style scoped>
-  .card-page {
+  .world-page {
     width: 100%;
     height: 100%;
   }
