@@ -65,6 +65,12 @@ const router = createRouter({
       meta: { title: '世界书转换器' }
     },
     {
+      path: '/toolbox/png-metadata',
+      name: 'pngMetadata',
+      component: () => import('../components/toolsbox/PngMetadataTool.vue'),
+      meta: { title: 'PNG 元数据工具' }
+    },
+    {
       path: '/regex-editor',
       name: 'regexEditor',
       component: () => import('../pages/RegexEditorPage.vue'),
