@@ -1,5 +1,5 @@
 import type { Ref } from 'vue';
-import type { WorldBookCollection, WorldBookEntry } from '../components/worldbook/types';
+import type { WorldBookCollection, WorldBookEntry } from '../../components/worldbook/types';
 import type { NodeDropType } from 'element-plus/es/components/tree/src/tree.type';
 import { ElMessage } from 'element-plus';
 

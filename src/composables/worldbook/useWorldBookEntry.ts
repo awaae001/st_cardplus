@@ -1,7 +1,7 @@
 import { ref, computed, watch, type Ref } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { copyToClipboard } from "../utils/clipboard";
-import type { WorldBookEntry, WorldBook } from "../components/worldbook/types";
+import { copyToClipboard } from "../../utils/clipboard";
+import type { WorldBookEntry, WorldBook } from "../../components/worldbook/types";
 
 export const createDefaultEntryData = (uid: number): WorldBookEntry => ({
   uid: uid,

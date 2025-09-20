@@ -13,7 +13,7 @@
             </el-icon>
             <span>首页</span>
           </el-menu-item>
-          <el-menu-item index="/card">
+          <el-menu-item index="/cardinfo">
             <el-icon>
               <EditPen />
             </el-icon>
@@ -81,7 +81,7 @@
             </el-icon>
             <span>首页</span>
           </el-menu-item>
-          <el-menu-item index="/card">
+          <el-menu-item index="/cardinfo">
             <el-icon>
               <EditPen />
             </el-icon>

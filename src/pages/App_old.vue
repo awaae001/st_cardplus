@@ -93,7 +93,7 @@ onUnmounted(() => {
         <Icon style="margin-right: 4px;" icon="material-symbols:home-outline" width="24" height="24" />
         <span>首页</span>
       </el-menu-item>
-      <el-menu-item index="/card">
+      <el-menu-item index="/cardinfo">
         <Icon style="margin-right: 4px;" icon="material-symbols:person-edit-outline-sharp" width="24" height="24" />
         <span>角色卡编辑器</span>
       </el-menu-item>

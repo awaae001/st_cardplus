@@ -108,9 +108,10 @@ import 'splitpanes/dist/splitpanes.css';
 import WorldBookActions from "./worldbook/WorldBookActions.vue";
 import WorldBookEditor from "./worldbook/WorldBookEditor.vue";
 import WorldBookList from "./worldbook/WorldBookList.vue";
-import { useWorldBookCollection } from "../composables/useWorldBookCollection";
-import { useWorldBookEntry } from "../composables/useWorldBookEntry";
-import { useWorldBookDragDrop } from "../composables/useWorldBookDragDrop";
+import { useWorldBookCollection } from "../composables/worldbook/useWorldBookCollection";
+import { useWorldBookEntry } from "../composables/worldbook/useWorldBookEntry";
+import { useWorldBookDragDrop } from "../composables/worldbook/useWorldBookDragDrop";
+import type { WorldBookEntry } from "./worldbook/types";
 
 import { computed, nextTick } from 'vue';
 
@@ -163,7 +164,7 @@ const currentEntryIndex = computed(() => {
   if (!activeBook.value || !selectedEntry.value) {
     return -1;
   }
-  return activeBook.value.entries.findIndex(entry => entry.uid === selectedEntry.value!.uid);
+  return activeBook.value.entries.findIndex((entry: WorldBookEntry) => entry.uid === selectedEntry.value!.uid);
 });
 
 const totalEntries = computed(() => {
@@ -232,12 +233,12 @@ const goToNextEntry = () => {
   }
 };
 
-const allKeywords = computed(() => {
+const allKeywords = computed((): string[] => {
   if (!activeBook.value) {
     return [];
   }
-  const allKeys = activeBook.value.entries.flatMap(entry => [...entry.key, ...entry.keysecondary]);
-  return [...new Set(allKeys.filter(key => key))]; // 过滤掉空字符串或null/undefined
+  const allKeys = activeBook.value.entries.flatMap((entry: WorldBookEntry) => [...entry.key, ...entry.keysecondary]);
+  return [...new Set(allKeys.filter((key: string) => key))] as string[]; // 过滤掉空字符串或null/undefined
 });
 
 // Manage drag and drop logic, must be after other composables

@@ -46,3 +46,7 @@ h2 {
   font-weight: bold;
   unicode-bidi: isolate;
 }
+
+.default-theme.splitpanes .splitpanes__pane {
+  background-color: #090909 !important;
+}

@@ -11,10 +11,10 @@ const router = createRouter({
       meta: { title: '主页' }
     },
     {
-      path: '/card',
+      path: '/cardinfo',
       name: 'card',
       component: () => import('../pages/CardPage.vue'),
-      meta: { title: '角色卡' }
+      meta: { title: '角色信息' }
     },
     {
       path: '/world',

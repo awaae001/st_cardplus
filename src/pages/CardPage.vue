@@ -81,7 +81,7 @@ import { ElEmpty, ElTabs, ElTabPane } from 'element-plus';
 import { Splitpanes, Pane } from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
 import CharacterListSidebar from '../components/charcard/CharacterListSidebar.vue';
-import { useCharacterCollection } from '../composables/characterCard/useCharacterCollection';
+import { useCharacterCollection } from '../composables/characterInfo/useCharacterCollection';
 import { useDevice } from '../composables/useDevice';
 import { getUseOldCharCardEditor } from '@/utils/localStorageUtils';
 
@@ -145,7 +145,7 @@ watch(activeCharacter, (newCharacter) => {
 onMounted(async () => {
   useNewEditor.value = !getUseOldCharCardEditor();
   if (useNewEditor.value) {
-    const module = await import('../components/CharacterCardEditor.vue');
+    const module = await import('../components/CharacterInfoEditor.vue');
     editorComponent.value = module.default;
   } else {
     const module = await import('../components/old/charainfo/CharacterCardEditor.vue');
