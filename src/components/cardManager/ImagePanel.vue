@@ -8,21 +8,26 @@
       </template>
     </el-image>
     <el-upload
+      ref="uploadRef"
       action="#"
       :show-file-list="false"
       :auto-upload="false"
       @change="handleImageChange"
+      @exceed="handleExceed"
+      @error="handleError"
       accept="image/png, image/jpeg, image/webp"
       class="upload-button"
+      :limit="1"
     >
-      <el-button type="primary">选择图片</el-button>
+      <el-button type="primary">🖼️ 选择角色头像</el-button>
     </el-upload>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ElImage, ElUpload, ElButton } from 'element-plus';
-import type { UploadFile } from 'element-plus';
+import { ref } from 'vue';
+import { ElImage, ElUpload, ElButton, ElMessage } from 'element-plus';
+import type { UploadFile, UploadFiles, UploadInstance } from 'element-plus';
 
 defineProps<{
   previewUrl?: string;
@@ -32,10 +37,33 @@ const emit = defineEmits<{
   (e: 'image-change', file: File): void;
 }>();
 
-const handleImageChange = (uploadFile: UploadFile) => {
+const uploadRef = ref<UploadInstance>();
+
+const handleImageChange = (uploadFile: UploadFile, uploadFiles: UploadFiles) => {
+  console.log('ImagePanel: handleImageChange called with:', uploadFile);
+  console.log('ImagePanel: uploadFiles length:', uploadFiles.length);
+
   if (uploadFile.raw) {
+    console.log('ImagePanel: Emitting image-change event with file:', uploadFile.raw.name, uploadFile.raw.size);
     emit('image-change', uploadFile.raw);
+
+    // Clear the file list to ensure the same file can be selected again
+    setTimeout(() => {
+      uploadRef.value?.clearFiles();
+    }, 100);
+  } else {
+    console.warn('ImagePanel: No raw file found in uploadFile');
   }
+};
+
+const handleExceed = (files: File[], uploadFiles: UploadFiles) => {
+  console.warn('ImagePanel: File limit exceeded');
+  ElMessage.warning('只能选择一个图片文件');
+};
+
+const handleError = (error: Error) => {
+  console.error('ImagePanel: Upload error:', error);
+  ElMessage.error('图片选择失败');
 };
 </script>
 
