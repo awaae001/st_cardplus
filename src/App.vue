@@ -168,26 +168,14 @@ import { provideOverflowControl } from '@/composables/useOverflowControl'
 
 const { isOverflowHidden, setOverflowHidden } = provideOverflowControl();
 const route = useRoute();
-
-watch(() => route.path, (newPath) => {
-  const overflowHiddenRoutes = ['/worldbook', '/ejs-editor' , '/about' , '/world'];
-  if (overflowHiddenRoutes.includes(newPath)) {
-    setOverflowHidden(true);
-  } else {
-    setOverflowHidden(false);
-  }
-}, { immediate: true });
 const isDark = useDark()
 const toggleDark = useToggle(isDark)
 const useOldSidebar = ref(true)
-
 const { width } = useWindowSize()
-const isMobile = computed(() => width.value < 1024)
-
 const isCollapse = ref(false)
 const sidebarWidth = computed(() => (isCollapse.value ? '64px' : '200px'))
 const drawerVisible = ref(false)
-
+const isMobile = computed(() => width.value < 1024)
 const toggleSidebar = () => {
   if (isMobile.value) {
     drawerVisible.value = !drawerVisible.value
@@ -195,6 +183,26 @@ const toggleSidebar = () => {
     isCollapse.value = !isCollapse.value
   }
 }
+const betaFeaturesEnabled = ref(false)
+const router = useRouter()
+let loadingInstance: ReturnType<typeof ElLoading.service>
+const handleBetaFeaturesToggle = (event: CustomEvent) => {
+  betaFeaturesEnabled.value = event.detail
+}
+
+
+watch([() => route.path, isMobile], ([newPath, mobile]) => {
+  if (mobile) {
+    setOverflowHidden(false);
+    return;
+  }
+  const overflowHiddenRoutes = ['/worldbook', '/ejs-editor' , '/about' , '/world'];
+  if (overflowHiddenRoutes.includes(newPath)) {
+    setOverflowHidden(true);
+  } else {
+    setOverflowHidden(false);
+  }
+}, { immediate: true });
 
 // 平滑主题切换函数
 const smoothToggleDark = () => {
@@ -204,10 +212,6 @@ const smoothToggleDark = () => {
     document.documentElement.classList.remove('theme-transitioning')
   }, 500)
 }
-
-const betaFeaturesEnabled = ref(false)
-const router = useRouter()
-let loadingInstance: ReturnType<typeof ElLoading.service>
 
 router.beforeEach(() => {
   loadingInstance = ElLoading.service({
@@ -221,9 +225,6 @@ router.afterEach(() => {
   loadingInstance.close()
 })
 
-const handleBetaFeaturesToggle = (event: CustomEvent) => {
-  betaFeaturesEnabled.value = event.detail
-}
 
 onMounted(() => {
   betaFeaturesEnabled.value = getBetaFeaturesEnabled()
