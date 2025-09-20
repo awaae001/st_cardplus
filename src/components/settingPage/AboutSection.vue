@@ -16,9 +16,20 @@
 
   <div class="changelog-section">
     <h3>更新日志</h3>
-    <ul>
-      <li v-for="(log, index) in gitLogs" :key="index">{{ log }}</li>
-    </ul>
+    <div v-for="(log, index) in gitLogs" :key="index" class="commit-item">
+      <div class="commit-header" @click="log.expanded = !log.expanded">
+        <span class="commit-message">{{ log.message }}</span>
+        <div class="commit-meta">
+          <a :href="log.html_url" target="_blank" class="commit-id">#{{ log.sha.substring(0, 7) }}</a>
+          <span class="commit-date">{{ new Date(log.date).toLocaleDateString() }}</span>
+        </div>
+      </div>
+      <transition name="slide-fade">
+        <div v-if="log.expanded" class="commit-details">
+          <pre>{{ log.fullMessage }}</pre>
+        </div>
+      </transition>
+    </div>
   </div>
 
   <div style="display: flex;">
@@ -46,11 +57,46 @@
 
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
-import { computed } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 const appVersion = __APP_VERSION__;
 const appCommitCount = __APP_COMMIT_COUNT__;
-const gitLogs = __APP_GIT_LOG__;
+const gitLogs = ref<any[]>([]);
+
+interface Commit {
+  sha: string;
+  commit: {
+    message: string;
+    author: {
+      date: string;
+    };
+  };
+  html_url: string;
+}
+
+onMounted(async () => {
+  try {
+    const branch = isMainDomain.value ? 'main' : 'dev';
+    const response = await fetch(`https://api.github.com/repos/awaae001/st_cardplus/commits?sha=${branch}&per_page=10`);
+    if (response.ok) {
+      const commits: Commit[] = await response.json();
+      gitLogs.value = commits.map((commit) => ({
+        sha: commit.sha,
+        message: commit.commit.message.split('\n')[0],
+        fullMessage: commit.commit.message,
+        date: commit.commit.author.date,
+        html_url: commit.html_url,
+        expanded: false,
+      }));
+    } else {
+      gitLogs.value = [{ message: '无法加载更新日志', sha: '', date: '', html_url: '' }];
+    }
+  } catch (error) {
+    console.error('Error fetching git logs:', error);
+    gitLogs.value = [{ message: '加载更新日志时出错', sha: '', date: '', html_url: '' }];
+  }
+});
+
 
 const isMainDomain = computed(() => {
   return window.location.hostname === 'cardplus.jiuci.top';
@@ -67,6 +113,8 @@ const isDevDomain = computed(() => {
   padding: 16px;
   border: 1px solid var(--el-border-color);
   border-radius: 8px;
+  max-height: 50vh;
+  overflow: auto;
 }
 
 .changelog-section h3 {
@@ -75,15 +123,73 @@ const isDevDomain = computed(() => {
   font-weight: 600;
 }
 
-.changelog-section ul {
-  padding-left: 20px;
-  margin: 0;
+.commit-item {
+  border-bottom: 1px solid var(--el-border-color-light);
+  padding: 8px 0;
 }
 
-.changelog-section li {
-  margin-bottom: 8px;
+.commit-item:last-child {
+  border-bottom: none;
+}
+
+.commit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.commit-message {
+  font-weight: 500;
+  color: var(--el-text-color-primary);
+}
+
+.commit-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+}
+
+.commit-id {
+  font-family: monospace;
+  color: var(--el-color-primary);
+  text-decoration: none;
+}
+.commit-id:hover {
+  text-decoration: underline;
+}
+
+.commit-details {
+  margin-top: 8px;
+  padding: 8px;
+  background-color: var(--el-fill-color-light);
+  border-radius: 4px;
+}
+
+.commit-details pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-size: 12px;
   color: var(--el-text-color-regular);
 }
+
+.slide-fade-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.slide-fade-leave-active {
+  transition: all 0.3s cubic-bezier(1, 0.5, 0.8, 1);
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateY(-10px);
+  opacity: 0;
+}
+
 .about-section {
   margin: 24px 0;
   transition: all 0.3s ease;
