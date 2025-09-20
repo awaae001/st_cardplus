@@ -1,10 +1,10 @@
 import { ref, computed, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import type { WorldBook, WorldBookCollection, WorldBookEntry } from "../components/worldbook/types";
+import type { WorldBook, WorldBookCollection, WorldBookEntry } from "../../components/worldbook/types";
 import { v4 as uuidv4 } from 'uuid';
 import { processImportedWorldBookData } from "./useWorldBookEntry";
-import { worldBookService } from "../database/worldBookService";
-import type { StoredWorldBook } from "../database/db";
+import { worldBookService } from "../../database/worldBookService";
+import type { StoredWorldBook } from "../../database/db";
 
 export function useWorldBookCollection() {
   const worldBookCollection = ref<WorldBookCollection>({
