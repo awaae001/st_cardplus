@@ -32,3 +32,37 @@ export const extractAndDecodeCcv3 = async (file: File): Promise<any | null> => {
     return null; // 读取文件或 EXIF 数据失败
   }
 };
+
+
+/**
+ * 从图片文件中提取并解码 TavernAI v2 角色卡数据
+ * @param file 图片文件对象
+ * @returns 返回解码后的 v2 数据 (JSON 对象)，如果失败则返回 null
+ */
+export const extractAndDecodeV2Card = async (file: File): Promise<any | null> => {
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const tags = ExifReader.load(arrayBuffer);
+    
+    // TavernAI v2 数据存储在 'chara' 标签中，通常被 exifreader 解析为 UserComment
+    const charaData = (tags.UserComment as any)?.description || (tags.chara as any)?.description;
+
+    if (charaData) {
+      try {
+        const decoded = Base64.decode(charaData);
+        const jsonData = JSON.parse(decoded);
+        console.log('Decoded V2 Card Data:', jsonData);
+        return jsonData;
+      } catch (error) {
+        console.error('Failed to decode or parse V2 card data:', error);
+        return null;
+      }
+    } else {
+      console.log('No V2 card data (chara tag) found.');
+      return null;
+    }
+  } catch (error) {
+    console.error('Failed to read file or load image data:', error);
+    return null;
+  }
+};

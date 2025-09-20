@@ -26,7 +26,7 @@ const router = createRouter({
       path:'/cardmanager',
       name:'cardManager',
       component: () => import('../pages/CardManager.vue'),
-      meta: { title: '角色卡导出' }
+      meta: { title: '角色卡管理' }
     },
     {
       path:'/worldbook',
