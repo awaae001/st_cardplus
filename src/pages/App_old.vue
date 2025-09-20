@@ -102,7 +102,7 @@ onUnmounted(() => {
           height="24" />
         <span>地标编辑器</span>
       </el-menu-item>
-      <el-menu-item index="/cardoutput">
+      <el-menu-item index="/cardmanager">
         <Icon style="margin-right: 4px;" icon="material-symbols:id-card-outline" width="24" height="24" />
         <span>角色卡快搭</span>
       </el-menu-item>

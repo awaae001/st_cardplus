@@ -25,7 +25,7 @@
             </el-icon>
             <span>世界地标</span>
           </el-menu-item>
-          <el-menu-item index="/cardoutput">
+          <el-menu-item index="/cardmanager">
             <el-icon>
               <Postcard />
             </el-icon>
@@ -93,7 +93,7 @@
             </el-icon>
             <span>世界地标</span>
           </el-menu-item>
-          <el-menu-item index="/cardoutput">
+          <el-menu-item index="/cardmanager">
             <el-icon>
               <Postcard />
             </el-icon>

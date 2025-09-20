@@ -23,9 +23,9 @@ const router = createRouter({
       meta: { title: '世界设定' }
     },
     {
-      path:'/cardoutput',
-      name:'cardoutput',
-      component: () => import('../pages/CardOutput.vue'),
+      path:'/cardmanager',
+      name:'cardManager',
+      component: () => import('../pages/CardManager.vue'),
       meta: { title: '角色卡导出' }
     },
     {

@@ -9,6 +9,14 @@
         <section class="form-section">
           <h3 class="form-section-title">
             <Icon icon="ph:info-duotone" class="form-section-icon" />基本信息
+           <div class="entry-navigation-buttons">
+               <el-button @click="emit('goToPrevious')" :disabled="props.currentEntryIndex <= 0 && !props.isPreviousEntryInDifferentBook" size="small">
+                   <Icon icon="ph:arrow-left-bold" /> {{ props.isPreviousEntryInDifferentBook ? '上一本书' : '上一个条目' }}
+               </el-button>
+               <el-button @click="emit('goToNext')" :disabled="props.currentEntryIndex >= props.totalEntries - 1 && !props.isNextEntryInDifferentBook" size="small">
+                   {{ props.isNextEntryInDifferentBook ? '下一本书' : '下一个条目' }} <Icon icon="ph:arrow-right-bold" />
+               </el-button>
+           </div>
           </h3>
           <div class="form-section-content">
             <div class="form-row-responsive">
@@ -205,7 +213,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { ElScrollbar, ElForm, ElInput, ElCheckbox, ElSelect, ElOption, ElSwitch, ElSlider, ElInputNumber, ElEmpty, ElCollapseTransition } from 'element-plus';
+import { ElScrollbar, ElForm, ElInput, ElCheckbox, ElSelect, ElOption, ElSwitch, ElSlider, ElInputNumber, ElEmpty, ElCollapseTransition, ElButton } from 'element-plus';
 import { Icon } from '@iconify/vue';
 import type { WorldBookEntry } from './types';
 
@@ -213,10 +221,16 @@ const props = defineProps<{
   entry: WorldBookEntry | null;
   modelValue: Partial<WorldBookEntry>;
   allKeywords?: string[];
+  currentEntryIndex: number;
+  totalEntries: number;
+  isNextEntryInDifferentBook: boolean;
+  isPreviousEntryInDifferentBook: boolean;
 }>();
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: Partial<WorldBookEntry>): void;
+  (e: 'goToPrevious'): void;
+  (e: 'goToNext'): void;
 }>();
 
 const entryFormRef = ref<InstanceType<typeof ElForm> | null>(null);

@@ -35,9 +35,9 @@
           <template #label>
             <span class="worldbook-tab-label">
               <Icon icon="ph:note-pencil-duotone" class="worldbook-tab-icon" />
-              <span class="worldbook-tab-text-truncated">{{
-                selectedEntry ? selectedEntry.comment || "编辑中" : "编辑条目"
-              }}</span>
+              <span class="worldbook-tab-text-truncated">
+                {{selectedEntry ? selectedEntry.comment || "编辑中" : "编辑条目"}}
+              </span>
             </span>
           </template>
 
@@ -45,15 +45,19 @@
             <h2 class="content-panel-title">
               <Icon icon="ph:note-pencil-duotone" class="content-panel-icon" />
               <span class="content-panel-text-truncated">编辑:
-                <span class="content-panel-text-highlight">{{
-                  selectedEntry ? selectedEntry.comment || "新条目" : "未选择"
-                }}</span></span>
+                <span class="content-panel-text-highlight">
+                  {{selectedEntry ? selectedEntry.comment || "新条目" : "未选择"}}
+                </span>
+              </span>
             </h2>
             <WorldBookActions context="editor" :has-selection="!!selectedEntry" @copy-entry="copySelectedEntry"
               @import-entry="showImportEntryDialog" @save-entry="saveCurrentEntry"
               @delete-entry="deleteSelectedEntry" />
           </div>
-          <WorldBookEditor :entry="selectedEntry" v-model="editableEntry" :all-keywords="allKeywords" />
+          <WorldBookEditor :entry="selectedEntry" v-model="editableEntry" :all-keywords="allKeywords"
+            :current-entry-index="currentEntryIndex" :total-entries="totalEntries" @go-to-previous="goToPreviousEntry"
+            @go-to-next="goToNextEntry" :is-next-entry-in-different-book="isNextEntryInDifferentBook"
+            :is-previous-entry-in-different-book="isPreviousEntryInDifferentBook" />
         </el-tab-pane>
       </el-tabs>
     </div>
@@ -83,7 +87,10 @@
                 @import-entry="showImportEntryDialog" @save-entry="saveCurrentEntry"
                 @delete-entry="deleteSelectedEntry" />
             </div>
-            <WorldBookEditor :entry="selectedEntry" v-model="editableEntry" :all-keywords="allKeywords" />
+            <WorldBookEditor :entry="selectedEntry" v-model="editableEntry" :all-keywords="allKeywords"
+              :current-entry-index="currentEntryIndex" :total-entries="totalEntries" @go-to-previous="goToPreviousEntry"
+              @go-to-next="goToNextEntry" :is-next-entry-in-different-book="isNextEntryInDifferentBook"
+              :is-previous-entry-in-different-book="isPreviousEntryInDifferentBook" />
           </div>
         </Pane>
       </Splitpanes>
@@ -105,7 +112,7 @@ import { useWorldBookCollection } from "../composables/useWorldBookCollection";
 import { useWorldBookEntry } from "../composables/useWorldBookEntry";
 import { useWorldBookDragDrop } from "../composables/useWorldBookDragDrop";
 
-import { computed, nextTick} from 'vue';
+import { computed, nextTick } from 'vue';
 
 // Manage the collection of world books
 const {
@@ -151,6 +158,79 @@ const {
   addEntry: handleAddEntry,
   deleteEntry: handleDeleteEntry,
 });
+
+const currentEntryIndex = computed(() => {
+  if (!activeBook.value || !selectedEntry.value) {
+    return -1;
+  }
+  return activeBook.value.entries.findIndex(entry => entry.uid === selectedEntry.value!.uid);
+});
+
+const totalEntries = computed(() => {
+  return activeBook.value ? activeBook.value.entries.length : 0;
+});
+
+const isNextEntryInDifferentBook = computed(() => {
+  if (!activeBook.value) return false;
+  const isLastEntryInBook = currentEntryIndex.value >= activeBook.value.entries.length - 1;
+  if (!isLastEntryInBook) return false;
+
+  const bookIds = Object.keys(worldBookCollection.value.books);
+  const currentBookIndex = bookIds.indexOf(activeBook.value.id);
+  return currentBookIndex < bookIds.length - 1;
+});
+
+const isPreviousEntryInDifferentBook = computed(() => {
+  if (!activeBook.value) return false;
+  const isFirstEntryInBook = currentEntryIndex.value <= 0;
+  if (!isFirstEntryInBook) return false;
+
+  const bookIds = Object.keys(worldBookCollection.value.books);
+  const currentBookIndex = bookIds.indexOf(activeBook.value.id);
+  return currentBookIndex > 0;
+});
+
+const goToPreviousEntry = () => {
+  if (!activeBook.value) return;
+
+  const isFirstEntryInBook = currentEntryIndex.value <= 0;
+
+  if (isFirstEntryInBook) {
+    const bookIds = Object.keys(worldBookCollection.value.books);
+    const currentBookIndex = bookIds.indexOf(activeBook.value.id);
+    if (currentBookIndex > 0) {
+      const previousBookId = bookIds[currentBookIndex - 1];
+      selectBook(previousBookId);
+      nextTick(() => {
+        if (activeBook.value && activeBook.value.entries.length > 0) {
+          const lastEntryIndex = activeBook.value.entries.length - 1;
+          selectEntry(String(lastEntryIndex));
+          activeTab.value = 'editor';
+        }
+      });
+    }
+  } else {
+    const prevEntryIndex = currentEntryIndex.value - 1;
+    handleSelectEntry(activeBook.value.id, prevEntryIndex);
+  }
+};
+const goToNextEntry = () => {
+  if (!activeBook.value) return;
+
+  const isLastEntryInBook = currentEntryIndex.value >= activeBook.value.entries.length - 1;
+
+  if (isLastEntryInBook) {
+    const bookIds = Object.keys(worldBookCollection.value.books);
+    const currentBookIndex = bookIds.indexOf(activeBook.value.id);
+    if (currentBookIndex < bookIds.length - 1) {
+      const nextBookId = bookIds[currentBookIndex + 1];
+      handleSelectBook(nextBookId);
+    }
+  } else {
+    const nextEntryIndex = currentEntryIndex.value + 1;
+    handleSelectEntry(activeBook.value.id, nextEntryIndex);
+  }
+};
 
 const allKeywords = computed(() => {
   if (!activeBook.value) {

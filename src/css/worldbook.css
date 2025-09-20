@@ -836,3 +836,8 @@
     flex: 3;
   }
 }
+.entry-navigation-buttons {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
