@@ -73,7 +73,7 @@
       </el-drawer>
 
       <!-- PC Sidebar -->
-      <el-aside v-else :width="sidebarWidth" class="sidebar-transition">
+      <el-aside v-else :width="sidebarWidth" class="sidebar-transition" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
         <el-menu :collapse="isCollapse" :router="true" class="sidebar-menu">
           <el-menu-item index="/">
             <el-icon>
@@ -164,7 +164,8 @@ import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useDark, useToggle, useWindowSize } from '@vueuse/core'
 import { getBetaFeaturesEnabled, getUseOldSidebar } from '@/utils/localStorageUtils'
 import App_old from '@/pages/App_old.vue'
-import { provideOverflowControl } from '@/composables/useOverflowControl'
+import { provideOverflowControl } from '@/composables/useOverflowControl';
+import { usePersonalization } from '@/composables/usePersonalization';
 
 const { isOverflowHidden, setOverflowHidden } = provideOverflowControl();
 const route = useRoute();
@@ -173,6 +174,8 @@ const toggleDark = useToggle(isDark)
 const useOldSidebar = ref(true)
 const { width } = useWindowSize()
 const isCollapse = ref(false)
+const userToggledCollapse = ref(false); // 新增：用于跟踪用户手动折叠的状态
+const { autoExpandSidebar } = usePersonalization();
 const sidebarWidth = computed(() => (isCollapse.value ? '64px' : '200px'))
 const drawerVisible = ref(false)
 const isMobile = computed(() => width.value < 1024)
@@ -180,7 +183,22 @@ const toggleSidebar = () => {
   if (isMobile.value) {
     drawerVisible.value = !drawerVisible.value
   } else {
-    isCollapse.value = !isCollapse.value
+    userToggledCollapse.value = !userToggledCollapse.value;
+    isCollapse.value = userToggledCollapse.value;
+  }
+}
+
+// 新增：处理鼠标移入事件
+const handleMouseEnter = () => {
+  if (userToggledCollapse.value && !isMobile.value && autoExpandSidebar.value) {
+    isCollapse.value = false;
+  }
+}
+
+// 新增：处理鼠标移出事件
+const handleMouseLeave = () => {
+  if (userToggledCollapse.value && !isMobile.value && autoExpandSidebar.value) {
+    isCollapse.value = true;
   }
 }
 const betaFeaturesEnabled = ref(false)
@@ -231,7 +249,10 @@ onMounted(() => {
   useOldSidebar.value = getUseOldSidebar()
   window.addEventListener('betaFeaturesToggle', handleBetaFeaturesToggle as EventListener)
   // 根据初始屏幕尺寸设置侧边栏状态
-  isCollapse.value = isMobile.value
+  // 根据初始屏幕尺寸设置侧边栏状态
+  const initialCollapse = isMobile.value;
+  isCollapse.value = initialCollapse;
+  userToggledCollapse.value = initialCollapse;
 })
 
 onUnmounted(() => {

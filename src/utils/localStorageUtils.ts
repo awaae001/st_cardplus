@@ -9,6 +9,7 @@ interface AppSettings {
   useOldSidebar: boolean;
   useOldCharCardEditor: boolean;
   useOldWorldEditor: boolean;
+  autoExpandSidebar: boolean;
 }
 
 const defaultSettings: AppSettings = {
@@ -18,6 +19,7 @@ const defaultSettings: AppSettings = {
   useOldSidebar: true,
   useOldCharCardEditor: false,
   useOldWorldEditor: false,
+  autoExpandSidebar: true,
 };
 
 /**
@@ -157,6 +159,23 @@ export const getUseOldWorldEditor = (): boolean => {
 export const setUseOldWorldEditor = (enabled: boolean) => {
   saveSettings({ useOldWorldEditor: enabled });
   console.log('旧版世界编辑器设置已保存:', enabled);
+};
+
+/**
+ * 获取侧边栏自动展开设置
+ * @returns 侧边栏是否自动展开
+ */
+export const getAutoExpandSidebar = (): boolean => {
+  return getSettings().autoExpandSidebar;
+};
+
+/**
+ * 设置侧边栏自动展开
+ * @param enabled - 是否启用
+ */
+export const setAutoExpandSidebar = (enabled: boolean) => {
+  saveSettings({ autoExpandSidebar: enabled });
+  console.log('侧边栏自动展开设置已保存:', enabled);
 };
 
 

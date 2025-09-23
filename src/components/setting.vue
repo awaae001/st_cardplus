@@ -13,6 +13,9 @@
       <el-tab-pane label="迁移" name="data">
         <DataManagement />
       </el-tab-pane>
+      <el-tab-pane label="个性化" name="personalization">
+      <PersonalizationSettings />
+      </el-tab-pane>
       <el-tab-pane label="WebDAV 同步" name="webdav">
         <WebDAVSettings />
       </el-tab-pane>
@@ -29,6 +32,7 @@ import AppSettings from './settingPage/AppSettings.vue';
 import DataManagement from './settingPage/DataManagement.vue';
 import WebDAVSettings from './settingPage/WebDAVSettings.vue';
 import AboutSection from './settingPage/AboutSection.vue';
+import PersonalizationSettings from './settingPage/PersonalizationSettings.vue';
 
 const activeTab = ref('settings');
 </script>
