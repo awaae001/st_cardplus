@@ -16,7 +16,7 @@
             </el-menu-item>
           </template>
           <div class="flex-grow"></div>
-          <el-menu-item @click="smoothToggleDark" class="theme-toggle-item">
+          <el-menu-item index="__theme-toggle__" @click="smoothToggleDark" class="theme-toggle-item">
             <el-icon class="theme-icon">
               <Moon v-if="!isDark" />
               <Sunny v-else />
@@ -45,7 +45,7 @@
           </template>
           <div class="flex-grow"></div>
           <el-divider />
-          <el-menu-item @click="smoothToggleDark" class="theme-toggle-item">
+          <el-menu-item index="" @click="smoothToggleDark" class="theme-toggle-item">
             <el-icon class="theme-icon">
               <Moon v-if="!isDark" />
               <Sunny v-else />
@@ -58,7 +58,7 @@
             </el-icon>
             <span>设置与关于</span>
           </el-menu-item>
-          <el-menu-item @click="toggleSidebar">
+          <el-menu-item index="" @click="toggleSidebar" class="sidebar-toggle-item">
             <el-icon>
               <IconMenu />
             </el-icon>
@@ -81,7 +81,7 @@ import {
 } from '@element-plus/icons-vue'
 import { ElLoading, ElContainer, ElAside, ElMain, ElMenu, ElMenuItem, ElIcon, ElButton, ElDrawer ,ElDivider} from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch, markRaw } from 'vue'
 import { useDark, useToggle, useWindowSize } from '@vueuse/core'
 import { getBetaFeaturesEnabled, getUseOldSidebar } from '@/utils/localStorageUtils'
 import App_old from '@/pages/App_old.vue'
@@ -98,14 +98,14 @@ const isCollapse = ref(false)
 const userToggledCollapse = ref(false); // 新增：用于跟踪用户手动折叠的状态
 const { autoExpandSidebar } = usePersonalization();
 const mainMenuItems = ref([
-  { index: '/', icon: House, title: '首页' },
-  { index: '/cardinfo', icon: EditPen, title: '角色信息' },
-  { index: '/world', icon: Location, title: '世界地标' },
-  { index: '/cardmanager', icon: Postcard, title: '角色卡快搭' },
-  { index: '/ejs-editor', icon: DataLine, title: 'EJS模板 · 测试版', beta: true },
-  { index: '/worldbook', icon: Collection, title: '世界书 · 测试版', beta: true },
-  { index: '/regex-editor', icon: Tickets, title: '正则编辑器 · 测试版', beta: true },
-  { index: '/toolbox', icon: Tools, title: '工具箱' },
+  { index: '/', icon: markRaw(House), title: '首页' },
+  { index: '/cardinfo', icon: markRaw(EditPen), title: '角色信息' },
+  { index: '/world', icon: markRaw(Location), title: '世界地标' },
+  { index: '/cardmanager', icon: markRaw(Postcard), title: '角色卡快搭' },
+  { index: '/ejs-editor', icon: markRaw(DataLine), title: 'EJS模板 · 测试版', beta: true },
+  { index: '/worldbook', icon: markRaw(Collection), title: '世界书 · 测试版', beta: true },
+  { index: '/regex-editor', icon: markRaw(Tickets), title: '正则编辑器 · 测试版', beta: true },
+  { index: '/toolbox', icon: markRaw(Tools), title: '工具箱' },
 ]);
 
 const sidebarWidth = computed(() => (isCollapse.value ? '64px' : '200px'))
