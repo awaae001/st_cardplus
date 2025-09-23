@@ -105,9 +105,9 @@ import AppearanceAndAttireTab from './charcard/tabs/AppearanceAndAttireTab.vue';
 import TraitsTab from './charcard/tabs/TraitsTab.vue';
 import DailyAndNotesTab from './charcard/tabs/DailyAndNotesTab.vue';
 import type { CharacterCard } from '../types/character';
-import { useCardDataHandler } from '../composables/characterCard/useCardDataHandler';
-import { useCardSections } from '../composables/characterCard/useCardSections';
-import { useCharacterCardLifecycle } from '../composables/characterCard/useCharacterCardLifecycle';
+import { useCardDataHandler } from '../composables/characterInfo/useCardDataHandler';
+import { useCardSections } from '../composables/characterInfo/useCardSections';
+import { useCharacterCardLifecycle } from '../composables/characterInfo/useCharacterCardLifecycle';
 
 const props = defineProps<{
   character: CharacterCard;

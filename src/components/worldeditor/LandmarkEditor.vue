@@ -52,20 +52,46 @@
         <!-- 位置信息 -->
         <section class="form-section">
           <h3 class="form-section-title">
-            <Icon icon="ph:map-pin-duotone" class="form-section-icon" />位置信息
+            <Icon icon="ph:map-pin-duotone" class="form-section-icon" />位置与关系
           </h3>
-          <div v-if="landmark.coordinates" class="form-grid-3-col">
-            <div>
-              <label class="form-label">坐标 X</label>
-              <el-input-number v-model.number="landmark.coordinates.x" controls-position="right" class="form-full-width" />
+          <div class="form-section-content form-grid-2-col">
+            <div class="form-section-content">
+              <div>
+                <label class="form-label">所属区域</label>
+                <el-input v-model="landmark.region" placeholder="例如：北境" />
+              </div>
+              <div>
+                <label class="form-label">重要地标</label>
+                <el-select v-model="landmark.keyLandmarkId" clearable filterable placeholder="选择一个重要地标" class="form-full-width">
+                  <el-option v-for="item in filteredLandmarks" :key="item.id" :label="item.name" :value="item.id" />
+                </el-select>
+              </div>
             </div>
-            <div>
-              <label class="form-label">坐标 Y</label>
-              <el-input-number v-model.number="landmark.coordinates.y" controls-position="right" class="form-full-width" />
-            </div>
-            <div>
-              <label class="form-label">所属区域</label>
-              <el-input v-model="landmark.region" placeholder="例如：北境" />
+            <div v-if="landmark.relativePosition" class="form-grid-4-col">
+              <div>
+                <label class="form-label">北</label>
+                <el-select v-model="landmark.relativePosition.north" clearable filterable placeholder="选择北方地标" class="form-full-width">
+                  <el-option v-for="item in filteredLandmarks" :key="item.id" :label="item.name" :value="item.id" />
+                </el-select>
+              </div>
+              <div>
+                <label class="form-label">南</label>
+                <el-select v-model="landmark.relativePosition.south" clearable filterable placeholder="选择南方地标" class="form-full-width">
+                  <el-option v-for="item in filteredLandmarks" :key="item.id" :label="item.name" :value="item.id" />
+                </el-select>
+              </div>
+              <div>
+                <label class="form-label">东</label>
+                <el-select v-model="landmark.relativePosition.east" clearable filterable placeholder="选择东方地标" class="form-full-width">
+                  <el-option v-for="item in filteredLandmarks" :key="item.id" :label="item.name" :value="item.id" />
+                </el-select>
+              </div>
+              <div>
+                <label class="form-label">西</label>
+                <el-select v-model="landmark.relativePosition.west" clearable filterable placeholder="选择西方地标" class="form-full-width">
+                  <el-option v-for="item in filteredLandmarks" :key="item.id" :label="item.name" :value="item.id" />
+                </el-select>
+              </div>
             </div>
           </div>
         </section>
@@ -78,7 +104,22 @@
           <div class="form-grid-3-col">
             <div>
               <label class="form-label">气候</label>
-              <el-input v-model="landmark.climate" placeholder="例如：寒带苔原" />
+              <el-select v-model="landmark.climate" filterable allow-create default-first-option placeholder="例如：寒带苔原" class="form-full-width">
+                <el-option v-for="item in commonClimates" :key="item.name" :label="item.name" :value="item.name">
+                  <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <span>{{ item.name }}</span>
+                    <el-tooltip :content="item.description" placement="right">
+                      <Icon icon="ph:info-duotone" style="margin-left: 8px; color: var(--el-text-color-secondary);" />
+                    </el-tooltip>
+                  </div>
+                </el-option>
+              </el-select>
+            </div>
+            <div>
+              <label class="form-label">地形</label>
+              <el-select v-model="landmark.terrain" filterable allow-create default-first-option placeholder="例如：山地, 森林" class="form-full-width">
+                <el-option v-for="terrain in commonTerrains" :key="terrain" :label="terrain" :value="terrain" />
+              </el-select>
             </div>
             <div>
               <label class="form-label">人口</label>
@@ -112,8 +153,8 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, watch } from 'vue';
-import { ElScrollbar, ElForm, ElInput, ElSelect, ElOption, ElSlider, ElInputNumber, ElEmpty } from 'element-plus';
+import { defineProps, watch, computed } from 'vue';
+import { ElScrollbar, ElForm, ElInput, ElSelect, ElOption, ElSlider, ElInputNumber, ElEmpty, ElTooltip } from 'element-plus';
 import { Icon } from '@iconify/vue';
 import type { EnhancedLandmark } from '@/types/world-editor';
 import { LandmarkType } from '@/types/world-editor';
@@ -122,6 +163,7 @@ import '@/css/worldbook.css';
 
 interface Props {
   landmark: EnhancedLandmark | null;
+  allLandmarks?: EnhancedLandmark[];
   allTags?: string[];
 }
 
@@ -132,6 +174,31 @@ const props = defineProps<Props>();
 const { errors } = useValidation();
 
 const landmarkTypes = Object.values(LandmarkType);
+
+const commonClimates = [
+  { name: '热带雨林', description: '全年高温多雨，物种丰富' },
+  { name: '热带草原', description: '有明显的干湿两季，广阔的草原和稀疏的树木' },
+  { name: '热带季风', description: '全年高温，分旱雨两季，雨季降水集中' },
+  { name: '沙漠', description: '极端干旱，温差大，植被稀少' },
+  { name: '亚热带季风', description: '夏季高温多雨，冬季温和少雨' },
+  { name: '地中海', description: '夏季炎热干燥，冬季温和多雨' },
+  { name: '温带海洋性', description: '全年温和湿润，气温年较差小' },
+  { name: '温带大陆性', description: '冬冷夏热，年温差大，降水集中在夏季' },
+  { name: '温带季风', description: '夏季高温多雨，冬季寒冷干燥' },
+  { name: '亚寒带针叶林', description: '冬季漫长严寒，夏季短暂凉爽，以针叶林为主' },
+  { name: '苔原', description: '全年低温，土壤冻结，只有苔藓、地衣等低等植物' },
+  { name: '冰原', description: '终年严寒，地面覆盖厚厚的冰雪' },
+  { name: '高原山地', description: '海拔高，气温随海拔升高而降低，气候垂直变化显著' },
+  { name: '沼泽', description: '地表过湿或有薄层积水，生长着湿生和水生植物' },
+  { name: '火山', description: '受火山活动影响，地热资源丰富，土壤肥沃' },
+  { name: '魔法/虚空', description: '受魔法或异常能量影响的超自然气候' }
+];
+
+const commonTerrains = [
+  '平原', '丘陵', '山地', '高原', '盆地',
+  '森林', '草原', '沙漠', '沼泽', '海岸',
+  '岛屿', '火山', '冰川', '河流', '湖泊'
+];
 
 const localizeLandmarkType = (type: LandmarkType): string => {
   const map: Record<LandmarkType, string> = {
@@ -152,10 +219,18 @@ const localizeLandmarkType = (type: LandmarkType): string => {
   return map[type] || type;
 };
 
-// 确保 coordinates 对象存在
+// 过滤掉当前正在编辑的地标，用于相对位置选择
+const filteredLandmarks = computed(() => {
+  if (!props.allLandmarks || !props.landmark) {
+    return [];
+  }
+  return props.allLandmarks.filter(item => item.id !== props.landmark!.id);
+});
+
+// 确保 relativePosition 对象存在
 watch(() => props.landmark, (newLandmark) => {
-  if (newLandmark && !newLandmark.coordinates) {
-    newLandmark.coordinates = { x: 0, y: 0 };
+  if (newLandmark && !newLandmark.relativePosition) {
+    newLandmark.relativePosition = {};
   }
 }, { immediate: true });
 

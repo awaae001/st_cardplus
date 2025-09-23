@@ -1,10 +1,10 @@
 import { ref, computed, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import type { WorldBook, WorldBookCollection, WorldBookEntry } from "../components/worldbook/types";
+import type { WorldBook, WorldBookCollection, WorldBookEntry } from "../../components/worldbook/types";
 import { v4 as uuidv4 } from 'uuid';
 import { processImportedWorldBookData } from "./useWorldBookEntry";
-import { worldBookService } from "../database/worldBookService";
-import type { StoredWorldBook } from "../database/db";
+import { worldBookService } from "../../database/worldBookService";
+import type { StoredWorldBook } from "../../database/db";
 
 export function useWorldBookCollection() {
   const worldBookCollection = ref<WorldBookCollection>({
@@ -274,11 +274,26 @@ const loadInitialData = async () => {
       fromBook.updatedAt = now;
       toBook.updatedAt = now;
       
-      // 更新书籍的 updatedAt 字段
-      const fromBookToUpdate: StoredWorldBook = { ...JSON.parse(JSON.stringify(fromBook)), updatedAt: now };
-      delete (fromBookToUpdate as any).entries;
-      const toBookToUpdate: StoredWorldBook = { ...JSON.parse(JSON.stringify(toBook)), updatedAt: now };
-      delete (toBookToUpdate as any).entries;
+      // 更新书籍的 updatedAt 字段，使用明确的字段构造
+      const fromBookToUpdate: StoredWorldBook = JSON.parse(JSON.stringify({
+        id: fromBook.id,
+        name: fromBook.name,
+        description: fromBook.description,
+        createdAt: fromBook.createdAt,
+        updatedAt: now,
+        metadata: fromBook.metadata,
+        order: fromBook.order
+      }));
+      
+      const toBookToUpdate: StoredWorldBook = JSON.parse(JSON.stringify({
+        id: toBook.id,
+        name: toBook.name,
+        description: toBook.description,
+        createdAt: toBook.createdAt,
+        updatedAt: now,
+        metadata: toBook.metadata,
+        order: toBook.order
+      }));
       
       await Promise.all([
         worldBookService.updateBook(fromBookToUpdate),
@@ -298,8 +313,17 @@ const loadInitialData = async () => {
       const now = new Date().toISOString();
       await worldBookService.replaceEntriesForBook(bookId, entries);
       
-      const bookToUpdate: StoredWorldBook = { ...JSON.parse(JSON.stringify(book)), updatedAt: now };
-      delete (bookToUpdate as any).entries;
+      // 使用明确的字段构造来避免 Vue 响应式代理问题
+      const bookToUpdate: StoredWorldBook = JSON.parse(JSON.stringify({
+        id: book.id,
+        name: book.name,
+        description: book.description,
+        createdAt: book.createdAt,
+        updatedAt: now,
+        metadata: book.metadata,
+        order: book.order
+      }));
+      
       await worldBookService.updateBook(bookToUpdate);
 
       // 更新本地状态
@@ -333,7 +357,7 @@ const loadInitialData = async () => {
 
   const handleUpdateEntry = async (entry: WorldBookEntry) => {
     if (!activeBook.value || entry.id === undefined) {
-      ElMessage.error("无法更新条目：缺少必要信息。");
+      ElMessage.error("无法更新条目：缺少必要信息");
       return;
     }
     try {
@@ -347,22 +371,35 @@ const loadInitialData = async () => {
 
   const handleAddEntry = async (entry: WorldBookEntry): Promise<WorldBookEntry | null> => {
     if (!activeBook.value) {
-      ElMessage.error("无法添加条目：缺少活动书籍。");
+      ElMessage.error("无法添加条目：缺少活动书籍");
       return null;
     }
     try {
+      console.log("添加新条目:", { entry, bookId: activeBook.value.id });
       const newId = await worldBookService.addEntry(activeBook.value.id, entry);
       const newEntry = { ...entry, id: newId };
+      console.log("新条目已创建，数据库ID:", newId, "完整条目:", newEntry);
       
       // 更新本地状态
       activeBook.value.entries.unshift(newEntry);
       
       const now = new Date().toISOString();
       activeBook.value.updatedAt = now;
-      const bookToUpdate: StoredWorldBook = { ...activeBook.value, updatedAt: now };
-      delete (bookToUpdate as any).entries;
+      
+      // 使用明确的字段构造来避免 Vue 响应式代理问题
+      const bookToUpdate: StoredWorldBook = JSON.parse(JSON.stringify({
+        id: activeBook.value.id,
+        name: activeBook.value.name,
+        description: activeBook.value.description,
+        createdAt: activeBook.value.createdAt,
+        updatedAt: now,
+        metadata: activeBook.value.metadata,
+        order: activeBook.value.order
+      }));
+      
       await worldBookService.updateBook(bookToUpdate);
       
+      console.log("条目已添加到本地状态，当前条目数量:", activeBook.value.entries.length);
       return newEntry;
     } catch (error) {
       console.error("添加条目失败:", error);
@@ -373,27 +410,47 @@ const loadInitialData = async () => {
 
   const handleDeleteEntry = async (entryId: number): Promise<void> => {
     if (!activeBook.value) {
-      ElMessage.error("无法删除条目：缺少活动书籍。");
+      ElMessage.error("无法删除条目：缺少活动书籍");
       return;
     }
+    
+    console.log("尝试从数据库删除条目:", { entryId, bookId: activeBook.value.id });
+    
     try {
       await worldBookService.deleteEntry(entryId);
+      console.log("数据库删除成功，更新本地状态");
       
       // 更新本地状态
       const entryIndex = activeBook.value.entries.findIndex(e => e.id === entryId);
       if (entryIndex > -1) {
+        console.log("找到条目，索引:", entryIndex, "删除前条目数量:", activeBook.value.entries.length);
         activeBook.value.entries.splice(entryIndex, 1);
+        console.log("删除后条目数量:", activeBook.value.entries.length);
+      } else {
+        console.warn("警告：在本地状态中未找到要删除的条目，ID:", entryId);
       }
       
       const now = new Date().toISOString();
       activeBook.value.updatedAt = now;
-      const bookToUpdate: StoredWorldBook = { ...activeBook.value, updatedAt: now };
-      delete (bookToUpdate as any).entries;
+      
+      // 使用 JSON.parse(JSON.stringify()) 移除 Vue 响应式代理
+      const bookToUpdate: StoredWorldBook = JSON.parse(JSON.stringify({
+        id: activeBook.value.id,
+        name: activeBook.value.name,
+        description: activeBook.value.description,
+        createdAt: activeBook.value.createdAt,
+        updatedAt: now,
+        metadata: activeBook.value.metadata,
+        order: activeBook.value.order
+      }));
+      
       await worldBookService.updateBook(bookToUpdate);
       
+      console.log("世界书更新完成");
     } catch (error) {
       console.error("删除条目失败:", error);
-      ElMessage.error("删除条目失败！");
+      ElMessage.error(`删除条目失败: ${error instanceof Error ? error.message : '未知错误'}`);
+      throw error; // 重新抛出错误以便上层处理
     }
   };
 

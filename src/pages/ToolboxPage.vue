@@ -16,6 +16,18 @@ const tools = ref([
     description: '分离角色卡的 json 和图片',
     route: '/toolbox/separator'
   },
+  {
+    title: '世界书转换器',
+    icon: 'ph:books-bold',
+    description: '在 CharacterBook 和 WorldBook 格式之间进行双向转换',
+    route: '/toolbox/worldbook-converter'
+  },
+  {
+    title: 'PNG元数据工具',
+    icon: 'mdi:file-image-plus-outline',
+    description: '读取或写入 PNG 图片的元数据',
+    route: '/toolbox/png-metadata'
+  }
 ])
 </script>
 

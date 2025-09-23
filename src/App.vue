@@ -13,7 +13,7 @@
             </el-icon>
             <span>首页</span>
           </el-menu-item>
-          <el-menu-item index="/card">
+          <el-menu-item index="/cardinfo">
             <el-icon>
               <EditPen />
             </el-icon>
@@ -25,7 +25,7 @@
             </el-icon>
             <span>世界地标</span>
           </el-menu-item>
-          <el-menu-item index="/cardoutput">
+          <el-menu-item index="/cardmanager">
             <el-icon>
               <Postcard />
             </el-icon>
@@ -81,7 +81,7 @@
             </el-icon>
             <span>首页</span>
           </el-menu-item>
-          <el-menu-item index="/card">
+          <el-menu-item index="/cardinfo">
             <el-icon>
               <EditPen />
             </el-icon>
@@ -93,7 +93,7 @@
             </el-icon>
             <span>世界地标</span>
           </el-menu-item>
-          <el-menu-item index="/cardoutput">
+          <el-menu-item index="/cardmanager">
             <el-icon>
               <Postcard />
             </el-icon>
@@ -159,25 +159,23 @@ import {
   Menu as IconMenu, Moon, Sunny, House, EditPen, Location, Postcard, Tools, DataLine, Collection, InfoFilled, Tickets
 } from '@element-plus/icons-vue'
 import { ElLoading, ElContainer, ElAside, ElMain, ElMenu, ElMenuItem, ElIcon, ElButton, ElDrawer } from 'element-plus'
-import { useRouter } from 'vue-router'
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useDark, useToggle, useWindowSize } from '@vueuse/core'
 import { getBetaFeaturesEnabled, getUseOldSidebar } from '@/utils/localStorageUtils'
 import App_old from '@/pages/App_old.vue'
 import { provideOverflowControl } from '@/composables/useOverflowControl'
 
-const { isOverflowHidden } = provideOverflowControl();
+const { isOverflowHidden, setOverflowHidden } = provideOverflowControl();
+const route = useRoute();
 const isDark = useDark()
 const toggleDark = useToggle(isDark)
 const useOldSidebar = ref(true)
-
 const { width } = useWindowSize()
-const isMobile = computed(() => width.value < 1024)
-
 const isCollapse = ref(false)
 const sidebarWidth = computed(() => (isCollapse.value ? '64px' : '200px'))
 const drawerVisible = ref(false)
-
+const isMobile = computed(() => width.value < 1024)
 const toggleSidebar = () => {
   if (isMobile.value) {
     drawerVisible.value = !drawerVisible.value
@@ -185,6 +183,26 @@ const toggleSidebar = () => {
     isCollapse.value = !isCollapse.value
   }
 }
+const betaFeaturesEnabled = ref(false)
+const router = useRouter()
+let loadingInstance: ReturnType<typeof ElLoading.service>
+const handleBetaFeaturesToggle = (event: CustomEvent) => {
+  betaFeaturesEnabled.value = event.detail
+}
+
+
+watch([() => route.path, isMobile], ([newPath, mobile]) => {
+  if (mobile) {
+    setOverflowHidden(false);
+    return;
+  }
+  const overflowHiddenRoutes = ['/worldbook', '/ejs-editor' , '/about' , '/world'];
+  if (overflowHiddenRoutes.includes(newPath)) {
+    setOverflowHidden(true);
+  } else {
+    setOverflowHidden(false);
+  }
+}, { immediate: true });
 
 // 平滑主题切换函数
 const smoothToggleDark = () => {
@@ -194,10 +212,6 @@ const smoothToggleDark = () => {
     document.documentElement.classList.remove('theme-transitioning')
   }, 500)
 }
-
-const betaFeaturesEnabled = ref(false)
-const router = useRouter()
-let loadingInstance: ReturnType<typeof ElLoading.service>
 
 router.beforeEach(() => {
   loadingInstance = ElLoading.service({
@@ -211,9 +225,6 @@ router.afterEach(() => {
   loadingInstance.close()
 })
 
-const handleBetaFeaturesToggle = (event: CustomEvent) => {
-  betaFeaturesEnabled.value = event.detail
-}
 
 onMounted(() => {
   betaFeaturesEnabled.value = getBetaFeaturesEnabled()

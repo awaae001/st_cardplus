@@ -32,6 +32,7 @@ const appGitLog = gitLog;
 
 export default defineConfig({
   server: {
+    host: true,
     port: 3066
   },
   plugins: [
@@ -57,10 +58,9 @@ export default defineConfig({
     __APP_VERSION__: JSON.stringify(appVersion),
     __APP_COMMIT_COUNT__: JSON.stringify(appCommitCount),
     __APP_GIT_LOG__: JSON.stringify(appGitLog),
-    // 禁用 EJS 中的文件系统访问
-    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
     __VUE_OPTIONS_API__: true,
     __VUE_PROD_DEVTOOLS__: false,
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
   },
   optimizeDeps: {
     exclude: [],
@@ -82,11 +82,11 @@ export default defineConfig({
       },
       external: [], // 确保不排除 Vue
     },
-    chunkSizeWarningLimit: 1000, // 设置chunk大小警告限制
+    chunkSizeWarningLimit: 1000, 
     sourcemap: false,
     terserOptions: {
       compress: {
-        // drop_console: true, 
+        drop_console: true, 
         drop_debugger: true, // 移除debugger
       },
     },

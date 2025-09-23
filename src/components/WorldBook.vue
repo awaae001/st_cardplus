@@ -1,9 +1,5 @@
 <template>
   <div class="worldbook-container">
-    <el-alert v-if="showUpdateBanner" title="世界书功能重大更新" type="info"
-      description="为了提升性能与稳定性，世界书的数据存储方式已从 localStorage 升级至 IndexedDB。这是一个重大的技术变更。如果您在本次更新后首次使用，且发现数据丢失，这可能是因为旧数据未能自动迁移"
-      @close="showUpdateBanner = false" class="worldbook-update-banner" />
-
     <div class="worldbook-mobile-layout">
       <el-tabs v-model="activeTab" type="border-card" class="worldbook-tabs-mobile">
         <el-tab-pane name="list" class="worldbook-tab-pane">
@@ -39,9 +35,9 @@
           <template #label>
             <span class="worldbook-tab-label">
               <Icon icon="ph:note-pencil-duotone" class="worldbook-tab-icon" />
-              <span class="worldbook-tab-text-truncated">{{
-                selectedEntry ? selectedEntry.comment || "编辑中" : "编辑条目"
-              }}</span>
+              <span class="worldbook-tab-text-truncated">
+                {{selectedEntry ? selectedEntry.comment || "编辑中" : "编辑条目"}}
+              </span>
             </span>
           </template>
 
@@ -49,15 +45,19 @@
             <h2 class="content-panel-title">
               <Icon icon="ph:note-pencil-duotone" class="content-panel-icon" />
               <span class="content-panel-text-truncated">编辑:
-                <span class="content-panel-text-highlight">{{
-                  selectedEntry ? selectedEntry.comment || "新条目" : "未选择"
-                }}</span></span>
+                <span class="content-panel-text-highlight">
+                  {{selectedEntry ? selectedEntry.comment || "新条目" : "未选择"}}
+                </span>
+              </span>
             </h2>
             <WorldBookActions context="editor" :has-selection="!!selectedEntry" @copy-entry="copySelectedEntry"
               @import-entry="showImportEntryDialog" @save-entry="saveCurrentEntry"
               @delete-entry="deleteSelectedEntry" />
           </div>
-          <WorldBookEditor :entry="selectedEntry" v-model="editableEntry" :all-keywords="allKeywords" />
+          <WorldBookEditor :entry="selectedEntry" v-model="editableEntry" :all-keywords="allKeywords"
+            :current-entry-index="currentEntryIndex" :total-entries="totalEntries" @go-to-previous="goToPreviousEntry"
+            @go-to-next="goToNextEntry" :is-next-entry-in-different-book="isNextEntryInDifferentBook"
+            :is-previous-entry-in-different-book="isPreviousEntryInDifferentBook" />
         </el-tab-pane>
       </el-tabs>
     </div>
@@ -87,7 +87,10 @@
                 @import-entry="showImportEntryDialog" @save-entry="saveCurrentEntry"
                 @delete-entry="deleteSelectedEntry" />
             </div>
-            <WorldBookEditor :entry="selectedEntry" v-model="editableEntry" :all-keywords="allKeywords" />
+            <WorldBookEditor :entry="selectedEntry" v-model="editableEntry" :all-keywords="allKeywords"
+              :current-entry-index="currentEntryIndex" :total-entries="totalEntries" @go-to-previous="goToPreviousEntry"
+              @go-to-next="goToNextEntry" :is-next-entry-in-different-book="isNextEntryInDifferentBook"
+              :is-previous-entry-in-different-book="isPreviousEntryInDifferentBook" />
           </div>
         </Pane>
       </Splitpanes>
@@ -96,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import { ElTabs, ElTabPane, ElTooltip, ElMessage, ElAlert } from "element-plus";
+import { ElTabs, ElTabPane, ElTooltip, ElMessage } from "element-plus";
 import { Icon } from "@iconify/vue";
 import '../css/worldbook.css'
 import { Splitpanes, Pane } from 'splitpanes';
@@ -105,24 +108,12 @@ import 'splitpanes/dist/splitpanes.css';
 import WorldBookActions from "./worldbook/WorldBookActions.vue";
 import WorldBookEditor from "./worldbook/WorldBookEditor.vue";
 import WorldBookList from "./worldbook/WorldBookList.vue";
-import { useWorldBookCollection } from "../composables/useWorldBookCollection";
-import { useWorldBookEntry } from "../composables/useWorldBookEntry";
-import { useWorldBookDragDrop } from "../composables/useWorldBookDragDrop";
+import { useWorldBookCollection } from "../composables/worldbook/useWorldBookCollection";
+import { useWorldBookEntry } from "../composables/worldbook/useWorldBookEntry";
+import { useWorldBookDragDrop } from "../composables/worldbook/useWorldBookDragDrop";
+import type { WorldBookEntry } from "./worldbook/types";
 
-import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue';
-import { useOverflowControl } from '../composables/useOverflowControl';
-
-const showUpdateBanner = ref(true);
-
-const { setOverflowHidden } = useOverflowControl();
-
-onMounted(() => {
-  setOverflowHidden(true);
-});
-
-onUnmounted(() => {
-  setOverflowHidden(false);
-});
+import { computed, nextTick } from 'vue';
 
 // Manage the collection of world books
 const {
@@ -169,12 +160,85 @@ const {
   deleteEntry: handleDeleteEntry,
 });
 
-const allKeywords = computed(() => {
+const currentEntryIndex = computed(() => {
+  if (!activeBook.value || !selectedEntry.value) {
+    return -1;
+  }
+  return activeBook.value.entries.findIndex((entry: WorldBookEntry) => entry.uid === selectedEntry.value!.uid);
+});
+
+const totalEntries = computed(() => {
+  return activeBook.value ? activeBook.value.entries.length : 0;
+});
+
+const isNextEntryInDifferentBook = computed(() => {
+  if (!activeBook.value) return false;
+  const isLastEntryInBook = currentEntryIndex.value >= activeBook.value.entries.length - 1;
+  if (!isLastEntryInBook) return false;
+
+  const bookIds = Object.keys(worldBookCollection.value.books);
+  const currentBookIndex = bookIds.indexOf(activeBook.value.id);
+  return currentBookIndex < bookIds.length - 1;
+});
+
+const isPreviousEntryInDifferentBook = computed(() => {
+  if (!activeBook.value) return false;
+  const isFirstEntryInBook = currentEntryIndex.value <= 0;
+  if (!isFirstEntryInBook) return false;
+
+  const bookIds = Object.keys(worldBookCollection.value.books);
+  const currentBookIndex = bookIds.indexOf(activeBook.value.id);
+  return currentBookIndex > 0;
+});
+
+const goToPreviousEntry = () => {
+  if (!activeBook.value) return;
+
+  const isFirstEntryInBook = currentEntryIndex.value <= 0;
+
+  if (isFirstEntryInBook) {
+    const bookIds = Object.keys(worldBookCollection.value.books);
+    const currentBookIndex = bookIds.indexOf(activeBook.value.id);
+    if (currentBookIndex > 0) {
+      const previousBookId = bookIds[currentBookIndex - 1];
+      selectBook(previousBookId);
+      nextTick(() => {
+        if (activeBook.value && activeBook.value.entries.length > 0) {
+          const lastEntryIndex = activeBook.value.entries.length - 1;
+          selectEntry(String(lastEntryIndex));
+          activeTab.value = 'editor';
+        }
+      });
+    }
+  } else {
+    const prevEntryIndex = currentEntryIndex.value - 1;
+    handleSelectEntry(activeBook.value.id, prevEntryIndex);
+  }
+};
+const goToNextEntry = () => {
+  if (!activeBook.value) return;
+
+  const isLastEntryInBook = currentEntryIndex.value >= activeBook.value.entries.length - 1;
+
+  if (isLastEntryInBook) {
+    const bookIds = Object.keys(worldBookCollection.value.books);
+    const currentBookIndex = bookIds.indexOf(activeBook.value.id);
+    if (currentBookIndex < bookIds.length - 1) {
+      const nextBookId = bookIds[currentBookIndex + 1];
+      handleSelectBook(nextBookId);
+    }
+  } else {
+    const nextEntryIndex = currentEntryIndex.value + 1;
+    handleSelectEntry(activeBook.value.id, nextEntryIndex);
+  }
+};
+
+const allKeywords = computed((): string[] => {
   if (!activeBook.value) {
     return [];
   }
-  const allKeys = activeBook.value.entries.flatMap(entry => [...entry.key, ...entry.keysecondary]);
-  return [...new Set(allKeys.filter(key => key))]; // 过滤掉空字符串或null/undefined
+  const allKeys = activeBook.value.entries.flatMap((entry: WorldBookEntry) => [...entry.key, ...entry.keysecondary]);
+  return [...new Set(allKeys.filter((key: string) => key))] as string[]; // 过滤掉空字符串或null/undefined
 });
 
 // Manage drag and drop logic, must be after other composables

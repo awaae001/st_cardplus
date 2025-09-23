@@ -11,10 +11,10 @@ const router = createRouter({
       meta: { title: '主页' }
     },
     {
-      path: '/card',
+      path: '/cardinfo',
       name: 'card',
       component: () => import('../pages/CardPage.vue'),
-      meta: { title: '角色卡' }
+      meta: { title: '角色信息' }
     },
     {
       path: '/world',
@@ -23,10 +23,10 @@ const router = createRouter({
       meta: { title: '世界设定' }
     },
     {
-      path:'/cardoutput',
-      name:'cardoutput',
-      component: () => import('../pages/CardOutput.vue'),
-      meta: { title: '角色卡导出' }
+      path:'/cardmanager',
+      name:'cardManager',
+      component: () => import('../pages/CardManager.vue'),
+      meta: { title: '角色卡管理' }
     },
     {
       path:'/worldbook',
@@ -57,6 +57,18 @@ const router = createRouter({
       name: 'separator',
       component: () => import('../components/toolsbox/separator.vue'),
       meta: { title: '分隔符工具' }
+    },
+    {
+      path: '/toolbox/worldbook-converter',
+      name: 'worldbookConverter',
+      component: () => import('../components/toolsbox/WorldBookConverterTool.vue'),
+      meta: { title: '世界书转换器' }
+    },
+    {
+      path: '/toolbox/png-metadata',
+      name: 'pngMetadata',
+      component: () => import('../components/toolsbox/PngMetadataTool.vue'),
+      meta: { title: 'PNG 元数据工具' }
     },
     {
       path: '/regex-editor',

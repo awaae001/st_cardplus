@@ -16,6 +16,7 @@ export function provideOverflowControl() {
 
   return {
     isOverflowHidden,
+    setOverflowHidden,
   };
 }
 

@@ -26,7 +26,7 @@
           </div>
         </div>
          <p class="setting-description" style="margin-top: 12px;">
-          核心数据库用于存储世界书等大数据，容量大。浏览器缓存用于存储角色卡、设置等轻量数据，容量较小<br/>
+          核心数据库用于存储世界书等大数据，容量大浏览器缓存用于存储角色卡、设置等轻量数据，容量较小<br/>
           存储大小由浏览器自动管理
         </p>
       </div>
@@ -70,7 +70,7 @@
           </div>
         </div>
         <p class="setting-description">
-          此操作将清除所有本地存储的应用数据，包括设置、角色卡以及所有世界书。这是一个高危操作，请谨慎使用。
+          此操作将清除所有本地存储的应用数据，包括设置、角色卡以及所有世界书这是一个高危操作，请谨慎使用
         </p>
       </div>
     </div>
@@ -216,7 +216,7 @@ const exportData = async () => {
       data['ST_CARDPLUS_WORLDBOOK_V1'] = JSON.stringify(worldBookExport);
     } catch (dbError) {
       console.error('导出世界书数据失败:', dbError);
-      ElMessage.error('导出世界书数据失败，请检查控制台获取详细信息。');
+      ElMessage.error('导出世界书数据失败，请检查控制台获取详细信息');
       // 导出失败时不继续，避免生成不完整的备份
       return;
     }
@@ -260,7 +260,7 @@ const importData = () => {
         const data = JSON.parse(json);
 
         ElMessageBox.confirm(
-          '这将用导入文件中的数据覆盖所有现有本地数据（包括世界书），此操作无法撤销。您确定要继续吗？',
+          '这将用导入文件中的数据覆盖所有现有本地数据（包括世界书），此操作无法撤销您确定要继续吗？',
           '警告',
           {
             confirmButtonText: '确认导入',
@@ -287,7 +287,7 @@ const importData = () => {
 
             ElMessage({
               type: 'success',
-              message: '数据已成功导入，应用将重新加载以应用更改。',
+              message: '数据已成功导入，应用将重新加载以应用更改',
             });
             // 立即更新存储显示信息
             await updateStorageInfo();
@@ -296,7 +296,7 @@ const importData = () => {
             }, 2000);
           } catch (importError) {
             console.error('导入处理失败:', importError);
-            ElMessage.error('导入过程中发生错误，操作已终止。');
+            ElMessage.error('导入过程中发生错误，操作已终止');
           }
         }).catch(() => {
             ElMessage({
@@ -319,7 +319,7 @@ const importData = () => {
 
 const clearAllData = () => {
   ElMessageBox.confirm(
-    '您确定要清除所有本地数据吗？此操作将删除所有角色卡、设置以及世界书，且无法撤销。',
+    '您确定要清除所有本地数据吗？此操作将删除所有角色卡、设置以及世界书，且无法撤销',
     '高危操作警告',
     {
       confirmButtonText: '确认清除',
@@ -335,7 +335,7 @@ const clearAllData = () => {
 
       ElMessage({
         type: 'success',
-        message: '所有本地数据已清除，应用将重新加载。',
+        message: '所有本地数据已清除，应用将重新加载',
       });
       // 立即更新存储显示信息
       await updateStorageInfo();
@@ -344,7 +344,7 @@ const clearAllData = () => {
       }, 1500);
     } catch (error) {
       console.error('清除所有数据失败:', error);
-      ElMessage.error('清除数据时发生错误。');
+      ElMessage.error('清除数据时发生错误');
     }
   }).catch(() => {
       ElMessage({

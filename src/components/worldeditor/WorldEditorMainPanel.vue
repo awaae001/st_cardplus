@@ -10,12 +10,12 @@
           @import-from-clipboard="handleImportFromClipboard"
         />
       </div>
-      <div class="editor-content">
+      <div class="editor-content" :key="props.selectedItem.id">
         <ProjectEditor v-if="isProject(props.selectedItem)" :project="props.selectedItem" />
         <LandmarkEditor v-else-if="isLandmark(props.selectedItem)" :landmark="props.selectedItem" :all-tags="props.allTags" />
         <ForceEditor v-else-if="isForce(props.selectedItem)" :force="props.selectedItem" :all-tags="props.allTags" />
-        <IntegratedPanel 
-          v-else-if="isIntegration(props.selectedItem)" 
+        <IntegratedPanel
+          v-else-if="isIntegration(props.selectedItem)"
           :integration="props.selectedItem"
           :current-project="getCurrentProject(props.selectedItem)"
           :landmarks="props.landmarks || []"
