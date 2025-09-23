@@ -7,54 +7,14 @@
       <!-- Mobile Drawer -->
       <el-drawer v-if="isMobile" v-model="drawerVisible" direction="ltr" :with-header="false" size="250px">
         <el-menu :router="true" @select="drawerVisible = false" class="sidebar-menu">
-          <el-menu-item index="/">
-            <el-icon>
-              <House />
-            </el-icon>
-            <span>首页</span>
-          </el-menu-item>
-          <el-menu-item index="/cardinfo">
-            <el-icon>
-              <EditPen />
-            </el-icon>
-            <span>角色信息</span>
-          </el-menu-item>
-          <el-menu-item index="/world">
-            <el-icon>
-              <Location />
-            </el-icon>
-            <span>世界地标</span>
-          </el-menu-item>
-          <el-menu-item index="/cardmanager">
-            <el-icon>
-              <Postcard />
-            </el-icon>
-            <span>角色卡快搭</span>
-          </el-menu-item>
-          <el-menu-item v-if="betaFeaturesEnabled" index="/ejs-editor">
-            <el-icon>
-              <DataLine />
-            </el-icon>
-            <span>EJS模板 · 测试版</span>
-          </el-menu-item>
-          <el-menu-item v-if="betaFeaturesEnabled" index="/worldbook">
-            <el-icon>
-              <Collection />
-            </el-icon>
-            <span>世界书 · 测试版</span>
-          </el-menu-item>
-          <el-menu-item v-if="betaFeaturesEnabled" index="/regex-editor">
-            <el-icon>
-              <Tickets />
-            </el-icon>
-            <span>正则编辑器 · 测试版</span>
-          </el-menu-item>
-          <el-menu-item index="/toolbox">
-            <el-icon>
-              <Tools />
-            </el-icon>
-            <span>工具箱</span>
-          </el-menu-item>
+          <template v-for="item in mainMenuItems" :key="item.index">
+            <el-menu-item v-if="!item.beta || betaFeaturesEnabled" :index="item.index">
+              <el-icon>
+                <component :is="item.icon" />
+              </el-icon>
+              <span>{{ item.title }}</span>
+            </el-menu-item>
+          </template>
           <div class="flex-grow"></div>
           <el-menu-item @click="smoothToggleDark" class="theme-toggle-item">
             <el-icon class="theme-icon">
@@ -75,55 +35,16 @@
       <!-- PC Sidebar -->
       <el-aside v-else :width="sidebarWidth" class="sidebar-transition" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
         <el-menu :collapse="isCollapse" :router="true" class="sidebar-menu">
-          <el-menu-item index="/">
-            <el-icon>
-              <House />
-            </el-icon>
-            <span>首页</span>
-          </el-menu-item>
-          <el-menu-item index="/cardinfo">
-            <el-icon>
-              <EditPen />
-            </el-icon>
-            <span>角色信息</span>
-          </el-menu-item>
-          <el-menu-item index="/world">
-            <el-icon>
-              <Location />
-            </el-icon>
-            <span>世界地标</span>
-          </el-menu-item>
-          <el-menu-item index="/cardmanager">
-            <el-icon>
-              <Postcard />
-            </el-icon>
-            <span>角色卡快搭</span>
-          </el-menu-item>
-          <el-menu-item v-if="betaFeaturesEnabled" index="/ejs-editor">
-            <el-icon>
-              <DataLine />
-            </el-icon>
-            <span>EJS模板 · 测试版</span>
-          </el-menu-item>
-          <el-menu-item v-if="betaFeaturesEnabled" index="/worldbook">
-            <el-icon>
-              <Collection />
-            </el-icon>
-            <span>世界书 · 测试版</span>
-          </el-menu-item>
-          <el-menu-item v-if="betaFeaturesEnabled" index="/regex-editor">
-            <el-icon>
-              <Tickets />
-            </el-icon>
-            <span>正则编辑器 · 测试版</span>
-          </el-menu-item>
-          <el-menu-item index="/toolbox">
-            <el-icon>
-              <Tools />
-            </el-icon>
-            <span>工具箱</span>
-          </el-menu-item>
+          <template v-for="item in mainMenuItems" :key="item.index">
+            <el-menu-item v-if="!item.beta || betaFeaturesEnabled" :index="item.index">
+              <el-icon>
+                <component :is="item.icon" />
+              </el-icon>
+              <span>{{ item.title }}</span>
+            </el-menu-item>
+          </template>
           <div class="flex-grow"></div>
+          <el-divider />
           <el-menu-item @click="smoothToggleDark" class="theme-toggle-item">
             <el-icon class="theme-icon">
               <Moon v-if="!isDark" />
@@ -158,7 +79,7 @@ import { RouterView } from 'vue-router'
 import {
   Menu as IconMenu, Moon, Sunny, House, EditPen, Location, Postcard, Tools, DataLine, Collection, InfoFilled, Tickets
 } from '@element-plus/icons-vue'
-import { ElLoading, ElContainer, ElAside, ElMain, ElMenu, ElMenuItem, ElIcon, ElButton, ElDrawer } from 'element-plus'
+import { ElLoading, ElContainer, ElAside, ElMain, ElMenu, ElMenuItem, ElIcon, ElButton, ElDrawer ,ElDivider} from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useDark, useToggle, useWindowSize } from '@vueuse/core'
@@ -176,6 +97,17 @@ const { width } = useWindowSize()
 const isCollapse = ref(false)
 const userToggledCollapse = ref(false); // 新增：用于跟踪用户手动折叠的状态
 const { autoExpandSidebar } = usePersonalization();
+const mainMenuItems = ref([
+  { index: '/', icon: House, title: '首页' },
+  { index: '/cardinfo', icon: EditPen, title: '角色信息' },
+  { index: '/world', icon: Location, title: '世界地标' },
+  { index: '/cardmanager', icon: Postcard, title: '角色卡快搭' },
+  { index: '/ejs-editor', icon: DataLine, title: 'EJS模板 · 测试版', beta: true },
+  { index: '/worldbook', icon: Collection, title: '世界书 · 测试版', beta: true },
+  { index: '/regex-editor', icon: Tickets, title: '正则编辑器 · 测试版', beta: true },
+  { index: '/toolbox', icon: Tools, title: '工具箱' },
+]);
+
 const sidebarWidth = computed(() => (isCollapse.value ? '64px' : '200px'))
 const drawerVisible = ref(false)
 const isMobile = computed(() => width.value < 1024)
@@ -214,7 +146,7 @@ watch([() => route.path, isMobile], ([newPath, mobile]) => {
     setOverflowHidden(false);
     return;
   }
-  const overflowHiddenRoutes = ['/worldbook', '/ejs-editor' , '/about' , '/world'];
+  const overflowHiddenRoutes = ['/worldbook', '/ejs-editor' , '/world'];
   if (overflowHiddenRoutes.includes(newPath)) {
     setOverflowHidden(true);
   } else {

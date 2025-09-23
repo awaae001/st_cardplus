@@ -19,7 +19,7 @@ const defaultSettings: AppSettings = {
   useOldSidebar: true,
   useOldCharCardEditor: false,
   useOldWorldEditor: false,
-  autoExpandSidebar: true,
+  autoExpandSidebar: false,
 };
 
 /**
