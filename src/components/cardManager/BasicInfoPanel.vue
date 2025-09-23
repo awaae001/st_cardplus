@@ -61,41 +61,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue';
+import { ref } from 'vue';
 import { ElForm, ElFormItem, ElInput, ElSelect, ElCollapse, ElCollapseItem } from 'element-plus';
 import type { CharacterCardV3 } from '@/types/character-card-v3';
 
-const props = defineProps<{
+defineProps<{
   character: CharacterCardV3;
 }>();
 
 const activeNames = ref([]);
-
-onMounted(() => {
-  console.log('BasicInfoPanel: Component mounted');
-  console.log('BasicInfoPanel: Props character on mount:', props.character);
-  console.log('BasicInfoPanel: Props character.data on mount:', props.character?.data);
-  console.log('BasicInfoPanel: Props character.data.name on mount:', props.character?.data?.name);
-});
-
-watch(
-  () => props.character,
-  (newValue, oldValue) => {
-    console.log('BasicInfoPanel: character prop changed');
-    console.log('BasicInfoPanel: Old value:', oldValue);
-    console.log('BasicInfoPanel: New value:', newValue);
-    console.log('BasicInfoPanel: New character.data:', newValue?.data);
-    console.log('BasicInfoPanel: New character.data.name:', newValue?.data?.name);
-  },
-  { immediate: true, deep: true }
-);
-
-watch(
-  () => props.character?.data?.name,
-  (newName, oldName) => {
-    console.log('BasicInfoPanel: character.data.name changed from', oldName, 'to', newName);
-  }
-);
 </script>
 
 <style scoped>
@@ -103,6 +77,7 @@ watch(
   display: flex;
   flex-direction: column;
   gap: 12px;
+  overflow: auto;
 }
 
 .full-width {

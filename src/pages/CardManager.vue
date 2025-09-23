@@ -26,23 +26,17 @@
 
       <!-- 右侧列 -->
       <div class="right-column">
-        <!-- 基础信息面板 -->
-        <div class="panel main-panel">
-          <h3>基础信息</h3>
-          <!-- Debug info -->
-          <div style="background: #f0f0f0; padding: 8px; margin-bottom: 16px; font-size: 12px; border-radius: 4px;">
-            <strong>调试信息:</strong><br>
-            角色名: {{ characterData.name }}<br>
-            数据名: {{ characterData.data.name }}<br>
-            描述: {{ characterData.data.description?.substring(0, 50) }}...<br>
-            开场白: {{ characterData.data.first_mes?.substring(0, 30) }}...
+        <div class="top-panels-container">
+          <!-- 基础信息面板 -->
+          <div class="panel main-panel">
+            <h3>基础信息</h3>
+            <BasicInfoPanel :character="characterData" />
           </div>
-          <BasicInfoPanel :character="characterData" />
-        </div>
-        <!-- 多开场白面板 -->
-        <div class="panel greetings-panel">
-          <h3>多开场白</h3>
-          <GreetingsPanel v-model="characterData.data.alternate_greetings" />
+          <!-- 多开场白面板 -->
+          <div class="panel greetings-panel">
+            <h3>多开场白</h3>
+            <GreetingsPanel v-model="characterData.data.alternate_greetings" />
+          </div>
         </div>
         <!-- 其他与正则内容 -->
         <div class="panel footer-panel">
@@ -74,11 +68,9 @@ const triggerFileInput = () => {
 };
 
 const handleFileSelected = async (event: Event) => {
-  console.log('CardManager: File input change event triggered.');
   const target = event.target as HTMLInputElement;
   if (target.files && target.files[0]) {
     const file = target.files[0];
-    console.log('CardManager: Selected file:', file.name, file.size, file.type);
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
@@ -89,24 +81,13 @@ const handleFileSelected = async (event: Event) => {
 
     try {
       const imageBuffer = new Uint8Array(await file.arrayBuffer());
-      console.log('CardManager: File converted to buffer, size:', imageBuffer.length);
 
       const jsonDataString = readPngCard(imageBuffer);
-      console.log('CardManager: Extracted JSON data length:', jsonDataString.length);
-      console.log('CardManager: Raw JSON string preview:', jsonDataString.substring(0, 200) + '...');
 
       const decodedData = JSON.parse(jsonDataString);
-      console.log('CardManager: Decoded data from PNG:', decodedData);
-      console.log('CardManager: Decoded data keys:', Object.keys(decodedData));
-      console.log('CardManager: Decoded data.name:', decodedData.name);
-      console.log('CardManager: Decoded data.data:', decodedData.data);
-
-      console.log('CardManager: About to call loadCharacter with:', decodedData);
       loadCharacter(decodedData);
-      console.log('CardManager: loadCharacter completed');
 
       handleImageUpdate(file);
-      console.log('CardManager: handleImageUpdate completed');
 
       ElMessage.success('角色卡加载成功！');
     } catch (error) {
@@ -121,7 +102,6 @@ const handleFileSelected = async (event: Event) => {
 
 // --- 保存功能 ---
 const handleSave = async () => {
-  console.log('CardManager: Save button clicked');
 
   if (!characterImageFile.value) {
     console.warn('CardManager: No image file available for saving');
@@ -129,17 +109,13 @@ const handleSave = async () => {
     return;
   }
 
-  console.log('CardManager: Starting save process with image:', characterImageFile.value.name);
 
   try {
     const imageBuffer = new Uint8Array(await characterImageFile.value.arrayBuffer());
-    console.log('CardManager: Image buffer created, size:', imageBuffer.length);
 
     const jsonDataString = JSON.stringify(characterData.value, null, 2);
-    console.log('CardManager: Character data serialized, length:', jsonDataString.length);
 
     const newImageBuffer = writePngCard(imageBuffer, jsonDataString);
-    console.log('CardManager: PNG card written, new buffer size:', newImageBuffer.length);
 
     // 创建具有正确 ArrayBuffer 类型的新 Uint8Array
     const properBuffer = new Uint8Array(newImageBuffer);
@@ -150,7 +126,6 @@ const handleSave = async () => {
     link.href = url;
     const fileName = characterData.value.name ? `${characterData.value.name}.png` : 'character.png';
     link.download = fileName;
-    console.log('CardManager: Downloading file as:', fileName);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -174,9 +149,7 @@ const imagePreviewUrl = computed(() => {
 });
 
 const handleImageUpdate = (file: File) => {
-  console.log('CardManager: handleImageUpdate called with file:', file.name, file.size);
   characterImageFile.value = file;
-  console.log('CardManager: characterImageFile updated, preview URL will be:', file ? 'generated' : 'none');
 };
 
 onUnmounted(() => {
@@ -225,12 +198,23 @@ onUnmounted(() => {
 }
 
 .right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: hidden; /* 防止子元素溢出 */
+}
+
+.top-panels-container {
+  flex: 1; /* 占据可用空间 */
   display: grid;
   grid-template-columns: 2fr 1fr;
-  grid-template-areas:
-    "main greetings"
-    "footer footer";
   gap: 16px;
+  overflow: hidden; /* 防止子元素溢出 */
+}
+
+.footer-panel {
+  flex-shrink: 0; /* 防止被挤压 */
+  max-height: 30%; /* 或者一个你认为合适的最大高度 */
 }
 
 .panel {
@@ -243,6 +227,11 @@ onUnmounted(() => {
   flex-direction: column;
 }
 
+.main-panel,
+.greetings-panel {
+  overflow: auto;
+}
+
 .image-panel {
   flex: 0 0 60%;
 }
@@ -251,17 +240,6 @@ onUnmounted(() => {
   flex: 1;
 }
 
-.main-panel {
-  grid-area: main;
-}
-
-.greetings-panel {
-  grid-area: greetings;
-}
-
-.footer-panel {
-  grid-area: footer;
-}
 
 h3 {
   margin-top: 0;
