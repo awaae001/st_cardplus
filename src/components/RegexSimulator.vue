@@ -34,12 +34,35 @@
         <el-input v-model="trimStrings" type="textarea" :rows="2" placeholder="每行一个需要移除的字符串" />
       </el-form-item>
 
+      <el-divider><h3>智能正则生成器</h3></el-divider>
+      <el-form-item label="原始文本 (用于智能选择)">
+        <el-input
+          v-model="smartInputText"
+          type="textarea"
+          :rows="6"
+          placeholder="在这里输入你要分析的原始文本..."
+        />
+      </el-form-item>
+      <SmartTextSelector
+        :input-text="smartInputText"
+        @regex-generated="handleSmartRegexGenerated"
+      />
+
       <el-divider><h3>模拟器</h3></el-divider>
       <el-form-item label="测试字符串 (Test String)">
         <el-input v-model="testString" type="textarea" :rows="5" />
       </el-form-item>
       <el-form-item label="结果 (Result)">
-        <pre class="result-box">{{ simulatedResult }}</pre>
+        <div class="result-controls">
+          <el-switch
+            v-model="renderHtml"
+            active-text="渲染HTML"
+            inactive-text="显示源码"
+            size="small"
+          />
+        </div>
+        <div v-if="renderHtml" class="result-box html-rendered" v-html="simulatedResult"></div>
+        <pre v-else class="result-box">{{ simulatedResult }}</pre>
       </el-form-item>
       <el-form-item label="宏测试 (Macros)">
         <div class="macro-grid">
@@ -95,6 +118,7 @@ import { reactive, computed, ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import { useRegexSimulator } from '@/composables/regex/useRegexSimulator';
 import { REGEX_PLACEMENT, SUBSTITUTE_FIND_REGEX, type SillyTavernRegexScript } from '@/composables/regex/types';
+import SmartTextSelector from '@/components/regex/SmartTextSelector.vue';
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const importedScripts = ref<SillyTavernRegexScript[]>([]);
@@ -118,6 +142,8 @@ const createDefaultScript = (): SillyTavernRegexScript => ({
 
 const formState = reactive<SillyTavernRegexScript>(createDefaultScript());
 const trimStrings = ref('');
+const smartInputText = ref('');
+const renderHtml = ref(false);
 
 const triggerFileInput = () => {
   fileInput.value?.click();
@@ -220,6 +246,16 @@ const regexScript = computed(() => ({
 
 const { testString, simulatedResult } = useRegexSimulator(regexScript);
 
+const handleSmartRegexGenerated = (regex: string, replaceString: string) => {
+  formState.findRegex = regex;
+  formState.replaceString = replaceString;
+
+  // 自动更新测试字符串为智能输入文本
+  testString.value = smartInputText.value;
+
+  ElMessage.success('已自动生成正则表达式和替换字符串！');
+};
+
 </script>
 
 <style scoped>
@@ -242,6 +278,12 @@ const { testString, simulatedResult } = useRegexSimulator(regexScript);
     grid-template-columns: 1fr 1fr;
     gap: 10px;
 }
+.result-controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
 .result-box {
   background-color: var(--el-fill-color-light);
   padding: 10px;
@@ -250,6 +292,17 @@ const { testString, simulatedResult } = useRegexSimulator(regexScript);
   width: 100%;
   min-height: 100px;
   white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.result-box.html-rendered {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.6;
+  white-space: normal;
+}
+
+.result-box.html-rendered * {
+  max-width: 100%;
   word-wrap: break-word;
 }
 </style>
