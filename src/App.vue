@@ -16,13 +16,13 @@
             </el-menu-item>
           </template>
           <div class="flex-grow"></div>
-          <el-menu-item index="__theme-toggle__" @click="smoothToggleDark" class="theme-toggle-item">
+          <div class="custom-menu-item theme-toggle-item" @click="smoothToggleDark">
             <el-icon class="theme-icon">
               <Moon v-if="!isDark" />
               <Sunny v-else />
             </el-icon>
             <span>{{ isDark ? '浅色模式' : '暗黑模式' }}</span>
-          </el-menu-item>
+          </div>
           <el-menu-item index="/about">
             <el-icon>
               <InfoFilled />
@@ -45,25 +45,25 @@
           </template>
           <div class="flex-grow"></div>
           <el-divider />
-          <el-menu-item index="" @click="smoothToggleDark" class="theme-toggle-item">
+          <div class="custom-menu-item theme-toggle-item" @click="smoothToggleDark">
             <el-icon class="theme-icon">
               <Moon v-if="!isDark" />
               <Sunny v-else />
             </el-icon>
             <span>{{ isDark ? '浅色模式' : '暗黑模式' }}</span>
-          </el-menu-item>
+          </div>
           <el-menu-item index="/about">
             <el-icon>
               <InfoFilled />
             </el-icon>
             <span>设置与关于</span>
           </el-menu-item>
-          <el-menu-item index="" @click="toggleSidebar" class="sidebar-toggle-item">
+          <div class="custom-menu-item sidebar-toggle-item" @click="toggleSidebar">
             <el-icon>
               <IconMenu />
             </el-icon>
             <span>{{ !isCollapse ? '收起侧边栏' : '展开侧边栏' }}</span>
-          </el-menu-item>
+          </div>
         </el-menu>
       </el-aside>
       <el-button v-if="isMobile" class="toggle-button" @click="toggleSidebar" :icon="IconMenu" circle />
@@ -253,6 +253,64 @@ onUnmounted(() => {
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
+}
+
+/* 自定义菜单项样式 */
+.custom-menu-item {
+  display: flex;
+  align-items: center;
+  height: 56px;
+  padding: 0 20px;
+  cursor: pointer;
+  color: var(--el-text-color-primary);
+  font-size: 14px;
+  line-height: 56px;
+  position: relative;
+  transition: all 0.3s ease;
+  border-radius: 0;
+  box-sizing: border-box;
+  margin-left: 5px;
+}
+
+.custom-menu-item:hover {
+  background-color: var(--el-menu-hover-bg-color);
+  color: var(--el-menu-hover-text-color);
+}
+
+.custom-menu-item:active {
+  background-color: var(--el-menu-active-color);
+}
+
+.custom-menu-item .el-icon {
+  margin-right: 10px;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-menu-item span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+/* 折叠状态下的样式调整 */
+.el-menu--collapse .custom-menu-item {
+  padding: 0 20px;
+  justify-content: center;
+  margin-left: 0px;
+}
+
+.el-menu--collapse .custom-menu-item .el-icon {
+  margin-right: 0;
+}
+
+.el-menu--collapse .custom-menu-item span {
+  display: none;
 }
 
 
