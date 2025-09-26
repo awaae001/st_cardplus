@@ -56,11 +56,16 @@ jobs:
     - name: Install dependencies
       run: pnpm install
 
+    - name: Install Electron dependencies
+      run: pnpm install --production=false
+
     - name: Build Windows app
       run: pnpm build:electron
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload Windows app artifacts
       uses: actions/upload-artifact@v4
       with:
         name: windows-app
-        path: dist-electron/
+        path: dist/
