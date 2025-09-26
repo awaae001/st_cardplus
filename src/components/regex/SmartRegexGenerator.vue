@@ -11,7 +11,7 @@
   </el-form-item>
   <SmartTextSelector
     :input-text="inputText"
-    @regex-generated="$emit('regex-generated', $event)"
+    @regex-generated="(data) => $emit('regex-generated', data)"
   />
 </template>
 

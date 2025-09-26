@@ -144,9 +144,9 @@ const regexScript = computed(() => ({
 
 const { testString, simulatedResult } = useRegexSimulator(regexScript);
 
-const handleSmartRegexGenerated = (event: { regex: string, replaceString: string }) => {
-  formState.value.findRegex = event.regex;
-  formState.value.replaceString = event.replaceString;
+const handleSmartRegexGenerated = ({ regex, replaceString }: { regex: string, replaceString: string }) => {
+  formState.value.findRegex = regex;
+  formState.value.replaceString = replaceString;
   testString.value = smartInputText.value;
   ElMessage.success('已自动生成正则表达式和替换字符串！');
 };
