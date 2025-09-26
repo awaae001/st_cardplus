@@ -3,7 +3,11 @@
     <div class="selector-header">
       <h4>智能文本选择器</h4>
       <div class="mode-controls">
-        <el-radio-group v-model="selectionMode" size="small">
+        <el-radio-group v-model="inputMode" size="small">
+          <el-radio-button label="manual">手动选择</el-radio-button>
+          <el-radio-button label="token">分词选择</el-radio-button>
+        </el-radio-group>
+        <el-radio-group v-if="inputMode === 'manual'" v-model="selectionMode" size="small">
           <el-radio-button label="anchor">锚点模式</el-radio-button>
           <el-radio-button label="variable">变量模式</el-radio-button>
           <el-radio-button label="start">起始符</el-radio-button>
@@ -16,7 +20,7 @@
       </div>
     </div>
 
-    <div class="text-area-wrapper">
+    <div class="text-area-wrapper" v-if="inputMode === 'manual'">
       <div
         ref="textAreaRef"
         class="selectable-text"
@@ -25,6 +29,12 @@
         v-html="renderedText"
       ></div>
     </div>
+
+    <TokenSelector
+      v-if="inputMode === 'token'"
+      :input-text="inputText"
+      @selection-created="handleTokenSelection"
+    />
 
     <div class="selection-summary" v-if="selections.length > 0">
       <h5>已选择的区域:</h5>
@@ -110,6 +120,7 @@ import { ElMessage } from 'element-plus'
 import { Delete, CopyDocument as CopyIcon } from '@element-plus/icons-vue'
 import { Icon } from '@iconify/vue'
 import { useSmartRegexGenerator, type TextSelection } from '@/composables/regex/useSmartRegexGenerator'
+import TokenSelector from './TokenSelector.vue'
 
 const props = defineProps<{
   inputText: string
@@ -121,6 +132,7 @@ const emit = defineEmits<{
 
 const textAreaRef = ref<HTMLDivElement>()
 const selectionMode = ref<'anchor' | 'variable' | 'start' | 'end'>('anchor')
+const inputMode = ref<'manual' | 'token'>('manual')
 const isSelecting = ref(false)
 
 // 使用智能正则生成器
@@ -318,6 +330,20 @@ const copyRegex = () => {
   if (generatedRegex.value) {
     navigator.clipboard.writeText(generatedRegex.value)
     ElMessage.success('正则表达式已复制到剪贴板')
+  }
+}
+
+const handleTokenSelection = (selection: TextSelection) => {
+  try {
+    addSelection(selection)
+    ElMessage.success(`已添加${getSelectionLabel(selection.type)}选择: ${selection.text}`)
+
+    // Emit the generated regex
+    if (generateRegex.value.isValid) {
+      emit('regexGenerated', generateRegex.value.regex, generateRegex.value.replaceString)
+    }
+  } catch (error) {
+    ElMessage.warning(error instanceof Error ? error.message : '添加选择失败')
   }
 }
 </script>
