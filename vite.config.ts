@@ -73,51 +73,6 @@ export default defineConfig({
     cssCodeSplit: true, // 启用CSS代码分割
     rollupOptions: {
       output: {
-        manualChunks(id) {
-          // Vue 生态系统
-          if (id.includes('vue') && !id.includes('node_modules/vue/')) {
-            return 'vue-ecosystem';
-          }
-          if (id.includes('vue-router') || id.includes('pinia') || id.includes('@vueuse') || id.includes('element-plus') || id.includes('codemirror') || id.includes('@codemirror')) {
-            return 'vue-ecosystem';
-          }
-
-          // 工具库
-          if (id.includes('js-yaml') || id.includes('file-saver') || id.includes('uuid') ||
-              id.includes('js-base64') || id.includes('ejs') || id.includes('webdav')) {
-            return 'utils';
-          }
-
-          // 图像处理
-          if (id.includes('exifreader') || id.includes('png-chunk') || id.includes('crc')) {
-            return 'image-utils';
-          }
-
-          // Iconify 图标
-          if (id.includes('@iconify')) {
-            return 'iconify';
-          }
-
-          // Tailwind CSS
-          if (id.includes('tailwindcss')) {
-            return 'tailwind';
-          }
-
-          // 拖拽相关
-          if (id.includes('vuedraggable') || id.includes('splitpanes')) {
-            return 'ui-components';
-          }
-
-          // 数据库相关
-          if (id.includes('dexie')) {
-            return 'database';
-          }
-
-          // 其他第三方库
-          if (id.includes('node_modules')) {
-            return 'vendor';
-          }
-        },
         chunkFileNames: 'assets/[name]-[hash].js', // 分割后的文件命名规则
       },
       external: [], // 确保不排除 Vue
