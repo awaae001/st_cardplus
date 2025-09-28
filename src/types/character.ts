@@ -72,6 +72,7 @@ export interface Skill {
 * 角色备注接口定义
 */
 export interface Note {
+  id: number; // 4位数字ID (1000-9999)
   name: string; // 备注名称
   data: string[]; // 备注数据
 }

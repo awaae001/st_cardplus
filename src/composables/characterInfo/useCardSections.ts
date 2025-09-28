@@ -43,15 +43,29 @@ export function useCardSections(form: Ref<CharacterCard>) {
     form.value.relationships.splice(index, 1);
   };
 
+  // 4位数字ID生成器 (1000-9999)
+  const generateNoteId = (): number => {
+    const existingIds = new Set(form.value.notes.map(note => note.id));
+    let newId: number;
+    do {
+      newId = Math.floor(Math.random() * 9000) + 1000; // 1000-9999
+    } while (existingIds.has(newId));
+    return newId;
+  };
+
   const addNote = (): void => {
     form.value.notes.push({
+      id: generateNoteId(),
       name: '',
       data: ['']
     });
   };
 
-  const removeNote = (index: number): void => {
-    form.value.notes.splice(index, 1);
+  const removeNote = (id: number): void => {
+    const index = form.value.notes.findIndex(note => note.id === id);
+    if (index !== -1) {
+      form.value.notes.splice(index, 1);
+    }
   };
 
   const addAttire = (): void => {

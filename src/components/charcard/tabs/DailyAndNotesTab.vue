@@ -34,67 +34,18 @@
       </div>
     </section>
   </div>
-  <section class="form-section">
-    <div class="title-Btn-add form-section-title">
-      <h3 class="title-fixed">
-        <Icon icon="ph:note-duotone" class="form-section-icon" />角色备注
-      </h3>
-      <div style="display: flex; gap: 8px; margin-left: 16px;">
-        <el-button type="primary" @click="$emit('addNote')">
-          <Icon icon="material-symbols:note-add-outline" width="18" height="18" style="margin-right: 4px;" />
-          添加备注
-        </el-button>
-      </div>
-    </div>
-    <draggable :model-value="form.notes" @update:model-value="$emit('update:notes', $event)" handle=".drag-handle" item-key="index" animation="200" ghost-class="ghost"
-      chosen-class="chosen" class="form-grid-4-col">
-      <template #item="{ element: note, index: noteIndex }">
-        <el-card class="draggable-card">
-          <div class="drag-handle">
-            <Icon icon="material-symbols:drag-handle" width="20" height="20" />
-          </div>
-          <el-form-item
-            :prop="`notes.${noteIndex}.name`"
-            :rules="{ required: true, message: '备注名称是必填项', trigger: 'blur' }"
-            style="margin-bottom: 0"
-          >
-            <el-input v-model="note.name" placeholder="备注名称" />
-          </el-form-item>
-          <div v-for="( dataIndex) in note.data" :key="dataIndex" class="cardInput">
-            <el-input v-model="note.data[dataIndex]" type="textarea" :rows="2"
-              :placeholder="`备注内容 ${dataIndex + 1}`" />
-            <el-button @click="removeNoteDataItem(noteIndex, dataIndex)" size="small">
-              <Icon icon="material-symbols:delete-outline" width="18" height="18" />
-            </el-button>
-          </div>
-          <el-button type="primary" @click="addNoteDataItem(noteIndex)" size="small"
-            style="width: 100%; margin-top: 4px;">
-            添加备注内容
-          </el-button>
-          <div></div>
-          <el-button type="danger" @click="$emit('removeNote', noteIndex)" style="margin-top: 1rem; width: 100%;">
-            <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
-            删除备注
-          </el-button>
-        </el-card>
-      </template>
-    </draggable>
-  </section>
+  <CharacterNotes :notes="form.notes" @update:notes="$emit('update:notes', $event)" />
 </template>
 
 <script setup lang="ts">
 import { ref, watch, onMounted, toRefs } from 'vue';
-import { ElInput, ElButton, ElCard, ElMessageBox, ElFormItem } from 'element-plus';
+import { ElInput, ElButton, ElMessageBox } from 'element-plus';
 import { Icon } from '@iconify/vue';
-import draggable from 'vuedraggable';
+import CharacterNotes from '../CharacterNotes.vue';
 
 const props = defineProps({
   form: {
     type: Object,
-    required: true
-  },
-  notes: {
-    type: Array,
     required: true
   }
 });
@@ -102,8 +53,6 @@ const props = defineProps({
 defineEmits([
   'update:form-likes',
   'update:form-dislikes',
-  'addNote',
-  'removeNote',
   'update:notes'
 ]);
 
@@ -192,13 +141,6 @@ const removeRoutineField = (index: number) => {
   }
 };
 
-// Character Notes
-const addNoteDataItem = (noteIndex: number) => {
-  form.value.notes[noteIndex].data.push('');
-};
-const removeNoteDataItem = (noteIndex: number, dataIndex: number) => {
-  form.value.notes[noteIndex].data.splice(dataIndex, 1);
-};
 
 
 onMounted(() => {
@@ -273,90 +215,6 @@ watch(() => form.value.dailyRoutine, () => {
   justify-content: center;
 }
 
-.title-Btn-add {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.form-grid-4-col {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-}
-
-@media (min-width: 768px) {
-  .form-grid-4-col {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  }
-}
-
-.draggable-card {
-  position: relative;
-  transition: all 0.2s;
-  border: 1px solid var(--el-border-color-lighter);
-}
-
-.draggable-card:hover {
-  border-color: var(--el-border-color-hover);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.drag-handle {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  cursor: grab;
-  color: var(--el-text-color-placeholder);
-  transition: color 0.2s;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.drag-handle:hover {
-  color: var(--el-color-primary);
-}
-
-.drag-handle:active {
-  cursor: grabbing;
-}
-
-.cardInput {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.cardInput .el-button {
-  flex-shrink: 0;
-  border-radius: 50%;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 2px;
-}
-
-.ghost {
-  opacity: 0.3;
-  background-color: var(--el-color-primary-light-8);
-  border: 2px dashed var(--el-color-primary);
-}
-
-.chosen {
-  opacity: 0.8;
-  transform: scale(1.02);
-  background-color: var(--el-color-primary-light-9) !important;
-  border-color: var(--el-color-primary) !important;
-}
 
 #routine-form {
   display: grid;
@@ -371,20 +229,9 @@ watch(() => form.value.dailyRoutine, () => {
 }
 
 @media (min-width: 1200px) {
-  .form-grid-4-col {
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    align-items: flex-start
-  }
   #routine-form {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     align-items: flex-start
   }
-}
-
-.title-fixed {
-  display: flex;
-  padding: 4px;
-  gap: 8px;
-  align-items: center;
 }
 </style>

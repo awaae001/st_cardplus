@@ -81,6 +81,12 @@ const router = createRouter({
       name: 'ejsEditor',
       component: () => import('../pages/EjsEditorPage.vue'),
       meta: { title: 'EJS 编辑器' }
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'notFound',
+      component: () => import('../pages/NotFound.vue'),
+      meta: { title: '页面未找到' }
     }
   ]
 })

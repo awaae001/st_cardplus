@@ -75,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch, onUnmounted, nextTick, ref, shallowRef, onMounted } from 'vue';
+import { computed, watch, onUnmounted, ref, shallowRef, onMounted } from 'vue';
 import type { Component } from 'vue';
 import { ElEmpty, ElTabs, ElTabPane } from 'element-plus';
 import { Splitpanes, Pane } from 'splitpanes';
@@ -98,6 +98,7 @@ const {
   handleCreateCharacter,
   handleDeleteCharacter,
   handleImportCharacter,
+  updateCharacter,
 } = useCharacterCollection();
 
 const handleSelectCharacterWithTabSwitch = (characterId: string) => {
@@ -117,16 +118,9 @@ const characters = computed(() => Object.values(characterCollection.value.charac
 
 const handleUpdateCharacter = (updatedCharacter: any) => {
   if (updatedCharacter && updatedCharacter.id) {
-    nextTick(() => {
-      // 确保响应式更新，创建新的引用
-      characterCollection.value = {
-        ...characterCollection.value,
-        characters: {
-          ...characterCollection.value.characters,
-          [updatedCharacter.id]: { ...updatedCharacter }
-        }
-      };
-    });
+    updateCharacter(updatedCharacter.id, updatedCharacter);
+  } else {
+    console.warn('角色更新失败：无效的角色数据或缺少ID', updatedCharacter);
   }
 };
 

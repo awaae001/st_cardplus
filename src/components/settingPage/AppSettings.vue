@@ -50,7 +50,7 @@ import { getAppSettings } from '@/composables/appSettings';
 const betaFeaturesEnabled = ref(false);
 const umamiEnabled = ref(true);
 const autoSaveInterval = ref(5);
-const useOldSidebar = ref(true);
+const useOldSidebar = ref(false);
 const useOldCharCardEditor = ref(false);
 const useOldWorldEditor = ref(false);
 

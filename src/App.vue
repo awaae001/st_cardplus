@@ -7,62 +7,22 @@
       <!-- Mobile Drawer -->
       <el-drawer v-if="isMobile" v-model="drawerVisible" direction="ltr" :with-header="false" size="250px">
         <el-menu :router="true" @select="drawerVisible = false" class="sidebar-menu">
-          <el-menu-item index="/">
-            <el-icon>
-              <House />
-            </el-icon>
-            <span>首页</span>
-          </el-menu-item>
-          <el-menu-item index="/cardinfo">
-            <el-icon>
-              <EditPen />
-            </el-icon>
-            <span>角色信息</span>
-          </el-menu-item>
-          <el-menu-item index="/world">
-            <el-icon>
-              <Location />
-            </el-icon>
-            <span>世界地标</span>
-          </el-menu-item>
-          <el-menu-item index="/cardmanager">
-            <el-icon>
-              <Postcard />
-            </el-icon>
-            <span>角色卡快搭</span>
-          </el-menu-item>
-          <el-menu-item v-if="betaFeaturesEnabled" index="/ejs-editor">
-            <el-icon>
-              <DataLine />
-            </el-icon>
-            <span>EJS模板 · 测试版</span>
-          </el-menu-item>
-          <el-menu-item v-if="betaFeaturesEnabled" index="/worldbook">
-            <el-icon>
-              <Collection />
-            </el-icon>
-            <span>世界书 · 测试版</span>
-          </el-menu-item>
-          <el-menu-item v-if="betaFeaturesEnabled" index="/regex-editor">
-            <el-icon>
-              <Tickets />
-            </el-icon>
-            <span>正则编辑器 · 测试版</span>
-          </el-menu-item>
-          <el-menu-item index="/toolbox">
-            <el-icon>
-              <Tools />
-            </el-icon>
-            <span>工具箱</span>
-          </el-menu-item>
+          <template v-for="item in mainMenuItems" :key="item.index">
+            <el-menu-item v-if="!item.beta || betaFeaturesEnabled" :index="item.index">
+              <el-icon>
+                <component :is="item.icon" />
+              </el-icon>
+              <span>{{ item.title }}</span>
+            </el-menu-item>
+          </template>
           <div class="flex-grow"></div>
-          <el-menu-item @click="smoothToggleDark" class="theme-toggle-item">
+          <div class="custom-menu-item theme-toggle-item" @click="smoothToggleDark">
             <el-icon class="theme-icon">
               <Moon v-if="!isDark" />
               <Sunny v-else />
             </el-icon>
             <span>{{ isDark ? '浅色模式' : '暗黑模式' }}</span>
-          </el-menu-item>
+          </div>
           <el-menu-item index="/about">
             <el-icon>
               <InfoFilled />
@@ -73,76 +33,37 @@
       </el-drawer>
 
       <!-- PC Sidebar -->
-      <el-aside v-else :width="sidebarWidth" class="sidebar-transition">
+      <el-aside v-else :width="sidebarWidth" class="sidebar-transition" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
         <el-menu :collapse="isCollapse" :router="true" class="sidebar-menu">
-          <el-menu-item index="/">
-            <el-icon>
-              <House />
-            </el-icon>
-            <span>首页</span>
-          </el-menu-item>
-          <el-menu-item index="/cardinfo">
-            <el-icon>
-              <EditPen />
-            </el-icon>
-            <span>角色信息</span>
-          </el-menu-item>
-          <el-menu-item index="/world">
-            <el-icon>
-              <Location />
-            </el-icon>
-            <span>世界地标</span>
-          </el-menu-item>
-          <el-menu-item index="/cardmanager">
-            <el-icon>
-              <Postcard />
-            </el-icon>
-            <span>角色卡快搭</span>
-          </el-menu-item>
-          <el-menu-item v-if="betaFeaturesEnabled" index="/ejs-editor">
-            <el-icon>
-              <DataLine />
-            </el-icon>
-            <span>EJS模板 · 测试版</span>
-          </el-menu-item>
-          <el-menu-item v-if="betaFeaturesEnabled" index="/worldbook">
-            <el-icon>
-              <Collection />
-            </el-icon>
-            <span>世界书 · 测试版</span>
-          </el-menu-item>
-          <el-menu-item v-if="betaFeaturesEnabled" index="/regex-editor">
-            <el-icon>
-              <Tickets />
-            </el-icon>
-            <span>正则编辑器 · 测试版</span>
-          </el-menu-item>
-          <el-menu-item index="/toolbox">
-            <el-icon>
-              <Tools />
-            </el-icon>
-            <span>工具箱</span>
-          </el-menu-item>
+          <template v-for="item in mainMenuItems" :key="item.index">
+            <el-menu-item v-if="!item.beta || betaFeaturesEnabled" :index="item.index">
+              <el-icon>
+                <component :is="item.icon" />
+              </el-icon>
+              <span>{{ item.title }}</span>
+            </el-menu-item>
+          </template>
           <div class="flex-grow"></div>
-          <el-menu-item @click="smoothToggleDark" class="theme-toggle-item">
+          <el-divider />
+          <div class="custom-menu-item theme-toggle-item" @click="smoothToggleDark">
             <el-icon class="theme-icon">
               <Moon v-if="!isDark" />
               <Sunny v-else />
             </el-icon>
             <span>{{ isDark ? '浅色模式' : '暗黑模式' }}</span>
-          </el-menu-item>
+          </div>
           <el-menu-item index="/about">
             <el-icon>
               <InfoFilled />
             </el-icon>
             <span>设置与关于</span>
           </el-menu-item>
-          <el-menu-item @click="toggleSidebar">
+          <div class="custom-menu-item sidebar-toggle-item" @click="toggleSidebar">
             <el-icon>
               <IconMenu />
             </el-icon>
             <span>{{ !isCollapse ? '收起侧边栏' : '展开侧边栏' }}</span>
-          </el-menu-item>
+          </div>
         </el-menu>
       </el-aside>
       <el-button v-if="isMobile" class="toggle-button" @click="toggleSidebar" :icon="IconMenu" circle />
@@ -158,13 +79,15 @@ import { RouterView } from 'vue-router'
 import {
   Menu as IconMenu, Moon, Sunny, House, EditPen, Location, Postcard, Tools, DataLine, Collection, InfoFilled, Tickets
 } from '@element-plus/icons-vue'
-import { ElLoading, ElContainer, ElAside, ElMain, ElMenu, ElMenuItem, ElIcon, ElButton, ElDrawer } from 'element-plus'
+import { ElLoading, ElContainer, ElAside, ElMain, ElMenu, ElMenuItem, ElIcon, ElButton, ElDrawer ,ElDivider} from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch} from 'vue'
 import { useDark, useToggle, useWindowSize } from '@vueuse/core'
-import { getBetaFeaturesEnabled, getUseOldSidebar } from '@/utils/localStorageUtils'
+import { getBetaFeaturesEnabled, getUseOldSidebar, getVisibleSidebarItems} from '@/utils/localStorageUtils'
+import { getIconComponent } from '@/config/menuConfig'
 import App_old from '@/pages/App_old.vue'
-import { provideOverflowControl } from '@/composables/useOverflowControl'
+import { provideOverflowControl } from '@/composables/useOverflowControl';
+import { usePersonalization } from '@/composables/usePersonalization';
 
 const { isOverflowHidden, setOverflowHidden } = provideOverflowControl();
 const route = useRoute();
@@ -173,6 +96,22 @@ const toggleDark = useToggle(isDark)
 const useOldSidebar = ref(true)
 const { width } = useWindowSize()
 const isCollapse = ref(false)
+const userToggledCollapse = ref(false); // 新增：用于跟踪用户手动折叠的状态
+const { autoExpandSidebar, allowBodyScroll,refreshSidebarConfig } = usePersonalization();
+
+// 动态生成菜单项 - 响应式更新
+const mainMenuItems = computed(() => {
+  // 依赖 sidebarConfig.value 来触发响应式更新
+  // const configLastUpdated = sidebarConfig.value.lastUpdated;
+  const visibleItems = getVisibleSidebarItems();
+  return visibleItems.map(item => ({
+    index: item.route,
+    icon: getIconComponent(item.icon),
+    title: item.title,
+    beta: item.beta || false
+  }));
+});
+
 const sidebarWidth = computed(() => (isCollapse.value ? '64px' : '200px'))
 const drawerVisible = ref(false)
 const isMobile = computed(() => width.value < 1024)
@@ -180,7 +119,22 @@ const toggleSidebar = () => {
   if (isMobile.value) {
     drawerVisible.value = !drawerVisible.value
   } else {
-    isCollapse.value = !isCollapse.value
+    userToggledCollapse.value = !userToggledCollapse.value;
+    isCollapse.value = userToggledCollapse.value;
+  }
+}
+
+// 新增：处理鼠标移入事件
+const handleMouseEnter = () => {
+  if (userToggledCollapse.value && !isMobile.value && autoExpandSidebar.value) {
+    isCollapse.value = false;
+  }
+}
+
+// 新增：处理鼠标移出事件
+const handleMouseLeave = () => {
+  if (userToggledCollapse.value && !isMobile.value && autoExpandSidebar.value) {
+    isCollapse.value = true;
   }
 }
 const betaFeaturesEnabled = ref(false)
@@ -196,7 +150,11 @@ watch([() => route.path, isMobile], ([newPath, mobile]) => {
     setOverflowHidden(false);
     return;
   }
-  const overflowHiddenRoutes = ['/worldbook', '/ejs-editor' , '/about' , '/world'];
+  if (allowBodyScroll.value) {
+    setOverflowHidden(false);
+    return;
+  }
+  const overflowHiddenRoutes = ['/worldbook', '/ejs-editor' , '/world'];
   if (overflowHiddenRoutes.includes(newPath)) {
     setOverflowHidden(true);
   } else {
@@ -226,16 +184,27 @@ router.afterEach(() => {
 })
 
 
+// 监听侧边栏配置变化的自定义事件
+const handleSidebarConfigChange = () => {
+  refreshSidebarConfig();
+};
+
 onMounted(() => {
   betaFeaturesEnabled.value = getBetaFeaturesEnabled()
   useOldSidebar.value = getUseOldSidebar()
+  refreshSidebarConfig() // 刷新侧边栏配置
   window.addEventListener('betaFeaturesToggle', handleBetaFeaturesToggle as EventListener)
+  window.addEventListener('sidebarConfigChange', handleSidebarConfigChange as EventListener)
   // 根据初始屏幕尺寸设置侧边栏状态
-  isCollapse.value = isMobile.value
+  // 根据初始屏幕尺寸设置侧边栏状态
+  const initialCollapse = isMobile.value;
+  isCollapse.value = initialCollapse;
+  userToggledCollapse.value = initialCollapse;
 })
 
 onUnmounted(() => {
   window.removeEventListener('betaFeaturesToggle', handleBetaFeaturesToggle as EventListener)
+  window.removeEventListener('sidebarConfigChange', handleSidebarConfigChange as EventListener)
 })
 </script>
 
@@ -300,6 +269,65 @@ onUnmounted(() => {
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
+}
+
+/* 自定义菜单项样式 */
+.custom-menu-item {
+  display: flex;
+  align-items: center;
+  height: 56px;
+  padding: 0 20px;
+  cursor: pointer;
+  color: var(--el-text-color-primary);
+  font-size: 14px;
+  line-height: 56px;
+  position: relative;
+  transition: all 0.3s ease;
+  border-radius: 0;
+  box-sizing: border-box;
+  margin-left: 5px;
+}
+
+.custom-menu-item:hover {
+  background-color: var(--el-menu-hover-bg-color);
+  color: var(--el-menu-hover-text-color);
+}
+
+.custom-menu-item:active {
+  background-color: var(--el-menu-active-color);
+}
+
+.custom-menu-item .el-icon {
+  margin-right: 10px;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 7px;
+}
+
+.custom-menu-item span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+/* 折叠状态下的样式调整 */
+.el-menu--collapse .custom-menu-item {
+  padding: 0 20px;
+  justify-content: center;
+  margin-left: 0px;
+}
+
+.el-menu--collapse .custom-menu-item .el-icon {
+  margin-right: 0;
+}
+
+.el-menu--collapse .custom-menu-item span {
+  display: none;
 }
 
 

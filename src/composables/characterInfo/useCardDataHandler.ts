@@ -73,7 +73,7 @@ const processAccessories = (accessories: string | string[]): string[] => {
  * @param parsedData - 解析后的JSON数据
  * @returns 转换后的角色卡数据
  */
-const processLoadedData = (parsedData: any): CharacterCard => {
+export const processLoadedData = (parsedData: any): CharacterCard => {
 
   // 简化外观数据处理逻辑
   // 直接使用导入文件中的 appearance 对象，如果不存在则为空对象
@@ -128,16 +128,28 @@ const processLoadedData = (parsedData: any): CharacterCard => {
     }))
     : [];
 
+  // 4位数字ID生成器 (1000-9999)
+  const generateNoteId = (): number => {
+    const existingIds = new Set(notes.map(note => note.id));
+    let newId: number;
+    do {
+      newId = Math.floor(Math.random() * 9000) + 1000; // 1000-9999
+    } while (existingIds.has(newId));
+    return newId;
+  };
+
   // 处理角色备注
   let notes: Note[] = [];
   if (parsedData.notes) {
     if (Array.isArray(parsedData.notes)) {
       notes = parsedData.notes.map((note: any) => ({
+        id: note.id || generateNoteId(),
         name: note.name || '',
         data: Array.isArray(note.data) ? note.data : ['']
       }));
     } else if (typeof parsedData.notes === 'object') {
       notes = Object.values(parsedData.notes).map((note: any) => ({
+        id: note.id || generateNoteId(),
         name: note.name || '',
         data: Array.isArray(note.data) ? note.data : ['']
       }));
@@ -197,15 +209,16 @@ const saveCharacterCard = async (): Promise<void> => {
     })) || [];
 
     // 处理原始数据
-    const processedNotes = characterToExport.notes?.reduce((acc: Record<string, { name: string; data: string[] }>, note: Note) => {
+    const processedNotes = characterToExport.notes?.reduce((acc: Record<string, { id: number; name: string; data: string[] }>, note: Note) => {
       if (note.name) {
         acc[`{{${note.name}}}`] = {
+          id: note.id,
           name: note.name,
           data: note.data.filter((d: string) => d.trim() !== '')
         };
       }
       return acc;
-    }, {} as Record<string, { name: string; data: string[] }>) || {};
+    }, {} as Record<string, { id: number; name: string; data: string[] }>) || {};
 
     const rawData = {
       ...characterToExport,
@@ -265,15 +278,22 @@ const saveCharacterCard = async (): Promise<void> => {
 
           // 处理数据并更新表单
           const convertedData = processLoadedData(parsedData);
+
+          // 保留当前角色的 ID，确保导入数据能正确更新现有角色
+          const currentId = form.value.id;
+          convertedData.id = currentId;
+
           form.value = convertedData;
 
           ElMessage.success('角色卡加载成功！');
         } catch (error) {
+          console.error('JSON文件导入失败:', error);
           ElMessage.error(`加载失败：${error instanceof Error ? error.message : '未知错误'}`);
         }
       };
       input.click();
     } catch (error) {
+      console.error('JSON文件导入外层错误:', error);
       ElMessage.error(`加载失败：${error instanceof Error ? error.message : '未知错误'}`);
     }
   };
@@ -331,15 +351,16 @@ const saveCharacterCard = async (): Promise<void> => {
     })) || [];
 
     // 处理原始数据
-    const processedNotes = characterToExport.notes?.reduce((acc: Record<string, { name: string; data: string[] }>, note: Note) => {
+    const processedNotes = characterToExport.notes?.reduce((acc: Record<string, { id: number; name: string; data: string[] }>, note: Note) => {
       if (note.name) {
         acc[`{{${note.name}}}`] = {
+          id: note.id,
           name: note.name,
           data: note.data.filter((d: string) => d.trim() !== '')
         };
       }
       return acc;
-    }, {} as Record<string, { name: string; data: string[] }>) || {};
+    }, {} as Record<string, { id: number; name: string; data: string[] }>) || {};
 
     const rawData = {
       ...characterToExport,
@@ -368,6 +389,9 @@ const saveCharacterCard = async (): Promise<void> => {
 
   const importFromClipboard = async (data: string): Promise<void> => {
     try {
+      // 保存当前角色的 ID
+      const currentId = form.value.id;
+
       // 先重置表单
       form.value = createDefaultCharacterCard();
 
@@ -380,11 +404,16 @@ const saveCharacterCard = async (): Promise<void> => {
 
       // 处理数据并更新表单
       const convertedData = processLoadedData(parsedData);
+
+      // 保留当前角色的 ID，确保导入数据能正确更新现有角色
+      convertedData.id = currentId;
+
       form.value = convertedData;
+
       ElMessage.success('从剪贴板导入成功！');
     } catch (error) {
+      console.error('剪贴板导入失败:', error);
       ElMessage.error(`导入失败：${error instanceof Error ? error.message : '未知错误'}`);
-      console.error('从剪贴板导入时出错:', error);
     }
   };
 
