@@ -74,11 +74,6 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // Element Plus 相关
-          if (id.includes('element-plus')) {
-            return 'element-plus';
-          }
-
           // 编辑器相关 (CodeMirror)
           if (id.includes('codemirror') || id.includes('@codemirror')) {
             return 'codemirror';
@@ -88,7 +83,7 @@ export default defineConfig({
           if (id.includes('vue') && !id.includes('node_modules/vue/')) {
             return 'vue-ecosystem';
           }
-          if (id.includes('vue-router') || id.includes('pinia') || id.includes('@vueuse')) {
+          if (id.includes('vue-router') || id.includes('pinia') || id.includes('@vueuse') || id.includes('element-plus')) {
             return 'vue-ecosystem';
           }
 

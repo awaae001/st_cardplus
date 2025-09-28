@@ -63,7 +63,8 @@
           </div>
         </div>
         <p class="setting-description" style="margin-top: 12px;">
-          将数据备份到你的 WebDAV 服务器 这将会上传一个包含所有设置、角色卡和项目的单一备份文件
+          将数据备份到你的 WebDAV 服务器 这将会上传一个包含所有设置、角色卡和项目的单一备份文件<br/>
+          请注意前端该死的跨域问题，尽量使用自建服务
         </p>
       </div>
     </div>
