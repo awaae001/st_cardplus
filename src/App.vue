@@ -285,7 +285,7 @@ onUnmounted(() => {
   transition: all 0.3s ease;
   border-radius: 0;
   box-sizing: border-box;
-  margin-left: 5px;
+  /* margin-left: 5px; */
 }
 
 .custom-menu-item:hover {
@@ -313,6 +313,7 @@ onUnmounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   flex: 1;
+  margin-left: 5px;
 }
 
 /* 折叠状态下的样式调整 */

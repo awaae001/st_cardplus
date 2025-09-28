@@ -70,23 +70,73 @@ export default defineConfig({
   build: {
     outDir: 'dist', // 打包输出目录
     minify: 'terser', // 使用terser进行更严格的minify
-    cssCodeSplit: false, // 禁用CSS代码分割以避免加载顺序问题
+    cssCodeSplit: true, // 启用CSS代码分割
     rollupOptions: {
       output: {
         manualChunks(id) {
+          // Element Plus 相关
+          if (id.includes('element-plus')) {
+            return 'element-plus';
+          }
+
+          // 编辑器相关 (CodeMirror)
+          if (id.includes('codemirror') || id.includes('@codemirror')) {
+            return 'codemirror';
+          }
+
+          // Vue 生态系统
+          if (id.includes('vue') && !id.includes('node_modules/vue/')) {
+            return 'vue-ecosystem';
+          }
+          if (id.includes('vue-router') || id.includes('pinia') || id.includes('@vueuse')) {
+            return 'vue-ecosystem';
+          }
+
+          // 工具库
+          if (id.includes('js-yaml') || id.includes('file-saver') || id.includes('uuid') ||
+              id.includes('js-base64') || id.includes('ejs') || id.includes('webdav')) {
+            return 'utils';
+          }
+
+          // 图像处理
+          if (id.includes('exifreader') || id.includes('png-chunk') || id.includes('crc')) {
+            return 'image-utils';
+          }
+
+          // Iconify 图标
+          if (id.includes('@iconify')) {
+            return 'iconify';
+          }
+
+          // Tailwind CSS
+          if (id.includes('tailwindcss')) {
+            return 'tailwind';
+          }
+
+          // 拖拽相关
+          if (id.includes('vuedraggable') || id.includes('splitpanes')) {
+            return 'ui-components';
+          }
+
+          // 数据库相关
+          if (id.includes('dexie')) {
+            return 'database';
+          }
+
+          // 其他第三方库
           if (id.includes('node_modules')) {
-            return 'vendor'; // 将所有依赖项打包到一个 vendor chunk 中
+            return 'vendor';
           }
         },
         chunkFileNames: 'assets/[name]-[hash].js', // 分割后的文件命名规则
       },
       external: [], // 确保不排除 Vue
     },
-    chunkSizeWarningLimit: 1000, 
+    chunkSizeWarningLimit: 1000, // 降低警告阈值到1000KB
     sourcemap: false,
     terserOptions: {
       compress: {
-        drop_console: true, 
+        drop_console: true,
         drop_debugger: true, // 移除debugger
       },
     },
