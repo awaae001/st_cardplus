@@ -47,6 +47,12 @@ const router = createRouter({
       meta: { title: '工具箱' }
     },
     {
+      path: '/migration',
+      name: 'migration',
+      component: () => import('../pages/Migration.vue'),
+      meta: { title: '数据库迁移助手' }
+    },
+    {
       path: '/toolbox/json-formatter',
       name: 'jsonFormatter',
       component: () => import('../components/toolsbox/JsonFormatter.vue'),

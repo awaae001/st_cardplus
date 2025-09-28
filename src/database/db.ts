@@ -26,9 +26,10 @@ export interface StoredCharacterCard {
 }
 
 /**
- * 定义 Dexie 数据库类
+ * 定义应用主数据库类
+ * 包含世界书、角色卡等所有应用数据
  */
-export class WorldBookDatabase extends Dexie {
+export class AppDatabase extends Dexie {
   /**
    * `books` 表，用于存储世界书的元数据
    * 主键是 `id` (string, UUID)
@@ -52,7 +53,7 @@ export class WorldBookDatabase extends Dexie {
   characterCards!: Table<StoredCharacterCard, string>;
 
   constructor() {
-    super('worldBookDatabase');
+    super('appDatabase');
     this.version(1).stores({
       books: '&id, name, order, updatedAt',
       entries: '++id, bookId, uid',
@@ -68,4 +69,4 @@ export class WorldBookDatabase extends Dexie {
 }
 
 // 导出数据库的单例
-export const db = new WorldBookDatabase();
+export const db = new AppDatabase();
