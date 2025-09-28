@@ -28,12 +28,16 @@
         <p class="setting-description">默认情况下，为了确保布局稳定，页面主体是禁止滚动的<br/>如果您需要滚动整个页面，请打开此开关</p>
       </div>
     </div>
+
+    <!-- 侧边栏管理组件 -->
+    <SidebarManagement />
   </div>
 </template>
 
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
 import { usePersonalization } from '@/composables/usePersonalization';
+import SidebarManagement from './SidebarManagement.vue';
 
 const { autoExpandSidebar, onAutoExpandSidebarToggle, allowBodyScroll, onAllowBodyScrollToggle } = usePersonalization();
 </script>

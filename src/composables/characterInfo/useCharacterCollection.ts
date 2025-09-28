@@ -1,4 +1,4 @@
-import { ref, computed, watch, onMounted, nextTick } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import {
   saveToLocalStorage as saveToLS,
@@ -54,10 +54,8 @@ export function useCharacterCollection() {
   watch(
     characterCollection,
     () => {
-      // 使用nextTick延迟存储，避免阻塞响应式更新
-      nextTick(() => {
-        saveCharactersToLocalStorage();
-      });
+      // 立即保存，确保数据持久化
+      saveCharactersToLocalStorage();
     },
     { deep: true }
   );
@@ -89,17 +87,15 @@ export function useCharacterCollection() {
         chineseName: characterName,
       };
 
-      // 使用响应式更新，确保UI立即更新
-      nextTick(() => {
-        characterCollection.value = {
-          ...characterCollection.value,
-          characters: {
-            ...characterCollection.value.characters,
-            [newId]: newCharacter
-          },
-          activeCharacterId: newId
-        };
-      });
+      // 立即更新characterCollection，避免时序问题
+      characterCollection.value = {
+        ...characterCollection.value,
+        characters: {
+          ...characterCollection.value.characters,
+          [newId]: newCharacter
+        },
+        activeCharacterId: newId
+      };
 
       ElMessage.success(`角色 "${characterName}" 已创建！`);
 
@@ -138,13 +134,12 @@ export function useCharacterCollection() {
         ? Object.keys(remainingCharacters)[0] || null 
         : characterCollection.value.activeCharacterId;
 
-      nextTick(() => {
-        characterCollection.value = {
-          ...characterCollection.value,
-          characters: remainingCharacters,
-          activeCharacterId: newActiveId
-        };
-      });
+      // 立即更新characterCollection，避免时序问题
+      characterCollection.value = {
+        ...characterCollection.value,
+        characters: remainingCharacters,
+        activeCharacterId: newActiveId
+      };
 
       ElMessage.success(`角色 "${character.chineseName}" 已删除 `);
 
@@ -185,17 +180,15 @@ export function useCharacterCollection() {
           newCharacter.chineseName = importedData.name || newCharacter.japaneseName || '未命名角色';
         }
 
-        // 使用响应式更新，确保UI立即更新
-        nextTick(() => {
-          characterCollection.value = {
-            ...characterCollection.value,
-            characters: {
-              ...characterCollection.value.characters,
-              [newId]: newCharacter,
-            },
-            activeCharacterId: newId,
-          };
-        });
+        // 立即更新characterCollection，避免时序问题
+        characterCollection.value = {
+          ...characterCollection.value,
+          characters: {
+            ...characterCollection.value.characters,
+            [newId]: newCharacter,
+          },
+          activeCharacterId: newId,
+        };
 
         ElMessage.success(`角色 "${newCharacter.chineseName}" 已成功导入！`);
       } catch (error) {
@@ -211,8 +204,21 @@ export function useCharacterCollection() {
 
   const updateCharacter = (characterId: string, updatedData: CharacterCard) => {
     if (characterCollection.value.characters[characterId]) {
-      // 深度克隆更新数据，避免引用共享问题
-      characterCollection.value.characters[characterId] = JSON.parse(JSON.stringify(updatedData));
+      // 使用整体替换来确保Vue能正确检测到变化
+      const updatedCharacters = {
+        ...characterCollection.value.characters,
+        [characterId]: JSON.parse(JSON.stringify(updatedData))
+      };
+
+      characterCollection.value = {
+        ...characterCollection.value,
+        characters: updatedCharacters
+      };
+
+      // 强制触发保存，确保数据持久化
+      saveCharactersToLocalStorage();
+    } else {
+      console.error('updateCharacter: 角色不存在', characterId, '当前角色:', Object.keys(characterCollection.value.characters));
     }
   };
 

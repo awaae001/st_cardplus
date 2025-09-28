@@ -5,7 +5,9 @@ import {
   getAllowBodyScroll, setAllowBodyScroll,
   getUseOldSidebar, setUseOldSidebar,
   getUseOldCharCardEditor, setUseOldCharCardEditor,
-  getUseOldWorldEditor, setUseOldWorldEditor
+  getUseOldWorldEditor, setUseOldWorldEditor,
+  getSidebarConfig, setSidebarConfig,
+  type SidebarConfig
 } from '@/utils/localStorageUtils';
 import { watchEffect } from 'vue';
 
@@ -15,6 +17,7 @@ export function usePersonalization() {
   const useOldSidebar = ref(true);
   const useOldCharCardEditor = ref(false);
   const useOldWorldEditor = ref(false);
+  const sidebarConfig = ref<SidebarConfig>(getSidebarConfig());
 
   const createReloadConfirm = (setter: (value: boolean) => void) => (value: boolean) => {
     setter(value);
@@ -55,12 +58,23 @@ export function usePersonalization() {
   const onUseOldCharCardEditorToggle = createReloadConfirm(setUseOldCharCardEditor);
   const onUseOldWorldEditorToggle = createReloadConfirm(setUseOldWorldEditor);
 
+  // 侧边栏配置相关方法
+  const refreshSidebarConfig = () => {
+    sidebarConfig.value = getSidebarConfig();
+  };
+
+  const updateSidebarConfig = (config: SidebarConfig) => {
+    setSidebarConfig(config);
+    refreshSidebarConfig();
+  };
+
   onMounted(() => {
     autoExpandSidebar.value = getAutoExpandSidebar();
     allowBodyScroll.value = getAllowBodyScroll();
     useOldSidebar.value = getUseOldSidebar();
     useOldCharCardEditor.value = getUseOldCharCardEditor();
     useOldWorldEditor.value = getUseOldWorldEditor();
+    refreshSidebarConfig();
   });
 
   watchEffect(() => {
@@ -82,5 +96,8 @@ export function usePersonalization() {
     onUseOldCharCardEditorToggle,
     useOldWorldEditor,
     onUseOldWorldEditorToggle,
+    sidebarConfig,
+    refreshSidebarConfig,
+    updateSidebarConfig,
   };
 }

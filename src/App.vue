@@ -81,9 +81,10 @@ import {
 } from '@element-plus/icons-vue'
 import { ElLoading, ElContainer, ElAside, ElMain, ElMenu, ElMenuItem, ElIcon, ElButton, ElDrawer ,ElDivider} from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
-import { ref, onMounted, onUnmounted, computed, watch, markRaw } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch, markRaw, watchEffect } from 'vue'
 import { useDark, useToggle, useWindowSize } from '@vueuse/core'
-import { getBetaFeaturesEnabled, getUseOldSidebar } from '@/utils/localStorageUtils'
+import { getBetaFeaturesEnabled, getUseOldSidebar, getVisibleSidebarItems, type MenuItemConfig } from '@/utils/localStorageUtils'
+import { getIconComponent } from '@/config/menuConfig'
 import App_old from '@/pages/App_old.vue'
 import { provideOverflowControl } from '@/composables/useOverflowControl';
 import { usePersonalization } from '@/composables/usePersonalization';
@@ -96,17 +97,20 @@ const useOldSidebar = ref(true)
 const { width } = useWindowSize()
 const isCollapse = ref(false)
 const userToggledCollapse = ref(false); // 新增：用于跟踪用户手动折叠的状态
-const { autoExpandSidebar, allowBodyScroll } = usePersonalization();
-const mainMenuItems = ref([
-  { index: '/', icon: markRaw(House), title: '首页' },
-  { index: '/cardinfo', icon: markRaw(EditPen), title: '角色信息' },
-  { index: '/world', icon: markRaw(Location), title: '世界地标' },
-  { index: '/cardmanager', icon: markRaw(Postcard), title: '角色卡快搭' },
-  { index: '/ejs-editor', icon: markRaw(DataLine), title: 'EJS模板 · 测试版', beta: true },
-  { index: '/worldbook', icon: markRaw(Collection), title: '世界书 · 测试版', beta: true },
-  { index: '/regex-editor', icon: markRaw(Tickets), title: '正则编辑器 · 测试版', beta: true },
-  { index: '/toolbox', icon: markRaw(Tools), title: '工具箱' },
-]);
+const { autoExpandSidebar, allowBodyScroll, sidebarConfig, refreshSidebarConfig } = usePersonalization();
+
+// 动态生成菜单项 - 响应式更新
+const mainMenuItems = computed(() => {
+  // 依赖 sidebarConfig.value 来触发响应式更新
+  const configLastUpdated = sidebarConfig.value.lastUpdated;
+  const visibleItems = getVisibleSidebarItems();
+  return visibleItems.map(item => ({
+    index: item.route,
+    icon: getIconComponent(item.icon),
+    title: item.title,
+    beta: item.beta || false
+  }));
+});
 
 const sidebarWidth = computed(() => (isCollapse.value ? '64px' : '200px'))
 const drawerVisible = ref(false)
@@ -180,10 +184,17 @@ router.afterEach(() => {
 })
 
 
+// 监听侧边栏配置变化的自定义事件
+const handleSidebarConfigChange = () => {
+  refreshSidebarConfig();
+};
+
 onMounted(() => {
   betaFeaturesEnabled.value = getBetaFeaturesEnabled()
   useOldSidebar.value = getUseOldSidebar()
+  refreshSidebarConfig() // 刷新侧边栏配置
   window.addEventListener('betaFeaturesToggle', handleBetaFeaturesToggle as EventListener)
+  window.addEventListener('sidebarConfigChange', handleSidebarConfigChange as EventListener)
   // 根据初始屏幕尺寸设置侧边栏状态
   // 根据初始屏幕尺寸设置侧边栏状态
   const initialCollapse = isMobile.value;
@@ -193,6 +204,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('betaFeaturesToggle', handleBetaFeaturesToggle as EventListener)
+  window.removeEventListener('sidebarConfigChange', handleSidebarConfigChange as EventListener)
 })
 </script>
 

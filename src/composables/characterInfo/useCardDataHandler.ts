@@ -278,15 +278,22 @@ const saveCharacterCard = async (): Promise<void> => {
 
           // 处理数据并更新表单
           const convertedData = processLoadedData(parsedData);
+
+          // 保留当前角色的 ID，确保导入数据能正确更新现有角色
+          const currentId = form.value.id;
+          convertedData.id = currentId;
+
           form.value = convertedData;
 
           ElMessage.success('角色卡加载成功！');
         } catch (error) {
+          console.error('JSON文件导入失败:', error);
           ElMessage.error(`加载失败：${error instanceof Error ? error.message : '未知错误'}`);
         }
       };
       input.click();
     } catch (error) {
+      console.error('JSON文件导入外层错误:', error);
       ElMessage.error(`加载失败：${error instanceof Error ? error.message : '未知错误'}`);
     }
   };
@@ -382,6 +389,9 @@ const saveCharacterCard = async (): Promise<void> => {
 
   const importFromClipboard = async (data: string): Promise<void> => {
     try {
+      // 保存当前角色的 ID
+      const currentId = form.value.id;
+
       // 先重置表单
       form.value = createDefaultCharacterCard();
 
@@ -394,11 +404,16 @@ const saveCharacterCard = async (): Promise<void> => {
 
       // 处理数据并更新表单
       const convertedData = processLoadedData(parsedData);
+
+      // 保留当前角色的 ID，确保导入数据能正确更新现有角色
+      convertedData.id = currentId;
+
       form.value = convertedData;
+
       ElMessage.success('从剪贴板导入成功！');
     } catch (error) {
+      console.error('剪贴板导入失败:', error);
       ElMessage.error(`导入失败：${error instanceof Error ? error.message : '未知错误'}`);
-      console.error('从剪贴板导入时出错:', error);
     }
   };
 

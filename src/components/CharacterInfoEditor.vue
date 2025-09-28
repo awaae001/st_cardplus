@@ -133,15 +133,26 @@ watch(() => props.character, (newCharacter) => {
     nextTick(() => {
       isUpdatingFromProps = false;
     });
+  } else if (newCharacter && newCharacter.id === form.value.id) {
+    // 相同角色但数据不同，可能是外部更新，需要同步（但要避免覆盖用户正在编辑的内容）
+    const currentFormJson = JSON.stringify(form.value);
+    const newCharacterJson = JSON.stringify(newCharacter);
+    if (currentFormJson !== newCharacterJson) {
+      // 检查是否有实质性差异，如果有则更新
+      isUpdatingFromProps = true;
+      form.value = JSON.parse(JSON.stringify(newCharacter));
+      nextTick(() => {
+        isUpdatingFromProps = false;
+      });
+    }
   }
 }, { deep: true, immediate: true });
 
 // 监听本地form变化，同步到父组件
 watch(form, (updatedCharacter) => {
   if (!isUpdatingFromProps) {
-    nextTick(() => {
-      emit('update:character', JSON.parse(JSON.stringify(updatedCharacter))); // 深度克隆
-    });
+    // 立即同步到父组件，避免时序问题
+    emit('update:character', JSON.parse(JSON.stringify(updatedCharacter))); // 深度克隆
   }
 }, { deep: true });
 

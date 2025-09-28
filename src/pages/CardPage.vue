@@ -119,6 +119,8 @@ const characters = computed(() => Object.values(characterCollection.value.charac
 const handleUpdateCharacter = (updatedCharacter: any) => {
   if (updatedCharacter && updatedCharacter.id) {
     updateCharacter(updatedCharacter.id, updatedCharacter);
+  } else {
+    console.warn('角色更新失败：无效的角色数据或缺少ID', updatedCharacter);
   }
 };
 

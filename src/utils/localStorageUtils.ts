@@ -1,6 +1,18 @@
 // --- Settings Management ---
 
+import {
+  type MenuItemConfig,
+  type MenuItemType,
+  type SidebarConfig,
+  createDefaultSidebarConfig,
+  validateMenuConfig,
+  migrateMenuConfig
+} from '@/config/menuConfig';
+
 const SETTINGS_KEY = 'settings';
+
+// 重新导出类型供其他模块使用
+export type { MenuItemConfig, MenuItemType, SidebarConfig };
 
 interface AppSettings {
   betaFeaturesEnabled: boolean;
@@ -11,7 +23,10 @@ interface AppSettings {
   useOldWorldEditor: boolean;
   autoExpandSidebar: boolean;
   allowBodyScroll: boolean;
+  sidebarConfig: SidebarConfig;
 }
+
+// 使用统一配置文件中的默认配置
 
 const defaultSettings: AppSettings = {
   betaFeaturesEnabled: false,
@@ -22,6 +37,7 @@ const defaultSettings: AppSettings = {
   useOldWorldEditor: false,
   autoExpandSidebar: false,
   allowBodyScroll: false,
+  sidebarConfig: createDefaultSidebarConfig(),
 };
 
 /**
@@ -33,8 +49,23 @@ const getSettings = (): AppSettings => {
     const savedSettings = localStorage.getItem(SETTINGS_KEY);
     if (savedSettings) {
       const parsed = JSON.parse(savedSettings);
+
+      // 处理侧边栏配置的迁移和验证
+      let sidebarConfig = parsed.sidebarConfig;
+      if (!sidebarConfig || !validateMenuConfig(sidebarConfig)) {
+        console.log('侧边栏配置无效或不存在，使用默认配置');
+        sidebarConfig = createDefaultSidebarConfig();
+      } else {
+        // 尝试迁移配置以确保包含所有新功能
+        sidebarConfig = migrateMenuConfig(sidebarConfig);
+      }
+
       // Merge with defaults to ensure all keys are present and handle migrations
-      return { ...defaultSettings, ...parsed };
+      return {
+        ...defaultSettings,
+        ...parsed,
+        sidebarConfig
+      };
     }
   } catch (error) {
     console.error('从本地存储加载设置失败:', error);
@@ -269,4 +300,101 @@ export const initAutoSave = (
  */
 export const clearAutoSave = (timerId: number) => {
   clearInterval(timerId);
+};
+
+// --- Sidebar Configuration Management ---
+
+/**
+ * 获取侧边栏配置
+ * @returns 侧边栏配置
+ */
+export const getSidebarConfig = (): SidebarConfig => {
+  return getSettings().sidebarConfig;
+};
+
+/**
+ * 保存侧边栏配置
+ * @param config - 侧边栏配置
+ */
+export const setSidebarConfig = (config: SidebarConfig) => {
+  const updatedConfig = {
+    ...config,
+    lastUpdated: Date.now()
+  };
+  saveSettings({ sidebarConfig: updatedConfig });
+  console.log('侧边栏配置已保存');
+
+  // 发送自定义事件通知配置已更新
+  const event = new CustomEvent('sidebarConfigChange', { detail: updatedConfig });
+  window.dispatchEvent(event);
+};
+
+/**
+ * 获取可见的侧边栏菜单项（按顺序排列）
+ * @returns 可见的菜单项数组
+ */
+export const getVisibleSidebarItems = (): MenuItemConfig[] => {
+  const config = getSidebarConfig();
+  return config.items
+    .filter(item => item.visible)
+    .sort((a, b) => a.order - b.order);
+};
+
+/**
+ * 获取隐藏的菜单项（用于工具箱显示）
+ * @returns 隐藏的菜单项数组
+ */
+export const getHiddenMenuItems = (): MenuItemConfig[] => {
+  const config = getSidebarConfig();
+  return config.items
+    .filter(item => !item.visible)
+    .sort((a, b) => a.order - b.order);
+};
+
+/**
+ * 更新菜单项的可见性
+ * @param itemId - 菜单项ID
+ * @param visible - 是否可见
+ */
+export const updateMenuItemVisibility = (itemId: string, visible: boolean) => {
+  const config = getSidebarConfig();
+  const itemIndex = config.items.findIndex(item => item.id === itemId);
+
+  if (itemIndex !== -1) {
+    const item = config.items[itemIndex];
+    // 检查是否为固定项目，固定项目不能隐藏
+    if (item.fixed && !visible) {
+      console.warn(`Cannot hide fixed menu item: ${item.title}`);
+      return;
+    }
+    config.items[itemIndex].visible = visible;
+    setSidebarConfig(config);
+  }
+};
+
+/**
+ * 更新菜单项顺序
+ * @param items - 重新排序后的菜单项数组
+ */
+export const updateMenuItemsOrder = (items: MenuItemConfig[]) => {
+  const config = getSidebarConfig();
+
+  // 更新顺序
+  items.forEach((item, index) => {
+    const existingItemIndex = config.items.findIndex(configItem => configItem.id === item.id);
+    if (existingItemIndex !== -1) {
+      config.items[existingItemIndex].order = index;
+    }
+  });
+
+  setSidebarConfig(config);
+};
+
+/**
+ * 重置侧边栏配置为默认值
+ */
+export const resetSidebarConfig = () => {
+  const defaultConfig = createDefaultSidebarConfig();
+  setSidebarConfig(defaultConfig);
+  console.log('侧边栏配置已重置为默认值');
 };
