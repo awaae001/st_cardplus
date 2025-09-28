@@ -14,7 +14,7 @@ import { watchEffect } from 'vue';
 export function usePersonalization() {
   const autoExpandSidebar = ref(false);
   const allowBodyScroll = ref(false);
-  const useOldSidebar = ref(true);
+  const useOldSidebar = ref(false);
   const useOldCharCardEditor = ref(false);
   const useOldWorldEditor = ref(false);
   const sidebarConfig = ref<SidebarConfig>(getSidebarConfig());

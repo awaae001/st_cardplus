@@ -32,7 +32,7 @@ const defaultSettings: AppSettings = {
   betaFeaturesEnabled: false,
   umamiEnabled: true,
   autoSaveInterval: 5,
-  useOldSidebar: true,
+  useOldSidebar: false,
   useOldCharCardEditor: false,
   useOldWorldEditor: false,
   autoExpandSidebar: false,

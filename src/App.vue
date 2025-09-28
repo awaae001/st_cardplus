@@ -81,9 +81,9 @@ import {
 } from '@element-plus/icons-vue'
 import { ElLoading, ElContainer, ElAside, ElMain, ElMenu, ElMenuItem, ElIcon, ElButton, ElDrawer ,ElDivider} from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
-import { ref, onMounted, onUnmounted, computed, watch, markRaw, watchEffect } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch} from 'vue'
 import { useDark, useToggle, useWindowSize } from '@vueuse/core'
-import { getBetaFeaturesEnabled, getUseOldSidebar, getVisibleSidebarItems, type MenuItemConfig } from '@/utils/localStorageUtils'
+import { getBetaFeaturesEnabled, getUseOldSidebar, getVisibleSidebarItems} from '@/utils/localStorageUtils'
 import { getIconComponent } from '@/config/menuConfig'
 import App_old from '@/pages/App_old.vue'
 import { provideOverflowControl } from '@/composables/useOverflowControl';
@@ -97,12 +97,12 @@ const useOldSidebar = ref(true)
 const { width } = useWindowSize()
 const isCollapse = ref(false)
 const userToggledCollapse = ref(false); // 新增：用于跟踪用户手动折叠的状态
-const { autoExpandSidebar, allowBodyScroll, sidebarConfig, refreshSidebarConfig } = usePersonalization();
+const { autoExpandSidebar, allowBodyScroll,refreshSidebarConfig } = usePersonalization();
 
 // 动态生成菜单项 - 响应式更新
 const mainMenuItems = computed(() => {
   // 依赖 sidebarConfig.value 来触发响应式更新
-  const configLastUpdated = sidebarConfig.value.lastUpdated;
+  // const configLastUpdated = sidebarConfig.value.lastUpdated;
   const visibleItems = getVisibleSidebarItems();
   return visibleItems.map(item => ({
     index: item.route,
@@ -305,6 +305,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-left: 7px;
 }
 
 .custom-menu-item span {
