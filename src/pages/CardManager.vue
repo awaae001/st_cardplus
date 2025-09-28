@@ -105,7 +105,7 @@ const handleSave = async () => {
 
   if (!characterImageFile.value) {
     console.warn('CardManager: No image file available for saving');
-    ElMessage.warning('请先加载或选择一张图片作为角色卡背景。');
+    ElMessage.warning('请先加载或选择一张图片作为角色卡背景');
     return;
   }
 

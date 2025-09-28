@@ -87,8 +87,7 @@
           </el-tab-pane>
           <el-tab-pane label="日常与笔记" name="notes">
             <DailyAndNotesTab :form="form" @update:form-likes="form.likes = $event"
-              @update:form-dislikes="form.dislikes = $event" @addNote="addNote" @removeNote="removeNote"
-              v-model:notes="form.notes" />
+              @update:form-dislikes="form.dislikes = $event" @update:notes="form.notes = $event" />
           </el-tab-pane>
         </el-tabs>
       </el-form>
@@ -120,21 +119,30 @@ const emit = defineEmits<{
 const activeTab = ref('appearance');
 const characterFormRef = ref<InstanceType<typeof ElForm> | null>(null);
 
-const form = ref({ ...props.character });
+const form = ref(JSON.parse(JSON.stringify(props.character)));
+
+// 防止循环更新的标志
+let isUpdatingFromProps = false;
 
 // 监听props变化，同步到本地form
 watch(() => props.character, (newCharacter) => {
   if (newCharacter && newCharacter.id !== form.value.id) {
     // 只在角色ID不同时才更新，避免循环更新
-    form.value = { ...newCharacter };
+    isUpdatingFromProps = true;
+    form.value = JSON.parse(JSON.stringify(newCharacter)); // 深度克隆
+    nextTick(() => {
+      isUpdatingFromProps = false;
+    });
   }
 }, { deep: true, immediate: true });
 
 // 监听本地form变化，同步到父组件
 watch(form, (updatedCharacter) => {
-  nextTick(() => {
-    emit('update:character', { ...updatedCharacter });
-  });
+  if (!isUpdatingFromProps) {
+    nextTick(() => {
+      emit('update:character', JSON.parse(JSON.stringify(updatedCharacter))); // 深度克隆
+    });
+  }
 }, { deep: true });
 
 const {

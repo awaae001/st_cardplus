@@ -7,6 +7,7 @@ import {
 import type { CharacterCard } from '../../types/character';
 import { v4 as uuidv4 } from 'uuid';
 import { createDefaultCharacterCard } from "./useCharacterCard";
+import { processLoadedData } from "./useCardDataHandler";
 
 const LOCAL_STORAGE_KEY_CHARACTER_MANAGER = "characterManagerData";
 
@@ -172,9 +173,10 @@ export function useCharacterCollection() {
         }
 
         const newId = uuidv4();
+        const processedData = processLoadedData(importedData);
         const newCharacter: CharacterCard = {
           ...createDefaultCharacterCard(),
-          ...importedData,
+          ...processedData,
           id: newId, // 始终分配新ID以避免冲突
         };
         
@@ -207,6 +209,13 @@ export function useCharacterCollection() {
     reader.readAsText(file);
   };
 
+  const updateCharacter = (characterId: string, updatedData: CharacterCard) => {
+    if (characterCollection.value.characters[characterId]) {
+      // 深度克隆更新数据，避免引用共享问题
+      characterCollection.value.characters[characterId] = JSON.parse(JSON.stringify(updatedData));
+    }
+  };
+
   return {
     characterCollection,
     activeCharacterId,
@@ -215,5 +224,6 @@ export function useCharacterCollection() {
     handleCreateCharacter,
     handleDeleteCharacter,
     handleImportCharacter,
+    updateCharacter,
   };
 }

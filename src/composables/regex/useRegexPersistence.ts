@@ -17,9 +17,9 @@ interface PersistentRegexState {
 }
 
 /**
- * 一个 Vue Composable，用于将正则表达式模拟器的状态持久化到本地存储。
- * @param stateRefs 包含组件中所有需要持久化的状态的 Ref 对象的字典。
- * @param createDefaultScript 一个函数，用于创建默认的脚本状态。
+ * 一个 Vue Composable，用于将正则表达式模拟器的状态持久化到本地存储
+ * @param stateRefs 包含组件中所有需要持久化的状态的 Ref 对象的字典
+ * @param createDefaultScript 一个函数，用于创建默认的脚本状态
  */
 export function useRegexPersistence(
   stateRefs: {
@@ -36,7 +36,7 @@ export function useRegexPersistence(
   let saveStateTimer: number | null = null;
 
   /**
-   * 从本地存储加载状态并应用到组件的 Ref 中。
+   * 从本地存储加载状态并应用到组件的 Ref 中
    */
   const loadState = () => {
     const savedState = loadFromLocalStorage(REGEX_SIMULATOR_STATE_KEY) as Partial<PersistentRegexState>;
@@ -60,7 +60,7 @@ export function useRegexPersistence(
   };
 
   /**
-   * 将当前状态保存到本地存储。
+   * 将当前状态保存到本地存储
    */
   const saveState = () => {
     const currentState: PersistentRegexState = {

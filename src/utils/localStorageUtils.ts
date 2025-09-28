@@ -10,6 +10,7 @@ interface AppSettings {
   useOldCharCardEditor: boolean;
   useOldWorldEditor: boolean;
   autoExpandSidebar: boolean;
+  allowBodyScroll: boolean;
 }
 
 const defaultSettings: AppSettings = {
@@ -20,6 +21,7 @@ const defaultSettings: AppSettings = {
   useOldCharCardEditor: false,
   useOldWorldEditor: false,
   autoExpandSidebar: false,
+  allowBodyScroll: false,
 };
 
 /**
@@ -176,6 +178,23 @@ export const getAutoExpandSidebar = (): boolean => {
 export const setAutoExpandSidebar = (enabled: boolean) => {
   saveSettings({ autoExpandSidebar: enabled });
   console.log('侧边栏自动展开设置已保存:', enabled);
+};
+
+/**
+ * 获取是否允许页面滚动
+ * @returns 是否允许页面滚动
+ */
+export const getAllowBodyScroll = (): boolean => {
+  return getSettings().allowBodyScroll;
+};
+
+/**
+ * 设置是否允许页面滚动
+ * @param enabled - 是否允许
+ */
+export const setAllowBodyScroll = (enabled: boolean) => {
+  saveSettings({ allowBodyScroll: enabled });
+  console.log('允许页面滚动设置已保存:', enabled);
 };
 
 

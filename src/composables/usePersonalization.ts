@@ -1,20 +1,86 @@
 import { ref, onMounted } from 'vue';
-import { getAutoExpandSidebar, setAutoExpandSidebar } from '@/utils/localStorageUtils';
+import { ElMessageBox } from 'element-plus';
+import {
+  getAutoExpandSidebar, setAutoExpandSidebar,
+  getAllowBodyScroll, setAllowBodyScroll,
+  getUseOldSidebar, setUseOldSidebar,
+  getUseOldCharCardEditor, setUseOldCharCardEditor,
+  getUseOldWorldEditor, setUseOldWorldEditor
+} from '@/utils/localStorageUtils';
+import { watchEffect } from 'vue';
 
 export function usePersonalization() {
   const autoExpandSidebar = ref(false);
+  const allowBodyScroll = ref(false);
+  const useOldSidebar = ref(true);
+  const useOldCharCardEditor = ref(false);
+  const useOldWorldEditor = ref(false);
+
+  const createReloadConfirm = (setter: (value: boolean) => void) => (value: boolean) => {
+    setter(value);
+    ElMessageBox.confirm(
+      '此设置将在您下次刷新页面 (Ctrl+R) 后生效 ',
+      '提示',
+      {
+        confirmButtonText: '立即刷新',
+        cancelButtonText: '稍后',
+        type: 'info',
+      }
+    ).then(() => {
+      window.location.reload();
+    });
+  };
 
   const onAutoExpandSidebarToggle = (value: boolean) => {
     setAutoExpandSidebar(value);
-    window.dispatchEvent(new CustomEvent('autoExpandSidebarToggle', { detail: value }));
+    ElMessageBox.confirm(
+      '此设置将在您下次刷新页面 (Ctrl+R) 后生效 ',
+      '提示',
+      {
+        confirmButtonText: '立即刷新',
+        cancelButtonText: '稍后',
+        type: 'info',
+      }
+    ).then(() => {
+      window.location.reload();
+    });
   };
+
+  const onAllowBodyScrollToggle = (value: boolean) => {
+    setAllowBodyScroll(value);
+    allowBodyScroll.value = value;
+  };
+
+  const onUseOldSidebarToggle = createReloadConfirm(setUseOldSidebar);
+  const onUseOldCharCardEditorToggle = createReloadConfirm(setUseOldCharCardEditor);
+  const onUseOldWorldEditorToggle = createReloadConfirm(setUseOldWorldEditor);
 
   onMounted(() => {
     autoExpandSidebar.value = getAutoExpandSidebar();
+    allowBodyScroll.value = getAllowBodyScroll();
+    useOldSidebar.value = getUseOldSidebar();
+    useOldCharCardEditor.value = getUseOldCharCardEditor();
+    useOldWorldEditor.value = getUseOldWorldEditor();
+  });
+
+  watchEffect(() => {
+    if (allowBodyScroll.value) {
+      document.body.style.overflow = 'auto';
+    } else {
+      document.body.style.overflow = 'hidden';
+    }
   });
 
   return {
     autoExpandSidebar,
     onAutoExpandSidebarToggle,
+    allowBodyScroll,
+    onAllowBodyScrollToggle,
+    useOldSidebar,
+    onUseOldSidebarToggle,
+    useOldCharCardEditor,
+    onUseOldCharCardEditorToggle,
+    useOldWorldEditor,
+    onUseOldWorldEditorToggle,
   };
 }

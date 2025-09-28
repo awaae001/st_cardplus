@@ -96,7 +96,7 @@ const useOldSidebar = ref(true)
 const { width } = useWindowSize()
 const isCollapse = ref(false)
 const userToggledCollapse = ref(false); // 新增：用于跟踪用户手动折叠的状态
-const { autoExpandSidebar } = usePersonalization();
+const { autoExpandSidebar, allowBodyScroll } = usePersonalization();
 const mainMenuItems = ref([
   { index: '/', icon: markRaw(House), title: '首页' },
   { index: '/cardinfo', icon: markRaw(EditPen), title: '角色信息' },
@@ -143,6 +143,10 @@ const handleBetaFeaturesToggle = (event: CustomEvent) => {
 
 watch([() => route.path, isMobile], ([newPath, mobile]) => {
   if (mobile) {
+    setOverflowHidden(false);
+    return;
+  }
+  if (allowBodyScroll.value) {
     setOverflowHidden(false);
     return;
   }

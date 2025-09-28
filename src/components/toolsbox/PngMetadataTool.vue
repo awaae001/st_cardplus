@@ -119,7 +119,7 @@ function downloadPng(data: Uint8Array) {
         </el-button>
         <h1>PNG 元数据工具</h1>
     </div>
-    <p>上传一个 PNG 图片，然后可以读取其中的 'chara'/'ccv3' 元数据，或者将新的 JSON 数据写入并下载。</p>
+    <p>上传一个 PNG 图片，然后可以读取其中的 'chara'/'ccv3' 元数据，或者将新的 JSON 数据写入并下载</p>
     
     <div class="io-grid">
       <div class="file-upload-area">
