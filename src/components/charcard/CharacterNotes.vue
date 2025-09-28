@@ -27,8 +27,6 @@
             <Icon icon="material-symbols:drag-handle" width="20" height="20" />
           </div>
           <el-form-item
-            :prop="`notes.${note.id}.name`"
-            :rules="{ required: true, message: '备注名称是必填项', trigger: 'blur' }"
             style="margin-bottom: 0"
           >
             <el-input
