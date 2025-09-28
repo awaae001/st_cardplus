@@ -172,8 +172,6 @@ const {
   removeSkill,
   addRelationship,
   removeRelationship,
-  addNote,
-  removeNote,
   addAttire,
   removeAttire,
   exportAttires,
