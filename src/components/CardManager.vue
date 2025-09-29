@@ -86,31 +86,37 @@
                 </div>
               </section>
 
+              <!-- 世界书 -->
+              <section class="form-section">
+                <h3 class="form-section-title">
+                  <Icon icon="ph:book-open-duotone" class="form-section-icon" />世界书
+                </h3>
+                <InfoDisplayPanel type="worldbook" :character="characterData" />
+              </section>
+
+              <!-- 其他与正则 -->
+              <section class="form-section">
+                <h3 class="form-section-title">
+                  <Icon icon="ph:puzzle-piece-duotone" class="form-section-icon" />其他与正则
+                </h3>
+                <InfoDisplayPanel type="regex" :character="characterData" />
+              </section>
+
               <!-- 高级选项 -->
               <div class="form-section-title advanced-options-toggle"
                 @click="advancedOptionsVisible = !advancedOptionsVisible">
                 <Icon :icon="advancedOptionsVisible ? 'ph:caret-down-duotone' : 'ph:caret-right-duotone'"
                   class="form-section-icon" />
-                <span>高级选项</span>
+                <span>高级设定</span>
                 <span class="advanced-options-hint">{{ advancedOptionsVisible ? '点击折叠' : '点击展开' }}</span>
               </div>
 
               <el-collapse-transition>
                 <div v-show="advancedOptionsVisible">
-                  <!-- 世界书 -->
                   <section class="form-section">
-                    <h3 class="form-section-title">
-                      <Icon icon="ph:book-open-duotone" class="form-section-icon" />世界书
-                    </h3>
-                    <InfoDisplayPanel type="worldbook" :character="characterData" />
-                  </section>
-
-                  <!-- 其他与正则 -->
-                  <section class="form-section">
-                    <h3 class="form-section-title">
-                      <Icon icon="ph:puzzle-piece-duotone" class="form-section-icon" />其他与正则
-                    </h3>
-                    <InfoDisplayPanel type="regex" :character="characterData" />
+                    <div class="form-section-content">
+                      <AdvancedInfoPanel :character="characterData" />
+                    </div>
                   </section>
                 </div>
               </el-collapse-transition>
@@ -190,31 +196,37 @@
                   </div>
                 </section>
 
+                <!-- 世界书 -->
+                <section class="form-section">
+                  <h3 class="form-section-title">
+                    <Icon icon="ph:book-open-duotone" class="form-section-icon" />世界书
+                  </h3>
+                  <InfoDisplayPanel type="worldbook" :character="characterData" />
+                </section>
+
+                <!-- 其他与正则 -->
+                <section class="form-section">
+                  <h3 class="form-section-title">
+                    <Icon icon="ph:puzzle-piece-duotone" class="form-section-icon" />其他与正则
+                  </h3>
+                  <InfoDisplayPanel type="regex" :character="characterData" />
+                </section>
+
                 <!-- 高级选项 -->
                 <div class="form-section-title advanced-options-toggle"
                   @click="advancedOptionsVisible = !advancedOptionsVisible">
                   <Icon :icon="advancedOptionsVisible ? 'ph:caret-down-duotone' : 'ph:caret-right-duotone'"
                     class="form-section-icon" />
-                  <span>高级与扩展</span>
+                  <span>高级设定</span>
                   <span class="advanced-options-hint">{{ advancedOptionsVisible ? '点击折叠' : '点击展开' }}</span>
                 </div>
 
                 <el-collapse-transition>
                   <div v-show="advancedOptionsVisible">
-                    <!-- 世界书 -->
                     <section class="form-section">
-                      <h3 class="form-section-title">
-                        <Icon icon="ph:book-open-duotone" class="form-section-icon" />世界书
-                      </h3>
-                      <InfoDisplayPanel type="worldbook" :character="characterData" />
-                    </section>
-
-                    <!-- 其他与正则 -->
-                    <section class="form-section">
-                      <h3 class="form-section-title">
-                        <Icon icon="ph:puzzle-piece-duotone" class="form-section-icon" />其他与正则
-                      </h3>
-                      <InfoDisplayPanel type="regex" :character="characterData" />
+                      <div class="form-section-content">
+                        <AdvancedInfoPanel :character="characterData" />
+                      </div>
                     </section>
                   </div>
                 </el-collapse-transition>
@@ -266,6 +278,7 @@ import BasicInfoPanel from '@/components/cardManager/BasicInfoPanel.vue';
 import ImagePanel from '@/components/cardManager/ImagePanel.vue';
 import GreetingsPanel from '@/components/cardManager/GreetingsPanel.vue';
 import InfoDisplayPanel from '@/components/cardManager/InfoDisplayPanel.vue';
+import AdvancedInfoPanel from '@/components/cardManager/AdvancedInfoPanel.vue';
 import CharacterCardList from '@/components/cardManager/CharacterCardList.vue';
 import CharacterCardActions from '@/components/cardManager/CharacterCardActions.vue';
 
