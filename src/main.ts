@@ -7,7 +7,7 @@ import router from './router'
 import 'element-plus/theme-chalk/dark/css-vars.css'
 import './css/dark.css'
 import './style.css'
-import './styles/mobile.css'
+import './css/mobile.css'
 import { autoDetectAndPromptMigration } from './utils/migrationDetector'
 
 const app = createApp(App)

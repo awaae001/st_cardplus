@@ -177,4 +177,5 @@ export const characterCardService = {
       })
       .toArray();
   },
+
 };
