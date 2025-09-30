@@ -14,7 +14,7 @@
         <DataManagement />
       </el-tab-pane>
       <el-tab-pane label="个性化" name="personalization">
-      <PersonalizationSettings />
+        <PersonalizationSettings />
       </el-tab-pane>
       <el-tab-pane label="关于" name="about">
         <AboutSection />

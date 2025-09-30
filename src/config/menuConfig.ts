@@ -212,6 +212,14 @@ export const toolboxFixedTools: ToolboxToolConfig[] = [
     description: '读取或写入 PNG 图片的元数据',
     route: '/toolbox/png-metadata',
     category: 'metadata'
+  },
+  {
+    id: 'database-migration',
+    title: '数据库迁移助手',
+    icon: 'ph:database-duotone',
+    description: '协助您将数据从旧版数据库迁移到新版数据库',
+    route: '/migration',
+    category: 'utility'
   }
 ];
 

@@ -60,9 +60,9 @@ export function useDragAndDrop(
                 list.unshift(item);
                 return true;
             }
-            
+
             if (dropType === 'inner' || !('projectId' in dropItemRaw)) return false;
-            
+
             const toIndex = list.findIndex(item => item.id === dropItemRaw.id);
             if (toIndex === -1) return false;
 

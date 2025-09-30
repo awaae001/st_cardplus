@@ -7,18 +7,8 @@
         </div>
       </template>
     </el-image>
-    <el-upload
-      ref="uploadRef"
-      action="#"
-      :show-file-list="false"
-      :auto-upload="false"
-      @change="handleImageChange"
-      @exceed="handleExceed"
-      @error="handleError"
-      accept="image/png, image/jpeg, image/webp"
-      class="upload-button"
-      :limit="1"
-    >
+    <el-upload ref="uploadRef" action="#" :show-file-list="false" :auto-upload="false" @change="handleImageChange"
+      @error="handleError" accept="image/png, image/jpeg, image/webp" class="upload-button" :limit="1">
       <el-button type="primary">🖼️ 选择角色头像</el-button>
     </el-upload>
   </div>
@@ -56,10 +46,10 @@ const handleImageChange = (uploadFile: UploadFile, uploadFiles: UploadFiles) => 
   }
 };
 
-const handleExceed = (files: File[], uploadFiles: UploadFiles) => {
-  console.warn('ImagePanel: File limit exceeded');
-  ElMessage.warning('只能选择一个图片文件');
-};
+// const handleExceed = (_files: File[], _uploadFiles: UploadFiles) => {
+//   console.warn('ImagePanel: File limit exceeded');
+//   ElMessage.warning('只能选择一个图片文件');
+// };
 
 const handleError = (error: Error) => {
   console.error('ImagePanel: Upload error:', error);
@@ -77,8 +67,10 @@ const handleError = (error: Error) => {
 }
 
 .character-image {
-  width: 100%;
-  height: calc(100% - 50px); /* 留出按钮空间 */
+  width: 50%;
+  height: 100%;
+  height: calc(100% - 50px);
+  /* 留出按钮空间 */
   border-radius: 6px;
   background-color: var(--el-fill-color-light);
   border: 1px dashed var(--el-border-color);

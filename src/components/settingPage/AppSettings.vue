@@ -1,7 +1,7 @@
 <template>
   <el-alert type="warning" show-icon :closable="false" style="margin-bottom: 20px;">
     <template #title>
-      所有兼容性项目（侧边栏除外）将在 0.2.0 新版本到来后被移除
+      所有兼容性项目将在 0.2.0 新版本到来前被逐步移除
     </template>
     <template #default>
       0.2.0 将在所有页面完成重构后到来

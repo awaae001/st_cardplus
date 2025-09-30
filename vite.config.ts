@@ -70,23 +70,18 @@ export default defineConfig({
   build: {
     outDir: 'dist', // 打包输出目录
     minify: 'terser', // 使用terser进行更严格的minify
-    cssCodeSplit: false, // 禁用CSS代码分割以避免加载顺序问题
+    cssCodeSplit: true, // 启用CSS代码分割
     rollupOptions: {
       output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            return 'vendor'; // 将所有依赖项打包到一个 vendor chunk 中
-          }
-        },
         chunkFileNames: 'assets/[name]-[hash].js', // 分割后的文件命名规则
       },
       external: [], // 确保不排除 Vue
     },
-    chunkSizeWarningLimit: 1000, 
+    chunkSizeWarningLimit: 1000, // 降低警告阈值到1000KB
     sourcemap: false,
     terserOptions: {
       compress: {
-        drop_console: true, 
+        drop_console: true,
         drop_debugger: true, // 移除debugger
       },
     },

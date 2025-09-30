@@ -6,8 +6,8 @@ import type { Ref } from 'vue';
 type WorldEditorItem = Project | EnhancedLandmark | EnhancedForce;
 
 export function useFileSystem(
-    selectedItem: Ref<WorldEditorItem | null>,
-    updateSelectedItem: (data: any) => void
+  selectedItem: Ref<WorldEditorItem | null>,
+  updateSelectedItem: (data: any) => void
 ) {
   const sanitizeItem = (item: any) => {
     return cleanObject(item, ['id', 'imageUrl', 'createdAt', 'updatedAt', 'version'], ['_']);

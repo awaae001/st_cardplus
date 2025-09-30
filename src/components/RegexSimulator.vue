@@ -2,33 +2,18 @@
   <div class="regex-simulator-container">
     <RegexHeader @import="handleFileImport" @export="handleExport" />
 
-    <RegexScriptSelector
-      v-if="importedScripts.length > 1"
-      v-model="selectedScriptId"
-      :scripts="importedScripts"
-      @update:model-value="loadSelectedScript"
-    />
+    <RegexScriptSelector v-if="importedScripts.length > 1" v-model="selectedScriptId" :scripts="importedScripts"
+      @update:model-value="loadSelectedScript" />
 
     <el-form :model="formState" label-width="120px" label-position="top">
-      <RegexEditorCore
-        v-model:script-name="formState.scriptName"
-        v-model:find-regex="formState.findRegex"
-        v-model:replace-string="formState.replaceString"
-        v-model:trim-strings="trimStrings"
-      />
+      <RegexEditorCore v-model:script-name="formState.scriptName" v-model:find-regex="formState.findRegex"
+        v-model:replace-string="formState.replaceString" v-model:trim-strings="trimStrings" />
 
-      <SmartRegexGenerator
-        v-model:input-text="smartInputText"
-        @regex-generated="handleSmartRegexGenerated"
-      />
+      <SmartRegexGenerator v-model:input-text="smartInputText" @regex-generated="handleSmartRegexGenerated" />
 
-      <RegexSimulatorPanel
-        v-model:test-string="testString"
-        v-model:render-html="renderHtml"
-        v-model:user-macro-value="userMacroValue"
-        v-model:char-macro-value="charMacroValue"
-        :simulated-result="simulatedResult"
-      />
+      <RegexSimulatorPanel v-model:test-string="testString" v-model:render-html="renderHtml"
+        v-model:user-macro-value="userMacroValue" v-model:char-macro-value="charMacroValue"
+        :simulated-result="simulatedResult" />
 
       <RegexAdvancedSettings v-model="formState" />
     </el-form>
@@ -108,7 +93,7 @@ const handleExport = () => {
   try {
     const scriptToExport = { ...formState.value };
     scriptToExport.trimStrings = trimStrings.value.split('\n').filter(s => s.length > 0);
-    
+
     if (scriptToExport.minDepth === null) delete scriptToExport.minDepth;
     if (scriptToExport.maxDepth === null) delete scriptToExport.maxDepth;
 

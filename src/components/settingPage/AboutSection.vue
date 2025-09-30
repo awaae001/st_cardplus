@@ -10,19 +10,19 @@
       开发版本：
       <b v-if="appCommitCount === '1'">在线版_{{ appVersion }}</b>
       <b v-else>dev_{{ appVersion }}({{ appCommitCount }})</b>
-      [0.1.7]
+      [0.1.8]
     </p>
   </div>
 
   <div class="changelog-section">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-    <h3>更新日志</h3>
-    <div class="branch-selector">
-      <label for="branch-select" style="width: 50px;">分支: </label>
-      <el-select v-model="selectedBranch" placeholder="选择分支" size="small">
-        <el-option v-for="branch in branches" :key="branch.name" :label="branch.name" :value="branch.name" />
-      </el-select>
-    </div>
+      <h3>更新日志</h3>
+      <div class="branch-selector">
+        <label for="branch-select" style="width: 50px;">分支: </label>
+        <el-select v-model="selectedBranch" placeholder="选择分支" size="small">
+          <el-option v-for="branch in branches" :key="branch.name" :label="branch.name" :value="branch.name" />
+        </el-select>
+      </div>
     </div>
     <div v-for="(log, index) in gitLogs" :key="index" class="commit-item">
       <div class="commit-header" @click="log.expanded = !log.expanded">
@@ -181,6 +181,7 @@ const isDevDomain = computed(() => {
   font-size: 16px;
   font-weight: 600;
 }
+
 .branch-selector {
   display: flex;
   align-items: center;
@@ -222,6 +223,7 @@ const isDevDomain = computed(() => {
   color: var(--el-color-primary);
   text-decoration: none;
 }
+
 .commit-id:hover {
   text-decoration: underline;
 }
