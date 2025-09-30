@@ -13,7 +13,6 @@
       :show-file-list="false"
       :auto-upload="false"
       @change="handleImageChange"
-      @exceed="handleExceed"
       @error="handleError"
       accept="image/png, image/jpeg, image/webp"
       class="upload-button"
@@ -56,10 +55,10 @@ const handleImageChange = (uploadFile: UploadFile, uploadFiles: UploadFiles) => 
   }
 };
 
-const handleExceed = (files: File[], uploadFiles: UploadFiles) => {
-  console.warn('ImagePanel: File limit exceeded');
-  ElMessage.warning('只能选择一个图片文件');
-};
+// const handleExceed = (_files: File[], _uploadFiles: UploadFiles) => {
+//   console.warn('ImagePanel: File limit exceeded');
+//   ElMessage.warning('只能选择一个图片文件');
+// };
 
 const handleError = (error: Error) => {
   console.error('ImagePanel: Upload error:', error);

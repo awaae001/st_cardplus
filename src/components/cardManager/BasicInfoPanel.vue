@@ -5,11 +5,11 @@
     </el-form-item>
 
     <el-form-item label="角色描述">
-      <el-input v-model="character.data.description" type="textarea" :rows="5" placeholder="角色的详细描述" />
+      <el-input v-model="character.data.description" type="textarea" :rows="10" placeholder="角色的详细描述" />
     </el-form-item>
 
     <el-form-item label="开场白">
-      <el-input v-model="character.data.first_mes" type="textarea" :rows="3" placeholder="角色的第一句话" />
+      <el-input v-model="character.data.first_mes" type="textarea" :rows="8" placeholder="角色的第一句话" />
     </el-form-item>
 
   </el-form>

@@ -10,13 +10,6 @@
               <span class="card-manager-tab-text">角色库</span>
             </span>
           </template>
-
-          <div class="content-panel-header">
-            <h2 class="content-panel-title">
-              <Icon icon="ph:cards-duotone" class="content-panel-icon" />
-              <span class="content-panel-text">角色卡库</span>
-            </h2>
-          </div>
           <CharacterCardList :collection="characterCardCollection" :active-card-id="activeCardId"
             :has-current-card="hasUnsavedChanges" @select-card="handleSelectCardWithLoad"
             @save-current="handleSaveCurrentAsNew" @rename-card="handleRenameCard" @delete-card="handleDeleteCard"
@@ -31,7 +24,6 @@
               <span class="card-manager-tab-text">编辑器</span>
             </span>
           </template>
-
           <div class="content-panel-header">
             <h2 class="content-panel-title">
               <Icon icon="ph:note-pencil-duotone" class="content-panel-icon" />
@@ -47,80 +39,14 @@
                 <Icon icon="ph:export-duotone" />
                 导出PNG
               </el-button>
-              <input ref="fileInput" type="file" accept="image/png" style="display: none"
-                @change="handleFileSelected" />
             </div>
           </div>
-
-          <!-- 编辑器内容 -->
           <el-scrollbar class="card-editor-content">
-            <div class="card-editor-form">
-              <!-- 角色图片 -->
-              <section class="form-section">
-                <h3 class="form-section-title">
-                  <Icon icon="ph:image-duotone" class="form-section-icon" />角色图片
-                </h3>
-                <div class="form-section-content">
-                  <p class="image-persistence-notice">注意：图片仅用于本次导出，不会随角色卡保存。</p>
-                  <ImagePanel :preview-url="imagePreviewUrl" @image-change="handleImageUpdate" />
-                </div>
-              </section>
-
-              <!-- 基础信息 -->
-              <section class="form-section">
-                <h3 class="form-section-title">
-                  <Icon icon="ph:info-duotone" class="form-section-icon" />基础信息
-                </h3>
-                <div class="form-section-content">
-                  <BasicInfoPanel :character="characterData" />
-                </div>
-              </section>
-
-              <!-- 开场白 -->
-              <section class="form-section">
-                <h3 class="form-section-title">
-                  <Icon icon="ph:chat-teardrop-dots-duotone" class="form-section-icon" />多开场白
-                </h3>
-                <div class="form-section-content">
-                  <GreetingsPanel v-model="characterData.data.alternate_greetings" />
-                </div>
-              </section>
-
-              <!-- 世界书 -->
-              <section class="form-section">
-                <h3 class="form-section-title">
-                  <Icon icon="ph:book-open-duotone" class="form-section-icon" />世界书
-                </h3>
-                <InfoDisplayPanel type="worldbook" :character="characterData" />
-              </section>
-
-              <!-- 其他与正则 -->
-              <section class="form-section">
-                <h3 class="form-section-title">
-                  <Icon icon="ph:puzzle-piece-duotone" class="form-section-icon" />其他与正则
-                </h3>
-                <InfoDisplayPanel type="regex" :character="characterData" />
-              </section>
-
-              <!-- 高级选项 -->
-              <div class="form-section-title advanced-options-toggle"
-                @click="advancedOptionsVisible = !advancedOptionsVisible">
-                <Icon :icon="advancedOptionsVisible ? 'ph:caret-down-duotone' : 'ph:caret-right-duotone'"
-                  class="form-section-icon" />
-                <span>高级设定</span>
-                <span class="advanced-options-hint">{{ advancedOptionsVisible ? '点击折叠' : '点击展开' }}</span>
-              </div>
-
-              <el-collapse-transition>
-                <div v-show="advancedOptionsVisible">
-                  <section class="form-section">
-                    <div class="form-section-content">
-                      <AdvancedInfoPanel :character="characterData" />
-                    </div>
-                  </section>
-                </div>
-              </el-collapse-transition>
-            </div>
+            <WelcomeScreen v-if="!activeCard" :is-uploading="isUploading" :upload-progress="uploadProgress"
+              @import-card="triggerFileInput" />
+            <CardEditor v-else :character="characterData" :image-preview-url="imagePreviewUrl"
+              v-model:advanced-options-visible="advancedOptionsVisible" @image-change="handleImageUpdate"
+              @worldbook-changed="handleWorldBookChanged" />
           </el-scrollbar>
         </el-tab-pane>
       </el-tabs>
@@ -160,82 +86,21 @@
                   <Icon icon="ph:export-duotone" />
                   导出PNG
                 </el-button>
-                <input ref="fileInput" type="file" accept="image/png" style="display: none"
-                  @change="handleFileSelected" />
               </div>
             </div>
-
-            <!-- 编辑器内容 -->
             <el-scrollbar class="card-editor-content">
-              <div class="card-editor-form">
-                <!-- 基础信息与图片 -->
-                <section class="form-section">
-                  <h3 class="form-section-title">
-                    <Icon icon="ph:user-circle-gear-duotone" class="form-section-icon" />核心设定
-                  </h3>
-                  <div class="form-section-content two-column">
-                    <div class="image-panel-container">
-                      <h4 class="sub-section-title">角色图片</h4>
-                      <p class="image-persistence-notice">注意：图片仅用于本次导出，不会随角色卡保存。</p>
-                      <ImagePanel :preview-url="imagePreviewUrl" @image-change="handleImageUpdate" />
-                    </div>
-                    <div class="basic-info-container">
-                      <h4 class="sub-section-title">基础信息</h4>
-                      <BasicInfoPanel :character="characterData" />
-                    </div>
-                  </div>
-                </section>
-
-                <!-- 开场白 -->
-                <section class="form-section">
-                  <h3 class="form-section-title">
-                    <Icon icon="ph:chat-teardrop-dots-duotone" class="form-section-icon" />多开场白
-                  </h3>
-                  <div class="form-section-content">
-                    <GreetingsPanel v-model="characterData.data.alternate_greetings" />
-                  </div>
-                </section>
-
-                <!-- 世界书 -->
-                <section class="form-section">
-                  <h3 class="form-section-title">
-                    <Icon icon="ph:book-open-duotone" class="form-section-icon" />世界书
-                  </h3>
-                  <InfoDisplayPanel type="worldbook" :character="characterData" />
-                </section>
-
-                <!-- 其他与正则 -->
-                <section class="form-section">
-                  <h3 class="form-section-title">
-                    <Icon icon="ph:puzzle-piece-duotone" class="form-section-icon" />其他与正则
-                  </h3>
-                  <InfoDisplayPanel type="regex" :character="characterData" />
-                </section>
-
-                <!-- 高级选项 -->
-                <div class="form-section-title advanced-options-toggle"
-                  @click="advancedOptionsVisible = !advancedOptionsVisible">
-                  <Icon :icon="advancedOptionsVisible ? 'ph:caret-down-duotone' : 'ph:caret-right-duotone'"
-                    class="form-section-icon" />
-                  <span>高级设定</span>
-                  <span class="advanced-options-hint">{{ advancedOptionsVisible ? '点击折叠' : '点击展开' }}</span>
-                </div>
-
-                <el-collapse-transition>
-                  <div v-show="advancedOptionsVisible">
-                    <section class="form-section">
-                      <div class="form-section-content">
-                        <AdvancedInfoPanel :character="characterData" />
-                      </div>
-                    </section>
-                  </div>
-                </el-collapse-transition>
-              </div>
+              <WelcomeScreen v-if="!activeCard" :is-uploading="isUploading" :upload-progress="uploadProgress"
+                @import-card="triggerFileInput" />
+              <CardEditor v-else :character="characterData" :image-preview-url="imagePreviewUrl"
+                v-model:advanced-options-visible="advancedOptionsVisible" @image-change="handleImageUpdate"
+                @worldbook-changed="handleWorldBookChanged" />
             </el-scrollbar>
           </div>
         </Pane>
       </Splitpanes>
     </div>
+
+    <input ref="fileInput" type="file" accept="image/png" style="display: none" @change="handleFileSelected" />
 
     <!-- 重构提示弹窗 -->
     <el-dialog v-model="showRefactorDialog" title="🚧 角色卡管理器重构通知" width="500px" :close-on-click-modal="false"
@@ -268,24 +133,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onUnmounted, onMounted } from 'vue';
-import { ElButton, ElMessage, ElTabs, ElTabPane, ElDivider, ElDialog, ElScrollbar, ElCollapseTransition } from 'element-plus';
+import { ref, computed, onUnmounted, onMounted, watch } from 'vue';
+import { ElButton, ElMessage, ElTabs, ElTabPane, ElDivider, ElDialog, ElScrollbar } from 'element-plus';
 import { Icon } from '@iconify/vue';
 import { Splitpanes, Pane } from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
 
-import BasicInfoPanel from '@/components/cardManager/BasicInfoPanel.vue';
-import ImagePanel from '@/components/cardManager/ImagePanel.vue';
-import GreetingsPanel from '@/components/cardManager/GreetingsPanel.vue';
-import InfoDisplayPanel from '@/components/cardManager/InfoDisplayPanel.vue';
-import AdvancedInfoPanel from '@/components/cardManager/AdvancedInfoPanel.vue';
 import CharacterCardList from '@/components/cardManager/CharacterCardList.vue';
 import CharacterCardActions from '@/components/cardManager/CharacterCardActions.vue';
+import CardEditor from '@/components/cardManager/CardEditor.vue';
+import WelcomeScreen from '@/components/cardManager/WelcomeScreen.vue';
 
 import { useV3CharacterCard } from '@/composables/characterCard/useV3CharacterCard';
 import { useCharacterCardCollection } from '@/composables/characterCard/useCharacterCardCollection';
-import { write as writePngCard } from '@/utils/pngCardMetadata';
-import { extractAndDecodeCcv3, extractAndDecodeV2Card } from '@/utils/metadataSeparator';
+import { useCardImport } from '@/composables/characterCard/useCardImport';
+import { useCardExport } from '@/composables/characterCard/useCardExport';
 
 const { characterData, loadCharacter } = useV3CharacterCard();
 
@@ -294,6 +156,7 @@ const {
   characterCardCollection,
   activeCardId,
   activeCard,
+  isLoading,
   handleSelectCard,
   handleSaveCurrentCard,
   handleUpdateCard,
@@ -308,13 +171,34 @@ const {
 
 // UI 状态
 const activeTab = ref('editor');
-const isUploading = ref(false);
-const uploadProgress = ref('');
 const advancedOptionsVisible = ref(false);
 const hasUnsavedChanges = computed(() => {
-  // 检查当前编辑的角色卡是否有未保存的更改
   return characterData.value.name !== '' || characterData.value.description !== '';
 });
+
+// 图片处理
+const characterImageFile = ref<File | null>(null);
+const handleImageUpdate = (file: File) => {
+  characterImageFile.value = file;
+};
+const imagePreviewUrl = computed(() => {
+  if (characterImageFile.value) {
+    return URL.createObjectURL(characterImageFile.value);
+  }
+  return undefined;
+});
+
+// 文件导入与导出
+const { isUploading, uploadProgress, fileInput, triggerFileInput, handleFileSelected } = useCardImport(
+  (card) => {
+    loadCharacter(card);
+    activeTab.value = 'editor';
+  },
+  handleImportCard,
+  handleImageUpdate
+);
+const { handleSave } = useCardExport(characterData, characterImageFile);
+
 
 // 重构提示弹窗
 const showRefactorDialog = ref(false);
@@ -322,7 +206,6 @@ const REFACTOR_NOTICE_KEY = 'cardmanager_refactor_notice_dismissed';
 const TODAY_DATE = new Date().toDateString();
 
 onMounted(() => {
-  // 检查是否今天已经显示过提示
   const dismissedData = localStorage.getItem(REFACTOR_NOTICE_KEY);
   if (!dismissedData) {
     showRefactorDialog.value = true;
@@ -348,197 +231,16 @@ const dismissRefactorDialog = (dontShowToday = false) => {
   }
 };
 
-// --- 文件加载 ---
-const fileInput = ref<HTMLInputElement | null>(null);
-
-const triggerFileInput = () => {
-  fileInput.value?.click();
-};
-
-const handleFileSelected = async (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  if (!target.files || !target.files[0]) {
-    console.warn('CardManager: No file selected');
-    return;
+// 自动加载上次编辑的角色卡
+const hasAutoLoaded = ref(false);
+watch([isLoading, activeCard], ([loading, card]) => {
+  if (!loading && card && !hasAutoLoaded.value) {
+    hasAutoLoaded.value = true;
+    loadCharacter(card);
   }
+}, { immediate: true });
 
-  const file = target.files[0];
-
-  // 验证文件类型
-  if (!file.type.startsWith('image/')) {
-    ElMessage.error('请选择有效的图片文件');
-    target.value = '';
-    return;
-  }
-
-  // 只支持PNG文件的智能导入
-  if (!file.type.includes('png')) {
-    ElMessage.error('智能导入功能仅支持PNG文件');
-    target.value = '';
-    return;
-  }
-
-  isUploading.value = true;
-  uploadProgress.value = '正在分析图片...';
-
-  try {
-    let characterCardData = null;
-    let hasMetadata = false;
-
-    // 尝试提取角色卡元数据
-    uploadProgress.value = '正在检测角色卡数据...';
-
-    // 首先尝试 ccv3 格式
-    try {
-      characterCardData = await extractAndDecodeCcv3(file);
-      if (characterCardData) {
-        hasMetadata = true;
-        console.log('检测到 ccv3 格式角色卡数据');
-      }
-    } catch (error) {
-      console.log('未检测到 ccv3 格式数据');
-    }
-
-    // 如果没有 ccv3，尝试 v2 格式
-    if (!characterCardData) {
-      try {
-        characterCardData = await extractAndDecodeV2Card(file);
-        if (characterCardData) {
-          hasMetadata = true;
-          console.log('检测到 TavernAI v2 格式角色卡数据');
-        }
-      } catch (error) {
-        console.log('未检测到 v2 格式数据');
-      }
-    }
-
-    if (hasMetadata && characterCardData) {
-      // 有元数据：提取角色卡数据并保存
-      uploadProgress.value = '正在保存角色卡...';
-
-      // 保存角色卡到数据库
-      const cardId = await handleImportCard(characterCardData);
-
-      if (cardId) {
-        // 加载到编辑器
-        loadCharacter(characterCardData);
-        handleImageUpdate(file);
-        activeTab.value = 'editor';
-
-        ElMessage.success(`角色卡"${characterCardData.name || characterCardData.data?.name || '未命名'}"已成功导入！`);
-      }
-    } else {
-      // 无元数据：创建空角色卡模板
-      uploadProgress.value = '正在创建角色卡...';
-
-      // 创建一个基础的角色卡模板
-      const templateCardData = {
-        spec: 'chara_card_v3' as const,
-        spec_version: '3.0' as const,
-        name: file.name.replace(/\.[^/.]+$/, ''), // 使用文件名作为默认名称
-        description: '',
-        personality: '',
-        scenario: '',
-        first_mes: '',
-        mes_example: '',
-        creatorcomment: '',
-        avatar: 'none',
-        talkativeness: 0.5,
-        fav: false,
-        tags: [],
-        data: {
-          name: file.name.replace(/\.[^/.]+$/, ''),
-          description: '',
-          personality: '',
-          scenario: '',
-          first_mes: '',
-          alternate_greetings: [],
-          mes_example: '',
-          creator_notes: '',
-          system_prompt: '',
-          tags: [],
-          creator: '',
-          character_version: '',
-          post_history_instructions: '',
-          extensions: {},
-        },
-      };
-
-      const cardId = await handleImportCard(templateCardData);
-
-      if (cardId) {
-        // 加载到编辑器
-        loadCharacter(templateCardData);
-        handleImageUpdate(file);
-        activeTab.value = 'editor';
-
-        ElMessage.success(`已创建角色卡模板，请填写角色信息！`);
-      }
-    }
-
-  } catch (error) {
-    console.error('CardManager: Error in smart import:', error);
-    ElMessage.error(`导入失败：${error instanceof Error ? error.message : '未知错误'}`);
-  } finally {
-    isUploading.value = false;
-    uploadProgress.value = '';
-    target.value = '';
-  }
-};
-
-// --- 保存功能 ---
-const handleSave = async () => {
-
-  if (!characterImageFile.value) {
-    console.warn('CardManager: No image file available for saving');
-    ElMessage.warning('请先加载或选择一张图片作为角色卡背景');
-    return;
-  }
-
-
-  try {
-    const imageBuffer = new Uint8Array(await characterImageFile.value.arrayBuffer());
-
-    const jsonDataString = JSON.stringify(characterData.value, null, 2);
-
-    const newImageBuffer = writePngCard(imageBuffer, jsonDataString);
-
-    // 创建具有正确 ArrayBuffer 类型的新 Uint8Array
-    const properBuffer = new Uint8Array(newImageBuffer);
-    const blob = new Blob([properBuffer], { type: 'image/png' });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement('a');
-    link.href = url;
-    const fileName = characterData.value.name ? `${characterData.value.name}.png` : 'character.png';
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    URL.revokeObjectURL(url);
-    ElMessage.success('角色卡已成功保存！');
-  } catch (error) {
-    console.error('CardManager: Failed to save character card:', error);
-    ElMessage.error(`保存失败：${error instanceof Error ? error.message : '未知错误'}`);
-  }
-};
-
-// --- 图片处理 ---
-const characterImageFile = ref<File | null>(null);
-
-const imagePreviewUrl = computed(() => {
-  if (characterImageFile.value) {
-    return URL.createObjectURL(characterImageFile.value);
-  }
-  return undefined;
-});
-
-const handleImageUpdate = (file: File) => {
-  characterImageFile.value = file;
-};
-
-// --- 新增的角色卡管理事件处理函数 ---
+// --- 角色卡管理事件处理 ---
 const handleSaveCurrentAsNew = async () => {
   await handleSaveCurrentCard(characterData.value);
 };
@@ -559,21 +261,29 @@ const handleExportCurrentCard = async () => {
   }
 };
 
-
-// 当选择一个角色卡时，加载其数据到编辑器
 const handleSelectCardWithLoad = (cardId: string) => {
-  // 切换卡片时重置图片，因为图片状态不持久化
-  characterImageFile.value = null;
-
+  characterImageFile.value = null; // 切换卡片时重置图片
   handleSelectCard(cardId);
   const selectedCard = characterCardCollection.value.cards[cardId];
   if (selectedCard) {
-    // selectedCard 已经是展开后的角色卡数据，直接加载即可
     loadCharacter(selectedCard);
     activeTab.value = 'editor';
-
-    console.log('加载角色卡数据到编辑器:', selectedCard.name);
     ElMessage.success(`已切换到角色卡: ${selectedCard.name || '未命名角色'}`);
+  }
+};
+
+// 世界书更改后自动保存
+const handleWorldBookChanged = async () => {
+  if (activeCard.value && activeCardId.value) {
+    try {
+      const plainCharacterData = JSON.parse(JSON.stringify(characterData.value));
+      await handleUpdateCard(activeCardId.value, plainCharacterData);
+    } catch (error) {
+      console.error('自动保存世界书更改失败:', error);
+      ElMessage.warning('世界书已更新，但保存到数据库失败。请手动保存角色卡。');
+    }
+  } else {
+    ElMessage.info('世界书已更新。请保存角色卡以将更改持久化。');
   }
 };
 
@@ -671,10 +381,6 @@ onUnmounted(() => {
   font-size: 18px;
 }
 
-.content-panel-text {
-  font-size: 16px;
-}
-
 .content-panel-text-highlight {
   color: var(--el-color-primary);
   font-weight: 500;
@@ -687,108 +393,9 @@ onUnmounted(() => {
 }
 
 /* 编辑器内容 */
-/* 编辑器内容 - 新增样式 */
 .card-editor-content {
   flex: 1;
   overflow: hidden;
-}
-
-.card-editor-form {
-  padding: 16px;
-}
-
-.form-section {
-  margin-bottom: 24px;
-  padding: 16px;
-  background: var(--el-fill-color-extra-light);
-  border-radius: 4px;
-  border: 1px solid var(--el-border-color-extra-light);
-}
-
-.form-section-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
-  margin: 0 0 16px 0;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--el-border-color-lighter);
-}
-
-.form-section-icon {
-  font-size: 18px;
-  color: var(--el-color-primary);
-}
-
-.form-section-content {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.form-section-content.two-column {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 16px;
-  align-items: start;
-}
-
-.image-panel-container {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.basic-info-container {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.sub-section-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--el-text-color-secondary);
-  margin: 0 0 12px 0;
-}
-
-.advanced-options-toggle {
-  cursor: pointer;
-  user-select: none;
-  transition: background-color 0.2s;
-  border-bottom: 1px solid var(--el-border-color-lighter);
-  padding-bottom: 8px;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-}
-
-.advanced-options-toggle:hover {
-  background-color: var(--el-fill-color-light);
-}
-
-.advanced-options-hint {
-  margin-left: auto;
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--el-text-color-placeholder);
-}
-
-.image-persistence-notice {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-  text-align: center;
-  margin-bottom: 8px;
-  padding: 0;
-}
-
-/* 响应式调整 */
-@media (max-width: 1024px) {
-  .form-section-content.two-column {
-    grid-template-columns: 1fr;
-  }
 }
 
 /* 重构提示弹窗样式 */
@@ -802,10 +409,6 @@ onUnmounted(() => {
   font-size: 48px;
   color: var(--el-color-warning);
   flex-shrink: 0;
-}
-
-.notice-content {
-  flex: 1;
 }
 
 .notice-content h3 {
@@ -842,16 +445,5 @@ onUnmounted(() => {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-}
-
-/* 覆盖 el-dialog 的一些样式 */
-:deep(.el-dialog__header) {
-  border-bottom: 1px solid var(--el-border-color-light);
-  padding-bottom: 12px;
-}
-
-:deep(.el-dialog__title) {
-  font-weight: 600;
-  color: var(--el-text-color-primary);
 }
 </style>

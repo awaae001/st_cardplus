@@ -138,6 +138,7 @@
 import { Icon } from '@iconify/vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { worldBookService } from '@/database/worldBookService';
+import { characterCardService } from '@/database/characterCardService';
 import { ref, onMounted, watch } from 'vue';
 import { uploadToWebDAV, downloadFromWebDAV, testWebDAVConnection } from '@/utils/webdav';
 
@@ -396,7 +397,9 @@ const clearAllData = () => {
     try {
       // 1. 清除世界书数据库
       await worldBookService.clearDatabase();
-      // 2. 清除 localStorage
+      // 2. 清除角色卡数据库
+      await characterCardService.clearDatabase();
+      // 3. 清除 localStorage
       localStorage.clear();
 
       ElMessage({
@@ -432,7 +435,7 @@ const clearInvalidLocalStorage = async () => {
   ];
 
   ElMessageBox.confirm(
-    '您确定要清理无效的本地缓存吗？此操作将删除所有不在白名单中的本地存储条目 ',
+    '您确定要清理无效的本地缓存吗？此操作将删除所有不在白名单中的本地存储条目，以及所有角色卡数据库中的数据（世界书数据将被保留）',
     '清理确认',
     {
       confirmButtonText: '确认清理',
@@ -441,27 +444,36 @@ const clearInvalidLocalStorage = async () => {
     }
   )
     .then(async () => {
-      let removedCount = 0;
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && !whitelist.includes(key)) {
-          localStorage.removeItem(key);
-          removedCount++;
-          // 因为移除了一个元素，所以需要将索引减一，以便下一次循环能正确获取到新的元素
-          i--;
+      try {
+        // 1. 清理 localStorage 中的无效缓存
+        let removedCount = 0;
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && !whitelist.includes(key)) {
+            localStorage.removeItem(key);
+            removedCount++;
+            // 因为移除了一个元素，所以需要将索引减一，以便下一次循环能正确获取到新的元素
+            i--;
+          }
         }
+
+        // 2. 清除角色卡数据库
+        await characterCardService.clearDatabase();
+
+        ElMessage({
+          type: 'success',
+          message: `已成功清理 ${removedCount} 个无效缓存条目和角色卡数据库，应用将重新加载`,
+        });
+
+        // 立即更新存储显示信息
+        await updateStorageInfo();
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } catch (error) {
+        console.error('清理缓存失败:', error);
+        ElMessage.error('清理缓存时发生错误');
       }
-
-      ElMessage({
-        type: 'success',
-        message: `已成功清理 ${removedCount} 个无效缓存条目 应用将重新加载 `,
-      });
-
-      // 立即更新存储显示信息
-      await updateStorageInfo();
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
     })
     .catch(() => {
       ElMessage({

@@ -45,7 +45,7 @@ export function useCharacterCardCollection() {
   const handleSaveCurrentCard = async (cardData: CharacterCardV3) => {
     if (!cardData.name && !cardData.data?.name) {
       ElMessage.warning('请先填写角色名称');
-      return;
+      return null;
     }
 
     try {
