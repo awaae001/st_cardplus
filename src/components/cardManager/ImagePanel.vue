@@ -76,7 +76,8 @@ const handleError = (error: Error) => {
 }
 
 .character-image {
-  width: 100%;
+  width: 50%;
+  height: 100%;
   height: calc(100% - 50px); /* 留出按钮空间 */
   border-radius: 6px;
   background-color: var(--el-fill-color-light);

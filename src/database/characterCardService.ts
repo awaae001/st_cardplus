@@ -1,6 +1,7 @@
 import { db } from './db';
 import type { StoredCharacterCard } from './db';
 import type { CharacterCardV3 } from '../types/character-card-v3';
+import { estimateEncodedSize } from './utils';
 
 // 重新导出 StoredCharacterCard 类型供外部使用
 export type { StoredCharacterCard };
@@ -12,6 +13,11 @@ export interface CharacterCardCollection {
 
 export interface CharacterCardExport {
   cards: StoredCharacterCard[];
+}
+
+export interface CharacterCardStats {
+  cardCount: number;
+  approxBytes: number;
 }
 
 const ACTIVE_CARD_ID_KEY = 'characterCardActiveId';
@@ -126,6 +132,14 @@ export const characterCardService = {
   async isDatabaseEmpty(): Promise<boolean> {
     const count = await db.characterCards.count();
     return count === 0;
+  },
+
+  async getStats(): Promise<CharacterCardStats> {
+    const cards = await db.characterCards.toArray();
+    return {
+      cardCount: cards.length,
+      approxBytes: estimateEncodedSize(cards),
+    };
   },
 
   /**

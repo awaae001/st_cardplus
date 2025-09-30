@@ -1,9 +1,16 @@
 import { db, type StoredWorldBook, type StoredWorldBookEntry } from './db';
 import type { WorldBookCollection, WorldBook, WorldBookEntry } from '../components/worldbook/types';
+import { estimateEncodedSize } from './utils';
 
 export interface WorldBookExport {
   books: StoredWorldBook[];
   entries: StoredWorldBookEntry[];
+}
+
+export interface WorldBookStats {
+  bookCount: number;
+  entryCount: number;
+  approxBytes: number;
 }
 
 const ACTIVE_BOOK_ID_KEY = 'worldBookActiveId';
@@ -163,6 +170,21 @@ export const worldBookService = {
   async isDatabaseEmpty(): Promise<boolean> {
     const count = await db.books.count();
     return count === 0;
+  },
+
+  async getStats(): Promise<WorldBookStats> {
+    const [books, entries] = await Promise.all([
+      db.books.toArray(),
+      db.entries.toArray(),
+    ]);
+
+    const approxBytes = estimateEncodedSize(books) + estimateEncodedSize(entries);
+
+    return {
+      bookCount: books.length,
+      entryCount: entries.length,
+      approxBytes,
+    };
   },
 
   /**

@@ -11,11 +11,15 @@
         </div>
         <div class="storage-info">
           <div class="storage-bar">
-            <span>核心数据库 (IndexedDB)</span>
+            <span>全局占用</span>
             <el-progress :percentage="indexedDBUsage.percentage" :text-inside="true" :stroke-width="20" 
                          :status="getProgressStatus(indexedDBUsage.percentage)">
               <span>{{ indexedDBUsage.text }}</span>
             </el-progress>
+            <div class="storage-details" v-if="worldBookStats && characterCardStats">
+              <span>世界书：{{ worldBookStats.bookCount }} 本，{{ worldBookStats.entryCount }} 条目，约 {{ formatBytes(worldBookStats.approxBytes) }}</span>
+              <span>角色卡：{{ characterCardStats.cardCount }} 张，约 {{ formatBytes(characterCardStats.approxBytes) }}</span>
+            </div>
           </div>
           <div class="storage-bar">
             <span>浏览器缓存 (localStorage)</span>
@@ -26,7 +30,7 @@
           </div>
         </div>
          <p class="setting-description" style="margin-top: 12px;">
-          核心数据库用于存储世界书等大数据，容量大浏览器缓存用于存储角色卡、设置等轻量数据，容量较小<br/>
+          核心数据库用于存储世界书等大数据，容量大<br/>浏览器缓存用于存储地标、设置等轻量数据，容量较小<br/>
           存储大小由浏览器自动管理
         </p>
       </div>
@@ -137,10 +141,11 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { worldBookService } from '@/database/worldBookService';
-import { characterCardService } from '@/database/characterCardService';
+import { worldBookService, type WorldBookStats } from '@/database/worldBookService';
+import { characterCardService, type CharacterCardStats } from '@/database/characterCardService';
 import { ref, onMounted, watch } from 'vue';
 import { uploadToWebDAV, downloadFromWebDAV, testWebDAVConnection } from '@/utils/webdav';
+import { resetAppDatabase, exportAllDatabases, importAllDatabases } from '@/database/utils';
 
 interface WebDAVConfig {
   url: string;
@@ -166,6 +171,9 @@ const localStorageUsage = ref({
   text: '加载中...'
 });
 
+const worldBookStats = ref<WorldBookStats | null>(null);
+const characterCardStats = ref<CharacterCardStats | null>(null);
+
 // 格式化字节大小
 const formatBytes = (bytes: number, decimals = 2) => {
   if (bytes === 0) return '0 Bytes';
@@ -179,35 +187,47 @@ const formatBytes = (bytes: number, decimals = 2) => {
 
 // 获取存储信息
 const getStorageEstimate = async () => {
-  if ('storage' in navigator && 'estimate' in navigator.storage) {
-    const estimate = await navigator.storage.estimate();
-    if (estimate.usage !== undefined && estimate.quota !== undefined) {
-      const quotaGB = estimate.quota / (1024 * 1024 * 1024); // 转换为GB
-      
-      let percentage: number;
-      let displayText: string;
-      
-      if (quotaGB > 10) {
-        // 大于10GB时，按10GB计算进度条
-        const tenGB = 10 * 1024 * 1024 * 1024;
-        percentage = estimate.usage > 0 ? (estimate.usage / tenGB) * 100 : 0;
-        displayText = `${formatBytes(estimate.usage)} / 大于10GB`;
-      } else {
-        // 小于等于10GB时，正常显示
-        percentage = estimate.quota > 0 ? (estimate.usage / estimate.quota) * 100 : 0;
-        displayText = `${formatBytes(estimate.usage)} / ${formatBytes(estimate.quota)}`;
-      }
-      
-      indexedDBUsage.value = {
-        percentage: parseFloat(percentage.toFixed(2)),
-        text: displayText
-      };
+  const storageEstimatePromise = ('storage' in navigator && 'estimate' in navigator.storage)
+    ? navigator.storage.estimate()
+    : Promise.resolve<StorageEstimate | null>(null);
+
+  const [worldStats, cardStats, estimate] = await Promise.all([
+    worldBookService.getStats(),
+    characterCardService.getStats(),
+    storageEstimatePromise,
+  ]);
+
+  worldBookStats.value = worldStats;
+  characterCardStats.value = cardStats;
+
+  const totalApproxBytes = worldStats.approxBytes + cardStats.approxBytes;
+  const quota = estimate?.quota ?? null;
+  const reportedUsage = estimate?.usage ?? null;
+
+  let percentage = 0;
+  let displayText: string;
+
+  if (quota && quota > 0) {
+    const oneGB = 1024 * 1024 * 1024;
+    // 如果配额大于 1GB，按 1GB 计算百分比和显示
+    const effectiveQuota = quota > oneGB ? oneGB : quota;
+    percentage = totalApproxBytes > 0 ? (totalApproxBytes / effectiveQuota) * 100 : 0;
+
+    if (quota > oneGB) {
+      displayText = `${formatBytes(totalApproxBytes)} / 1 GB+`;
     } else {
-       indexedDBUsage.value.text = '无法获取使用情况';
+      displayText = `${formatBytes(totalApproxBytes)} / ${formatBytes(quota)}`;
     }
+  } else if (reportedUsage && reportedUsage > 0) {
+    displayText = `${formatBytes(totalApproxBytes)} · 浏览器总占用 ${formatBytes(reportedUsage)}`;
   } else {
-    indexedDBUsage.value.text = '浏览器不支持 Storage API';
+    displayText = `约 ${formatBytes(totalApproxBytes)}`;
   }
+
+  indexedDBUsage.value = {
+    percentage: parseFloat(Math.min(percentage, 100).toFixed(2)),
+    text: displayText,
+  };
 };
 
 // 计算 LocalStorage 的大小
@@ -276,14 +296,12 @@ const exportData = async () => {
       }
     }
 
-    // 2. 导出世界书 IndexedDB 数据
+    // 2. 导出所有 IndexedDB 数据库
     try {
-      const worldBookExport = await worldBookService.exportDatabase();
-      // 使用 JSON.stringify 将对象转换为字符串存入
-      data['ST_CARDPLUS_WORLDBOOK_V1'] = JSON.stringify(worldBookExport);
-    } catch (dbError) {
-      console.error('导出世界书数据失败:', dbError);
-      ElMessage.error('导出世界书数据失败，请检查控制台获取详细信息');
+      const dbData = await exportAllDatabases();
+      Object.assign(data, dbData);
+    } catch (error) {
+      ElMessage.error(`${error instanceof Error ? error.message : '导出数据库失败'}，请检查控制台获取详细信息`);
       // 导出失败时不继续，避免生成不完整的备份
       return;
     }
@@ -336,13 +354,8 @@ const importData = () => {
           }
         ).then(async () => {
           try {
-            // 1. 导入世界书数据 (如果存在)
-            if (data['ST_CARDPLUS_WORLDBOOK_V1']) {
-              const worldBookData = JSON.parse(data['ST_CARDPLUS_WORLDBOOK_V1']);
-              await worldBookService.importDatabase(worldBookData);
-              // 从数据对象中移除，以防被错误地写入 localStorage
-              delete data['ST_CARDPLUS_WORLDBOOK_V1'];
-            }
+            // 1. 导入所有 IndexedDB 数据库
+            await importAllDatabases(data);
 
             // 2. 导入 localStorage 数据
             localStorage.clear();
@@ -395,16 +408,15 @@ const clearAllData = () => {
     }
   ).then(async () => {
     try {
-      // 1. 清除世界书数据库
-      await worldBookService.clearDatabase();
-      // 2. 清除角色卡数据库
-      await characterCardService.clearDatabase();
-      // 3. 清除 localStorage
+      await resetAppDatabase();
       localStorage.clear();
+      sessionStorage.removeItem('webdav-snapshot');
+      webdavConfig.value = { url: '', username: '', password: '' };
+      snapshotAvailable.value = false;
 
       ElMessage({
         type: 'success',
-        message: '所有本地数据已清除，应用将重新加载',
+        message: '所有本地数据已清除并重建数据库，应用将重新加载',
       });
       // 立即更新存储显示信息
       await updateStorageInfo();
@@ -515,13 +527,12 @@ const pushToWebDAV = async () => {
       }
     }
 
-    // 2. 备份世界书 IndexedDB
+    // 2. 备份所有 IndexedDB 数据库
     try {
-      const worldBookExport = await worldBookService.exportDatabase();
-      data['ST_CARDPLUS_WORLDBOOK_V1'] = JSON.stringify(worldBookExport);
-    } catch (dbError) {
-      console.error('备份世界书数据到 WebDAV 失败:', dbError);
-      ElMessage.error('备份世界书数据失败，推送中止');
+      const dbData = await exportAllDatabases();
+      Object.assign(data, dbData);
+    } catch (error) {
+      ElMessage.error(`${error instanceof Error ? error.message : '备份数据库失败'}，推送中止`);
       return;
     }
 
@@ -564,16 +575,12 @@ const pullFromWebDAV = async () => {
               snapshotData[key] = localStorage.getItem(key);
             }
           }
-          const worldBookSnapshot = await worldBookService.exportDatabase();
-          snapshotData['ST_CARDPLUS_WORLDBOOK_V1'] = JSON.stringify(worldBookSnapshot);
+          const dbSnapshot = await exportAllDatabases();
+          Object.assign(snapshotData, dbSnapshot);
           sessionStorage.setItem('webdav-snapshot', JSON.stringify(snapshotData));
 
-          // 2. 恢复世界书数据
-          if (data['ST_CARDPLUS_WORLDBOOK_V1']) {
-            const worldBookData = JSON.parse(data['ST_CARDPLUS_WORLDBOOK_V1']);
-            await worldBookService.importDatabase(worldBookData);
-            delete data['ST_CARDPLUS_WORLDBOOK_V1'];
-          }
+          // 2. 恢复所有 IndexedDB 数据库
+          await importAllDatabases(data);
 
           // 3. 恢复 localStorage 数据
           const preservedWebDAVConfig = localStorage.getItem('webdavConfig');
@@ -611,12 +618,8 @@ const revertPull = async () => {
     try {
       const data = JSON.parse(snapshot);
 
-      // 1. 恢复世界书 IndexedDB
-      if (data['ST_CARDPLUS_WORLDBOOK_V1']) {
-        const worldBookData = JSON.parse(data['ST_CARDPLUS_WORLDBOOK_V1']);
-        await worldBookService.importDatabase(worldBookData);
-        delete data['ST_CARDPLUS_WORLDBOOK_V1'];
-      }
+      // 1. 恢复所有 IndexedDB 数据库
+      await importAllDatabases(data);
 
       // 2. 恢复 localStorage
       localStorage.clear();
@@ -656,6 +659,15 @@ const revertPull = async () => {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.storage-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
 }
 
 .storage-bar span {
