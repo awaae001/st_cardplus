@@ -9,7 +9,7 @@ export interface StoredWorldBookEntry extends WorldBookEntry {
 }
 
 // 定义存储在 IndexedDB 中的 WorldBook 结构，移除了 entries 数组
-export interface StoredWorldBook extends Omit<WorldBook, 'entries'> {}
+export interface StoredWorldBook extends Omit<WorldBook, 'entries'> { }
 
 // 定义存储在 IndexedDB 中的角色卡结构
 export interface StoredCharacterCard {

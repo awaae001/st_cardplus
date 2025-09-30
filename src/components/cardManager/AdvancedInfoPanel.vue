@@ -17,9 +17,10 @@
     </el-form-item>
 
     <el-form-item label="历史指令">
-      <el-input v-model="character.data.post_history_instructions" type="textarea" :rows="4" placeholder="在生成回复时追加到历史记录后的指令" />
+      <el-input v-model="character.data.post_history_instructions" type="textarea" :rows="4"
+        placeholder="在生成回复时追加到历史记录后的指令" />
     </el-form-item>
-    
+
     <el-form-item label="作者注">
       <el-input v-model="character.data.creator_notes" type="textarea" :rows="3" placeholder="创作者的内部备注" />
     </el-form-item>
@@ -29,15 +30,8 @@
     </el-form-item>
 
     <el-form-item label="标签">
-      <el-select
-        v-model="character.data.tags"
-        multiple
-        filterable
-        allow-create
-        default-first-option
-        placeholder="输入或选择标签"
-        class="full-width"
-      />
+      <el-select v-model="character.data.tags" multiple filterable allow-create default-first-option
+        placeholder="输入或选择标签" class="full-width" />
     </el-form-item>
   </div>
 </template>

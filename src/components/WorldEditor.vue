@@ -9,22 +9,10 @@
               <span class="world-editor-tab-text">项目列表</span>
             </span>
           </template>
-          <WorldEditorToolbar
-            :projects="projects"
-            :landmarks="landmarks"
-            :forces="forces"
-            :selected-item="selectedItem"
-            :can-undo="canUndo"
-            :can-redo="canRedo"
-            @select="handleSelection"
-            @add="handleAdd"
-            @delete="handleDelete"
-            @undo="handleUndo"
-            @redo="handleRedo"
-            @edit="handleEdit"
-            @copy="handleCopy"
-            :drag-drop-handlers="dragDropHandlers"
-          />
+          <WorldEditorToolbar :projects="projects" :landmarks="landmarks" :forces="forces" :selected-item="selectedItem"
+            :can-undo="canUndo" :can-redo="canRedo" @select="handleSelection" @add="handleAdd" @delete="handleDelete"
+            @undo="handleUndo" @redo="handleRedo" @edit="handleEdit" @copy="handleCopy"
+            :drag-drop-handlers="dragDropHandlers" />
         </el-tab-pane>
         <el-tab-pane name="editor" class="world-editor-tab-pane" :disabled="!selectedItem">
           <template #label>
@@ -35,13 +23,8 @@
               }}</span>
             </span>
           </template>
-          <WorldEditorMainPanel 
-            :selected-item="selectedItem" 
-            :all-tags="allTags"
-            :landmarks="landmarks"
-            :forces="forces"
-            :projects="projects"
-          />
+          <WorldEditorMainPanel :selected-item="selectedItem" :all-tags="allTags" :landmarks="landmarks"
+            :forces="forces" :projects="projects" />
         </el-tab-pane>
       </el-tabs>
     </div>
@@ -50,42 +33,21 @@
       <Splitpanes class="default-theme" style="height: 100%">
         <Pane size="15" min-size="12" max-size="30">
           <div class="toolbar-container">
-            <WorldEditorToolbar
-              :projects="projects"
-              :landmarks="landmarks"
-              :forces="forces"
-              :selected-item="selectedItem"
-              :can-undo="canUndo"
-              :can-redo="canRedo"
-              @select="handleSelection"
-              @add="handleAdd"
-              @delete="handleDelete"
-              @undo="handleUndo"
-              @redo="handleRedo"
-              @edit="handleEdit"
-              @copy="handleCopy"
-              :drag-drop-handlers="dragDropHandlers"
-            />
+            <WorldEditorToolbar :projects="projects" :landmarks="landmarks" :forces="forces"
+              :selected-item="selectedItem" :can-undo="canUndo" :can-redo="canRedo" @select="handleSelection"
+              @add="handleAdd" @delete="handleDelete" @undo="handleUndo" @redo="handleRedo" @edit="handleEdit"
+              @copy="handleCopy" :drag-drop-handlers="dragDropHandlers" />
           </div>
         </Pane>
         <Pane size="85" min-size="70">
           <div class="main-panel-container">
-            <WorldEditorMainPanel 
-              :selected-item="selectedItem" 
-              :all-tags="allTags"
-              :landmarks="landmarks"
-              :forces="forces"
-              :projects="projects"
-            />
+            <WorldEditorMainPanel :selected-item="selectedItem" :all-tags="allTags" :landmarks="landmarks"
+              :forces="forces" :projects="projects" />
           </div>
         </Pane>
       </Splitpanes>
     </div>
-    <ProjectModal
-      v-model:visible="isModalVisible"
-      :project-data="editingProject"
-      @submit="handleModalSubmit"
-    />
+    <ProjectModal v-model:visible="isModalVisible" :project-data="editingProject" @submit="handleModalSubmit" />
   </div>
 </template>
 
@@ -176,9 +138,9 @@ const handleUndo = () => {
 
   if (!updateEntity(landmarks.value, restoredState) && !updateEntity(forces.value, restoredState)) {
     if ('region' in restoredState) { // is landmark
-        landmarks.value.push(restoredState as EnhancedLandmark);
+      landmarks.value.push(restoredState as EnhancedLandmark);
     } else { // is force
-        forces.value.push(restoredState as EnhancedForce);
+      forces.value.push(restoredState as EnhancedForce);
     }
     selectedItem.value = restoredState;
   }
@@ -187,7 +149,7 @@ const handleUndo = () => {
 const handleRedo = () => {
   const restoredState = redo();
   if (!restoredState) return;
-  
+
   const updateEntity = (collection: any[], updatedEntity: any) => {
     const index = collection.findIndex(e => e.id === updatedEntity.id);
     if (index !== -1) {

@@ -53,7 +53,7 @@ export function useHistory(storageKey: string, maxHistorySize = 100) {
     };
 
     history.value.push(newEntry);
-    
+
     // Limit history size
     if (history.value.length > maxHistorySize) {
       history.value.shift();

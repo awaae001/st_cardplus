@@ -7,17 +7,8 @@
         </div>
       </template>
     </el-image>
-    <el-upload
-      ref="uploadRef"
-      action="#"
-      :show-file-list="false"
-      :auto-upload="false"
-      @change="handleImageChange"
-      @error="handleError"
-      accept="image/png, image/jpeg, image/webp"
-      class="upload-button"
-      :limit="1"
-    >
+    <el-upload ref="uploadRef" action="#" :show-file-list="false" :auto-upload="false" @change="handleImageChange"
+      @error="handleError" accept="image/png, image/jpeg, image/webp" class="upload-button" :limit="1">
       <el-button type="primary">🖼️ 选择角色头像</el-button>
     </el-upload>
   </div>
@@ -78,7 +69,8 @@ const handleError = (error: Error) => {
 .character-image {
   width: 50%;
   height: 100%;
-  height: calc(100% - 50px); /* 留出按钮空间 */
+  height: calc(100% - 50px);
+  /* 留出按钮空间 */
   border-radius: 6px;
   background-color: var(--el-fill-color-light);
   border: 1px dashed var(--el-border-color);

@@ -20,7 +20,7 @@ export function useDevice() {
   const deviceInfo = computed<DeviceInfo>(() => {
     const width = screenWidth.value
     const height = screenHeight.value
-    
+
     return {
       isMobile: width < MOBILE_BREAKPOINT,
       isTablet: width >= MOBILE_BREAKPOINT && width < TABLET_BREAKPOINT,

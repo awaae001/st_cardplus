@@ -36,7 +36,7 @@
             <span class="worldbook-tab-label">
               <Icon icon="ph:note-pencil-duotone" class="worldbook-tab-icon" />
               <span class="worldbook-tab-text-truncated">
-                {{selectedEntry ? selectedEntry.comment || "编辑中" : "编辑条目"}}
+                {{ selectedEntry ? selectedEntry.comment || "编辑中" : "编辑条目" }}
               </span>
             </span>
           </template>
@@ -46,7 +46,7 @@
               <Icon icon="ph:note-pencil-duotone" class="content-panel-icon" />
               <span class="content-panel-text-truncated">编辑:
                 <span class="content-panel-text-highlight">
-                  {{selectedEntry ? selectedEntry.comment || "新条目" : "未选择"}}
+                  {{ selectedEntry ? selectedEntry.comment || "新条目" : "未选择" }}
                 </span>
               </span>
             </h2>
