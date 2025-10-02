@@ -34,6 +34,9 @@
               <Icon :icon="data.icon" class="node-icon" />
               <el-tag v-if="data.isEntry && data.raw.constant" type="success" size="small" effect="dark" class="node-tag">常驻</el-tag>
               <span class="node-label">{{ node.label }}</span>
+              <el-tag v-if="!data.isEntry && data.raw.sourceCharacterName" type="info" size="small" class="source-tag">
+                来自: {{ data.raw.sourceCharacterName }}
+              </el-tag>
             </div>
             <div class="node-actions" v-if="!data.isEntry">
               <el-tooltip content="新增条目" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
@@ -272,6 +275,12 @@ const handleNodeCollapse = (data: any) => {
 .node-tag {
   margin-right: 8px;
   flex-shrink: 0;
+}
+
+.source-tag {
+  margin-left: 8px;
+  flex-shrink: 0;
+  font-size: 12px;
 }
 
 .custom-tree-node.is-disabled {
