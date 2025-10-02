@@ -50,14 +50,15 @@
                 </span>
               </span>
             </h2>
-            <WorldBookActions context="editor" :has-selection="!!selectedEntry" @copy-entry="copySelectedEntry"
-              @import-entry="showImportEntryDialog" @save-entry="saveCurrentEntry"
+            <WorldBookActions context="editor" :has-selection="!!selectedEntry" :save-status="saveStatus"
+              :auto-save-mode="autoSaveMode" @toggle-mode="toggleAutoSaveMode"
+              @copy-entry="copySelectedEntry" @import-entry="showImportEntryDialog" @save-entry="saveCurrentEntry"
               @delete-entry="deleteSelectedEntry" />
           </div>
           <WorldBookEditor :entry="selectedEntry" v-model="editableEntry" :all-keywords="allKeywords"
             :current-entry-index="currentEntryIndex" :total-entries="totalEntries" @go-to-previous="goToPreviousEntry"
             @go-to-next="goToNextEntry" :is-next-entry-in-different-book="isNextEntryInDifferentBook"
-            :is-previous-entry-in-different-book="isPreviousEntryInDifferentBook" />
+            :is-previous-entry-in-different-book="isPreviousEntryInDifferentBook" :save-status="saveStatus" />
         </el-tab-pane>
       </el-tabs>
     </div>
@@ -83,14 +84,15 @@
                   selectedEntry ? selectedEntry.comment || "新条目" : "未选择条目"
                 }}</span>
               </h2>
-              <WorldBookActions context="editor" :has-selection="!!selectedEntry" @copy-entry="copySelectedEntry"
-                @import-entry="showImportEntryDialog" @save-entry="saveCurrentEntry"
+              <WorldBookActions context="editor" :has-selection="!!selectedEntry" :save-status="saveStatus"
+                :auto-save-mode="autoSaveMode" @toggle-mode="toggleAutoSaveMode"
+                @copy-entry="copySelectedEntry" @import-entry="showImportEntryDialog" @save-entry="saveCurrentEntry"
                 @delete-entry="deleteSelectedEntry" />
             </div>
             <WorldBookEditor :entry="selectedEntry" v-model="editableEntry" :all-keywords="allKeywords"
               :current-entry-index="currentEntryIndex" :total-entries="totalEntries" @go-to-previous="goToPreviousEntry"
               @go-to-next="goToNextEntry" :is-next-entry-in-different-book="isNextEntryInDifferentBook"
-              :is-previous-entry-in-different-book="isPreviousEntryInDifferentBook" />
+              :is-previous-entry-in-different-book="isPreviousEntryInDifferentBook" :save-status="saveStatus" />
           </div>
         </Pane>
       </Splitpanes>
@@ -150,6 +152,9 @@ const {
   copyWorldBookToClipboard,
   showImportWorldBookDialog,
   clearAllEntries,
+  saveStatus,
+  autoSaveMode,
+  toggleAutoSaveMode,
 } = useWorldBookEntry(activeBook, {
   updateEntries: (entries) => {
     if (!activeBook.value) return Promise.reject("No active book selected");

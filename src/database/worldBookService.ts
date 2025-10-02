@@ -154,8 +154,10 @@ export const worldBookService = {
    */
   async updateEntry(entry: StoredWorldBookEntry): Promise<void> {
     if (entry.id === undefined) {
+      console.error('[worldBookService] 更新条目失败：缺少数据库主键 id');
       throw new Error("更新条目需要提供数据库主键 'id'");
     }
+
     const plainEntry = JSON.parse(JSON.stringify(entry));
     await db.entries.put(plainEntry);
   },
