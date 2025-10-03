@@ -34,9 +34,12 @@
               <Icon :icon="data.icon" class="node-icon" />
               <el-tag v-if="data.isEntry && data.raw.constant" type="success" size="small" effect="dark" class="node-tag">常驻</el-tag>
               <span class="node-label">{{ node.label }}</span>
-              <el-tag v-if="!data.isEntry && data.raw.sourceCharacterName" type="info" size="small" class="source-tag">
+              <el-tag v-if="!data.isEntry && data.raw.sourceCharacterName && sidebarWidth >= 270" type="info" size="small" class="source-tag">
                 来自: {{ data.raw.sourceCharacterName }}
               </el-tag>
+              <el-tooltip v-else-if="!data.isEntry && data.raw.sourceCharacterName" :content="`来自: ${data.raw.sourceCharacterName}`" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+                <Icon icon="ph:user-circle-duotone" class="source-icon" />
+              </el-tooltip>
             </div>
             <div class="node-actions" v-if="!data.isEntry">
               <el-tooltip content="新增条目" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
@@ -89,9 +92,12 @@ interface Props {
     allowDrop: (draggingNode: any, dropNode: any, type: any) => boolean;
     handleNodeDrop: (draggingNode: any, dropNode: any, type: any) => boolean;
   };
+  sidebarWidth?: number;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  sidebarWidth: Infinity,
+});
 
 const treeRef = ref<InstanceType<typeof ElTree> | null>(null);
 const treeKey = ref(0);
@@ -281,6 +287,12 @@ const handleNodeCollapse = (data: any) => {
   margin-left: 8px;
   flex-shrink: 0;
   font-size: 12px;
+}
+
+.source-icon {
+  margin-left: 8px;
+  font-size: 16px;
+  color: var(--el-text-color-secondary);
 }
 
 .custom-tree-node.is-disabled {

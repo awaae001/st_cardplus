@@ -177,22 +177,53 @@ const handleSendToWorldBook = async () => {
       return;
     }
 
-    // 提示用户输入世界书名称
-    const { value: bookName } = await ElMessageBox.prompt(
-      `将角色卡的世界书(${book.entries.length} 个条目)保存为 APP 世界书。\n您可以在世界书页面编辑后再导出。`,
-      '发送到世界书',
-      {
-        confirmButtonText: '确认发送',
-        cancelButtonText: '取消',
-        inputValue: book.name || `${props.character.data.name}的世界书`,
-        inputPattern: /.+/,
-        inputErrorMessage: '世界书名称不能为空',
-      }
-    );
-
     // 准备角色卡信息
     const characterId = props.character.id || 'unknown';
     const characterName = props.character.data.name || '未命名角色';
+
+    // 检查是否已存在来自此角色卡的世界书
+    const existingBookId = await worldBookService.findBookByCharacterId(characterId);
+
+    let action: 'update' | 'new' = 'new';
+    let bookName = book.name || `${props.character.data.name}的世界书`;
+
+    if (existingBookId) {
+      // 如果已存在，询问用户是更新还是创建新副本
+      const { action: userAction } = await ElMessageBox.confirm(
+        `检测到已存在来自此角色卡的世界书。\n\n当前世界书有 ${book.entries.length} 个条目。\n\n请选择操作：`,
+        '发送到世界书',
+        {
+          confirmButtonText: '更新已有世界书',
+          cancelButtonText: '创建新副本',
+          distinguishCancelAndClose: true,
+          type: 'warning',
+        }
+      ).then(() => ({ action: 'update' as const }))
+        .catch((error) => {
+          if (error === 'cancel') {
+            return { action: 'new' as const };
+          }
+          throw error;
+        });
+
+      action = userAction;
+    }
+
+    if (action === 'new') {
+      // 创建新世界书，提示用户输入名称
+      const { value: inputName } = await ElMessageBox.prompt(
+        `将角色卡的世界书(${book.entries.length} 个条目)保存为 APP 世界书。\n您可以在世界书页面编辑后再导出。`,
+        '发送到世界书',
+        {
+          confirmButtonText: '确认发送',
+          cancelButtonText: '取消',
+          inputValue: bookName,
+          inputPattern: /.+/,
+          inputErrorMessage: '世界书名称不能为空',
+        }
+      );
+      bookName = inputName;
+    }
 
     // 创建要保存的 CharacterBook 对象
     const characterBook: CharacterBook = {
@@ -205,19 +236,35 @@ const handleSendToWorldBook = async () => {
       recursive_scanning: book.recursive_scanning,
     };
 
-    // 调用服务保存到数据库
-    const newBookId = await worldBookService.addBookFromCharacterCard(
-      characterBook,
-      characterId,
-      characterName
-    );
+    if (action === 'update' && existingBookId) {
+      // 更新已有世界书
+      await worldBookService.updateBookFromCharacterCard(
+        existingBookId,
+        characterBook,
+        characterName
+      );
 
-    ElMessage.success({
-      message: `已成功将世界书保存为"${bookName}"！您可以在世界书页面查看和编辑。`,
-      duration: 4000,
-    });
+      ElMessage.success({
+        message: `已成功更新世界书"${bookName}"！包含 ${book.entries.length} 个条目。`,
+        duration: 4000,
+      });
 
-    console.log('已创建世界书:', newBookId);
+      console.log('已更新世界书:', existingBookId);
+    } else {
+      // 创建新世界书
+      const newBookId = await worldBookService.addBookFromCharacterCard(
+        characterBook,
+        characterId,
+        characterName
+      );
+
+      ElMessage.success({
+        message: `已成功将世界书保存为"${bookName}"！您可以在世界书页面查看和编辑。`,
+        duration: 4000,
+      });
+
+      console.log('已创建世界书:', newBookId);
+    }
   } catch (error) {
     if (error !== 'cancel' && error !== 'close') {
       console.error('发送到世界书失败:', error);

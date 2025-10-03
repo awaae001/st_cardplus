@@ -33,7 +33,8 @@
       </el-drawer>
 
       <!-- PC Sidebar -->
-      <el-aside v-else :width="sidebarWidth" class="sidebar-transition" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
+      <el-aside v-else :width="sidebarWidth" class="sidebar-transition" @mouseenter="handleMouseEnter"
+        @mouseleave="handleMouseLeave">
         <el-menu :collapse="isCollapse" :router="true" class="sidebar-menu">
           <template v-for="item in mainMenuItems" :key="item.index">
             <el-menu-item v-if="!item.beta || betaFeaturesEnabled" :index="item.index">
@@ -79,11 +80,11 @@ import { RouterView } from 'vue-router'
 import {
   Menu as IconMenu, Moon, Sunny, House, EditPen, Location, Postcard, Tools, DataLine, Collection, InfoFilled, Tickets
 } from '@element-plus/icons-vue'
-import { ElLoading, ElContainer, ElAside, ElMain, ElMenu, ElMenuItem, ElIcon, ElButton, ElDrawer ,ElDivider} from 'element-plus'
+import { ElLoading, ElContainer, ElAside, ElMain, ElMenu, ElMenuItem, ElIcon, ElButton, ElDrawer, ElDivider } from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
-import { ref, onMounted, onUnmounted, computed, watch} from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useDark, useToggle, useWindowSize } from '@vueuse/core'
-import { getBetaFeaturesEnabled, getUseOldSidebar, getVisibleSidebarItems} from '@/utils/localStorageUtils'
+import { getBetaFeaturesEnabled, getUseOldSidebar, getVisibleSidebarItems } from '@/utils/localStorageUtils'
 import { getIconComponent } from '@/config/menuConfig'
 import App_old from '@/pages/App_old.vue'
 import { provideOverflowControl } from '@/composables/useOverflowControl';
@@ -97,7 +98,7 @@ const useOldSidebar = ref(true)
 const { width } = useWindowSize()
 const isCollapse = ref(false)
 const userToggledCollapse = ref(false); // 新增：用于跟踪用户手动折叠的状态
-const { autoExpandSidebar, allowBodyScroll,refreshSidebarConfig } = usePersonalization();
+const { autoExpandSidebar, allowBodyScroll, refreshSidebarConfig } = usePersonalization();
 
 // 动态生成菜单项 - 响应式更新
 const mainMenuItems = computed(() => {
@@ -154,7 +155,7 @@ watch([() => route.path, isMobile], ([newPath, mobile]) => {
     setOverflowHidden(false);
     return;
   }
-  const overflowHiddenRoutes = ['/worldbook', '/ejs-editor' , '/world'];
+  const overflowHiddenRoutes = ['/worldbook', '/ejs-editor', '/world', '/cardmanager'];
   if (overflowHiddenRoutes.includes(newPath)) {
     setOverflowHidden(true);
   } else {
