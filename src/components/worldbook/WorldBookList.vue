@@ -65,6 +65,7 @@
     <div class="worldbook-list-footer">
       <WorldBookActions
         context="list"
+        :sidebar-width="sidebarWidth"
         @copy-book="$emit('copy-book')"
         @import-book="$emit('import-book')"
         @export-json="$emit('export-json')"

@@ -1,5 +1,5 @@
 <template>
-  <div class="worldbook-bottom-panel-buttons" v-if="context === 'list'">
+  <div class="worldbook-bottom-panel-buttons" v-if="context === 'list'" :class="{ 'is-compact': sidebarWidth < 270 }">
       <el-tooltip content="复制整个世界书 (到剪贴板)" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
         <button @click="$emit('copy-book')" class="btn-secondary-adv worldbook-bottom-button" aria-label="复制整个世界书">
           <Icon icon="ph:books-duotone" class="worldbook-bottom-button-icon" />
@@ -90,9 +90,12 @@ interface Props {
   hasSelection?: boolean;
   saveStatus?: 'idle' | 'saving' | 'saved' | 'error';
   autoSaveMode?: 'auto' | 'watch' | 'manual';
+  sidebarWidth?: number;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  sidebarWidth: Infinity,
+});
 
 const getModeIcon = () => {
   switch (props.autoSaveMode) {
@@ -180,6 +183,17 @@ const handleBookUpload = (file: File): boolean => {
 </script>
 
 <style scoped>
+.worldbook-bottom-panel-buttons.is-compact .worldbook-button-text-long,
+.worldbook-bottom-panel-buttons.is-compact .worldbook-button-text-short {
+  display: none;
+}
+
+.worldbook-bottom-panel-buttons.is-compact .worldbook-bottom-button-text {
+  padding: 8px;
+  min-width: 36px;
+  justify-content: center;
+}
+
 .save-button-group {
   display: flex;
   align-items: center;
