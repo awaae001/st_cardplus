@@ -66,7 +66,8 @@
             <div class="editor-content">
               <el-form :model="formState" label-width="120px" label-position="top">
                 <RegexEditorCore v-model:script-name="formState.scriptName" v-model:find-regex="formState.findRegex"
-                  v-model:replace-string="formState.replaceString" v-model:trim-strings="trimStrings" />
+                  v-model:replace-string="formState.replaceString" v-model:trim-strings="trimStrings"
+                  v-model:substitute-regex="formState.substituteRegex" />
                 <SmartRegexGenerator v-model:input-text="smartInputText"
                   @regex-generated="handleSmartRegexGenerated" />
                 <RegexSimulatorPanel v-model:test-string="testString" v-model:render-html="renderHtml"
@@ -310,6 +311,7 @@ const regexScript = computed(() => ({
   replaceString: formState.value.replaceString,
   macros: macros.value,
   trimStrings: trimStrings.value.split('\n').filter(s => s.length > 0),
+  substituteRegex: formState.value.substituteRegex ?? 0,
 }));
 
 const { testString, simulatedResult } = useRegexSimulator(regexScript);

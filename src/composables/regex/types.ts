@@ -45,4 +45,5 @@ export interface RegexScript {
     replaceString: string;
     trimStrings?: string[];
     macros?: Record<string, string>;
+    substituteRegex?: (typeof SUBSTITUTE_FIND_REGEX[keyof typeof SUBSTITUTE_FIND_REGEX]);
 }
