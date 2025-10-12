@@ -40,10 +40,16 @@
         <div class="mobile-panel-content">
           <div v-show="mobileActivePanel === 'scripts'" class="mobile-panel">
             <RegexScriptList
-              :scripts="importedScripts"
-              v-model="selectedScriptId"
-              @update:model-value="handleSelectScript"
-              @create-script="handleCreateScript"
+              :collection="regexCollection"
+              :active-category-id="activeCategoryId"
+              :selected-script="selectedScript"
+              :drag-drop-handlers="dragDropHandlers"
+              @select-category="handleSelectCategory"
+              @select-script="handleSelectScript"
+              @create-category="handleCreateCategory"
+              @rename-category="handleRenameCategory"
+              @delete-category="handleDeleteCategory"
+              @add-script="handleAddScript"
               @rename-script="handleRenameScript"
               @delete-script="handleDeleteScript"
               @export-script="handleExportSingleScript"
@@ -97,10 +103,16 @@
         <pane min-size="10" size="15">
           <div class="sidebar-panel">
             <RegexScriptList
-              :scripts="importedScripts"
-              v-model="selectedScriptId"
-              @update:model-value="handleSelectScript"
-              @create-script="handleCreateScript"
+              :collection="regexCollection"
+              :active-category-id="activeCategoryId"
+              :selected-script="selectedScript"
+              :drag-drop-handlers="dragDropHandlers"
+              @select-category="handleSelectCategory"
+              @select-script="handleSelectScript"
+              @create-category="handleCreateCategory"
+              @rename-category="handleRenameCategory"
+              @delete-category="handleDeleteCategory"
+              @add-script="handleAddScript"
               @rename-script="handleRenameScript"
               @delete-script="handleDeleteScript"
               @export-script="handleExportSingleScript"
@@ -192,7 +204,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, nextTick } from 'vue';
+import { computed, ref, onMounted, nextTick, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { DocumentAdd, Download, Plus } from '@element-plus/icons-vue';
 import { Icon } from '@iconify/vue';
@@ -201,7 +213,8 @@ import 'splitpanes/dist/splitpanes.css';
 import { useDevice } from '@/composables/useDevice';
 import { useRegexSimulator } from '@/composables/regex/useRegexSimulator';
 import { type SillyTavernRegexScript } from '@/composables/regex/types';
-import { useRegexPersistence } from '@/composables/regex/useRegexPersistence';
+import { useRegexCollection } from '@/composables/regex/useRegexCollection';
+import { useRegexDragDrop } from '@/composables/regex/useRegexDragDrop';
 
 // 组件导入
 import RegexScriptList from '@/components/regex/RegexScriptList.vue';
@@ -214,9 +227,37 @@ const { isMobileOrTablet } = useDevice();
 const editorPanelVisible = ref(true);
 const mobileActivePanel = ref('scripts');
 
-// 脚本数据
-const importedScripts = ref<SillyTavernRegexScript[]>([]);
-const selectedScriptId = ref<string | null>(null);
+// 使用新的集合管理
+const {
+  regexCollection,
+  activeCategoryId,
+  activeCategory,
+  handleSelectCategory,
+  handleCreateCategory: createCategory,
+  handleRenameCategory: renameCategory,
+  handleDeleteCategory: deleteCategory,
+  handleCreateScript: createScriptInCategory,
+  handleUpdateScript: updateScript,
+  handleDeleteScript: deleteScriptFromCollection,
+  moveScriptBetweenCategories,
+  updateCategoryScripts,
+} = useRegexCollection();
+
+// 拖拽功能
+const dragDropHandlers = useRegexDragDrop(
+  regexCollection,
+  moveScriptBetweenCategories,
+  updateCategoryScripts
+);
+
+// 包装类别管理函数
+const handleCreateCategory = createCategory;
+const handleRenameCategory = renameCategory;
+const handleDeleteCategory = deleteCategory;
+
+// 当前选中的脚本
+const selectedScript = ref<SillyTavernRegexScript | null>(null);
+const selectedScriptId = computed(() => selectedScript.value?.id ?? null);
 
 const createDefaultScript = (): SillyTavernRegexScript => ({
   id: `new-script-${Date.now()}`,
@@ -256,6 +297,10 @@ function finishEditingName() {
   if (!formState.value.scriptName) {
     formState.value.scriptName = '未命名规则';
   }
+  // 保存脚本名称更新
+  if (selectedScript.value) {
+    updateScript(selectedScript.value.id, { scriptName: formState.value.scriptName });
+  }
 }
 
 // 工具栏操作
@@ -264,8 +309,12 @@ function toggleEditorPanel() {
 }
 
 async function handleImportScript() {
+  if (!activeCategory.value) {
+    ElMessage.warning('请先选择一个类别');
+    return;
+  }
+
   try {
-    // 创建文件输入元素
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';
@@ -284,11 +333,13 @@ async function handleImportScript() {
           ...script,
           id: `imported-script-${Date.now()}-${index}`,
           scriptName: script.scriptName || `导入的规则 ${index + 1}`,
+          categoryId: activeCategory.value!.id,
         }));
 
         if (newScripts.length > 0) {
-          importedScripts.value.push(...newScripts);
-          selectedScriptId.value = newScripts[0].id;
+          activeCategory.value!.scripts.push(...newScripts);
+          activeCategory.value!.updatedAt = new Date().toISOString();
+          selectedScript.value = newScripts[0];
           loadSelectedScript();
 
           const message = newScripts.length === 1
@@ -308,17 +359,15 @@ async function handleImportScript() {
 }
 
 function handleExportScript() {
-  if (!selectedScriptId.value) return;
-
-  const script = importedScripts.value.find(s => s.id === selectedScriptId.value);
-  if (!script) return;
+  if (!selectedScript.value) return;
 
   try {
-    const scriptToExport = { ...script };
+    const scriptToExport = { ...selectedScript.value };
     scriptToExport.trimStrings = trimStrings.value.split('\n').filter(s => s.length > 0);
 
     if (scriptToExport.minDepth === null) delete scriptToExport.minDepth;
     if (scriptToExport.maxDepth === null) delete scriptToExport.maxDepth;
+    delete scriptToExport.categoryId;
 
     const jsonString = JSON.stringify(scriptToExport, null, 2);
     const blob = new Blob([jsonString], { type: 'application/json' });
@@ -335,11 +384,21 @@ function handleExportScript() {
 }
 
 function handleExportSingleScript(scriptId: string) {
-  const script = importedScripts.value.find(s => s.id === scriptId);
-  if (!script) return;
+  // 在所有类别中查找该脚本
+  let script: SillyTavernRegexScript | undefined;
+  for (const category of Object.values(regexCollection.value.categories)) {
+    script = category.scripts.find(s => s.id === scriptId);
+    if (script) break;
+  }
+
+  if (!script) {
+    ElMessage.error('未找到要导出的脚本');
+    return;
+  }
 
   try {
     const cleanScript = { ...script };
+    delete cleanScript.categoryId;
     const jsonString = JSON.stringify(cleanScript, null, 2);
     const blob = new Blob([jsonString], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -355,38 +414,61 @@ function handleExportSingleScript(scriptId: string) {
 }
 
 function handleCreateScript() {
-  const newScript = createDefaultScript();
-  newScript.scriptName = `新规则 ${importedScripts.value.length + 1}`;
-  importedScripts.value.push(newScript);
-  selectedScriptId.value = newScript.id;
-  loadSelectedScript();
-  mobileActivePanel.value = 'editor';
-  ElMessage.success('已创建新脚本');
+  if (!activeCategory.value) {
+    ElMessage.warning('请先选择一个类别');
+    return;
+  }
+
+  const scriptName = `新规则 ${activeCategory.value.scripts.length + 1}`;
+  const newScript = createScriptInCategory(scriptName);
+
+  if (newScript) {
+    selectedScript.value = newScript;
+    loadSelectedScript();
+    mobileActivePanel.value = 'editor';
+    ElMessage.success('已创建新脚本');
+  }
 }
 
-function handleSelectScript(scriptId: string) {
-  selectedScriptId.value = scriptId;
-  loadSelectedScript();
-  mobileActivePanel.value = 'editor';
+function handleAddScript(categoryId: string) {
+  handleSelectCategory(categoryId);
+  nextTick(() => {
+    handleCreateScript();
+  });
+}
+
+function handleSelectScript(categoryId: string, scriptIndex: number) {
+  handleSelectCategory(categoryId);
+  if (activeCategory.value && activeCategory.value.scripts[scriptIndex]) {
+    selectedScript.value = activeCategory.value.scripts[scriptIndex];
+    loadSelectedScript();
+    mobileActivePanel.value = 'editor';
+  }
 }
 
 function loadSelectedScript() {
-  if (!selectedScriptId.value) {
+  if (!selectedScript.value) {
     formState.value = createDefaultScript();
     trimStrings.value = '';
     return;
   }
 
-  const script = importedScripts.value.find(s => s.id === selectedScriptId.value);
-  if (script) {
-    Object.assign(formState.value, createDefaultScript(), script);
-    trimStrings.value = (script.trimStrings || []).join('\n');
-  }
+  Object.assign(formState.value, createDefaultScript(), selectedScript.value);
+  trimStrings.value = (selectedScript.value.trimStrings || []).join('\n');
 }
 
 async function handleRenameScript(scriptId: string) {
-  const script = importedScripts.value.find(s => s.id === scriptId);
-  if (!script) return;
+  // 在所有类别中查找该脚本
+  let script: SillyTavernRegexScript | undefined;
+  for (const category of Object.values(regexCollection.value.categories)) {
+    script = category.scripts.find(s => s.id === scriptId);
+    if (script) break;
+  }
+
+  if (!script) {
+    ElMessage.error('未找到要重命名的脚本');
+    return;
+  }
 
   try {
     const { value } = await ElMessageBox.prompt('请输入新的脚本名称', '重命名', {
@@ -395,9 +477,11 @@ async function handleRenameScript(scriptId: string) {
       inputValue: script.scriptName,
       inputValidator: (val) => !!val || '名称不能为空',
     });
-    script.scriptName = value;
-    if (script.id === selectedScriptId.value) {
+
+    updateScript(scriptId, { scriptName: value });
+    if (selectedScript.value?.id === scriptId) {
       formState.value.scriptName = value;
+      selectedScript.value.scriptName = value;
     }
     ElMessage.success('重命名成功');
   } catch {
@@ -406,35 +490,13 @@ async function handleRenameScript(scriptId: string) {
 }
 
 async function handleDeleteScript(scriptId: string) {
-  const index = importedScripts.value.findIndex(s => s.id === scriptId);
-  if (index === -1) return;
+  await deleteScriptFromCollection(scriptId);
 
-  try {
-    await ElMessageBox.confirm(
-      `确定要删除脚本 "${importedScripts.value[index].scriptName}" 吗？此操作不可撤销。`,
-      '警告',
-      {
-        confirmButtonText: '删除',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }
-    );
-
-    importedScripts.value.splice(index, 1);
-
-    if (selectedScriptId.value === scriptId) {
-      if (importedScripts.value.length > 0) {
-        const newIndex = Math.max(0, index - 1);
-        selectedScriptId.value = importedScripts.value[newIndex].id;
-      } else {
-        selectedScriptId.value = null;
-        formState.value = createDefaultScript();
-      }
-      loadSelectedScript();
-    }
-    ElMessage.success('脚本已删除');
-  } catch {
-    // Cancelled
+  // 如果删除的是当前选中的脚本，清空选择
+  if (selectedScript.value?.id === scriptId) {
+    selectedScript.value = null;
+    formState.value = createDefaultScript();
+    trimStrings.value = '';
   }
 }
 
@@ -462,80 +524,41 @@ function handleSmartRegexGenerated({ regex, replaceString }: { regex: string; re
   ElMessage.success('已自动生成正则表达式和替换字符串！');
 }
 
-// 持久化
-const { loadState } = useRegexPersistence(
-  {
-    formState,
-    testString,
-    smartInputText,
-    userMacroValue,
-    charMacroValue,
-    renderHtml,
-    trimStrings,
-  },
-  createDefaultScript
-);
-
-onMounted(() => {
-  loadState();
-
-  // 加载保存的脚本列表
-  const saved = localStorage.getItem('regex-editor-scripts');
-  if (saved) {
-    try {
-      const savedData = JSON.parse(saved);
-      if (savedData.scripts && Array.isArray(savedData.scripts)) {
-        importedScripts.value = savedData.scripts;
-        if (savedData.selectedScriptId) {
-          selectedScriptId.value = savedData.selectedScriptId;
-          loadSelectedScript();
-        }
-      }
-    } catch (error) {
-      console.warn('Failed to load saved scripts:', error);
-    }
-  }
-
-  // 如果没有脚本，创建一个默认脚本
-  if (importedScripts.value.length === 0) {
-    handleCreateScript();
-  }
-});
-
-// 监听脚本变化，自动保存
-import { watch } from 'vue';
+// 监听表单状态变化，自动保存
 let saveTimer: NodeJS.Timeout | null = null;
 
 watch(
-  [
-    () => importedScripts.value.length,
-    () => selectedScriptId.value,
-    () => importedScripts.value.map(s => `${s.id}-${s.scriptName}`).join(','),
-    () => formState.value.scriptName,
-    () => formState.value.findRegex,
-    () => formState.value.replaceString,
+  () => [
+    formState.value.scriptName,
+    formState.value.findRegex,
+    formState.value.replaceString,
+    trimStrings.value,
+    formState.value.disabled,
+    formState.value.markdownOnly,
+    formState.value.promptOnly,
+    formState.value.runOnEdit,
+    formState.value.substituteRegex,
+    formState.value.minDepth,
+    formState.value.maxDepth,
   ],
   () => {
+    if (!selectedScript.value) return;
+
     if (saveTimer) clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
-      try {
-        // 更新当前编辑的脚本
-        if (selectedScriptId.value) {
-          const currentScript = importedScripts.value.find(s => s.id === selectedScriptId.value);
-          if (currentScript) {
-            Object.assign(currentScript, formState.value);
-            currentScript.trimStrings = trimStrings.value.split('\n').filter(s => s.length > 0);
-          }
+      if (selectedScript.value && activeCategory.value) {
+        // 更新选中的脚本
+        const scriptIndex = activeCategory.value.scripts.findIndex(s => s.id === selectedScript.value!.id);
+        if (scriptIndex !== -1) {
+          const updatedScript = {
+            ...formState.value,
+            trimStrings: trimStrings.value.split('\n').filter(s => s.length > 0),
+            categoryId: activeCategory.value.id,
+          };
+          activeCategory.value.scripts[scriptIndex] = updatedScript;
+          selectedScript.value = updatedScript;
+          activeCategory.value.updatedAt = new Date().toISOString();
         }
-
-        const saveData = {
-          scripts: importedScripts.value,
-          selectedScriptId: selectedScriptId.value,
-          timestamp: new Date().toISOString(),
-        };
-        localStorage.setItem('regex-editor-scripts', JSON.stringify(saveData));
-      } catch (error) {
-        console.warn('保存脚本失败:', error);
       }
       saveTimer = null;
     }, 1000);
@@ -543,6 +566,7 @@ watch(
   { deep: true }
 );
 </script>
+
 
 <style scoped>
 .regex-editor-page {

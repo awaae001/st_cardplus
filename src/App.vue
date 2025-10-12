@@ -77,9 +77,7 @@
 
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
-import {
-  Menu as IconMenu, Moon, Sunny, House, EditPen, Location, Postcard, Tools, DataLine, Collection, InfoFilled, Tickets
-} from '@element-plus/icons-vue'
+import { Menu as IconMenu, Moon, Sunny, InfoFilled} from '@element-plus/icons-vue'
 import { ElLoading, ElContainer, ElAside, ElMain, ElMenu, ElMenuItem, ElIcon, ElButton, ElDrawer, ElDivider } from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
@@ -155,7 +153,7 @@ watch([() => route.path, isMobile], ([newPath, mobile]) => {
     setOverflowHidden(false);
     return;
   }
-  const overflowHiddenRoutes = ['/worldbook', '/ejs-editor', '/world', '/cardmanager' , '/regex-editor'];
+  const overflowHiddenRoutes = ['/worldbook', '/ejs-editor', '/world', '/cardmanager', '/regex-editor'];
   if (overflowHiddenRoutes.includes(newPath)) {
     setOverflowHidden(true);
   } else {
