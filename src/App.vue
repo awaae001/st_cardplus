@@ -155,7 +155,7 @@ watch([() => route.path, isMobile], ([newPath, mobile]) => {
     setOverflowHidden(false);
     return;
   }
-  const overflowHiddenRoutes = ['/worldbook', '/ejs-editor', '/world', '/cardmanager'];
+  const overflowHiddenRoutes = ['/worldbook', '/ejs-editor', '/world', '/cardmanager' , '/regex-editor'];
   if (overflowHiddenRoutes.includes(newPath)) {
     setOverflowHidden(true);
   } else {

@@ -114,7 +114,19 @@
             <div v-if="selectedScriptId" class="panel-content">
               <div class="panel-header">
                 <h3>规则编辑器</h3>
-                <el-text type="info" size="small">{{ formState.scriptName || '未命名规则' }}</el-text>
+                <el-text v-if="!isEditingName" type="info" size="small" @click="startEditingName" class="editable-script-name">
+                  {{ formState.scriptName || '未命名规则' }}
+                  <Icon icon="ph:pencil-simple-duotone" class="edit-icon" />
+                </el-text>
+                <el-input
+                  v-else
+                  ref="scriptNameInput"
+                  v-model="formState.scriptName"
+                  size="small"
+                  @blur="finishEditingName"
+                  @keyup.enter="finishEditingName"
+                  placeholder="请输入规则名称"
+                />
               </div>
               <div class="panel-scroll">
                 <el-form :model="formState" label-position="top" class="editor-form">
@@ -180,7 +192,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue';
+import { computed, ref, onMounted, nextTick } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { DocumentAdd, Download, Plus } from '@element-plus/icons-vue';
 import { Icon } from '@iconify/vue';
@@ -228,6 +240,23 @@ const smartInputText = ref('');
 const renderHtml = ref(false);
 const userMacroValue = ref('测试用户');
 const charMacroValue = ref('测试角色');
+
+const isEditingName = ref(false);
+const scriptNameInput = ref<any>(null);
+
+function startEditingName() {
+  isEditingName.value = true;
+  nextTick(() => {
+    scriptNameInput.value?.focus();
+  });
+}
+
+function finishEditingName() {
+  isEditingName.value = false;
+  if (!formState.value.scriptName) {
+    formState.value.scriptName = '未命名规则';
+  }
+}
 
 // 工具栏操作
 function toggleEditorPanel() {
@@ -582,6 +611,22 @@ watch(
   border-bottom: 1px solid var(--el-border-color-light);
   flex-shrink: 0;
   background: var(--el-bg-color);
+}
+
+.editable-script-name {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.editable-script-name .edit-icon {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.editable-script-name:hover .edit-icon {
+  opacity: 1;
 }
 
 .panel-header h3 {
