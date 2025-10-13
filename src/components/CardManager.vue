@@ -83,7 +83,7 @@
                   <Icon icon="ph:upload-duotone" v-if="!isUploading" />
                   {{ isUploading ? uploadProgress : '加载PNG' }}
                 </el-button>
-                <el-button type="success" @click="handleSave" size="small">
+                <el-button type="success" @click="handleExportWithRegexSelection" size="small">
                   <Icon icon="ph:export-duotone" />
                   导出PNG
                 </el-button>
@@ -130,6 +130,13 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 正则脚本选择对话框 -->
+    <RegexScriptSelectorDialog
+      v-model="showRegexSelectorDialog"
+      :default-selected-ids="defaultSelectedRegexIds"
+      @confirm="handleRegexScriptsSelected"
+    />
   </div>
 </template>
 
@@ -145,8 +152,10 @@ import CharacterCardList from '@/components/cardManager/CharacterCardList.vue';
 import CharacterCardActions from '@/components/cardManager/CharacterCardActions.vue';
 import CardEditor from '@/components/cardManager/CardEditor.vue';
 import WelcomeScreen from '@/components/cardManager/WelcomeScreen.vue';
+import RegexScriptSelectorDialog from '@/components/cardManager/RegexScriptSelectorDialog.vue';
 
 import { useV3CharacterCard } from '@/composables/characterCard/useV3CharacterCard';
+import type { SillyTavernRegexScript } from '@/composables/regex/types';
 import { useCharacterCardCollection } from '@/composables/characterCard/useCharacterCardCollection';
 import { useCardImport } from '@/composables/characterCard/useCardImport';
 import { useCardExport } from '@/composables/characterCard/useCardExport';
@@ -206,6 +215,30 @@ const { isUploading, uploadProgress, fileInput, triggerFileInput, handleFileSele
   handleImageUpdate
 );
 const { handleSave } = useCardExport(characterData, characterImageFile);
+
+// 正则脚本选择对话框
+const showRegexSelectorDialog = ref(false);
+const defaultSelectedRegexIds = computed(() => {
+  const scripts = characterData.value.data.extensions?.regex_scripts || [];
+  return scripts.map((s: SillyTavernRegexScript) => s.id);
+});
+
+// 处理带正则选择的导出
+const handleExportWithRegexSelection = () => {
+  showRegexSelectorDialog.value = true;
+};
+
+// 处理正则脚本选择完成
+const handleRegexScriptsSelected = (selectedScripts: SillyTavernRegexScript[]) => {
+  // 更新角色卡的正则脚本
+  if (!characterData.value.data.extensions) {
+    characterData.value.data.extensions = {};
+  }
+  characterData.value.data.extensions.regex_scripts = selectedScripts;
+  
+  // 执行导出
+  handleSave();
+};
 
 
 // 重构提示弹窗
