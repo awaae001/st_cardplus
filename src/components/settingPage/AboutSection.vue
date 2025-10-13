@@ -3,7 +3,7 @@
     <h2>关于应用 <span v-if="isDevDomain" style="color: #e6a23c; font-size: 12px;">滚动测试版本</span></h2>
     <p>这是一个用于创建和管理 SillyTavern 角色卡的在线应用程序 </p>
     <p style="display: flex;align-items: center;gap: 8px;">你可以访问
-      <Icon icon="qlementine-icons:discord-fill-16" width="16" height="16" /><a href="https://discord.gg/2wKPQHCydk"
+      <Icon icon="qlementine-icons:discord-fill-16" width="16" height="16" /><a href="https://discord.gg/KH6rHAGBXD"
         target="_blank" style="color: #409eff;">discord 频道</a> 发送反馈或者访问我的 GitHub 页面获取更多信息或贡献代码：
     </p>
     <p>

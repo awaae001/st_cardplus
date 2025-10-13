@@ -76,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, nextTick } from 'vue';
+import { computed, ref, nextTick, watch } from 'vue';
 import { ElScrollbar, ElTooltip, ElTree } from 'element-plus';
 import { Icon } from '@iconify/vue';
 import type { RegexScriptCollection, SillyTavernRegexScript } from '@/composables/regex/types';
@@ -97,6 +97,24 @@ const props = withDefaults(defineProps<Props>(), {});
 const treeRef = ref<InstanceType<typeof ElTree> | null>(null);
 const treeKey = ref(0);
 const expandedKeys = ref<string[]>([]);
+
+// 监听 collection 变化，初始化时展开第一个分类
+watch(
+  () => props.collection.categories,
+  (categories) => {
+    if (expandedKeys.value.length === 0 && Object.keys(categories).length > 0) {
+      const firstCategory = Object.values(categories)
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))[0];
+      
+      if (firstCategory) {
+        nextTick(() => {
+          expandedKeys.value = [firstCategory.id];
+        });
+      }
+    }
+  },
+  { immediate: true }
+);
 
 const onNodeDrop = async (draggingNode: any, dropNode: any, dropType: any) => {
   // Store currently expanded keys

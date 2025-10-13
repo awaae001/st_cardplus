@@ -241,6 +241,7 @@ const {
   handleDeleteScript: deleteScriptFromCollection,
   moveScriptBetweenCategories,
   updateCategoryScripts,
+  saveToStorage,
 } = useRegexCollection();
 
 // 拖拽功能
@@ -327,6 +328,9 @@ async function handleImportScript() {
         const text = await file.text();
         const jsonData = JSON.parse(text);
 
+        console.log('[导入脚本] 开始导入，当前类别：', activeCategory.value?.name);
+        console.log('[导入脚本] 导入前脚本数量：', activeCategory.value?.scripts.length);
+
         const scriptsToParse = Array.isArray(jsonData) ? jsonData : [jsonData];
         const newScripts = scriptsToParse.map((script: any, index: number) => ({
           ...createDefaultScript(),
@@ -339,6 +343,20 @@ async function handleImportScript() {
         if (newScripts.length > 0) {
           activeCategory.value!.scripts.push(...newScripts);
           activeCategory.value!.updatedAt = new Date().toISOString();
+          
+          console.log('[导入脚本] 导入后脚本数量：', activeCategory.value?.scripts.length);
+          console.log('[导入脚本] 新脚本IDs：', newScripts.map(s => s.id));
+          
+          // 【修复】调用 saveToStorage 保存到 localStorage
+          console.log('[导入脚本] 调用 saveToStorage 保存到 localStorage');
+          console.log('[导入脚本] 当前 regexCollection.categories：', Object.keys(regexCollection.value.categories));
+          saveToStorage();
+          console.log('[导入脚本] 保存完成');
+          
+          // 验证保存结果
+          const savedData = localStorage.getItem('regex-script-collection');
+          console.log('[导入脚本] localStorage 中的数据：', savedData ? JSON.parse(savedData) : null);
+          
           selectedScript.value = newScripts[0];
           loadSelectedScript();
 
@@ -348,12 +366,14 @@ async function handleImportScript() {
           ElMessage.success(message);
         }
       } catch (error) {
+        console.error('[导入脚本] 导入失败：', error);
         ElMessage.error('导入失败：文件格式错误');
       }
     };
 
     input.click();
   } catch (error) {
+    console.error('[导入脚本] 操作失败：', error);
     ElMessage.error('导入失败');
   }
 }
