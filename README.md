@@ -14,7 +14,7 @@
 
 本应用专为角色扮演爱好者设计，提供直观的界面来编辑角色卡并生成输出，同时支持世界观设定管理通过集成现代前端技术与桌面应用框架，确保高效开发与良好的用户体验
 
-**Discord 社区**：https://discord.gg/2wKPQHCydk
+**Discord 社区**：[St_CardPlus](https://discord.gg/KH6rHAGBXD)
 
 
 ## 主要功能

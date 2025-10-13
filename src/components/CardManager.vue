@@ -45,8 +45,8 @@
             <WelcomeScreen v-if="!activeCard" :is-uploading="isUploading" :upload-progress="uploadProgress"
               @import-card="triggerFileInput" />
             <CardEditor v-else :character="characterData" :image-preview-url="imagePreviewUrl"
-              v-model:advanced-options-visible="advancedOptionsVisible" @image-change="handleImageUpdate"
-              @worldbook-changed="handleWorldBookChanged" />
+              :all-tags="allTags" v-model:advanced-options-visible="advancedOptionsVisible"
+              @image-change="handleImageUpdate" @worldbook-changed="handleWorldBookChanged" />
           </el-scrollbar>
         </el-tab-pane>
       </el-tabs>
@@ -74,6 +74,7 @@
               </h2>
               <div class="header-actions">
                 <CharacterCardActions context="editor" :has-active-card="!!activeCard"
+                  :save-status="saveStatus" :auto-save-mode="autoSaveMode" @toggle-mode="toggleAutoSaveMode"
                   @save-card="handleSaveCurrentAsNew" @save-as-new="handleSaveAsNewCard"
                   @update-card="handleUpdateActiveCard" @export-current="handleExportCurrentCard" />
                 <el-divider direction="vertical" />
@@ -92,8 +93,8 @@
               <WelcomeScreen v-if="!activeCard" :is-uploading="isUploading" :upload-progress="uploadProgress"
                 @import-card="triggerFileInput" />
               <CardEditor v-else :character="characterData" :image-preview-url="imagePreviewUrl"
-                v-model:advanced-options-visible="advancedOptionsVisible" @image-change="handleImageUpdate"
-                @worldbook-changed="handleWorldBookChanged" />
+                :all-tags="allTags" v-model:advanced-options-visible="advancedOptionsVisible"
+                @image-change="handleImageUpdate" @worldbook-changed="handleWorldBookChanged" />
             </el-scrollbar>
           </div>
         </Pane>
@@ -138,6 +139,7 @@ import { ElButton, ElMessage, ElTabs, ElTabPane, ElDivider, ElDialog, ElScrollba
 import { Icon } from '@iconify/vue';
 import { Splitpanes, Pane } from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
+import { watchDebounced } from '@vueuse/core';
 
 import CharacterCardList from '@/components/cardManager/CharacterCardList.vue';
 import CharacterCardActions from '@/components/cardManager/CharacterCardActions.vue';
@@ -156,6 +158,7 @@ const {
   characterCardCollection,
   activeCardId,
   activeCard,
+  allTags,
   isLoading,
   handleSelectCard,
   handleSaveCurrentCard,
@@ -167,6 +170,11 @@ const {
   handleExportCard,
   handleExportAllCards,
   handleClearAllCards,
+  // 自动保存相关
+  saveStatus,
+  autoSaveMode,
+  toggleAutoSaveMode,
+  autoSaveCard,
 } = useCharacterCardCollection();
 
 // UI 状态
@@ -287,9 +295,35 @@ const handleWorldBookChanged = async () => {
   }
 };
 
+// 使用防抖监听 characterData 的变化（监听模式专用）
+// 用户停止编辑 1.5 秒后自动保存
+watchDebounced(
+  characterData,
+  () => {
+    if (autoSaveMode.value === 'watch' && activeCard.value && activeCardId.value) {
+      autoSaveCard(characterData.value);
+    }
+  },
+  { debounce: 1500, deep: true }
+);
+
+// 定时自动保存（自动模式专用）
+// 每 5 秒自动保存一次
+let autoSaveInterval: number | null = null;
+onMounted(() => {
+  autoSaveInterval = window.setInterval(() => {
+    if (autoSaveMode.value === 'auto' && activeCard.value && activeCardId.value) {
+      autoSaveCard(characterData.value);
+    }
+  }, 5000);
+});
+
 onUnmounted(() => {
   if (imagePreviewUrl.value) {
     URL.revokeObjectURL(imagePreviewUrl.value);
+  }
+  if (autoSaveInterval) {
+    clearInterval(autoSaveInterval);
   }
 });
 </script>

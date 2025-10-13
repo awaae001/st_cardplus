@@ -1,7 +1,7 @@
 import { db } from './db';
 import type { StoredCharacterCard } from './db';
 import type { CharacterCardV3 } from '../types/character-card-v3';
-import { estimateEncodedSize } from './utils';
+import { estimateEncodedSize, sanitizeForIndexedDB } from './utils';
 
 // 重新导出 StoredCharacterCard 类型供外部使用
 export type { StoredCharacterCard };
@@ -68,14 +68,18 @@ export const characterCardService = {
    * 添加一张新的角色卡
    */
   async addCard(card: StoredCharacterCard): Promise<void> {
-    await db.characterCards.add(card);
+    // 清理数据以确保可以被 IndexedDB 克隆
+    const sanitizedCard = sanitizeForIndexedDB(card);
+    await db.characterCards.add(sanitizedCard);
   },
 
   /**
    * 更新一张角色卡的完整数据
    */
   async updateCard(card: StoredCharacterCard): Promise<void> {
-    await db.characterCards.put(card);
+    // 清理数据以确保可以被 IndexedDB 克隆
+    const sanitizedCard = sanitizeForIndexedDB(card);
+    await db.characterCards.put(sanitizedCard);
   },
 
   /**

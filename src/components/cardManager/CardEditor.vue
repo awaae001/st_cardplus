@@ -13,7 +13,7 @@
         </div>
         <div class="basic-info-container">
           <h4 class="sub-section-title">基础信息</h4>
-          <BasicInfoPanel :character="character" />
+          <BasicInfoPanel :character="character" :all-tags="props.allTags" />
         </div>
       </div>
     </section>
@@ -77,6 +77,7 @@ const props = defineProps<{
   character: CharacterCardV3;
   imagePreviewUrl?: string;
   advancedOptionsVisible: boolean;
+  allTags?: string[];
 }>();
 
 const emit = defineEmits<{

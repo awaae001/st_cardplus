@@ -29,15 +29,11 @@
       <el-input v-model="character.data.creator" placeholder="请输入作者名" />
     </el-form-item>
 
-    <el-form-item label="标签">
-      <el-select v-model="character.data.tags" multiple filterable allow-create default-first-option
-        placeholder="输入或选择标签" class="full-width" />
-    </el-form-item>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ElFormItem, ElInput, ElSelect } from 'element-plus';
+import { ElFormItem, ElInput } from 'element-plus';
 import type { CharacterCardV3 } from '@/types/character-card-v3';
 
 defineProps<{

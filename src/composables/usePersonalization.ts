@@ -9,7 +9,6 @@ import {
   getSidebarConfig, setSidebarConfig,
   type SidebarConfig
 } from '@/utils/localStorageUtils';
-import { watchEffect } from 'vue';
 
 export function usePersonalization() {
   const autoExpandSidebar = ref(false);
@@ -49,11 +48,7 @@ export function usePersonalization() {
     });
   };
 
-  const onAllowBodyScrollToggle = (value: boolean) => {
-    setAllowBodyScroll(value);
-    allowBodyScroll.value = value;
-  };
-
+  const onAllowBodyScrollToggle = createReloadConfirm(setAllowBodyScroll);
   const onUseOldSidebarToggle = createReloadConfirm(setUseOldSidebar);
   const onUseOldCharCardEditorToggle = createReloadConfirm(setUseOldCharCardEditor);
   const onUseOldWorldEditorToggle = createReloadConfirm(setUseOldWorldEditor);
@@ -77,13 +72,6 @@ export function usePersonalization() {
     refreshSidebarConfig();
   });
 
-  watchEffect(() => {
-    if (allowBodyScroll.value) {
-      document.body.style.overflow = 'auto';
-    } else {
-      document.body.style.overflow = 'hidden';
-    }
-  });
 
   return {
     autoExpandSidebar,

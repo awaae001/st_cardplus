@@ -225,6 +225,7 @@ const props = defineProps<{
   totalEntries: number;
   isNextEntryInDifferentBook: boolean;
   isPreviousEntryInDifferentBook: boolean;
+  saveStatus?: 'idle' | 'saving' | 'saved' | 'error';
 }>();
 
 const emit = defineEmits<{
@@ -238,7 +239,13 @@ const advancedOptionsVisible = ref(false);
 
 const localModel = computed({
   get: () => props.modelValue || {},
-  set: (value) => emit('update:modelValue', value)
+  set: (value) => {
+    console.log('[WorldBookEditor] localModel set 被触发:', {
+      newValue: value,
+      oldValue: props.modelValue
+    });
+    emit('update:modelValue', value);
+  }
 });
 
 // Helper functions to handle boolean properties safely

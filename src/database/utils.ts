@@ -99,3 +99,18 @@ export async function importAllDatabases(data: Record<string, any>): Promise<voi
   }
 }
 
+/**
+ * 清理对象使其可以被 IndexedDB 克隆
+ * 移除不可序列化的属性(函数、Symbol、循环引用等)
+ */
+export function sanitizeForIndexedDB<T>(obj: T): T {
+  try {
+    // 使用 JSON.stringify/parse 自动移除函数和 Symbol
+    // 这也会打破循环引用
+    return JSON.parse(JSON.stringify(obj));
+  } catch (error) {
+    console.error('Failed to sanitize object for IndexedDB:', error);
+    throw new Error('无法序列化对象以存储到数据库');
+  }
+}
+

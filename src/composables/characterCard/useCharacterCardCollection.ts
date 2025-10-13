@@ -1,6 +1,7 @@
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { v4 as uuidv4 } from 'uuid';
+import { initAutoSave, clearAutoSave } from '@/utils/localStorageUtils';
 import type { CharacterCardV3 } from '@/types/character-card-v3';
 import type { CharacterCardCollection, CharacterCardItem } from '@/types/character-card-collection';
 import { characterCardService, type StoredCharacterCard } from '@/database/characterCardService';
@@ -12,12 +13,27 @@ export function useCharacterCardCollection() {
   });
   const isLoading = ref(true);
 
+  // 自动保存相关状态
+  const saveStatus = ref<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const autoSaveMode = ref<'auto' | 'watch' | 'manual'>('watch'); // 默认监听模式
+  const lastSavedData = ref<string>('');
+  const hasUnsavedChanges = ref(false);
+  const isAutoSaving = ref(false);
+  let autoSaveTimer: number | null = null;
+
   const activeCardId = computed(() => characterCardCollection.value.activeCardId);
 
   const activeCard = computed<CharacterCardItem | null>(() => {
     const cardId = activeCardId.value;
     if (!cardId) return null;
     return characterCardCollection.value.cards[cardId] || null;
+  });
+
+  const allTags = computed(() => {
+    const tags = Object.values(characterCardCollection.value.cards).flatMap(
+      (card) => card.data?.tags || []
+    );
+    return [...new Set(tags)];
   });
 
   const loadInitialData = async () => {
@@ -82,7 +98,7 @@ export function useCharacterCardCollection() {
     }
   };
 
-  const handleUpdateCard = async (cardId: string, cardData: CharacterCardV3) => {
+  const handleUpdateCard = async (cardId: string, cardData: CharacterCardV3, silent = false) => {
     const existingCard = characterCardCollection.value.cards[cardId];
     if (!existingCard) {
       ElMessage.error('角色卡不存在');
@@ -115,10 +131,15 @@ export function useCharacterCardCollection() {
         order: existingCard.order,
       };
 
-      ElMessage.success('角色卡已更新！');
+      if (!silent) {
+        ElMessage.success('角色卡已更新！');
+      }
     } catch (error) {
       console.error('更新角色卡失败:', error);
-      ElMessage.error('更新角色卡失败！');
+      if (!silent) {
+        ElMessage.error('更新角色卡失败！');
+      }
+      throw error;
     }
   };
 
@@ -306,10 +327,100 @@ export function useCharacterCardCollection() {
     }
   };
 
+  // 切换自动保存模式
+  const toggleAutoSaveMode = () => {
+    const modes: Array<'auto' | 'watch' | 'manual'> = ['auto', 'watch', 'manual'];
+    const currentIndex = modes.indexOf(autoSaveMode.value);
+    const nextIndex = (currentIndex + 1) % modes.length;
+    autoSaveMode.value = modes[nextIndex];
+
+    const messages = {
+      auto: '已切换到自动保存模式：每 5 秒自动保存',
+      watch: '已切换到监听模式：检测到修改后 1.5 秒自动保存',
+      manual: '已切换到手动模式：自动保存已禁用'
+    };
+
+    ElMessage.info(messages[autoSaveMode.value]);
+  };
+
+  // 自动保存角色卡数据（用于接收 characterData）
+  const autoSaveCard = async (characterData: CharacterCardV3) => {
+    // 如果是手动模式，完全禁用自动保存
+    if (autoSaveMode.value === 'manual') {
+      return;
+    }
+
+    const currentCardId = activeCardId.value;
+    if (!currentCardId) {
+      return;
+    }
+
+    // 检查是否有未保存的修改
+    const currentData = JSON.stringify(characterData);
+    if (currentData === lastSavedData.value) {
+      return;
+    }
+
+    // 防止重复保存
+    if (isAutoSaving.value) {
+      return;
+    }
+
+    isAutoSaving.value = true;
+    saveStatus.value = 'saving';
+
+    try {
+      await handleUpdateCard(currentCardId, characterData, true);
+
+      // 更新最后保存的数据状态
+      lastSavedData.value = currentData;
+      hasUnsavedChanges.value = false;
+
+      saveStatus.value = 'saved';
+
+      // 2秒后隐藏"已保存"提示
+      setTimeout(() => {
+        if (saveStatus.value === 'saved') {
+          saveStatus.value = 'idle';
+        }
+      }, 2000);
+    } catch (error) {
+      console.error('[useCharacterCardCollection] 自动保存失败:', error);
+      saveStatus.value = 'error';
+      // 5秒后隐藏错误提示
+      setTimeout(() => {
+        if (saveStatus.value === 'error') {
+          saveStatus.value = 'idle';
+        }
+      }, 5000);
+    } finally {
+      isAutoSaving.value = false;
+    }
+  };
+
+  // 启动定时自动保存（自动模式专用）
+  onMounted(() => {
+    autoSaveTimer = initAutoSave(
+      () => {
+        // 这里的自动保存将在 CardManager 中触发
+        // 因为这里无法直接访问 characterData
+      },
+      () => !!activeCardId.value
+    );
+  });
+
+  // 清理定时器
+  onBeforeUnmount(() => {
+    if (autoSaveTimer) {
+      clearAutoSave(autoSaveTimer);
+    }
+  });
+
   return {
     characterCardCollection,
     activeCardId,
     activeCard,
+    allTags,
     isLoading,
     handleSelectCard,
     handleSaveCurrentCard,
@@ -322,5 +433,10 @@ export function useCharacterCardCollection() {
     handleExportAllCards,
     handleClearAllCards,
     loadInitialData,
+    // 自动保存相关
+    saveStatus,
+    autoSaveMode,
+    toggleAutoSaveMode,
+    autoSaveCard,
   };
 }

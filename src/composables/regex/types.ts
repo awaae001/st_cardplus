@@ -37,6 +37,26 @@ export interface SillyTavernRegexScript {
     substituteRegex?: (typeof SUBSTITUTE_FIND_REGEX[keyof typeof SUBSTITUTE_FIND_REGEX]);
     minDepth?: number | null;
     maxDepth?: number | null;
+    categoryId?: string; // 所属类别ID
+}
+
+// 正则脚本类别
+export interface RegexCategory {
+    id: string; // 使用UUIDv4确保唯一性
+    name: string;
+    scripts: SillyTavernRegexScript[];
+    createdAt: string; // ISO 8601 格式
+    updatedAt: string; // ISO 8601 格式
+    order: number; // 用于排序
+    description?: string;
+    metadata?: Record<string, any>;
+}
+
+// 正则脚本集合
+export interface RegexScriptCollection {
+    categories: Record<string, RegexCategory>;
+    activeCategoryId: string | null;
+    settings?: Record<string, any>;
 }
 
 // Interface used by the core runRegexScript function
@@ -45,4 +65,5 @@ export interface RegexScript {
     replaceString: string;
     trimStrings?: string[];
     macros?: Record<string, string>;
+    substituteRegex?: (typeof SUBSTITUTE_FIND_REGEX[keyof typeof SUBSTITUTE_FIND_REGEX]);
 }

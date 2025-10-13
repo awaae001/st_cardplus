@@ -1,6 +1,9 @@
 import { db, type StoredWorldBook, type StoredWorldBookEntry } from './db';
 import type { WorldBookCollection, WorldBook, WorldBookEntry } from '../components/worldbook/types';
+import type { CharacterBook } from '../types/character-book';
+import { convertCharacterBookToWorldBook } from '../utils/worldBookConverter';
 import { estimateEncodedSize } from './utils';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface WorldBookExport {
   books: StoredWorldBook[];
@@ -151,8 +154,10 @@ export const worldBookService = {
    */
   async updateEntry(entry: StoredWorldBookEntry): Promise<void> {
     if (entry.id === undefined) {
+      console.error('[worldBookService] 更新条目失败：缺少数据库主键 id');
       throw new Error("更新条目需要提供数据库主键 'id'");
     }
+
     const plainEntry = JSON.parse(JSON.stringify(entry));
     await db.entries.put(plainEntry);
   },
@@ -219,5 +224,120 @@ export const worldBookService = {
       await db.books.clear();
       await db.entries.clear();
     });
+  },
+
+  /**
+   * 查找来自指定角色卡的世界书
+   * @param characterId - 角色卡ID
+   * @returns 找到的世界书ID，如果没有则返回 null
+   */
+  async findBookByCharacterId(characterId: string): Promise<string | null> {
+    const allBooks = await db.books.toArray();
+    const book = allBooks.find(b => b.sourceCharacterId === characterId);
+    return book?.id || null;
+  },
+
+  /**
+   * 更新已存在的世界书数据
+   * @param bookId - 世界书ID
+   * @param characterBook - 角色卡的世界书数据
+   * @param characterName - 来源角色名称
+   */
+  async updateBookFromCharacterCard(
+    bookId: string,
+    characterBook: CharacterBook,
+    characterName: string
+  ): Promise<void> {
+    const now = new Date().toISOString();
+
+    // 使用转换工具将 CharacterBook 转换为 WorldBook
+    const worldBook = convertCharacterBookToWorldBook(characterBook, bookId);
+
+    // 获取现有书籍信息以保留某些字段
+    const existingBook = await db.books.get(bookId);
+    if (!existingBook) {
+      throw new Error('找不到指定的世界书');
+    }
+
+    // 更新书籍元数据，保留 createdAt 和 order
+    const updatedBook: StoredWorldBook = {
+      ...existingBook,
+      name: worldBook.name,
+      description: worldBook.description,
+      updatedAt: now,
+      sourceCharacterName: characterName,
+      metadata: worldBook.metadata,
+    };
+
+    // 准备条目数据
+    const plainEntries = JSON.parse(JSON.stringify(worldBook.entries));
+    const storedEntries: StoredWorldBookEntry[] = plainEntries.map((entry: WorldBookEntry) => ({
+      ...entry,
+      bookId,
+    }));
+
+    // 在事务中更新书籍和替换条目
+    await db.transaction('rw', db.books, db.entries, async () => {
+      await db.books.put(updatedBook);
+      // 删除旧条目
+      await db.entries.where('bookId').equals(bookId).delete();
+      // 添加新条目
+      if (storedEntries.length > 0) {
+        await db.entries.bulkAdd(storedEntries);
+      }
+    });
+  },
+
+  /**
+   * 从角色卡的 character_book 创建新的 APP 世界书
+   * @param characterBook - 角色卡的世界书数据
+   * @param characterId - 来源角色卡ID
+   * @param characterName - 来源角色名称
+   * @returns 新创建的世界书ID
+   */
+  async addBookFromCharacterCard(
+    characterBook: CharacterBook,
+    characterId: string,
+    characterName: string
+  ): Promise<string> {
+    const newBookId = uuidv4();
+    const now = new Date().toISOString();
+
+    // 使用转换工具将 CharacterBook 转换为 WorldBook
+    const worldBook = convertCharacterBookToWorldBook(characterBook, newBookId);
+
+    // 获取当前所有书籍的最大 order 值
+    const allBooks = await db.books.toArray();
+    const maxOrder = allBooks.length > 0 ? Math.max(...allBooks.map(b => b.order)) : -1;
+
+    // 创建带有来源信息的新世界书
+    const newBook: StoredWorldBook = {
+      id: worldBook.id,
+      name: worldBook.name,
+      description: worldBook.description,
+      createdAt: now,
+      updatedAt: now,
+      order: maxOrder + 1,
+      sourceCharacterId: characterId,
+      sourceCharacterName: characterName,
+      metadata: worldBook.metadata,
+    };
+
+    // 准备条目数据
+    const plainEntries = JSON.parse(JSON.stringify(worldBook.entries));
+    const storedEntries: StoredWorldBookEntry[] = plainEntries.map((entry: WorldBookEntry) => ({
+      ...entry,
+      bookId: newBookId,
+    }));
+
+    // 在事务中同时添加书籍和条目
+    await db.transaction('rw', db.books, db.entries, async () => {
+      await db.books.add(newBook);
+      if (storedEntries.length > 0) {
+        await db.entries.bulkAdd(storedEntries);
+      }
+    });
+
+    return newBookId;
   },
 };

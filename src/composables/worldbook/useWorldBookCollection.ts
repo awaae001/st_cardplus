@@ -357,6 +357,7 @@ const loadInitialData = async () => {
 
   const handleUpdateEntry = async (entry: WorldBookEntry) => {
     if (!activeBook.value || entry.id === undefined) {
+      console.error('[useWorldBookCollection] 更新条目失败：缺少必要信息');
       ElMessage.error("无法更新条目：缺少必要信息");
       return;
     }
@@ -364,7 +365,7 @@ const loadInitialData = async () => {
       const entryToUpdate = { ...entry, bookId: activeBook.value.id };
       await worldBookService.updateEntry(entryToUpdate);
     } catch (error) {
-      console.error("更新条目失败:", error);
+      console.error("[useWorldBookCollection] 更新条目失败:", error);
       ElMessage.error("更新条目失败！");
     }
   };

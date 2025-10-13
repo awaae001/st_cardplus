@@ -40,7 +40,10 @@ export interface WorldBook {
   updatedAt: string; // ISO 8601 格式
   order: number; // 用于排序
   // 可选的元数据
-  description?: string; 
+  description?: string;
+  // 来源信息 - 如果是从角色卡导入的
+  sourceCharacterId?: string; // 来源角色卡ID
+  sourceCharacterName?: string; // 来源角色名称
   // 为将来的功能预留
   metadata?: Record<string, any>;
 }

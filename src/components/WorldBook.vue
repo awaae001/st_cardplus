@@ -50,28 +50,29 @@
                 </span>
               </span>
             </h2>
-            <WorldBookActions context="editor" :has-selection="!!selectedEntry" @copy-entry="copySelectedEntry"
-              @import-entry="showImportEntryDialog" @save-entry="saveCurrentEntry"
+            <WorldBookActions context="editor" :has-selection="!!selectedEntry" :save-status="saveStatus"
+              :auto-save-mode="autoSaveMode" @toggle-mode="toggleAutoSaveMode"
+              @copy-entry="copySelectedEntry" @import-entry="showImportEntryDialog" @save-entry="saveCurrentEntry"
               @delete-entry="deleteSelectedEntry" />
           </div>
           <WorldBookEditor :entry="selectedEntry" v-model="editableEntry" :all-keywords="allKeywords"
             :current-entry-index="currentEntryIndex" :total-entries="totalEntries" @go-to-previous="goToPreviousEntry"
             @go-to-next="goToNextEntry" :is-next-entry-in-different-book="isNextEntryInDifferentBook"
-            :is-previous-entry-in-different-book="isPreviousEntryInDifferentBook" />
+            :is-previous-entry-in-different-book="isPreviousEntryInDifferentBook" :save-status="saveStatus" />
         </el-tab-pane>
       </el-tabs>
     </div>
 
     <div class="worldbook-desktop-layout">
       <Splitpanes class="default-theme" push-other-panes style="height: 100%">
-        <Pane size="15" min-size="15" max-size="35">
+        <Pane size="15" min-size="15" max-size="35" ref="sidebarPaneRef">
           <WorldBookList :collection="worldBookCollection" :active-book-id="activeBookId"
             @select-book="handleSelectBook" @create-book="handleCreateBook" @rename-book="handleRenameBook"
             @delete-book="handleDeleteBook" @select-entry="handleSelectEntry" @add-entry="addNewEntry"
             :selected-entry="selectedEntry" @copy-book="copyWorldBookToClipboard"
             @import-book="showImportWorldBookDialog" @export-json="exportToJson" @import-json="handleLoadFromJsonFile"
             @import-book-file="handleImportBookFile" @clear-all="clearAllEntries"
-            :drag-drop-handlers="dragDropHandlers" />
+            :drag-drop-handlers="dragDropHandlers" :sidebar-width="sidebarWidth" />
         </Pane>
         <Pane size="85" min-size="40">
           <div class="worldbook-desktop-panel-right">
@@ -83,14 +84,15 @@
                   selectedEntry ? selectedEntry.comment || "新条目" : "未选择条目"
                 }}</span>
               </h2>
-              <WorldBookActions context="editor" :has-selection="!!selectedEntry" @copy-entry="copySelectedEntry"
-                @import-entry="showImportEntryDialog" @save-entry="saveCurrentEntry"
+              <WorldBookActions context="editor" :has-selection="!!selectedEntry" :save-status="saveStatus"
+                :auto-save-mode="autoSaveMode" @toggle-mode="toggleAutoSaveMode"
+                @copy-entry="copySelectedEntry" @import-entry="showImportEntryDialog" @save-entry="saveCurrentEntry"
                 @delete-entry="deleteSelectedEntry" />
             </div>
             <WorldBookEditor :entry="selectedEntry" v-model="editableEntry" :all-keywords="allKeywords"
               :current-entry-index="currentEntryIndex" :total-entries="totalEntries" @go-to-previous="goToPreviousEntry"
               @go-to-next="goToNextEntry" :is-next-entry-in-different-book="isNextEntryInDifferentBook"
-              :is-previous-entry-in-different-book="isPreviousEntryInDifferentBook" />
+              :is-previous-entry-in-different-book="isPreviousEntryInDifferentBook" :save-status="saveStatus" />
           </div>
         </Pane>
       </Splitpanes>
@@ -113,7 +115,30 @@ import { useWorldBookEntry } from "../composables/worldbook/useWorldBookEntry";
 import { useWorldBookDragDrop } from "../composables/worldbook/useWorldBookDragDrop";
 import type { WorldBookEntry } from "./worldbook/types";
 
-import { computed, nextTick } from 'vue';
+import { computed, nextTick, ref, onMounted, onUnmounted } from 'vue';
+
+const sidebarPaneRef = ref(null);
+const sidebarWidth = ref(0);
+let resizeObserver: ResizeObserver | null = null;
+
+onMounted(() => {
+  const paneElement = (sidebarPaneRef.value as any)?.$el;
+  if (paneElement) {
+    resizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        sidebarWidth.value = entry.contentRect.width;
+      }
+    });
+    resizeObserver.observe(paneElement);
+    sidebarWidth.value = paneElement.offsetWidth;
+  }
+});
+
+onUnmounted(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+  }
+});
 
 // Manage the collection of world books
 const {
@@ -150,6 +175,9 @@ const {
   copyWorldBookToClipboard,
   showImportWorldBookDialog,
   clearAllEntries,
+  saveStatus,
+  autoSaveMode,
+  toggleAutoSaveMode,
 } = useWorldBookEntry(activeBook, {
   updateEntries: (entries) => {
     if (!activeBook.value) return Promise.reject("No active book selected");
