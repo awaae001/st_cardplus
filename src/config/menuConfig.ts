@@ -67,10 +67,19 @@ export const mainMenuItems: MenuItemConfig[] = [
     fixed: true
   },
   {
-    id: 'cardinfo',
+    id: 'cardmanager',
     type: 'main',
     visible: true,
     order: 1,
+    title: '角色卡管理器',
+    icon: 'Postcard',
+    route: '/cardmanager'
+  },
+  {
+    id: 'cardinfo',
+    type: 'main',
+    visible: true,
+    order: 2,
     title: '角色信息',
     icon: 'EditPen',
     route: '/cardinfo'
@@ -79,19 +88,10 @@ export const mainMenuItems: MenuItemConfig[] = [
     id: 'world',
     type: 'main',
     visible: true,
-    order: 2,
+    order: 3,
     title: '世界地标',
     icon: 'Location',
     route: '/world'
-  },
-  {
-    id: 'cardmanager',
-    type: 'main',
-    visible: true,
-    order: 3,
-    title: '角色卡快搭',
-    icon: 'Postcard',
-    route: '/cardmanager'
   },
   {
     id: 'ejs-editor',

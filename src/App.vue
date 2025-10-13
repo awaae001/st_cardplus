@@ -82,7 +82,7 @@ import { ElLoading, ElContainer, ElAside, ElMain, ElMenu, ElMenuItem, ElIcon, El
 import { useRouter, useRoute } from 'vue-router'
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useDark, useToggle, useWindowSize } from '@vueuse/core'
-import { getBetaFeaturesEnabled, getUseOldSidebar, getVisibleSidebarItems } from '@/utils/localStorageUtils'
+import { getBetaFeaturesEnabled, getUseOldSidebar } from '@/utils/localStorageUtils'
 import { getIconComponent } from '@/config/menuConfig'
 import App_old from '@/pages/App_old.vue'
 import { provideOverflowControl } from '@/composables/useOverflowControl';
@@ -96,13 +96,15 @@ const useOldSidebar = ref(true)
 const { width } = useWindowSize()
 const isCollapse = ref(false)
 const userToggledCollapse = ref(false); // 新增：用于跟踪用户手动折叠的状态
-const { autoExpandSidebar, allowBodyScroll, refreshSidebarConfig } = usePersonalization();
+const { autoExpandSidebar, allowBodyScroll, sidebarConfig, refreshSidebarConfig } = usePersonalization();
 
 // 动态生成菜单项 - 响应式更新
 const mainMenuItems = computed(() => {
-  // 依赖 sidebarConfig.value 来触发响应式更新
-  // const configLastUpdated = sidebarConfig.value.lastUpdated;
-  const visibleItems = getVisibleSidebarItems();
+  // 依赖响应式的 sidebarConfig，配置变化时自动更新
+  const visibleItems = sidebarConfig.value.items
+    .filter(item => item.visible)
+    .sort((a, b) => a.order - b.order);
+  
   return visibleItems.map(item => ({
     index: item.route,
     icon: getIconComponent(item.icon),
