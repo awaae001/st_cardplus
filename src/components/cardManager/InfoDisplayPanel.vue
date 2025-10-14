@@ -328,6 +328,22 @@ const handleUnbindWorldBook = async () => {
 
     console.log('解绑世界书 - 解绑前:', props.character.data.character_book);
 
+    // 检查是否存在来自此角色卡的世界书，如果有则清除来源信息
+    const characterId = props.character.id;
+    if (characterId) {
+      try {
+        const existingBookId = await worldBookService.findBookByCharacterId(characterId);
+        if (existingBookId) {
+          // 清除数据库中世界书的来源信息
+          await worldBookService.clearBookSource(existingBookId);
+          console.log('已清除世界书的来源信息:', existingBookId);
+        }
+      } catch (error) {
+        console.warn('清除世界书来源信息失败:', error);
+        // 不阻止解绑操作
+      }
+    }
+
     // 清空世界书数据 - 使用 Object.assign 确保响应式更新
     Object.assign(props.character.data, {
       character_book: []
