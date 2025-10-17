@@ -34,10 +34,7 @@
               <Icon :icon="data.icon" class="node-icon" />
               <el-tag v-if="data.isEntry && data.raw.constant" type="success" size="small" effect="dark" class="node-tag">常驻</el-tag>
               <span class="node-label">{{ node.label }}</span>
-              <el-tag v-if="!data.isEntry && data.raw.sourceCharacterName && sidebarWidth >= 270" type="info" size="small" class="source-tag">
-                来自: {{ data.raw.sourceCharacterName }}
-              </el-tag>
-              <el-tooltip v-else-if="!data.isEntry && data.raw.sourceCharacterName" :content="`来自: ${data.raw.sourceCharacterName}`" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+              <el-tooltip v-if="!data.isEntry && data.raw.sourceCharacterName" :content="`来自: ${data.raw.sourceCharacterName}`" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
                 <Icon icon="ph:user-circle-duotone" class="source-icon" />
               </el-tooltip>
             </div>

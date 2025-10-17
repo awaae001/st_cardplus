@@ -40,6 +40,14 @@ export interface SillyTavernRegexScript {
     categoryId?: string; // 所属类别ID
 }
 
+// 正则脚本类别的 metadata 类型
+export interface RegexCategoryMetadata {
+    source?: 'character-card' | 'user-created'; // 来源类型
+    characterCardId?: string; // 关联的角色卡ID
+    characterName?: string; // 关联的角色名称
+    [key: string]: any; // 允许其他自定义字段
+}
+
 // 正则脚本类别
 export interface RegexCategory {
     id: string; // 使用UUIDv4确保唯一性
@@ -49,7 +57,7 @@ export interface RegexCategory {
     updatedAt: string; // ISO 8601 格式
     order: number; // 用于排序
     description?: string;
-    metadata?: Record<string, any>;
+    metadata?: RegexCategoryMetadata;
 }
 
 // 正则脚本集合

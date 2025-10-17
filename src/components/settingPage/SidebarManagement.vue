@@ -192,9 +192,35 @@ const toggleItemVisibility = (itemId: string, visible: boolean) => {
   if (visible) {
     const updatedItem = sidebarConfig.value.items.find(i => i.id === itemId);
     if (updatedItem) {
-      // 将新显示的项目放到可见项目的末尾
-      const maxVisibleOrder = Math.max(...visibleItems.value.map(i => i.order), -1);
-      updatedItem.order = maxVisibleOrder + 1;
+      // 找到所有可见项目（包括固定和非固定），按 order 排序
+      const sortedVisibleItems = visibleItems.value
+        .filter(i => i.id !== itemId) // 排除当前项目
+        .sort((a, b) => a.order - b.order);
+      
+      // 找到第一个固定项目的索引
+      const firstFixedIndex = sortedVisibleItems.findIndex(i => i.fixed);
+      
+      if (firstFixedIndex !== -1) {
+        // 找到第一个固定项目后面的位置（数组索引 + 1）
+        const insertIndex = firstFixedIndex + 1;
+        
+        // 获取插入位置前后的项目
+        const prevItem = sortedVisibleItems[firstFixedIndex];
+        const nextItem = sortedVisibleItems[insertIndex];
+        
+        if (nextItem) {
+          // 如果后面有项目，插入到两者之间
+          updatedItem.order = (prevItem.order + nextItem.order) / 2;
+        } else {
+          // 如果后面没有项目，插入到最后
+          updatedItem.order = prevItem.order + 1;
+        }
+      } else {
+        // 如果没有固定项目，放到最后
+        const maxVisibleOrder = Math.max(...sortedVisibleItems.map(i => i.order), -1);
+        updatedItem.order = maxVisibleOrder + 1;
+      }
+      
       setSidebarConfig(sidebarConfig.value);
       sidebarConfig.value = getSidebarConfig();
     }
@@ -555,6 +581,9 @@ onUnmounted(() => {
 .drag-handle {
   color: var(--el-text-color-secondary);
   cursor: grab;
+  padding: 4px;
+  margin: -4px;
+  touch-action: none;
 }
 
 .drag-handle:active {
@@ -564,6 +593,27 @@ onUnmounted(() => {
 .drag-handle.disabled {
   color: var(--el-text-color-disabled);
   cursor: not-allowed !important;
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .drag-handle {
+    width: 24px;
+    height: 24px;
+    padding: 8px;
+    margin: -8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .drag-handle:not(.disabled) {
+    color: var(--el-color-primary);
+  }
+  
+  .item-actions {
+    gap: 12px;
+  }
 }
 
 .empty-state {

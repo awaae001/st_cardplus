@@ -289,6 +289,26 @@ export const worldBookService = {
   },
 
   /**
+   * 清除世界书的来源信息
+   * @param bookId - 世界书ID
+   */
+  async clearBookSource(bookId: string): Promise<void> {
+    const existingBook = await db.books.get(bookId);
+    if (!existingBook) {
+      throw new Error('找不到指定的世界书');
+    }
+
+    const updatedBook: StoredWorldBook = {
+      ...existingBook,
+      sourceCharacterId: undefined,
+      sourceCharacterName: undefined,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await db.books.put(updatedBook);
+  },
+
+  /**
    * 从角色卡的 character_book 创建新的 APP 世界书
    * @param characterBook - 角色卡的世界书数据
    * @param characterId - 来源角色卡ID

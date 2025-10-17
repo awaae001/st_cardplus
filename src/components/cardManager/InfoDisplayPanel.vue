@@ -53,18 +53,54 @@
 
     <!-- 正则脚本信息展示 -->
     <div v-else-if="type === 'regex'" class="regex-panel">
-      <el-scrollbar>
-        <div v-if="character.data.extensions?.regex_scripts?.length">
-          <el-tag
-            v-for="script in character.data.extensions.regex_scripts"
-            :key="script.id"
-            class="regex-script-tag"
-          >
-            {{ script.scriptName }}
-          </el-tag>
+      <div v-if="character.data.extensions?.regex_scripts?.length" class="regex-content">
+        <!-- 单个正则脚本时显示类似世界书的样式 -->
+        <div v-if="character.data.extensions.regex_scripts.length === 1" class="regex-single-script">
+          <el-descriptions :column="1" border>
+            <el-descriptions-item label="正则脚本">
+              <el-tag type="success" size="large">
+                {{ character.data.extensions.regex_scripts[0].scriptName }}
+              </el-tag>
+            </el-descriptions-item>
+          </el-descriptions>
+          <div class="regex-actions-section">
+            <el-button
+              type="primary"
+              size="small"
+              @click="handleSendToRegexEditor"
+            >
+              <Icon icon="ph:upload-duotone" style="margin-right: 4px;" />
+              发送到正则编辑器
+            </el-button>
+          </div>
         </div>
-        <el-empty v-else description="无正则脚本" :image-size="60" />
-      </el-scrollbar>
+        
+        <!-- 多个正则脚本时显示列表 -->
+        <div v-else class="regex-multiple-scripts">
+          <el-scrollbar max-height="200px">
+            <div class="regex-scripts-list">
+              <el-tag
+                v-for="script in character.data.extensions.regex_scripts"
+                :key="script.id"
+                class="regex-script-tag"
+              >
+                {{ script.scriptName }}
+              </el-tag>
+            </div>
+          </el-scrollbar>
+          <div class="regex-actions-section">
+            <el-button
+              type="primary"
+              size="small"
+              @click="handleSendToRegexEditor"
+            >
+              <Icon icon="ph:upload-duotone" style="margin-right: 4px;" />
+              发送到正则编辑器
+            </el-button>
+          </div>
+        </div>
+      </div>
+      <el-empty v-else description="无正则脚本" :image-size="60" />
     </div>
 
     <!-- 世界书选择对话框 -->
@@ -84,6 +120,7 @@ import type { CharacterBook } from '@/types/character-book';
 import WorldBookSelectorDialog from './WorldBookSelectorDialog.vue';
 import { worldBookService } from '@/database/worldBookService';
 import { convertWorldBookToCharacterBook } from '@/utils/worldBookConverter';
+import { useRegexCollection } from '@/composables/regex/useRegexCollection';
 
 const props = defineProps<{
   type: 'worldbook' | 'regex';
@@ -95,6 +132,9 @@ const emit = defineEmits<{
 }>();
 
 const showSelectorDialog = ref(false);
+
+// 正则脚本导入功能
+const { handleImportFromCharacterCard } = useRegexCollection();
 
 // 检查是否已绑定世界书
 const hasWorldBook = computed(() => {
@@ -288,6 +328,22 @@ const handleUnbindWorldBook = async () => {
 
     console.log('解绑世界书 - 解绑前:', props.character.data.character_book);
 
+    // 检查是否存在来自此角色卡的世界书，如果有则清除来源信息
+    const characterId = props.character.id;
+    if (characterId) {
+      try {
+        const existingBookId = await worldBookService.findBookByCharacterId(characterId);
+        if (existingBookId) {
+          // 清除数据库中世界书的来源信息
+          await worldBookService.clearBookSource(existingBookId);
+          console.log('已清除世界书的来源信息:', existingBookId);
+        }
+      } catch (error) {
+        console.warn('清除世界书来源信息失败:', error);
+        // 不阻止解绑操作
+      }
+    }
+
     // 清空世界书数据 - 使用 Object.assign 确保响应式更新
     Object.assign(props.character.data, {
       character_book: []
@@ -308,6 +364,37 @@ const handleUnbindWorldBook = async () => {
     if (error !== 'cancel' && error !== 'close') {
       console.error('解绑世界书失败:', error);
     }
+  }
+};
+
+// 发送正则脚本到正则编辑器
+const handleSendToRegexEditor = async () => {
+  const scripts = props.character.data.extensions?.regex_scripts;
+  
+  if (!scripts || scripts.length === 0) {
+    ElMessage.warning('当前角色卡没有正则脚本');
+    return;
+  }
+
+  const characterId = props.character.id || 'unknown';
+  const characterName = props.character.data.name || '未命名角色';
+
+  try {
+    const categoryId = await handleImportFromCharacterCard(
+      scripts,
+      characterId,
+      characterName
+    );
+
+    if (categoryId) {
+      ElMessage.success({
+        message: `正则脚本已成功发送到正则编辑器！`,
+        duration: 3000,
+      });
+    }
+  } catch (error) {
+    console.error('发送正则脚本失败:', error);
+    ElMessage.error(`发送失败：${error instanceof Error ? error.message : '未知错误'}`);
   }
 };
 </script>
@@ -354,11 +441,36 @@ const handleUnbindWorldBook = async () => {
   height: 100%;
 }
 
-.el-scrollbar {
+.regex-content {
   height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.regex-single-script,
+.regex-multiple-scripts {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.regex-scripts-list {
+  padding: 8px;
 }
 
 .regex-script-tag {
   margin: 4px;
+}
+
+.regex-actions-section {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-top: 8px;
+  border-top: 1px solid var(--el-border-color-lighter);
+}
+
+.el-scrollbar {
+  height: 100%;
 }
 </style>

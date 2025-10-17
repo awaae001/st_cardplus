@@ -319,6 +319,123 @@ export function useRegexCollection() {
     }
   };
 
+  // 从角色卡导入正则脚本
+  const handleImportFromCharacterCard = async (
+    scripts: SillyTavernRegexScript[],
+    characterCardId: string,
+    characterName: string
+  ): Promise<string | null> => {
+    if (!scripts || scripts.length === 0) {
+      ElMessage.warning('没有可导入的正则脚本');
+      return null;
+    }
+
+    const proposedName = characterName || '未命名角色';
+    
+    // 检查是否存在同名分类
+    const existingCategory = Object.values(regexCollection.value.categories).find(
+      cat => cat.name === proposedName
+    );
+
+    let targetCategoryId: string;
+    let targetCategoryName = proposedName;
+
+    if (existingCategory) {
+      try {
+        const { action } = await ElMessageBox.confirm(
+          `检测到已存在名为 "${proposedName}" 的分类。\n\n请选择操作方式：`,
+          '分类名称冲突',
+          {
+            distinguishCancelAndClose: true,
+            confirmButtonText: '合并到已有分类',
+            cancelButtonText: '创建新分类',
+            type: 'warning',
+          }
+        ).then(() => ({ action: 'merge' as const }))
+          .catch((error) => {
+            if (error === 'cancel') {
+              return { action: 'create' as const };
+            }
+            throw error;
+          });
+
+        if (action === 'merge') {
+          targetCategoryId = existingCategory.id;
+          
+          // 合并脚本到已有分类
+          const newScripts = scripts.map(script => ({
+            ...script,
+            id: `script-${Date.now()}-${uuidv4()}`,
+            categoryId: targetCategoryId,
+          }));
+          
+          existingCategory.scripts.push(...newScripts);
+          existingCategory.updatedAt = new Date().toISOString();
+          
+          // 更新 metadata
+          if (!existingCategory.metadata) {
+            existingCategory.metadata = {};
+          }
+          existingCategory.metadata.source = 'character-card';
+          existingCategory.metadata.characterCardId = characterCardId;
+          existingCategory.metadata.characterName = characterName;
+          
+          saveToStorage();
+          ElMessage.success(`已将 ${scripts.length} 个正则脚本合并到分类 "${proposedName}"`);
+          return targetCategoryId;
+        } else {
+          // 创建新分类 - 自动添加数字后缀
+          let suffix = 1;
+          let newName = `${proposedName}-${suffix}`;
+          while (Object.values(regexCollection.value.categories).some(cat => cat.name === newName)) {
+            suffix++;
+            newName = `${proposedName}-${suffix}`;
+          }
+          targetCategoryName = newName;
+        }
+      } catch (error) {
+        if (error === 'close') {
+          ElMessage.info('导入操作已取消');
+          return null;
+        }
+        throw error;
+      }
+    }
+
+    // 创建新分类
+    targetCategoryId = uuidv4();
+    const now = new Date().toISOString();
+    const existingOrders = Object.values(regexCollection.value.categories).map(c => c.order);
+    const maxOrder = existingOrders.length > 0 ? Math.max(...existingOrders) : -1;
+
+    const newScripts = scripts.map(script => ({
+      ...script,
+      id: `script-${Date.now()}-${uuidv4()}`,
+      categoryId: targetCategoryId,
+    }));
+
+    const newCategory: RegexCategory = {
+      id: targetCategoryId,
+      name: targetCategoryName,
+      scripts: newScripts,
+      createdAt: now,
+      updatedAt: now,
+      order: maxOrder + 1,
+      metadata: {
+        source: 'character-card',
+        characterCardId,
+        characterName,
+      },
+    };
+
+    regexCollection.value.categories[targetCategoryId] = newCategory;
+    regexCollection.value.activeCategoryId = targetCategoryId;
+    saveToStorage();
+
+    ElMessage.success(`已创建分类 "${targetCategoryName}" 并导入 ${scripts.length} 个正则脚本`);
+    return targetCategoryId;
+  };
+
   return {
     regexCollection,
     activeCategoryId,
@@ -333,5 +450,6 @@ export function useRegexCollection() {
     moveScriptBetweenCategories,
     updateCategoryScripts,
     saveToStorage,
+    handleImportFromCharacterCard,
   };
 }

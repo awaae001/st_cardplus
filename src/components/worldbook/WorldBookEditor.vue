@@ -77,16 +77,21 @@
             <div>
               <label class="form-label">插入位置 (Position)</label>
               <el-select v-model="combinedPosition" placeholder="选择插入位置" class="form-full-width">
-                <el-option label="角色定义之前" value="0" />
-                <el-option label="角色定义之后" value="1" />
-                <el-option label="作者注释之前" value="2" />
-                <el-option label="作者注释之后" value="3" />
-                <el-option label="示例消息之前" value="5" />
-                <el-option label="示例消息之后" value="6" />
-                <el-option label="@D 系统" value="4-0" />
-                <el-option label="@D 用户" value="4-1" />
-                <el-option label="@D 助手" value="4-2" />
+                <el-option label="📌 角色定义之前" value="0" />
+                <el-option label="📌 角色定义之后" value="1" />
+                <el-option label="📌 作者注释之前" value="2" />
+                <el-option label="📌 作者注释之后" value="3" />
+                <el-option label="📌 示例消息之前" value="5" />
+                <el-option label="📌 示例消息之后" value="6" />
+                <el-option label="⚙️ @D 系统" value="4-0" />
+                <el-option label="😋 @D 用户" value="4-1" />
+                <el-option label="🤖 @D 助手" value="4-2" />
+                <el-option label="💭 自定义出口 (Outlet)" value="7" />
               </el-select>
+            </div>
+            <div v-if="localModel.position === 7">
+              <label class="form-label">出口名称 (Outlet Name)</label>
+              <el-input v-model="localModel.outletName" placeholder="指定一个或多个出口名称,用逗号分隔" />
             </div>
             <div>
               <label class="form-label">插入深度 (Depth)</label>
@@ -118,6 +123,11 @@
                 <div class="form-flex-col-start">
                   <label class="form-label">启用向量匹配</label><el-switch v-model="localModel.vectorized" />
                 </div>
+                <div>
+                  <label class="form-label">扫描深度 (Scan Depth)</label>
+                  <el-input-number v-model="localModel.scanDepth" :min="0" :max="1000" controls-position="right" class="form-full-width" placeholder="留空使用全局设置" />
+                  <p class="form-help-text">0表示使用全局设置</p>
+                </div>
                 <div class="form-grid-span-3">
                   <label class="form-label">次要关键词 (Optional Filter)</label>
                   <el-select
@@ -138,6 +148,25 @@
                       :value="0" /><el-option label="非所有" :value="1" /><el-option label="非任何" :value="2" /><el-option
                       label="与所有" :value="3" /></el-select><el-checkbox v-model="localModel.selective" label="启用次要逻辑"
                     class="form-checkbox-margin-top" />
+                </div>
+              </div>
+            </section>
+            <section class="form-section">
+              <h3 class="form-section-title">
+                <Icon icon="ph:crosshair-duotone" class="form-section-icon" />扫描范围
+              </h3>
+              <div class="form-grid-3-col-top-align">
+                <div class="form-grid-span-3">
+                  <label class="form-label">扫描范围 (Scan Scope)</label>
+                  <div class="form-grid-3-col">
+                    <el-checkbox v-model="localModel.matchPersonaDescription" label="用户人设" />
+                    <el-checkbox v-model="localModel.matchCharacterDescription" label="角色描述" />
+                    <el-checkbox v-model="localModel.matchCharacterPersonality" label="角色性格" />
+                    <el-checkbox v-model="localModel.matchCharacterDepthPrompt" label="角色笔记" />
+                    <el-checkbox v-model="localModel.matchScenario" label="场景设定" />
+                    <el-checkbox v-model="localModel.matchCreatorNotes" label="创作者备注" />
+                  </div>
+                  <p class="form-help-text">选择在哪些文本范围内匹配关键词（聊天消息之外的额外扫描范围）</p>
                 </div>
               </div>
             </section>

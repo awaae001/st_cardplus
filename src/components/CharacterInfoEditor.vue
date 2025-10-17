@@ -151,8 +151,19 @@ watch(() => props.character, (newCharacter) => {
 // 监听本地form变化，同步到父组件
 watch(form, (updatedCharacter) => {
   if (!isUpdatingFromProps) {
-    // 立即同步到父组件，避免时序问题
-    emit('update:character', JSON.parse(JSON.stringify(updatedCharacter))); // 深度克隆
+    // 检查 ID 是否存在，如果不存在则从 props 恢复
+    if (!updatedCharacter.id && props.character?.id) {
+      console.warn('CharacterInfoEditor: form 缺少 ID，从 props 恢复');
+      updatedCharacter.id = props.character.id;
+    }
+
+    // 验证 ID 存在后再发送更新
+    if (updatedCharacter.id) {
+      // 立即同步到父组件，避免时序问题
+      emit('update:character', JSON.parse(JSON.stringify(updatedCharacter))); // 深度克隆
+    } else {
+      console.error('CharacterInfoEditor: 无法更新角色，缺少 ID');
+    }
   }
 }, { deep: true });
 

@@ -33,6 +33,16 @@
             <div class="node-main">
               <Icon :icon="data.icon" class="node-icon" />
               <span class="node-label">{{ node.label }}</span>
+              <el-tooltip
+                v-if="!data.isScript && data.raw.metadata?.source === 'character-card'"
+                :content="`来自角色卡: ${data.raw.metadata.characterName || '未知角色'}`"
+                placement="top"
+                :show-arrow="false"
+                :offset="8"
+                :hide-after="0"
+              >
+                <Icon icon="ph:user-circle-duotone" class="source-icon" />
+              </el-tooltip>
             </div>
             <div class="node-actions" v-if="!data.isScript">
               <el-tooltip content="新增脚本" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
@@ -269,6 +279,13 @@ const handleNodeCollapse = (data: any) => {
 .node-icon {
   font-size: 16px;
   margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.source-icon {
+  font-size: 14px;
+  margin-left: 6px;
+  color: var(--el-color-primary);
   flex-shrink: 0;
 }
 
