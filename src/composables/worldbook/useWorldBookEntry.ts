@@ -36,6 +36,7 @@ export const createDefaultEntryData = (uid: number): WorldBookEntry => ({
   cooldown: 0,
   delay: 0,
   automationId: "",
+  outletName: "",
   // 扫描匹配选项默认值
   scanDepth: null,
   matchPersonaDescription: false,

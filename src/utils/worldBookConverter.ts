@@ -10,6 +10,7 @@ export const world_info_position = {
     atDepth: 4,
     EMTop: 5,
     EMBottom: 6,
+    outlet: 7,
 };
 
 /**
@@ -48,6 +49,7 @@ function convertWorldEntryToCharacterEntry(worldEntry: WorldBookEntry): Characte
     if (worldEntry.sticky !== undefined) extensions.sticky = worldEntry.sticky;
     if (worldEntry.cooldown !== undefined) extensions.cooldown = worldEntry.cooldown;
     if (worldEntry.delay !== undefined) extensions.delay = worldEntry.delay;
+    if (worldEntry.outletName) extensions.outlet_name = worldEntry.outletName;
     
     // 扫描匹配选项字段
     if (worldEntry.scanDepth !== undefined && worldEntry.scanDepth !== null) extensions.scan_depth = worldEntry.scanDepth;
@@ -150,6 +152,7 @@ function convertCharacterEntryToWorldEntry(charEntry: CharacterBookEntry, index:
         matchWholeWords: extensions.match_whole_words ?? null,
         useGroupScoring: extensions.use_group_scoring ?? null,
         automationId: extensions.automation_id || '',
+        outletName: extensions.outlet_name || '',
         role: extensions.role ?? null,
         vectorized: extensions.vectorized ?? false,
         sticky: extensions.sticky, // 保持 undefined 如果不存在

@@ -30,6 +30,7 @@ export interface WorldBookEntry {
   cooldown: number;
   delay: number;
   automationId: string;
+  outletName: string;
   // 扫描匹配选项 (Scan matching options)
   scanDepth?: number | null;
   matchPersonaDescription?: boolean;
