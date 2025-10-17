@@ -30,6 +30,14 @@ export interface WorldBookEntry {
   cooldown: number;
   delay: number;
   automationId: string;
+  // 扫描匹配选项 (Scan matching options)
+  scanDepth?: number | null;
+  matchPersonaDescription?: boolean;
+  matchCharacterDescription?: boolean;
+  matchCharacterPersonality?: boolean;
+  matchCharacterDepthPrompt?: boolean;
+  matchScenario?: boolean;
+  matchCreatorNotes?: boolean;
 }
 
 export interface WorldBook {

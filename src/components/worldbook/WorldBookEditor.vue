@@ -118,6 +118,23 @@
                 <div class="form-flex-col-start">
                   <label class="form-label">启用向量匹配</label><el-switch v-model="localModel.vectorized" />
                 </div>
+                <div>
+                  <label class="form-label">扫描深度 (Scan Depth)</label>
+                  <el-input-number v-model="localModel.scanDepth" :min="0" :max="1000" controls-position="right" class="form-full-width" placeholder="留空使用全局设置" />
+                  <p class="form-help-text">0表示使用全局设置</p>
+                </div>
+                <div class="form-grid-span-3">
+                  <label class="form-label">扫描范围 (Scan Scope)</label>
+                  <div class="form-grid-3-col">
+                    <el-checkbox v-model="localModel.matchPersonaDescription" label="用户人设" />
+                    <el-checkbox v-model="localModel.matchCharacterDescription" label="角色描述" />
+                    <el-checkbox v-model="localModel.matchCharacterPersonality" label="角色性格" />
+                    <el-checkbox v-model="localModel.matchCharacterDepthPrompt" label="角色笔记" />
+                    <el-checkbox v-model="localModel.matchScenario" label="场景设定" />
+                    <el-checkbox v-model="localModel.matchCreatorNotes" label="创作者备注" />
+                  </div>
+                  <p class="form-help-text">选择在哪些文本范围内匹配关键词（聊天消息之外的额外扫描范围）</p>
+                </div>
                 <div class="form-grid-span-3">
                   <label class="form-label">次要关键词 (Optional Filter)</label>
                   <el-select

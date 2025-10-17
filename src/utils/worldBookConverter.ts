@@ -49,6 +49,14 @@ function convertWorldEntryToCharacterEntry(worldEntry: WorldBookEntry): Characte
     if (worldEntry.cooldown !== undefined) extensions.cooldown = worldEntry.cooldown;
     if (worldEntry.delay !== undefined) extensions.delay = worldEntry.delay;
     
+    // 扫描匹配选项字段
+    if (worldEntry.scanDepth !== undefined && worldEntry.scanDepth !== null) extensions.scan_depth = worldEntry.scanDepth;
+    if (worldEntry.matchPersonaDescription !== undefined) extensions.match_persona_description = worldEntry.matchPersonaDescription;
+    if (worldEntry.matchCharacterDescription !== undefined) extensions.match_character_description = worldEntry.matchCharacterDescription;
+    if (worldEntry.matchCharacterPersonality !== undefined) extensions.match_character_personality = worldEntry.matchCharacterPersonality;
+    if (worldEntry.matchCharacterDepthPrompt !== undefined) extensions.match_character_depth_prompt = worldEntry.matchCharacterDepthPrompt;
+    if (worldEntry.matchScenario !== undefined) extensions.match_scenario = worldEntry.matchScenario;
+    if (worldEntry.matchCreatorNotes !== undefined) extensions.match_creator_notes = worldEntry.matchCreatorNotes;
     // 映射可选的根级字段
     if (worldEntry.uid !== undefined) characterEntry.id = worldEntry.uid;
     if (worldEntry.keysecondary.length > 0) characterEntry.secondary_keys = worldEntry.keysecondary;
@@ -147,6 +155,15 @@ function convertCharacterEntryToWorldEntry(charEntry: CharacterBookEntry, index:
         sticky: extensions.sticky, // 保持 undefined 如果不存在
         cooldown: extensions.cooldown, // 保持 undefined 如果不存在
         delay: extensions.delay, // 保持 undefined 如果不存在
+        
+        // 扫描匹配选项
+        scanDepth: extensions.scan_depth ?? null,
+        matchPersonaDescription: extensions.match_persona_description ?? false,
+        matchCharacterDescription: extensions.match_character_description ?? false,
+        matchCharacterPersonality: extensions.match_character_personality ?? false,
+        matchCharacterDepthPrompt: extensions.match_character_depth_prompt ?? false,
+        matchScenario: extensions.match_scenario ?? false,
+        matchCreatorNotes: extensions.match_creator_notes ?? false,
     };
 
     return worldEntry;
