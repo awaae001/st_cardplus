@@ -252,7 +252,7 @@ defineExpose({
 </script>
 
 <style scoped>
-/* 主容器样式 - 采用 worldbook 设计语言 */
+/* 主容器样式 */
 .character-card-editor-scrollbar {
   height: 100vh;
 }

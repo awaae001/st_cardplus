@@ -366,7 +366,7 @@ onUnmounted(() => {
 .card-manager-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
   background-color: var(--el-bg-color-page);
 }
 
@@ -375,14 +375,14 @@ onUnmounted(() => {
   display: none;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1023px) {
   .card-manager-mobile-layout {
-    display: flex;
+    display: block;
     flex: 1;
   }
 
   .card-manager-desktop-layout {
-    display: none;
+    display: none !important;
   }
 }
 

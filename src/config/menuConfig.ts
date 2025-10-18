@@ -98,7 +98,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     type: 'main',
     visible: true,
     order: 4,
-    title: 'EJS模板 · 测试版',
+    title: 'EJS模板',
     icon: 'DataLine',
     route: '/ejs-editor',
     beta: true
@@ -108,7 +108,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     type: 'main',
     visible: true,
     order: 5,
-    title: '世界书 · 测试版',
+    title: '世界书',
     icon: 'Collection',
     route: '/worldbook',
     beta: true
@@ -118,7 +118,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     type: 'main',
     visible: true,
     order: 6,
-    title: '正则编辑器 · 测试版',
+    title: '正则编辑器',
     icon: 'Tickets',
     route: '/regex-editor',
     beta: true
