@@ -1,8 +1,5 @@
 <template>
-  <div v-if="useOldSidebar">
-    <App_old />
-  </div>
-  <div v-else>
+  <div>
     <el-container class="layout-container">
       <!-- Mobile Drawer -->
       <el-drawer v-if="isMobile" v-model="drawerVisible" direction="ltr" :with-header="false" size="250px">
@@ -82,9 +79,8 @@ import { ElLoading, ElContainer, ElAside, ElMain, ElMenu, ElMenuItem, ElIcon, El
 import { useRouter, useRoute } from 'vue-router'
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useDark, useToggle, useWindowSize } from '@vueuse/core'
-import { getBetaFeaturesEnabled, getUseOldSidebar } from '@/utils/localStorageUtils'
+import { getBetaFeaturesEnabled } from '@/utils/localStorageUtils'
 import { getIconComponent } from '@/config/menuConfig'
-import App_old from '@/pages/App_old.vue'
 import { provideOverflowControl } from '@/composables/useOverflowControl';
 import { usePersonalization } from '@/composables/usePersonalization';
 
@@ -92,7 +88,6 @@ const { isOverflowHidden, setOverflowHidden } = provideOverflowControl();
 const route = useRoute();
 const isDark = useDark()
 const toggleDark = useToggle(isDark)
-const useOldSidebar = ref(true)
 const { width } = useWindowSize()
 const isCollapse = ref(false)
 const userToggledCollapse = ref(false); // 新增：用于跟踪用户手动折叠的状态
@@ -192,7 +187,6 @@ const handleSidebarConfigChange = () => {
 
 onMounted(() => {
   betaFeaturesEnabled.value = getBetaFeaturesEnabled()
-  useOldSidebar.value = getUseOldSidebar()
   refreshSidebarConfig() // 刷新侧边栏配置
   window.addEventListener('betaFeaturesToggle', handleBetaFeaturesToggle as EventListener)
   window.addEventListener('sidebarConfigChange', handleSidebarConfigChange as EventListener)

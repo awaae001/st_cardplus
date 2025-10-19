@@ -18,7 +18,6 @@ interface AppSettings {
   betaFeaturesEnabled: boolean;
   umamiEnabled: boolean;
   autoSaveInterval: number;
-  useOldSidebar: boolean;
   useOldCharCardEditor: boolean;
   useOldWorldEditor: boolean;
   autoExpandSidebar: boolean;
@@ -32,7 +31,6 @@ const defaultSettings: AppSettings = {
   betaFeaturesEnabled: false,
   umamiEnabled: true,
   autoSaveInterval: 5,
-  useOldSidebar: false,
   useOldCharCardEditor: false,
   useOldWorldEditor: false,
   autoExpandSidebar: false,
@@ -141,23 +139,6 @@ export const setAutoSaveInterval = (interval: number) => {
   const validInterval = Math.max(1, Math.min(60, interval));
   saveSettings({ autoSaveInterval: validInterval });
   console.log('自动保存间隔设置已保存:', validInterval + '秒');
-};
-
-/**
- * 获取是否使用旧版侧边栏的设置
- * @returns 是否使用旧版侧边栏
- */
-export const getUseOldSidebar = (): boolean => {
-  return getSettings().useOldSidebar;
-};
-
-/**
- * 设置是否使用旧版侧边栏
- * @param enabled - 是否使用旧版侧边栏
- */
-export const setUseOldSidebar = (enabled: boolean) => {
-  saveSettings({ useOldSidebar: enabled });
-  console.log('旧版侧边栏设置已保存:', enabled);
 };
 
 /**
