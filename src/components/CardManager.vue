@@ -12,9 +12,9 @@
           </template>
           <CharacterCardList :collection="characterCardCollection" :active-card-id="activeCardId"
             :has-current-card="hasUnsavedChanges" @select-card="handleSelectCardWithLoad"
-            @save-current="handleSaveCurrentAsNew" @rename-card="handleRenameCard" @delete-card="handleDeleteCard"
-            @export-card="handleExportCard" @export-all="handleExportAllCards" @import-file="handleImportFromFile"
-            @clear-all="handleClearAllCards" />
+            @create-new="handleCreateNewCard" @save-current="handleSaveCurrentAsNew" @rename-card="handleRenameCard"
+            @delete-card="handleDeleteCard" @export-card="handleExportCard" @export-all="handleExportAllCards"
+            @import-file="handleImportFromFile" @clear-all="handleClearAllCards" />
         </el-tab-pane>
 
         <el-tab-pane name="editor" class="card-manager-tab-pane">
@@ -43,7 +43,7 @@
           </div>
           <el-scrollbar class="card-editor-content">
             <WelcomeScreen v-if="!activeCard" :is-uploading="isUploading" :upload-progress="uploadProgress"
-              @import-card="triggerFileInput" />
+              @create-new="handleCreateNewCard" @import-card="triggerFileInput" />
             <CardEditor v-else :character="characterData" :image-preview-url="imagePreviewUrl"
               :all-tags="allTags" v-model:advanced-options-visible="advancedOptionsVisible"
               @image-change="handleImageUpdate" @worldbook-changed="handleWorldBookChanged" />
@@ -58,9 +58,9 @@
         <Pane size="15" min-size="10" max-size="35">
           <CharacterCardList :collection="characterCardCollection" :active-card-id="activeCardId"
             :has-current-card="hasUnsavedChanges" @select-card="handleSelectCardWithLoad"
-            @save-current="handleSaveCurrentAsNew" @rename-card="handleRenameCard" @delete-card="handleDeleteCard"
-            @export-card="handleExportCard" @export-all="handleExportAllCards" @import-file="handleImportFromFile"
-            @clear-all="handleClearAllCards" />
+            @create-new="handleCreateNewCard" @save-current="handleSaveCurrentAsNew" @rename-card="handleRenameCard"
+            @delete-card="handleDeleteCard" @export-card="handleExportCard" @export-all="handleExportAllCards"
+            @import-file="handleImportFromFile" @clear-all="handleClearAllCards" />
         </Pane>
         <Pane size="85" min-size="65">
           <div class="card-manager-desktop-panel-right">
@@ -91,7 +91,7 @@
             </div>
             <el-scrollbar class="card-editor-content">
               <WelcomeScreen v-if="!activeCard" :is-uploading="isUploading" :upload-progress="uploadProgress"
-                @import-card="triggerFileInput" />
+                @create-new="handleCreateNewCard" @import-card="triggerFileInput" />
               <CardEditor v-else :character="characterData" :image-preview-url="imagePreviewUrl"
                 :all-tags="allTags" v-model:advanced-options-visible="advancedOptionsVisible"
                 @image-change="handleImageUpdate" @worldbook-changed="handleWorldBookChanged" />
@@ -160,8 +160,7 @@ import { useCharacterCardCollection } from '@/composables/characterCard/useChara
 import { useCardImport } from '@/composables/characterCard/useCardImport';
 import { useCardExport } from '@/composables/characterCard/useCardExport';
 
-const { characterData, loadCharacter } = useV3CharacterCard();
-
+const { characterData, loadCharacter, resetCharacter } = useV3CharacterCard();
 // 角色卡集合管理
 const {
   characterCardCollection,
@@ -179,6 +178,7 @@ const {
   handleExportCard,
   handleExportAllCards,
   handleClearAllCards,
+  handleCreateNewCard: handleCreateNewCardFromCollection,
   // 自动保存相关
   saveStatus,
   autoSaveMode,
@@ -272,12 +272,22 @@ const dismissRefactorDialog = (dontShowToday = false) => {
   }
 };
 
-// 自动加载上次编辑的角色卡
-const hasAutoLoaded = ref(false);
-watch([isLoading, activeCard], ([loading, card]) => {
-  if (!loading && card && !hasAutoLoaded.value) {
-    hasAutoLoaded.value = true;
-    loadCharacter(card);
+// 监听 activeCard 的变化,自动加载或重置编辑器
+watch([isLoading, activeCard], ([loading, card], [, prevCard]) => {
+  // 等待数据加载完成
+  if (loading) return;
+
+  // activeCard 发生变化
+  if (card !== prevCard) {
+    if (card) {
+      // 有新的活动卡片,加载它
+      loadCharacter(card);
+      characterImageFile.value = null;
+    } else {
+      // 没有活动卡片(删除后或清空后),重置编辑器
+      resetCharacter();
+      characterImageFile.value = null;
+    }
   }
 }, { immediate: true });
 
@@ -310,6 +320,18 @@ const handleSelectCardWithLoad = (cardId: string) => {
     loadCharacter(selectedCard);
     activeTab.value = 'editor';
     ElMessage.success(`已切换到角色卡: ${selectedCard.name || '未命名角色'}`);
+  }
+};
+
+const handleCreateNewCard = async () => {
+  const cardId = await handleCreateNewCardFromCollection();
+  if (cardId) {
+    const newCard = characterCardCollection.value.cards[cardId];
+    if (newCard) {
+      characterImageFile.value = null;
+      loadCharacter(newCard);
+      activeTab.value = 'editor';
+    }
   }
 };
 

@@ -1,10 +1,16 @@
 <template>
   <div class="welcome-screen">
     <div class="welcome-content">
+      <Icon icon="ph:cards-duotone" class="welcome-icon" />
       <h2 class="welcome-title">欢迎来到角色卡编辑器</h2>
-      <p class="welcome-description">在侧边栏选择、创建或者导入一个新角色</p>
+      <p class="welcome-description">创建一个新角色或导入已有的角色卡</p>
       <div class="welcome-actions">
-        <el-button type="primary" @click="emit('importCard')" :loading="isUploading">
+        <el-button type="success" size="large" @click="emit('createNew')">
+          <Icon icon="ph:plus-circle-duotone" />
+          创建新角色
+        </el-button>
+        <div></div>
+        <el-button type="primary" size="large" @click="emit('importCard')" :loading="isUploading">
           <Icon icon="ph:upload-duotone" v-if="!isUploading" />
           {{ isUploading ? uploadProgress : '导入角色卡' }}
         </el-button>
@@ -23,6 +29,7 @@ defineProps<{
 }>();
 
 const emit = defineEmits<{
+  (e: 'createNew'): void;
   (e: 'importCard'): void;
 }>();
 </script>
@@ -65,8 +72,16 @@ const emit = defineEmits<{
 
 .welcome-actions {
   display: flex;
+  flex-direction: column;
   gap: 12px;
   justify-content: center;
   align-items: center;
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.welcome-actions .el-button {
+  width: 100%;
 }
 </style>

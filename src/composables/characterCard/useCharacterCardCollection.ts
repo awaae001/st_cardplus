@@ -327,6 +327,75 @@ export function useCharacterCardCollection() {
     }
   };
 
+  const handleCreateNewCard = async () => {
+    try {
+      const { value: cardName } = await ElMessageBox.prompt(
+        '请输入新角色的名称：',
+        '创建新角色卡',
+        {
+          confirmButtonText: '创建',
+          cancelButtonText: '取消',
+          inputValue: '新角色',
+          inputPattern: /.+/,
+          inputErrorMessage: '名称不能为空',
+        }
+      );
+
+      // 创建默认的角色卡数据
+      const defaultData: CharacterCardV3 = {
+        spec: 'chara_card_v3',
+        spec_version: '3.0',
+        name: cardName,
+        description: '',
+        personality: '',
+        scenario: '',
+        first_mes: '',
+        mes_example: '',
+        creatorcomment: '',
+        avatar: 'none',
+        talkativeness: 0.5,
+        fav: false,
+        tags: [],
+        data: {
+          name: cardName,
+          description: '',
+          personality: '',
+          scenario: '',
+          first_mes: '',
+          mes_example: '',
+          creator_notes: '',
+          system_prompt: '',
+          post_history_instructions: '',
+          tags: [],
+          creator: '',
+          character_version: '',
+          alternate_greetings: [],
+          group_only_greetings: [],
+          character_book: {
+            name: '',
+            entries: [],
+          },
+          extensions: {
+            world: '',
+            talkativeness: 0.5,
+            fav: false,
+            depth_prompt: {},
+            regex_scripts: [],
+          },
+        },
+      };
+
+      const cardId = await handleSaveCurrentCard(defaultData);
+      return cardId;
+    } catch (error) {
+      if (error !== 'cancel' && error !== 'close') {
+        console.error('创建新角色卡失败:', error);
+        ElMessage.error('创建新角色卡失败！');
+      }
+      return null;
+    }
+  };
+
   // 切换自动保存模式
   const toggleAutoSaveMode = () => {
     const modes: Array<'auto' | 'watch' | 'manual'> = ['auto', 'watch', 'manual'];
@@ -432,6 +501,7 @@ export function useCharacterCardCollection() {
     handleExportCard,
     handleExportAllCards,
     handleClearAllCards,
+    handleCreateNewCard,
     loadInitialData,
     // 自动保存相关
     saveStatus,
