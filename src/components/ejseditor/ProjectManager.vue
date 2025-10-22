@@ -183,7 +183,7 @@
 import { ref, watch, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Setting, ArrowRight, CopyDocument, Delete, Edit, Download, Upload, FolderOpened } from '@element-plus/icons-vue'
-import { useEjsEditorStore } from '@/stores/ejsEditor'
+import { useEjsEditorStore } from '@/composables/ejs/ejsEditor'
 
 const store = useEjsEditorStore()
 const showProjectDialog = ref(false)

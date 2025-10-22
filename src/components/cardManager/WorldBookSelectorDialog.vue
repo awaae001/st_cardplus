@@ -92,7 +92,7 @@ import { ref, computed, watch } from 'vue';
 import { ElDialog, ElScrollbar, ElButton, ElTag, ElEmpty, ElCollapse, ElCollapseItem } from 'element-plus';
 import { Icon } from '@iconify/vue';
 import { worldBookService } from '@/database/worldBookService';
-import type { WorldBook } from '@/components/worldbook/types';
+import type { WorldBook } from '@/types/types';
 import { useRouter } from 'vue-router';
 
 interface Props {

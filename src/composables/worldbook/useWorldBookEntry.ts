@@ -3,7 +3,7 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import { copyToClipboard } from "../../utils/clipboard";
 import { initAutoSave, clearAutoSave } from "../../utils/localStorageUtils";
 import { watchDebounced } from "@vueuse/core";
-import type { WorldBookEntry, WorldBook } from "../../components/worldbook/types";
+import type { WorldBookEntry, WorldBook } from "../../types/types";
 
 export const createDefaultEntryData = (uid: number): WorldBookEntry => ({
   uid: uid,

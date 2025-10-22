@@ -91,7 +91,7 @@ import { computed, ref, nextTick } from 'vue';
 import { ElScrollbar, ElTooltip, ElTree, ElTag } from 'element-plus';
 import { Icon } from '@iconify/vue';
 import WorldBookActions from './WorldBookActions.vue';
-import type { WorldBookCollection, WorldBookEntry } from './types';
+import type { WorldBookCollection, WorldBookEntry } from '../../types/types';
 
 interface Props {
   collection: WorldBookCollection;

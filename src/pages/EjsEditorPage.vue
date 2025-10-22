@@ -150,7 +150,7 @@ import {
   RefreshRight,
   CopyDocument
 } from '@element-plus/icons-vue'
-import { useEjsEditorStore } from '@/stores/ejsEditor'
+import { useEjsEditorStore } from '@/composables/ejs/ejsEditor'
 import { saveAs } from 'file-saver'
 import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'

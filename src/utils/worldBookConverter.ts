@@ -1,4 +1,4 @@
-import type { WorldBook, WorldBookEntry } from '../components/worldbook/types';
+import type { WorldBook, WorldBookEntry } from '../types/types';
 import type { CharacterBook, CharacterBookEntry } from '../types/character-book';
 
 // 完整的 world_info_position 定义

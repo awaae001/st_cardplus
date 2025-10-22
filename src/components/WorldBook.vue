@@ -115,7 +115,7 @@ import WorldBookList from "./worldbook/WorldBookList.vue";
 import { useWorldBookCollection } from "../composables/worldbook/useWorldBookCollection";
 import { useWorldBookEntry } from "../composables/worldbook/useWorldBookEntry";
 import { useWorldBookDragDrop } from "../composables/worldbook/useWorldBookDragDrop";
-import type { WorldBookEntry } from "./worldbook/types";
+import type { WorldBookEntry } from "../types/types";
 
 import { computed, nextTick, ref, onMounted, onUnmounted } from 'vue';
 

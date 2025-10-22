@@ -162,7 +162,7 @@ import {
   CircleCheck,
   View
 } from '@element-plus/icons-vue'
-import { useEjsEditorStore } from '@/stores/ejsEditor'
+import { useEjsEditorStore } from '@/composables/ejs/ejsEditor'
 import { useDevice } from '@/composables/useDevice'
 
 const store = useEjsEditorStore()

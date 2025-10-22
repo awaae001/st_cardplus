@@ -53,7 +53,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { useEjsEditorStore } from '@/stores/ejsEditor';
+import { useEjsEditorStore } from '@/composables/ejs/ejsEditor';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import { Plus, Delete, Edit } from '@element-plus/icons-vue';
 import StageList from './StageList.vue'; // We will create this component next
