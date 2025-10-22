@@ -288,6 +288,74 @@ export function useWorldBookEntry(
     await copyToClipboard(jsonData, "当前条目数据已复制到剪贴板！");
   };
 
+  const duplicateEntry = async (entryIndex: number): Promise<void> => {
+    if (!activeBook.value) {
+      ElMessage.error("没有活动的世界书，无法复制条目");
+      return;
+    }
+
+    const entryToDuplicate = activeBookEntries.value[entryIndex];
+    if (!entryToDuplicate) {
+      ElMessage.error("无法找到要复制的条目");
+      return;
+    }
+
+    // 深拷贝条目数据
+    const newEntryData = JSON.parse(JSON.stringify(entryToDuplicate)) as WorldBookEntry;
+
+    // 生成新的 UID
+    const newUid = Date.now();
+    newEntryData.uid = newUid;
+
+    // 删除数据库 ID（会自动生成新的）
+    delete newEntryData.id;
+
+    // 智能命名：在原名称后添加 (1), (2), (3) 等
+    const originalComment = entryToDuplicate.comment || "条目";
+
+    // 提取基础名称和现有数字后缀
+    const match = originalComment.match(/^(.+?)\s*\((\d+)\)$/);
+    const baseName = match ? match[1] : originalComment;
+
+    // 查找所有相同基础名称的条目，找出最大数字
+    const relatedEntries = activeBookEntries.value.filter(entry => {
+      const entryComment = entry.comment || "";
+      // 匹配基础名称或带数字后缀的名称
+      return entryComment === baseName || entryComment.match(new RegExp(`^${baseName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\(\\d+\\)$`));
+    });
+
+    let maxNumber = 0;
+    relatedEntries.forEach(entry => {
+      const entryComment = entry.comment || "";
+      const entryMatch = entryComment.match(/\((\d+)\)$/);
+      if (entryMatch) {
+        const num = parseInt(entryMatch[1], 10);
+        if (num > maxNumber) {
+          maxNumber = num;
+        }
+      }
+    });
+
+    // 如果原名称本身没有数字，且有重复，从 (1) 开始；否则递增
+    const nextNumber = maxNumber + 1;
+    newEntryData.comment = `${baseName} (${nextNumber})`;
+
+    try {
+      // 添加新条目
+      const addedEntry = await callbacks.addEntry(newEntryData);
+
+      if (addedEntry) {
+        // 选中新创建的条目
+        selectedEntryIndex.value = 0;
+        activeTab.value = "editor";
+        ElMessage.success(`已复制条目为: ${newEntryData.comment}`);
+      }
+    } catch (error) {
+      console.error('[duplicateEntry] 复制条目失败:', error);
+      ElMessage.error("复制条目失败");
+    }
+  };
+
   const showImportEntryDialog = async (): Promise<void> => {
     try {
       const { value } = await ElMessageBox.prompt(
@@ -549,6 +617,7 @@ export function useWorldBookEntry(
     handleReorderEntries,
     saveCurrentEntry,
     deleteSelectedEntry,
+    duplicateEntry,
     copySelectedEntry,
     showImportEntryDialog,
     exportToJson,
