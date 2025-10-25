@@ -2,7 +2,7 @@ import { ref, computed, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import type { WorldBook, WorldBookCollection, WorldBookEntry } from "../../types/types";
 import { v4 as uuidv4 } from 'uuid';
-import { processImportedWorldBookData } from "./useWorldBookEntry";
+import { processImportedWorldBookData } from "./entry/useWorldBookEntryData";
 import { worldBookService } from "../../database/worldBookService";
 import type { StoredWorldBook } from "../../database/db";
 
@@ -409,10 +409,10 @@ const loadInitialData = async () => {
     }
   };
 
-  const handleDeleteEntry = async (entryId: number): Promise<void> => {
+  const handleDeleteEntry = async (entryId: number): Promise<boolean> => {
     if (!activeBook.value) {
       ElMessage.error("无法删除条目：缺少活动书籍");
-      return;
+      return false;
     }
     
     console.log("尝试从数据库删除条目:", { entryId, bookId: activeBook.value.id });
@@ -453,6 +453,7 @@ const loadInitialData = async () => {
       ElMessage.error(`删除条目失败: ${error instanceof Error ? error.message : '未知错误'}`);
       throw error; // 重新抛出错误以便上层处理
     }
+    return activeBook.value.entries.length > 0;
   };
 
 

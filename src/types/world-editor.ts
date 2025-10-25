@@ -33,6 +33,7 @@ export interface EnhancedLandmark {
 
   // 分类属性
   type: LandmarkType;           // 地标类型
+  customType?: string;          // 自定义类型名称
   importance: ImportanceLevel;   // 重要性等级（1-5星）
   tags: string[];               // 自定义标签
 

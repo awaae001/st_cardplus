@@ -120,7 +120,7 @@ import { ElMessage } from 'element-plus'
 import { Delete, CopyDocument as CopyIcon } from '@element-plus/icons-vue'
 import { Icon } from '@iconify/vue'
 import { useSmartRegexGenerator, type TextSelection } from '@/composables/regex/useSmartRegexGenerator'
-import TokenSelector from './TokenSelector.vue'
+import TokenSelector from './Selsctor/TokenSelector.vue'
 
 const props = defineProps<{
   inputText: string

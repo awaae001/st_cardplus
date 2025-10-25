@@ -66,7 +66,11 @@
       </el-aside>
       <el-button v-if="isMobile" class="toggle-button" @click="toggleSidebar" :icon="IconMenu" circle />
       <el-main class="content-container" :class="{ 'overflow-hidden': isOverflowHidden }">
-        <RouterView />
+        <RouterView v-slot="{ Component, route }">
+          <transition name="fade" mode="out-in">
+            <component :is="Component" :key="route.path" />
+          </transition>
+        </RouterView>
       </el-main>
     </el-container>
   </div>
@@ -75,7 +79,7 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
 import { Menu as IconMenu, Moon, Sunny, InfoFilled} from '@element-plus/icons-vue'
-import { ElLoading, ElContainer, ElAside, ElMain, ElMenu, ElMenuItem, ElIcon, ElButton, ElDrawer, ElDivider } from 'element-plus'
+import { ElContainer, ElAside, ElMain, ElMenu, ElMenuItem, ElIcon, ElButton, ElDrawer, ElDivider } from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useDark, useToggle, useWindowSize } from '@vueuse/core'
@@ -135,7 +139,6 @@ const handleMouseLeave = () => {
 }
 const betaFeaturesEnabled = ref(false)
 const router = useRouter()
-let loadingInstance: ReturnType<typeof ElLoading.service>
 const handleBetaFeaturesToggle = (event: CustomEvent) => {
   betaFeaturesEnabled.value = event.detail
 }
@@ -167,17 +170,6 @@ const smoothToggleDark = () => {
   }, 500)
 }
 
-router.beforeEach(() => {
-  loadingInstance = ElLoading.service({
-    lock: true,
-    text: '正在获取资源……请稍后',
-    background: 'rgba(0, 0, 0, 0.7)',
-  })
-})
-
-router.afterEach(() => {
-  loadingInstance.close()
-})
 
 
 // 监听侧边栏配置变化的自定义事件
@@ -349,5 +341,18 @@ onUnmounted(() => {
 
 .theme-toggle-item:hover .theme-icon {
   transform: rotate(180deg);
+}
+</style>
+
+<style>
+/* 路由切换动画 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

@@ -36,6 +36,10 @@
                 <el-option v-for="type in landmarkTypes" :key="type" :label="localizeLandmarkType(type)" :value="type" />
               </el-select>
             </div>
+             <div v-if="landmark.type === 'custom'">
+               <label class="form-label">自定义类型</label>
+               <el-input v-model="landmark.customType" placeholder="输入自定义类型" />
+             </div>
             <div class="form-grid-span-2">
               <label class="form-label">重要性 (1-5)</label>
               <el-slider v-model.number="landmark.importance" :min="1" :max="5" show-stops />
