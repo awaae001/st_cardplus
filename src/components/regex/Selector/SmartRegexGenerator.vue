@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import SmartTextSelector from '../Selsctor/SmartTextSelector.vue';
+import SmartTextSelector from './SmartTextSelector.vue';
 
 defineProps<{
   inputText: string;
