@@ -43,6 +43,16 @@ export function useWorldEditor() {
     return Array.from(tags);
   });
 
+  const allRegions = computed(() => {
+    const regions = new Set<string>();
+    landmarks.value.forEach(item => {
+      if (item.region) {
+        regions.add(item.region);
+      }
+    });
+    return Array.from(regions);
+  });
+
   const activeProjectId = computed(() => {
     if (!selectedItem.value) return projects.value[0]?.id;
     if ('projectId' in selectedItem.value) {
@@ -294,6 +304,7 @@ export function useWorldEditor() {
     forces,
     selectedItem,
     allTags,
+    allRegions,
     handleSelection,
     handleAdd,
     handleDelete,

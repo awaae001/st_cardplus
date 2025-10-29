@@ -12,7 +12,7 @@
       </div>
       <div class="editor-content" :key="props.selectedItem.id">
         <ProjectEditor v-if="isProject(props.selectedItem)" :project="props.selectedItem" />
-        <LandmarkEditor v-else-if="isLandmark(props.selectedItem)" :landmark="props.selectedItem" :all-tags="props.allTags" />
+        <LandmarkEditor v-else-if="isLandmark(props.selectedItem)" :landmark="props.selectedItem" :all-landmarks="props.landmarks" :all-tags="props.allTags" :all-regions="props.allRegions" />
         <ForceEditor v-else-if="isForce(props.selectedItem)" :force="props.selectedItem" :all-tags="props.allTags" />
         <IntegratedPanel
           v-else-if="isIntegration(props.selectedItem)"
@@ -44,6 +44,7 @@ import { ElMessage } from 'element-plus';
 interface Props {
   selectedItem: Project | EnhancedLandmark | EnhancedForce | ProjectIntegration | null;
   allTags?: string[];
+  allRegions?: string[];
   landmarks?: EnhancedLandmark[];
   forces?: EnhancedForce[];
   projects?: Project[];
