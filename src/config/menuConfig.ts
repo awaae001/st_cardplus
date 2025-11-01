@@ -176,6 +176,16 @@ export const toolboxToolItems: MenuItemConfig[] = [
     icon: 'mdi:file-image-plus-outline',
     route: '/toolbox/png-metadata',
     description: '读取或写入 PNG 图片的元数据'
+  },
+  {
+    id: 'chinese-converter',
+    type: 'tool',
+    visible: false,
+    order: 104,
+    title: '简繁转换器',
+    icon: 'material-symbols:translate',
+    route: '/toolbox/chinese-converter',
+    description: '批量转换角色卡简繁体，支持多种方言'
   }
 ];
 
@@ -220,6 +230,14 @@ export const toolboxFixedTools: ToolboxToolConfig[] = [
     description: '协助您将数据从旧版数据库迁移到新版数据库',
     route: '/migration',
     category: 'utility'
+  },
+  {
+    id: 'chinese-converter',
+    title: '简繁转换器',
+    icon: 'material-symbols:translate',
+    description: '批量转换角色卡简繁体，支持多种方言',
+    route: '/toolbox/chinese-converter',
+    category: 'converter'
   }
 ];
 

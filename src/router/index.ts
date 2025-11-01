@@ -77,6 +77,12 @@ const router = createRouter({
       meta: { title: 'PNG 元数据工具' }
     },
     {
+      path: '/toolbox/chinese-converter',
+      name: 'chineseConverter',
+      component: () => import('../components/toolsbox/ChineseConverter.vue'),
+      meta: { title: '简繁转换器' }
+    },
+    {
       path: '/regex-editor',
       name: 'regexEditor',
       component: () => import('../pages/RegexEditorPage.vue'),
