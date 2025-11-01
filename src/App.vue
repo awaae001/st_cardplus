@@ -1,8 +1,5 @@
 <template>
-  <div v-if="useOldSidebar">
-    <App_old />
-  </div>
-  <div v-else>
+  <div>
     <el-container class="layout-container">
       <!-- Mobile Drawer -->
       <el-drawer v-if="isMobile" v-model="drawerVisible" direction="ltr" :with-header="false" size="250px">
@@ -69,7 +66,11 @@
       </el-aside>
       <el-button v-if="isMobile" class="toggle-button" @click="toggleSidebar" :icon="IconMenu" circle />
       <el-main class="content-container" :class="{ 'overflow-hidden': isOverflowHidden }">
-        <RouterView />
+        <RouterView v-slot="{ Component, route }">
+          <transition name="fade" mode="out-in">
+            <component :is="Component" :key="route.path" />
+          </transition>
+        </RouterView>
       </el-main>
     </el-container>
   </div>
@@ -78,13 +79,12 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
 import { Menu as IconMenu, Moon, Sunny, InfoFilled} from '@element-plus/icons-vue'
-import { ElLoading, ElContainer, ElAside, ElMain, ElMenu, ElMenuItem, ElIcon, ElButton, ElDrawer, ElDivider } from 'element-plus'
+import { ElContainer, ElAside, ElMain, ElMenu, ElMenuItem, ElIcon, ElButton, ElDrawer, ElDivider } from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useDark, useToggle, useWindowSize } from '@vueuse/core'
-import { getBetaFeaturesEnabled, getUseOldSidebar } from '@/utils/localStorageUtils'
+import { getBetaFeaturesEnabled } from '@/utils/localStorageUtils'
 import { getIconComponent } from '@/config/menuConfig'
-import App_old from '@/pages/App_old.vue'
 import { provideOverflowControl } from '@/composables/useOverflowControl';
 import { usePersonalization } from '@/composables/usePersonalization';
 
@@ -92,7 +92,6 @@ const { isOverflowHidden, setOverflowHidden } = provideOverflowControl();
 const route = useRoute();
 const isDark = useDark()
 const toggleDark = useToggle(isDark)
-const useOldSidebar = ref(true)
 const { width } = useWindowSize()
 const isCollapse = ref(false)
 const userToggledCollapse = ref(false); // 新增：用于跟踪用户手动折叠的状态
@@ -140,7 +139,6 @@ const handleMouseLeave = () => {
 }
 const betaFeaturesEnabled = ref(false)
 const router = useRouter()
-let loadingInstance: ReturnType<typeof ElLoading.service>
 const handleBetaFeaturesToggle = (event: CustomEvent) => {
   betaFeaturesEnabled.value = event.detail
 }
@@ -172,17 +170,6 @@ const smoothToggleDark = () => {
   }, 500)
 }
 
-router.beforeEach(() => {
-  loadingInstance = ElLoading.service({
-    lock: true,
-    text: '正在获取资源……请稍后',
-    background: 'rgba(0, 0, 0, 0.7)',
-  })
-})
-
-router.afterEach(() => {
-  loadingInstance.close()
-})
 
 
 // 监听侧边栏配置变化的自定义事件
@@ -192,7 +179,6 @@ const handleSidebarConfigChange = () => {
 
 onMounted(() => {
   betaFeaturesEnabled.value = getBetaFeaturesEnabled()
-  useOldSidebar.value = getUseOldSidebar()
   refreshSidebarConfig() // 刷新侧边栏配置
   window.addEventListener('betaFeaturesToggle', handleBetaFeaturesToggle as EventListener)
   window.addEventListener('sidebarConfigChange', handleSidebarConfigChange as EventListener)
@@ -355,5 +341,18 @@ onUnmounted(() => {
 
 .theme-toggle-item:hover .theme-icon {
   transform: rotate(180deg);
+}
+</style>
+
+<style>
+/* 路由切换动画 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

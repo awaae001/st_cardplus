@@ -11,12 +11,12 @@
   </el-form-item>
   <SmartTextSelector
     :input-text="inputText"
-    @regex-generated="(data) => $emit('regex-generated', data)"
+    @regex-generated="(data: any) => $emit('regex-generated', data)"
   />
 </template>
 
 <script setup lang="ts">
-import SmartTextSelector from '@/components/regex/SmartTextSelector.vue';
+import SmartTextSelector from './SmartTextSelector.vue';
 
 defineProps<{
   inputText: string;

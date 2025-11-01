@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie';
-import type { WorldBook, WorldBookEntry } from '../components/worldbook/types';
+import type { WorldBook, WorldBookEntry } from '../types/types';
 import type { CharacterCardV3 } from '../types/character-card-v3';
 
 // 定义存储在 IndexedDB 中的 WorldBookEntry 结构，增加了 bookId 作为外键

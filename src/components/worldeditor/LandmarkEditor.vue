@@ -36,6 +36,10 @@
                 <el-option v-for="type in landmarkTypes" :key="type" :label="localizeLandmarkType(type)" :value="type" />
               </el-select>
             </div>
+             <div v-if="landmark.type === 'custom'">
+               <label class="form-label">自定义类型</label>
+               <el-input v-model="landmark.customType" placeholder="输入自定义类型" />
+             </div>
             <div class="form-grid-span-2">
               <label class="form-label">重要性 (1-5)</label>
               <el-slider v-model.number="landmark.importance" :min="1" :max="5" show-stops />
@@ -220,11 +224,14 @@ const localizeLandmarkType = (type: LandmarkType): string => {
 };
 
 // 过滤掉当前正在编辑的地标，用于相对位置选择
+// 过滤掉当前正在编辑的地标，并且只显示当前项目下的地标
 const filteredLandmarks = computed(() => {
   if (!props.allLandmarks || !props.landmark) {
     return [];
   }
-  return props.allLandmarks.filter(item => item.id !== props.landmark!.id);
+  return props.allLandmarks.filter(item =>
+    item.id !== props.landmark!.id && item.projectId === props.landmark!.projectId
+  );
 });
 
 // 确保 relativePosition 对象存在

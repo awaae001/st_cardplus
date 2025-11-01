@@ -2,11 +2,18 @@
   <div class="character-card-list-container">
     <div class="character-card-list-header">
       <h3 class="character-card-list-title">我的角色卡</h3>
-      <el-tooltip content="保存当前角色卡" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
-        <button @click="emit('save-current')" class="btn-primary-adv character-card-list-add-button" aria-label="保存当前角色卡" :disabled="!hasCurrentCard">
-          <Icon icon="ph:floppy-disk-duotone" class="character-card-list-add-icon" />
-        </button>
-      </el-tooltip>
+      <div class="character-card-list-actions">
+        <el-tooltip content="创建新角色卡" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+          <button @click="emit('create-new')" class="btn-success-adv character-card-list-add-button" aria-label="创建新角色卡">
+            <Icon icon="ph:plus-circle-duotone" class="character-card-list-add-icon" />
+          </button>
+        </el-tooltip>
+        <el-tooltip content="保存当前角色卡" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+          <button @click="emit('save-current')" class="btn-primary-adv character-card-list-add-button" aria-label="保存当前角色卡" :disabled="!hasCurrentCard">
+            <Icon icon="ph:floppy-disk-duotone" class="character-card-list-add-icon" />
+          </button>
+        </el-tooltip>
+      </div>
     </div>
     <el-scrollbar class="character-card-list-scrollbar">
       <div class="character-card-list-content">
@@ -98,6 +105,7 @@ const props = defineProps<Props>();
 
 const emit = defineEmits<{
   (e: 'select-card', cardId: string): void;
+  (e: 'create-new'): void;
   (e: 'save-current'): void;
   (e: 'rename-card', cardId: string): void;
   (e: 'delete-card', cardId: string): void;
@@ -161,6 +169,12 @@ const formatTime = (timeStr: string) => {
   font-size: 16px;
   font-weight: 600;
   color: var(--el-text-color-primary);
+}
+
+.character-card-list-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .character-card-list-add-button {

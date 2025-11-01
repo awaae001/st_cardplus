@@ -138,7 +138,7 @@
 <script setup lang="ts">
 import { QuestionFilled, VideoPlay, Delete } from '@element-plus/icons-vue'
 import { ref, computed } from 'vue'
-import { useEjsEditorStore } from '@/stores/ejsEditor'
+import { useEjsEditorStore } from '@/composables/ejs/ejsEditor'
 import { useDevice } from '@/composables/useDevice'
 import type { Stage, Condition, ConditionGroup } from '@/types/ejs-editor'
 

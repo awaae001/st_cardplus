@@ -244,7 +244,7 @@
 import { ref, computed, watch } from 'vue';
 import { ElScrollbar, ElForm, ElInput, ElCheckbox, ElSelect, ElOption, ElSwitch, ElSlider, ElInputNumber, ElEmpty, ElCollapseTransition, ElButton } from 'element-plus';
 import { Icon } from '@iconify/vue';
-import type { WorldBookEntry } from './types';
+import type { WorldBookEntry } from '../../types/types';
 
 const props = defineProps<{
   entry: WorldBookEntry | null;

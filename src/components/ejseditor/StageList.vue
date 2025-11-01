@@ -68,7 +68,7 @@ import { ref, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Plus, Delete, Menu, InfoFilled } from '@element-plus/icons-vue';
 import draggable from 'vuedraggable';
-import { useEjsEditorStore } from '@/stores/ejsEditor';
+import { useEjsEditorStore } from '@/composables/ejs/ejsEditor';
 import { useDevice } from '@/composables/useDevice';
 import type { LogicBlock, Stage, Condition } from '@/types/ejs-editor';
 import StageEditor from './StageEditor.vue';

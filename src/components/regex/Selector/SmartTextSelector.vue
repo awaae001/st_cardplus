@@ -159,7 +159,7 @@ const escapeHtml = (text: string): string => {
 const renderedText = computed(() => {
   // 使用更简单的方法：基于原始文本构建带标记的版本
   const originalText = props.inputText
-  const sortedSelections = [...selections.value].sort((a, b) => a.startIndex - b.startIndex)
+  const sortedSelections = [...selections.value].sort((a: TextSelection, b: TextSelection) => a.startIndex - b.startIndex)
 
   let result = ''
   let lastIndex = 0
@@ -234,12 +234,12 @@ const handleTextSelection = async () => {
     endIndex = firstOccurrence + selectedText.length
   } else {
     // 多个匹配，自动选择第一个不重叠的位置
-    const existingSelections = selections.value.sort((a, b) => a.startIndex - b.startIndex)
+    const existingSelections = selections.value.sort((a: TextSelection, b: TextSelection) => a.startIndex - b.startIndex)
     let bestMatch = firstOccurrence
 
     // 选择第一个不重叠的位置
     for (const occurrence of allOccurrences) {
-      const wouldOverlap = existingSelections.some(sel =>
+      const wouldOverlap = existingSelections.some((sel: TextSelection) =>
         (occurrence >= sel.startIndex && occurrence < sel.endIndex) ||
         (occurrence + selectedText.length > sel.startIndex && occurrence + selectedText.length <= sel.endIndex) ||
         (occurrence <= sel.startIndex && occurrence + selectedText.length >= sel.endIndex)

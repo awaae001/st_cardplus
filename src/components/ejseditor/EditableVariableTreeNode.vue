@@ -34,7 +34,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useEjsEditorStore } from '@/stores/ejsEditor'
+import { useEjsEditorStore } from '@/composables/ejs/ejsEditor'
 import type { VariableNode } from '@/types/ejs-editor'
 import { Plus, Delete, ArrowDown, ArrowRight } from '@element-plus/icons-vue'
 

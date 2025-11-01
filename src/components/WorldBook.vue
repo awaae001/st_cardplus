@@ -25,6 +25,7 @@
           <WorldBookList :collection="worldBookCollection" :active-book-id="activeBookId"
             @select-book="handleSelectBook" @create-book="handleCreateBook" @rename-book="handleRenameBook"
             @delete-book="handleDeleteBook" @select-entry="handleSelectEntry" @add-entry="addNewEntry"
+            @duplicate-entry="handleDuplicateEntry" @delete-entry="handleDeleteEntryFromList"
             :selected-entry="selectedEntry" @copy-book="copyWorldBookToClipboard"
             @import-book="showImportWorldBookDialog" @export-json="exportToJson" @import-json="handleLoadFromJsonFile"
             @import-book-file="handleImportBookFile" @clear-all="clearAllEntries"
@@ -69,6 +70,7 @@
           <WorldBookList :collection="worldBookCollection" :active-book-id="activeBookId"
             @select-book="handleSelectBook" @create-book="handleCreateBook" @rename-book="handleRenameBook"
             @delete-book="handleDeleteBook" @select-entry="handleSelectEntry" @add-entry="addNewEntry"
+            @duplicate-entry="handleDuplicateEntry" @delete-entry="handleDeleteEntryFromList"
             :selected-entry="selectedEntry" @copy-book="copyWorldBookToClipboard"
             @import-book="showImportWorldBookDialog" @export-json="exportToJson" @import-json="handleLoadFromJsonFile"
             @import-book-file="handleImportBookFile" @clear-all="clearAllEntries"
@@ -113,7 +115,7 @@ import WorldBookList from "./worldbook/WorldBookList.vue";
 import { useWorldBookCollection } from "../composables/worldbook/useWorldBookCollection";
 import { useWorldBookEntry } from "../composables/worldbook/useWorldBookEntry";
 import { useWorldBookDragDrop } from "../composables/worldbook/useWorldBookDragDrop";
-import type { WorldBookEntry } from "./worldbook/types";
+import type { WorldBookEntry } from "../types/types";
 
 import { computed, nextTick, ref, onMounted, onUnmounted } from 'vue';
 
@@ -168,6 +170,7 @@ const {
   forceUpdateEntries,
   saveCurrentEntry,
   deleteSelectedEntry,
+  duplicateEntry,
   copySelectedEntry,
   showImportEntryDialog,
   exportToJson,
@@ -317,6 +320,36 @@ const addNewEntry = (bookId?: string) => {
     });
   } else {
     addEntry();
+  }
+};
+
+const handleDuplicateEntry = (bookId: string, entryIndex: number) => {
+  if (activeBookId.value !== bookId) {
+    selectBook(bookId);
+    nextTick(() => {
+      duplicateEntry(entryIndex);
+    });
+  } else {
+    duplicateEntry(entryIndex);
+  }
+};
+
+const handleDeleteEntryFromList = (bookId: string, entryIndex: number) => {
+  if (activeBookId.value !== bookId) {
+    selectBook(bookId);
+    nextTick(() => {
+      if (activeBook.value && activeBook.value.entries[entryIndex]) {
+        selectEntry(String(entryIndex));
+        nextTick(() => {
+          deleteSelectedEntry();
+        });
+      }
+    });
+  } else {
+    selectEntry(String(entryIndex));
+    nextTick(() => {
+      deleteSelectedEntry();
+    });
   }
 };
 </script>

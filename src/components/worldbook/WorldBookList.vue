@@ -55,6 +55,18 @@
                 </button>
               </el-tooltip>
             </div>
+            <div class="node-actions" v-if="data.isEntry">
+              <el-tooltip content="复制条目" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+                <button @click.stop="emit('duplicate-entry', data.bookId, data.entryIndex)" class="worldbook-item-action-button">
+                  <Icon icon="ph:copy-duotone" />
+                </button>
+              </el-tooltip>
+              <el-tooltip content="删除条目" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+                <button @click.stop="emit('delete-entry', data.bookId, data.entryIndex)" class="worldbook-item-action-button is-danger">
+                  <Icon icon="ph:trash-duotone" />
+                </button>
+              </el-tooltip>
+            </div>
           </div>
         </template>
       </el-tree>
@@ -79,7 +91,7 @@ import { computed, ref, nextTick } from 'vue';
 import { ElScrollbar, ElTooltip, ElTree, ElTag } from 'element-plus';
 import { Icon } from '@iconify/vue';
 import WorldBookActions from './WorldBookActions.vue';
-import type { WorldBookCollection, WorldBookEntry } from './types';
+import type { WorldBookCollection, WorldBookEntry } from '../../types/types';
 
 interface Props {
   collection: WorldBookCollection;
@@ -134,6 +146,8 @@ const emit = defineEmits<{
   (e: 'rename-book', id: string): void;
   (e: 'delete-book', id: string): void;
   (e: 'add-entry', bookId: string): void;
+  (e: 'duplicate-entry', bookId: string, entryIndex: number): void;
+  (e: 'delete-entry', bookId: string, entryIndex: number): void;
   (e: 'copy-book'): void;
   (e: 'import-book'): void;
   (e: 'export-json'): void;

@@ -219,7 +219,7 @@ import { useRegexDragDrop } from '@/composables/regex/useRegexDragDrop';
 // 组件导入
 import RegexScriptList from '@/components/regex/RegexScriptList.vue';
 import RegexEditorCore from '@/components/regex/RegexEditorCore.vue';
-import SmartRegexGenerator from '@/components/regex/SmartRegexGenerator.vue';
+import SmartRegexGenerator from '@/components/regex/Selector/SmartRegexGenerator.vue';
 import RegexSimulatorPanel from '@/components/regex/RegexSimulatorPanel.vue';
 import RegexAdvancedSettings from '@/components/regex/RegexAdvancedSettings.vue';
 

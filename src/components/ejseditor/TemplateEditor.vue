@@ -21,7 +21,7 @@ import { EditorState } from '@codemirror/state'
 import { javascript } from '@codemirror/lang-javascript'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { keymap } from '@codemirror/view'
-import { useEjsEditorStore } from '@/stores/ejsEditor'
+import { useEjsEditorStore } from '@/composables/ejs/ejsEditor'
 import { ElAlert, ElButton } from 'element-plus'
 
 const store = useEjsEditorStore()

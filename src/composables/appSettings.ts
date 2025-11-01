@@ -12,6 +12,7 @@ interface SwitchSetting extends BaseSetting {
   type: 'switch';
   model: Ref<boolean>;
   handler: (value: boolean) => void;
+  disabled?: boolean;
 }
 
 interface NumberInputSetting extends BaseSetting {
@@ -35,11 +36,9 @@ interface AppSettingsModels {
   umamiEnabled: Ref<boolean>;
   autoSaveInterval: Ref<number>;
 }
-
 interface AppSettingsHandlers {
   onUseOldCharCardEditorToggle: (value: boolean) => void;
   onBetaFeaturesToggle: (value: boolean) => void;
-  onUseOldSidebarToggle: (value: boolean) => void;
   onUseOldWorldEditorToggle: (value: boolean) => void;
   onUmamiToggle: (value: boolean) => void;
   onAutoSaveIntervalChange: (value: number | undefined) => void;
@@ -56,16 +55,6 @@ export const getAppSettings = (models: AppSettingsModels, handlers: AppSettingsH
       type: 'switch',
       model: models.betaFeaturesEnabled,
       handler: handlers.onBetaFeaturesToggle,
-    },
-    {
-      id: 'useOldSidebar',
-      label: '使用旧版本侧边栏特性（已弃用）',
-      icon: 'material-symbols:warning-outline',
-      iconColor: 'var(--el-color-danger)',
-      description: '⚠️ 此功能已被新版侧边栏管理系统替代！新版本支持自定义侧边栏顺序、显示/隐藏项目等高级功能。请前往"个性化"页面体验全新的侧边栏管理功能。旧版侧边栏将在未来版本中移除。',
-      type: 'switch',
-      model: models.useOldSidebar,
-      handler: handlers.onUseOldSidebarToggle,
     },
     {
       id: 'useOldCharCardEditor',
@@ -111,5 +100,16 @@ export const getAppSettings = (models: AppSettingsModels, handlers: AppSettingsH
       step: 1,
       unit: '秒',
     },
+    {
+      id: 'useOldSidebar',
+      label: '使用旧版本侧边栏特性（已移除）',
+      icon: 'material-symbols:block',
+      iconColor: 'var(--el-color-danger)',
+      description: '🚫 此功能已被完全移除。旧版侧边栏已被新版侧边栏管理系统替代。新版本支持自定义侧边栏顺序、显示/隐藏项目等高级功能。请前往"个性化"页面体验全新的侧边栏管理功能。',
+      type: 'switch',
+      model: models.useOldSidebar,
+      handler: () => { }, // 空处理器，功能已被移除
+      disabled: true,
+    }
   ];
 };

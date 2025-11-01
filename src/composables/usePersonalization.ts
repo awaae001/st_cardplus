@@ -3,7 +3,6 @@ import { ElMessageBox } from 'element-plus';
 import {
   getAutoExpandSidebar, setAutoExpandSidebar,
   getAllowBodyScroll, setAllowBodyScroll,
-  getUseOldSidebar, setUseOldSidebar,
   getUseOldCharCardEditor, setUseOldCharCardEditor,
   getUseOldWorldEditor, setUseOldWorldEditor,
   getSidebarConfig, setSidebarConfig,
@@ -49,7 +48,6 @@ export function usePersonalization() {
   };
 
   const onAllowBodyScrollToggle = createReloadConfirm(setAllowBodyScroll);
-  const onUseOldSidebarToggle = createReloadConfirm(setUseOldSidebar);
   const onUseOldCharCardEditorToggle = createReloadConfirm(setUseOldCharCardEditor);
   const onUseOldWorldEditorToggle = createReloadConfirm(setUseOldWorldEditor);
 
@@ -66,7 +64,6 @@ export function usePersonalization() {
   onMounted(() => {
     autoExpandSidebar.value = getAutoExpandSidebar();
     allowBodyScroll.value = getAllowBodyScroll();
-    useOldSidebar.value = getUseOldSidebar();
     useOldCharCardEditor.value = getUseOldCharCardEditor();
     useOldWorldEditor.value = getUseOldWorldEditor();
     refreshSidebarConfig();
@@ -79,7 +76,6 @@ export function usePersonalization() {
     allowBodyScroll,
     onAllowBodyScrollToggle,
     useOldSidebar,
-    onUseOldSidebarToggle,
     useOldCharCardEditor,
     onUseOldCharCardEditorToggle,
     useOldWorldEditor,

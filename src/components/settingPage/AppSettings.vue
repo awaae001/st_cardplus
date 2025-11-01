@@ -17,7 +17,7 @@
               :style="{ marginLeft: '8px', color: setting.iconColor }" />
           </div>
           <template v-if="setting.type === 'switch'">
-            <el-switch v-model="setting.model.value" @change="setting.handler" size="large" />
+            <el-switch v-model="setting.model.value" @change="setting.handler" size="large" :disabled="setting.disabled" />
           </template>
           <template v-else-if="setting.type === 'numberInput'">
             <div class="interval-control">
@@ -41,7 +41,6 @@ import {
   getBetaFeaturesEnabled, setBetaFeaturesEnabled,
   getUmamiEnabled, setUmamiEnabled,
   getAutoSaveInterval, setAutoSaveInterval,
-  getUseOldSidebar, setUseOldSidebar,
   getUseOldCharCardEditor, setUseOldCharCardEditor,
   getUseOldWorldEditor, setUseOldWorldEditor
 } from '@/utils/localStorageUtils';
@@ -142,21 +141,6 @@ const onAutoSaveIntervalChange = (value: number | undefined) => {
   window.dispatchEvent(new CustomEvent('autoSaveIntervalChange', { detail: value }));
 };
 
-const onUseOldSidebarToggle = (value: boolean) => {
-  setUseOldSidebar(value);
-  ElMessageBox.confirm(
-    '此设置将在您下次刷新页面 (Ctrl+R) 后生效 ',
-    '提示',
-    {
-      confirmButtonText: '立即刷新',
-      cancelButtonText: '稍后',
-      type: 'info',
-    }
-  ).then(() => {
-    window.location.reload();
-  });
-};
-
 const onUseOldCharCardEditorToggle = (value: boolean) => {
   setUseOldCharCardEditor(value);
   ElMessageBox.confirm(
@@ -199,7 +183,6 @@ const settings = computed(() => getAppSettings(
   {
     onUseOldCharCardEditorToggle,
     onBetaFeaturesToggle,
-    onUseOldSidebarToggle,
     onUseOldWorldEditorToggle,
     onUmamiToggle,
     onAutoSaveIntervalChange
@@ -224,7 +207,6 @@ onMounted(() => {
   betaFeaturesEnabled.value = getBetaFeaturesEnabled();
   umamiEnabled.value = getUmamiEnabled();
   autoSaveInterval.value = getAutoSaveInterval();
-  useOldSidebar.value = getUseOldSidebar();
   useOldCharCardEditor.value = getUseOldCharCardEditor();
   useOldWorldEditor.value = getUseOldWorldEditor();
   toggleUmamiScript(umamiEnabled.value);

@@ -1,5 +1,5 @@
 import { db, type StoredWorldBook, type StoredWorldBookEntry } from './db';
-import type { WorldBookCollection, WorldBook, WorldBookEntry } from '../components/worldbook/types';
+import type { WorldBookCollection, WorldBook, WorldBookEntry } from '../types/types';
 import type { CharacterBook } from '../types/character-book';
 import { convertCharacterBookToWorldBook } from '../utils/worldBookConverter';
 import { estimateEncodedSize } from './utils';
