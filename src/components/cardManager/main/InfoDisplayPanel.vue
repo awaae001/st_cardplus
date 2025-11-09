@@ -112,12 +112,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { ElDescriptions, ElDescriptionsItem, ElTag, ElScrollbar, ElEmpty, ElButton, ElMessageBox, ElMessage } from 'element-plus';
 import { Icon } from '@iconify/vue';
 import type { CharacterCardV3 } from '@/types/character-card-v3';
 import type { CharacterBook } from '@/types/character-book';
-import WorldBookSelectorDialog from './WorldBookSelectorDialog.vue';
+import WorldBookSelectorDialog from '../WorldBookSelectorDialog.vue';
 import { worldBookService } from '@/database/worldBookService';
 import { convertWorldBookToCharacterBook } from '@/utils/worldBookConverter';
 import { useRegexCollection } from '@/composables/regex/useRegexCollection';
@@ -136,71 +136,47 @@ const showSelectorDialog = ref(false);
 // 正则脚本导入功能
 const { handleImportFromCharacterCard } = useRegexCollection();
 
-// 检查是否已绑定世界书
-const hasWorldBook = computed(() => {
-  const book = props.character.data.character_book;
-  return !Array.isArray(book) && book && book.name;
-});
+// 基于 ID 的绑定：extensions.world_book_id
+const linkedBookId = computed<string | null>(() => props.character.data?.extensions?.world_book_id || null);
+const linkedBook = ref<any | null>(null);
+
+const loadLinkedBook = async () => {
+  if (!linkedBookId.value) {
+    linkedBook.value = null;
+    return;
+  }
+  try {
+    const collection = await worldBookService.getFullWorldBookCollection();
+    linkedBook.value = collection.books[linkedBookId.value] || null;
+  } catch (e) {
+    console.error('加载绑定世界书失败:', e);
+    linkedBook.value = null;
+  }
+};
+
+watch(linkedBookId, () => { loadLinkedBook(); }, { immediate: true });
+
+// 是否已绑定（通过ID）
+const hasWorldBook = computed(() => !!linkedBookId.value);
 
 // 世界书名称
-const worldBookName = computed(() => {
-  const book = props.character.data.character_book;
-  if (!Array.isArray(book) && book?.name) {
-    return book.name;
-  }
-  return '未命名';
-});
+const worldBookName = computed(() => linkedBook.value?.name || '未命名');
 
 // 世界书条目数量
-const worldBookEntriesCount = computed(() => {
-  const book = props.character.data.character_book;
-  if (!Array.isArray(book) && book?.entries) {
-    return book.entries.length;
-  }
-  return 0;
-});
+const worldBookEntriesCount = computed(() => Array.isArray(linkedBook.value?.entries) ? linkedBook.value.entries.length : 0);
 
 // 常驻条目数量
-const constantEntriesCount = computed(() => {
-  const book = props.character.data.character_book;
-  if (!Array.isArray(book) && book?.entries) {
-    return book.entries.filter((entry: any) => entry.constant).length;
-  }
-  return 0;
-});
+const constantEntriesCount = computed(() => Array.isArray(linkedBook.value?.entries) ? linkedBook.value.entries.filter((e: any) => e.constant).length : 0);
 
-// 绑定世界书
+// 绑定世界书（通过ID，不复制数据，移除双向绑定）
 const handleBindWorldBook = async (bookId: string) => {
   try {
-    // 从数据库加载世界书
-    const collection = await worldBookService.getFullWorldBookCollection();
-    const worldBook = collection.books[bookId];
-
-    if (!worldBook) {
-      ElMessage.error('未找到选中的世界书');
-      return;
-    }
-
-    // 转换格式
-    const characterBook = convertWorldBookToCharacterBook(worldBook);
-
-    console.log('绑定世界书 - 转换后的数据:', characterBook);
-    console.log('绑定世界书 - 条目数量:', characterBook.entries?.length);
-
-    // 使用 Object.assign 或直接替换整个对象来确保响应式更新
-    // 方法1: 直接赋值（触发响应式）
-    props.character.data.character_book = { ...characterBook };
-
-    // 确保 Vue 检测到变化 - 强制触发响应式更新
-    Object.assign(props.character.data, {
-      character_book: { ...characterBook }
-    });
-
-    console.log('绑定世界书 - 更新后的 character_book:', props.character.data.character_book);
-
-    ElMessage.success(`已成功绑定世界书 "${worldBook.name}"，包含 ${characterBook.entries?.length || 0} 个条目！`);
-
-    // 触发事件，通知父组件世界书已更改
+    props.character.data.extensions = props.character.data.extensions || {};
+    (props.character.data.extensions as any).world_book_id = bookId;
+    // 可选：清空内联，避免混淆
+    Object.assign(props.character.data, { character_book: [] });
+    await loadLinkedBook();
+    ElMessage.success('已绑定世界书');
     emit('worldbook-changed');
   } catch (error) {
     console.error('绑定世界书失败:', error);
@@ -313,7 +289,7 @@ const handleSendToWorldBook = async () => {
   }
 };
 
-// 解绑世界书
+// 解绑世界书（移除ID及可能的来源标记，不再使用内联）
 const handleUnbindWorldBook = async () => {
   try {
     await ElMessageBox.confirm(
@@ -344,15 +320,11 @@ const handleUnbindWorldBook = async () => {
       }
     }
 
-    // 清空世界书数据 - 使用 Object.assign 确保响应式更新
-    Object.assign(props.character.data, {
-      character_book: []
-    });
-
-    // 移除可能存在的 extensions.world 引用
-    if (props.character.data.extensions?.world) {
-      delete props.character.data.extensions.world;
-    }
+    // 清空内联与ID绑定
+    const ext = props.character.data.extensions || {};
+    delete (ext as any).world_book_id;
+    delete (ext as any).world;
+    Object.assign(props.character.data, { character_book: [] , extensions: ext});
 
     console.log('解绑世界书 - 解绑后:', props.character.data.character_book);
 

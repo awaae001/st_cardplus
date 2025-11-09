@@ -66,11 +66,11 @@
 <script setup lang="ts">
 import { ElCollapseTransition } from 'element-plus';
 import { Icon } from '@iconify/vue';
-import BasicInfoPanel from '@/components/cardManager/BasicInfoPanel.vue';
-import ImagePanel from '@/components/cardManager/ImagePanel.vue';
-import GreetingsPanel from '@/components/cardManager/GreetingsPanel.vue';
-import InfoDisplayPanel from '@/components/cardManager/InfoDisplayPanel.vue';
-import AdvancedInfoPanel from '@/components/cardManager/AdvancedInfoPanel.vue';
+import BasicInfoPanel from '@/components/cardManager/main/BasicInfoPanel.vue';
+import ImagePanel from '@/components/cardManager/main/ImagePanel.vue';
+import GreetingsPanel from '@/components/cardManager/main/GreetingsPanel.vue';
+import InfoDisplayPanel from '@/components/cardManager/main/InfoDisplayPanel.vue';
+import AdvancedInfoPanel from '@/components/cardManager/main/AdvancedInfoPanel.vue';
 import type { CharacterCardV3 } from '@/types/character-card-v3';
 
 const props = defineProps<{

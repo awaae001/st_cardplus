@@ -98,7 +98,7 @@ export function useCharacterCardCollection() {
     }
   };
 
-  const handleUpdateCard = async (cardId: string, cardData: CharacterCardV3, silent = false) => {
+  const handleUpdateCard = async (cardId: string, cardData: CharacterCardV3, silent = false, skipLocalUpdate = false) => {
     const existingCard = characterCardCollection.value.cards[cardId];
     if (!existingCard) {
       ElMessage.error('角色卡不存在');
@@ -122,14 +122,17 @@ export function useCharacterCardCollection() {
 
       await characterCardService.updateCard(storedCard);
 
-      // 更新本地状态
-      characterCardCollection.value.cards[cardId] = {
-        ...cardData,
-        id: cardId,
-        createdAt: existingCard.createdAt,
-        updatedAt: now,
-        order: existingCard.order,
-      };
+      // 只在非自动保存时更新本地状态
+      // 自动保存时跳过本地更新，避免触发响应式系统
+      if (!skipLocalUpdate) {
+        characterCardCollection.value.cards[cardId] = {
+          ...cardData,
+          id: cardId,
+          createdAt: existingCard.createdAt,
+          updatedAt: now,
+          order: existingCard.order,
+        };
+      }
 
       if (!silent) {
         ElMessage.success('角色卡已更新！');
@@ -439,7 +442,8 @@ export function useCharacterCardCollection() {
     saveStatus.value = 'saving';
 
     try {
-      await handleUpdateCard(currentCardId, characterData, true);
+      // 自动保存时跳过本地更新，避免触发 activeCard watch
+      await handleUpdateCard(currentCardId, characterData, true, true);
 
       // 更新最后保存的数据状态
       lastSavedData.value = currentData;

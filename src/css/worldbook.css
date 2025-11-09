@@ -375,8 +375,9 @@
 
 /* 编辑器滚动区域 */
 .worldbook-editor-scrollbar {
-  height: calc(112vh - 200px);
-  min-height: 400px;
+  /* 让编辑器滚动区域在父级flex列中占满剩余空间，避免把底部工具栏“顶”出去 */
+  flex: 1;
+  min-height: 0;
 }
 
 .worldbook-editor-empty-state {
