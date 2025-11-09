@@ -26,12 +26,11 @@
           </template>
           <div class="content-panel-header">
             <h2 class="content-panel-title">
-              <Icon icon="ph:note-pencil-duotone" class="content-panel-icon" />
-              <span class="content-panel-text">角色卡编辑</span>
+              <Icon :icon="headerIcon" class="content-panel-icon" />
+              <span class="content-panel-text">{{ headerTitle }}</span>
             </h2>
-            <div class="header-actions">
-              <el-button type="primary" @click="triggerFileInput" size="small" :loading="isUploading"
-                :disabled="isUploading">
+            <div class="header-actions" v-if="rightEditorTab === 'card'">
+              <el-button type="primary" @click="triggerFileInput" size="small" :loading="isUploading" :disabled="isUploading">
                 <Icon icon="ph:upload-duotone" v-if="!isUploading" />
                 {{ isUploading ? uploadProgress : '加载PNG' }}
               </el-button>
@@ -41,13 +40,63 @@
               </el-button>
             </div>
           </div>
-          <el-scrollbar class="card-editor-content">
-            <WelcomeScreen v-if="!activeCard" :is-uploading="isUploading" :upload-progress="uploadProgress"
-              @create-new="handleCreateNewCard" @import-card="triggerFileInput" />
-            <CardEditor v-else :character="characterData" :image-preview-url="imagePreviewUrl"
-              :all-tags="allTags" v-model:advanced-options-visible="advancedOptionsVisible"
-              @image-change="handleImageUpdate" @worldbook-changed="handleWorldBookChanged" />
-          </el-scrollbar>
+          <el-tabs
+            v-model="rightEditorTab"
+            tab-position="right"
+            class="bookmark-tabs"
+            stretch
+          >
+            <el-tab-pane name="card">
+              <template #label>
+                <span class="bookmark-tab-label">
+                  <Icon icon="ph:note-pencil-duotone" class="bookmark-tab-icon" />
+                  <span class="bookmark-tab-text">角色卡</span>
+                </span>
+              </template>
+              <el-scrollbar class="card-editor-content">
+                <WelcomeScreen
+                  v-if="!activeCard"
+                  :is-uploading="isUploading"
+                  :upload-progress="uploadProgress"
+                  @create-new="handleCreateNewCard"
+                  @import-card="triggerFileInput"
+                />
+                <CardEditor
+                  v-else
+                  :character="characterData"
+                  :image-preview-url="imagePreviewUrl"
+                  :all-tags="allTags"
+                  v-model:advanced-options-visible="advancedOptionsVisible"
+                  @image-change="handleImageUpdate"
+                  @worldbook-changed="handleWorldBookChanged"
+                />
+              </el-scrollbar>
+            </el-tab-pane>
+
+            <el-tab-pane name="worldbook">
+              <template #label>
+                <span class="bookmark-tab-label">
+                  <Icon icon="ph:books-duotone" class="bookmark-tab-icon" />
+                  <span class="bookmark-tab-text">世界书</span>
+                </span>
+              </template>
+              <div class="tab-full-content">
+                <CardWorldBookPanel :character="characterData" @worldbookChanged="handleWorldBookChanged" />
+              </div>
+            </el-tab-pane>
+
+            <el-tab-pane name="regex">
+              <template #label>
+                <span class="bookmark-tab-label">
+                  <Icon icon="ph:brackets-curly-duotone" class="bookmark-tab-icon" />
+                  <span class="bookmark-tab-text">正则</span>
+                </span>
+              </template>
+              <div class="tab-full-content">
+                <CardRegexPanel :character="characterData" @regexChanged="handleRegexChanged" />
+              </div>
+            </el-tab-pane>
+          </el-tabs>
         </el-tab-pane>
       </el-tabs>
     </div>
@@ -66,20 +115,26 @@
           <div class="card-manager-desktop-panel-right">
             <div class="content-panel-header">
               <h2 class="content-panel-title">
-                <Icon icon="ph:note-pencil-duotone" class="content-panel-icon" />
-                角色卡编辑器
-                <span v-if="activeCard" class="content-panel-text-highlight">
+                <Icon :icon="headerIcon" class="content-panel-icon" />
+                {{ headerTitle }}
+                <span v-if="rightEditorTab === 'card' && activeCard" class="content-panel-text-highlight">
                   - {{ activeCard.name || '未命名角色' }}
                 </span>
               </h2>
-              <div class="header-actions">
-                <CharacterCardActions context="editor" :has-active-card="!!activeCard"
-                  :save-status="saveStatus" :auto-save-mode="autoSaveMode" @toggle-mode="toggleAutoSaveMode"
-                  @save-card="handleSaveCurrentAsNew" @save-as-new="handleSaveAsNewCard"
-                  @update-card="handleUpdateActiveCard" @export-current="handleExportCurrentCard" />
+              <div class="header-actions" v-if="rightEditorTab === 'card'">
+                <CharacterCardActions
+                  context="editor"
+                  :has-active-card="!!activeCard"
+                  :save-status="saveStatus"
+                  :auto-save-mode="autoSaveMode"
+                  @toggle-mode="toggleAutoSaveMode"
+                  @save-card="handleSaveCurrentAsNew"
+                  @save-as-new="handleSaveAsNewCard"
+                  @update-card="handleUpdateActiveCard"
+                  @export-current="handleExportCurrentCard"
+                />
                 <el-divider direction="vertical" />
-                <el-button type="primary" @click="triggerFileInput" size="small" :loading="isUploading"
-                  :disabled="isUploading">
+                <el-button type="primary" @click="triggerFileInput" size="small" :loading="isUploading" :disabled="isUploading">
                   <Icon icon="ph:upload-duotone" v-if="!isUploading" />
                   {{ isUploading ? uploadProgress : '加载PNG' }}
                 </el-button>
@@ -89,13 +144,63 @@
                 </el-button>
               </div>
             </div>
-            <el-scrollbar class="card-editor-content">
-              <WelcomeScreen v-if="!activeCard" :is-uploading="isUploading" :upload-progress="uploadProgress"
-                @create-new="handleCreateNewCard" @import-card="triggerFileInput" />
-              <CardEditor v-else :character="characterData" :image-preview-url="imagePreviewUrl"
-                :all-tags="allTags" v-model:advanced-options-visible="advancedOptionsVisible"
-                @image-change="handleImageUpdate" @worldbook-changed="handleWorldBookChanged" />
-            </el-scrollbar>
+            <el-tabs
+              v-model="rightEditorTab"
+              tab-position="right"
+              class="bookmark-tabs"
+              stretch
+            >
+              <el-tab-pane name="card">
+                <template #label>
+                  <span class="bookmark-tab-label">
+                    <Icon icon="ph:note-pencil-duotone" class="bookmark-tab-icon" />
+                    <span class="bookmark-tab-text">角色卡</span>
+                  </span>
+                </template>
+                <el-scrollbar class="card-editor-content">
+                  <WelcomeScreen
+                    v-if="!activeCard"
+                    :is-uploading="isUploading"
+                    :upload-progress="uploadProgress"
+                    @create-new="handleCreateNewCard"
+                    @import-card="triggerFileInput"
+                  />
+                  <CardEditor
+                    v-else
+                    :character="characterData"
+                    :image-preview-url="imagePreviewUrl"
+                    :all-tags="allTags"
+                    v-model:advanced-options-visible="advancedOptionsVisible"
+                    @image-change="handleImageUpdate"
+                    @worldbook-changed="handleWorldBookChanged"
+                  />
+                </el-scrollbar>
+              </el-tab-pane>
+
+              <el-tab-pane name="worldbook" style="height: 100%; width: 100%;">
+                <template #label>
+                  <span class="bookmark-tab-label">
+                    <Icon icon="ph:books-duotone" class="bookmark-tab-icon" />
+                    <span class="bookmark-tab-text">世界书</span>
+                  </span>
+                </template>
+                <div class="tab-full-content">
+                  <CardWorldBookPanel :character="characterData" @worldbookChanged="handleWorldBookChanged" />
+                </div>
+              </el-tab-pane>
+
+              <el-tab-pane name="regex">
+                <template #label>
+                  <span class="bookmark-tab-label">
+                    <Icon icon="ph:brackets-curly-duotone" class="bookmark-tab-icon" />
+                    <span class="bookmark-tab-text">正则</span>
+                  </span>
+                </template>
+                <div class="tab-full-content">
+                  <CardRegexPanel :character="characterData" @regexChanged="handleRegexChanged" />
+                </div>
+              </el-tab-pane>
+            </el-tabs>
           </div>
         </Pane>
       </Splitpanes>
@@ -153,6 +258,8 @@ import CharacterCardActions from '@/components/cardManager/CharacterCardActions.
 import CardEditor from '@/components/cardManager/CardEditor.vue';
 import WelcomeScreen from '@/components/cardManager/WelcomeScreen.vue';
 import RegexScriptSelectorDialog from '@/components/cardManager/RegexScriptSelectorDialog.vue';
+import CardWorldBookPanel from '@/components/cardManager/CardWorldBookPanel.vue';
+import CardRegexPanel from '@/components/cardManager/CardRegexPanel.vue';
 
 import { useV3CharacterCard } from '@/composables/characterCard/useV3CharacterCard';
 import type { SillyTavernRegexScript } from '@/composables/regex/types';
@@ -188,6 +295,17 @@ const {
 
 // UI 状态
 const activeTab = ref('editor');
+const rightEditorTab = ref<'card' | 'worldbook' | 'regex'>('card');
+const headerTitle = computed(() => {
+  if (rightEditorTab.value === 'worldbook') return '世界书';
+  if (rightEditorTab.value === 'regex') return '正则编辑器';
+  return '角色卡编辑器';
+});
+const headerIcon = computed(() => {
+  if (rightEditorTab.value === 'worldbook') return 'ph:books-duotone';
+  if (rightEditorTab.value === 'regex') return 'ph:brackets-curly-duotone';
+  return 'ph:note-pencil-duotone';
+});
 const advancedOptionsVisible = ref(false);
 const hasUnsavedChanges = computed(() => {
   return characterData.value.name !== '' || characterData.value.description !== '';
@@ -210,6 +328,7 @@ const { isUploading, uploadProgress, fileInput, triggerFileInput, handleFileSele
   (card) => {
     loadCharacter(card);
     activeTab.value = 'editor';
+    rightEditorTab.value = 'card';
   },
   handleImportCard,
   handleImageUpdate
@@ -238,6 +357,20 @@ const handleRegexScriptsSelected = (selectedScripts: SillyTavernRegexScript[]) =
   
   // 执行导出
   handleSave();
+};
+
+// 角色卡内正则变更后自动保存
+const handleRegexChanged = async () => {
+  if (activeCard.value && activeCardId.value) {
+    try {
+      autoSaveCard(characterData.value);
+    } catch (error) {
+      console.error('自动保存正则更改失败:', error);
+      ElMessage.warning('正则脚本已更新，但保存到数据库失败。请手动保存角色卡。');
+    }
+  } else {
+    ElMessage.info('正则脚本已更新。请保存角色卡以将更改持久化。');
+  }
 };
 
 
@@ -319,6 +452,7 @@ const handleSelectCardWithLoad = (cardId: string) => {
   if (selectedCard) {
     loadCharacter(selectedCard);
     activeTab.value = 'editor';
+    rightEditorTab.value = 'card';
     ElMessage.success(`已切换到角色卡: ${selectedCard.name || '未命名角色'}`);
   }
 };
@@ -331,6 +465,7 @@ const handleCreateNewCard = async () => {
       characterImageFile.value = null;
       loadCharacter(newCard);
       activeTab.value = 'editor';
+      rightEditorTab.value = 'card';
     }
   }
 };
@@ -339,8 +474,7 @@ const handleCreateNewCard = async () => {
 const handleWorldBookChanged = async () => {
   if (activeCard.value && activeCardId.value) {
     try {
-      const plainCharacterData = JSON.parse(JSON.stringify(characterData.value));
-      await handleUpdateCard(activeCardId.value, plainCharacterData);
+      autoSaveCard(characterData.value);
     } catch (error) {
       console.error('自动保存世界书更改失败:', error);
       ElMessage.warning('世界书已更新，但保存到数据库失败。请手动保存角色卡。');
@@ -485,6 +619,29 @@ onUnmounted(() => {
 .card-editor-content {
   flex: 1;
   overflow: hidden;
+}
+
+/* 右侧书签式标签页样式 */
+.bookmark-tabs {
+  height: 100%;
+}
+.bookmark-tabs :deep(.el-tabs__content) {
+  height: 100%;
+}
+.bookmark-tab-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.bookmark-tab-icon {
+  font-size: 16px;
+}
+.bookmark-tab-text {
+  font-size: 13px;
+}
+.tab-full-content {
+  height: 100%;
+  /* display: flex; */
 }
 
 /* 重构提示弹窗样式 */
