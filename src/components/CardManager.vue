@@ -1,130 +1,147 @@
 <template>
   <div class="card-manager-container">
-    <!-- 移动端布局 -->
+    <!-- 移动端布局（新的标签页模式） -->
     <div class="card-manager-mobile-layout">
-      <el-tabs v-model="activeTab" type="border-card" class="card-manager-tabs-mobile">
-        <el-tab-pane name="library" class="card-manager-tab-pane">
-          <template #label>
-            <span class="card-manager-tab-label">
-              <Icon icon="ph:cards-duotone" class="card-manager-tab-icon" />
-              <span class="card-manager-tab-text">角色库</span>
-            </span>
-          </template>
-          <CharacterCardList :collection="characterCardCollection" :active-card-id="activeCardId"
-            :has-current-card="hasUnsavedChanges" @select-card="handleSelectCardWithLoad"
-            @create-new="handleCreateNewCard" @save-current="handleSaveCurrentAsNew" @rename-card="handleRenameCard"
-            @delete-card="handleDeleteCard" @export-card="handleExportCard" @export-all="handleExportAllCards"
-            @import-file="handleImportFromFile" @clear-all="handleClearAllCards" />
-        </el-tab-pane>
+      <!-- 顶部标签栏 -->
+      <CharacterCardTabs
+        :tabs="tabs"
+        :active-tab-id="activeTabId"
+        @switch-tab="handleTabSwitch"
+        @close-tab="handleTabClose"
+        @reorder-tabs="handleTabReorder"
+      />
 
-        <el-tab-pane name="editor" class="card-manager-tab-pane">
-          <template #label>
-            <span class="card-manager-tab-label">
-              <Icon icon="ph:note-pencil-duotone" class="card-manager-tab-icon" />
-              <span class="card-manager-tab-text">编辑器</span>
-            </span>
-          </template>
-          <div class="content-panel-header">
-            <h2 class="content-panel-title">
-              <Icon :icon="headerIcon" class="content-panel-icon" />
-              <span class="content-panel-text">{{ headerTitle }}</span>
-            </h2>
-            <div class="header-actions" v-if="rightEditorTab === 'card'">
-              <el-button type="primary" @click="triggerFileInput" size="small" :loading="isUploading" :disabled="isUploading">
-                <Icon icon="ph:upload-duotone" v-if="!isUploading" />
-                {{ isUploading ? uploadProgress : '加载PNG' }}
-              </el-button>
-              <el-button type="success" @click="handleSave" size="small">
-                <Icon icon="ph:export-duotone" />
-                导出PNG
-              </el-button>
+      <!-- 内容区域 -->
+      <div class="tab-content-area-mobile">
+        <!-- 主页 -->
+        <div v-if="currentTab?.type === 'home'" class="tab-content-panel-mobile">
+          <CharacterCardHome
+            :collection="characterCardCollection"
+            @open-card="handleOpenCardFromHome"
+            @create-new="handleCreateNewCard"
+            @rename-card="handleRenameCard"
+            @delete-card="handleDeleteCard"
+            @export-card="handleExportCard"
+            @export-all="handleExportAllCards"
+            @import-file="handleImportFromFile"
+            @clear-all="handleClearAllCards"
+          />
+        </div>
+
+        <!-- 角色卡编辑器 -->
+        <div v-else-if="currentTab?.type === 'character-card'" class="tab-content-panel-mobile">
+          <div class="card-manager-mobile-panel-editor">
+            <div class="content-panel-header-mobile">
+              <h2 class="content-panel-title-mobile">
+                <Icon :icon="headerIcon" class="content-panel-icon" />
+                {{ headerTitle }}
+              </h2>
+              <div class="header-actions-mobile" v-if="rightEditorTab === 'card'">
+                <el-button type="primary" @click="triggerFileInput" size="small" :loading="isUploading" :disabled="isUploading">
+                  <Icon icon="ph:upload-duotone" v-if="!isUploading" />
+                </el-button>
+                <el-button type="success" @click="handleSave" size="small">
+                  <Icon icon="ph:export-duotone" />
+                </el-button>
+              </div>
             </div>
+            <el-tabs
+              v-model="rightEditorTab"
+              tab-position="top"
+              class="bookmark-tabs-mobile"
+            >
+              <el-tab-pane name="card">
+                <template #label>
+                  <span class="bookmark-tab-label-mobile">
+                    <Icon icon="ph:note-pencil-duotone" class="bookmark-tab-icon" />
+                    <span class="bookmark-tab-text">角色卡</span>
+                  </span>
+                </template>
+                <el-scrollbar class="card-editor-content-mobile">
+                  <CardEditor
+                    v-if="currentCardInTab"
+                    :character="characterData"
+                    :image-preview-url="imagePreviewUrl"
+                    :all-tags="allTags"
+                    v-model:advanced-options-visible="advancedOptionsVisible"
+                    @image-change="handleImageUpdate"
+                    @worldbook-changed="handleWorldBookChanged"
+                  />
+                </el-scrollbar>
+              </el-tab-pane>
+
+              <el-tab-pane name="worldbook">
+                <template #label>
+                  <span class="bookmark-tab-label-mobile">
+                    <Icon icon="ph:books-duotone" class="bookmark-tab-icon" />
+                    <span class="bookmark-tab-text">世界书</span>
+                  </span>
+                </template>
+                <div class="tab-full-content-mobile">
+                  <CardWorldBookPanel :character="characterData" @worldbookChanged="handleWorldBookChanged" />
+                </div>
+              </el-tab-pane>
+
+              <el-tab-pane name="regex">
+                <template #label>
+                  <span class="bookmark-tab-label-mobile">
+                    <Icon icon="ph:brackets-curly-duotone" class="bookmark-tab-icon" />
+                    <span class="bookmark-tab-text">正则</span>
+                  </span>
+                </template>
+                <div class="tab-full-content-mobile">
+                  <CardRegexPanel :character="characterData" @regexChanged="handleRegexChanged" />
+                </div>
+              </el-tab-pane>
+            </el-tabs>
           </div>
-          <el-tabs
-            v-model="rightEditorTab"
-            tab-position="right"
-            class="bookmark-tabs"
-            stretch
-          >
-            <el-tab-pane name="card">
-              <template #label>
-                <span class="bookmark-tab-label">
-                  <Icon icon="ph:note-pencil-duotone" class="bookmark-tab-icon" />
-                  <span class="bookmark-tab-text">角色卡</span>
-                </span>
-              </template>
-              <el-scrollbar class="card-editor-content">
-                <WelcomeScreen
-                  v-if="!activeCard"
-                  :is-uploading="isUploading"
-                  :upload-progress="uploadProgress"
-                  @create-new="handleCreateNewCard"
-                  @import-card="triggerFileInput"
-                />
-                <CardEditor
-                  v-else
-                  :character="characterData"
-                  :image-preview-url="imagePreviewUrl"
-                  :all-tags="allTags"
-                  v-model:advanced-options-visible="advancedOptionsVisible"
-                  @image-change="handleImageUpdate"
-                  @worldbook-changed="handleWorldBookChanged"
-                />
-              </el-scrollbar>
-            </el-tab-pane>
-
-            <el-tab-pane name="worldbook">
-              <template #label>
-                <span class="bookmark-tab-label">
-                  <Icon icon="ph:books-duotone" class="bookmark-tab-icon" />
-                  <span class="bookmark-tab-text">世界书</span>
-                </span>
-              </template>
-              <div class="tab-full-content">
-                <CardWorldBookPanel :character="characterData" @worldbookChanged="handleWorldBookChanged" />
-              </div>
-            </el-tab-pane>
-
-            <el-tab-pane name="regex">
-              <template #label>
-                <span class="bookmark-tab-label">
-                  <Icon icon="ph:brackets-curly-duotone" class="bookmark-tab-icon" />
-                  <span class="bookmark-tab-text">正则</span>
-                </span>
-              </template>
-              <div class="tab-full-content">
-                <CardRegexPanel :character="characterData" @regexChanged="handleRegexChanged" />
-              </div>
-            </el-tab-pane>
-          </el-tabs>
-        </el-tab-pane>
-      </el-tabs>
+        </div>
+      </div>
     </div>
 
-    <!-- 桌面端布局 -->
+    <!-- 桌面端布局（新的标签页模式） -->
     <div class="card-manager-desktop-layout">
-      <Splitpanes class="default-theme" push-other-panes style="height: 100%">
-        <Pane size="15" min-size="10" max-size="35">
-          <CharacterCardList :collection="characterCardCollection" :active-card-id="activeCardId"
-            :has-current-card="hasUnsavedChanges" @select-card="handleSelectCardWithLoad"
-            @create-new="handleCreateNewCard" @save-current="handleSaveCurrentAsNew" @rename-card="handleRenameCard"
-            @delete-card="handleDeleteCard" @export-card="handleExportCard" @export-all="handleExportAllCards"
-            @import-file="handleImportFromFile" @clear-all="handleClearAllCards" />
-        </Pane>
-        <Pane size="85" min-size="65">
+      <!-- 顶部标签栏 -->
+      <CharacterCardTabs
+        :tabs="tabs"
+        :active-tab-id="activeTabId"
+        @switch-tab="handleTabSwitch"
+        @close-tab="handleTabClose"
+        @reorder-tabs="handleTabReorder"
+      />
+
+      <!-- 内容区域 -->
+      <div class="tab-content-area">
+        <!-- 主页 -->
+        <div v-if="currentTab?.type === 'home'" class="tab-content-panel">
+          <CharacterCardHome
+            :collection="characterCardCollection"
+            @open-card="handleOpenCardFromHome"
+            @create-new="handleCreateNewCard"
+            @rename-card="handleRenameCard"
+            @delete-card="handleDeleteCard"
+            @export-card="handleExportCard"
+            @export-all="handleExportAllCards"
+            @import-file="handleImportFromFile"
+            @clear-all="handleClearAllCards"
+          />
+        </div>
+
+        <!-- 角色卡编辑器 -->
+        <div v-else-if="currentTab?.type === 'character-card'" class="tab-content-panel">
           <div class="card-manager-desktop-panel-right">
             <div class="content-panel-header">
               <h2 class="content-panel-title">
                 <Icon :icon="headerIcon" class="content-panel-icon" />
                 {{ headerTitle }}
-                <span v-if="rightEditorTab === 'card' && activeCard" class="content-panel-text-highlight">
-                  - {{ activeCard.name || '未命名角色' }}
+                <span v-if="rightEditorTab === 'card' && currentCardInTab" class="content-panel-text-highlight">
+                  - {{ currentCardInTab.name || '未命名角色' }}
                 </span>
               </h2>
               <div class="header-actions" v-if="rightEditorTab === 'card'">
                 <CharacterCardActions
                   context="editor"
-                  :has-active-card="!!activeCard"
+                  :has-active-card="!!currentCardInTab"
                   :save-status="saveStatus"
                   :auto-save-mode="autoSaveMode"
                   @toggle-mode="toggleAutoSaveMode"
@@ -158,15 +175,8 @@
                   </span>
                 </template>
                 <el-scrollbar class="card-editor-content">
-                  <WelcomeScreen
-                    v-if="!activeCard"
-                    :is-uploading="isUploading"
-                    :upload-progress="uploadProgress"
-                    @create-new="handleCreateNewCard"
-                    @import-card="triggerFileInput"
-                  />
                   <CardEditor
-                    v-else
+                    v-if="currentCardInTab"
                     :character="characterData"
                     :image-preview-url="imagePreviewUrl"
                     :all-tags="allTags"
@@ -202,8 +212,8 @@
               </el-tab-pane>
             </el-tabs>
           </div>
-        </Pane>
-      </Splitpanes>
+        </div>
+      </div>
     </div>
 
     <input ref="fileInput" type="file" accept="image/png" style="display: none" @change="handleFileSelected" />
@@ -249,12 +259,12 @@
 import { ref, computed, onUnmounted, onMounted, watch } from 'vue';
 import { ElButton, ElMessage, ElTabs, ElTabPane, ElDivider, ElDialog, ElScrollbar } from 'element-plus';
 import { Icon } from '@iconify/vue';
-import { Splitpanes, Pane } from 'splitpanes';
-import 'splitpanes/dist/splitpanes.css';
 import { watchDebounced } from '@vueuse/core';
 
 import CharacterCardList from '@/components/cardManager/CharacterCardList.vue';
 import CharacterCardActions from '@/components/cardManager/CharacterCardActions.vue';
+import CharacterCardTabs from '@/components/cardManager/CharacterCardTabs.vue';
+import CharacterCardHome from '@/components/cardManager/CharacterCardHome.vue';
 import CardEditor from '@/components/cardManager/CardEditor.vue';
 import WelcomeScreen from '@/components/cardManager/WelcomeScreen.vue';
 import RegexScriptSelectorDialog from '@/components/cardManager/RegexScriptSelectorDialog.vue';
@@ -266,8 +276,23 @@ import type { SillyTavernRegexScript } from '@/composables/regex/types';
 import { useCharacterCardCollection } from '@/composables/characterCard/useCharacterCardCollection';
 import { useCardImport } from '@/composables/characterCard/useCardImport';
 import { useCardExport } from '@/composables/characterCard/useCardExport';
+import { useTabManager } from '@/composables/characterCard/useTabManager';
 
 const { characterData, loadCharacter, resetCharacter } = useV3CharacterCard();
+
+// 标签页管理
+const {
+  tabs,
+  activeTabId,
+  openCharacterCardTab,
+  closeTab,
+  switchToTab,
+  updateTabLabel,
+  closeCharacterCardTab,
+  reorderTabs,
+  getActiveTab,
+} = useTabManager();
+
 // 角色卡集合管理
 const {
   characterCardCollection,
@@ -278,8 +303,8 @@ const {
   handleSelectCard,
   handleSaveCurrentCard,
   handleUpdateCard,
-  handleRenameCard,
-  handleDeleteCard,
+  handleRenameCard: handleRenameCardOriginal,
+  handleDeleteCard: handleDeleteCardOriginal,
   handleImportCard,
   handleImportFromFile,
   handleExportCard,
@@ -309,6 +334,16 @@ const headerIcon = computed(() => {
 const advancedOptionsVisible = ref(false);
 const hasUnsavedChanges = computed(() => {
   return characterData.value.name !== '' || characterData.value.description !== '';
+});
+
+// 标签页相关计算属性
+const currentTab = computed(() => getActiveTab());
+const currentCardInTab = computed(() => {
+  const tab = currentTab.value;
+  if (tab?.type === 'character-card' && tab.cardId) {
+    return characterCardCollection.value.cards[tab.cardId];
+  }
+  return null;
 });
 
 // 图片处理
@@ -466,8 +501,72 @@ const handleCreateNewCard = async () => {
       loadCharacter(newCard);
       activeTab.value = 'editor';
       rightEditorTab.value = 'card';
+      // 在新的标签页系统中打开
+      openCharacterCardTab(cardId, newCard.name || '未命名角色');
     }
   }
+};
+
+// ===== 新增标签页事件处理函数 =====
+
+// 从主页打开角色卡
+const handleOpenCardFromHome = (cardId: string, cardName: string) => {
+  openCharacterCardTab(cardId, cardName);
+  // 加载角色卡数据到编辑器
+  const card = characterCardCollection.value.cards[cardId];
+  if (card) {
+    characterImageFile.value = null;
+    loadCharacter(card);
+    handleSelectCard(cardId);
+  }
+};
+
+// 标签页切换
+const handleTabSwitch = (tabId: string) => {
+  switchToTab(tabId);
+
+  // 如果切换到角色卡标签页，加载对应的角色卡
+  const tab = tabs.value.find((t) => t.id === tabId);
+  if (tab?.type === 'character-card' && tab.cardId) {
+    const card = characterCardCollection.value.cards[tab.cardId];
+    if (card) {
+      characterImageFile.value = null;
+      loadCharacter(card);
+      handleSelectCard(tab.cardId);
+    }
+  } else if (tab?.type === 'home') {
+    // 切换到主页时，重置编辑器
+    resetCharacter();
+    characterImageFile.value = null;
+    handleSelectCard('');
+  }
+};
+
+// 关闭标签页
+const handleTabClose = (tabId: string) => {
+  closeTab(tabId);
+};
+
+// 重新排序标签页
+const handleTabReorder = (newTabs: any[]) => {
+  reorderTabs(newTabs);
+};
+
+// 重命名角色卡（同时更新标签页标题）
+const handleRenameCard = async (cardId: string) => {
+  await handleRenameCardOriginal(cardId);
+  // 更新标签页标题
+  const card = characterCardCollection.value.cards[cardId];
+  if (card) {
+    updateTabLabel(cardId, card.name || '未命名角色');
+  }
+};
+
+// 删除角色卡（同时关闭标签页）
+const handleDeleteCard = async (cardId: string) => {
+  await handleDeleteCardOriginal(cardId);
+  // 关闭对应的标签页
+  closeCharacterCardTab(cardId);
 };
 
 // 世界书更改后自动保存
@@ -526,15 +625,17 @@ onUnmounted(() => {
   background-color: var(--el-bg-color-page);
 }
 
-/* 移动端布局 */
+/* 移动端布局（新的标签页模式） */
 .card-manager-mobile-layout {
   display: none;
 }
 
 @media (max-width: 1023px) {
   .card-manager-mobile-layout {
-    display: block;
+    display: flex;
+    flex-direction: column;
     flex: 1;
+    overflow: hidden;
   }
 
   .card-manager-desktop-layout {
@@ -542,34 +643,121 @@ onUnmounted(() => {
   }
 }
 
-.card-manager-tabs-mobile {
-  height: 100%;
-}
-
-.card-manager-tab-pane {
-  height: 100%;
-  overflow: hidden;
-}
-
-.card-manager-tab-label {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.card-manager-tab-icon {
-  font-size: 16px;
-}
-
-.card-manager-tab-text {
-  font-size: 14px;
-}
-
-/* 桌面端布局 */
-.card-manager-desktop-layout {
-  display: flex;
+.tab-content-area-mobile {
   flex: 1;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.tab-content-panel-mobile {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.card-manager-mobile-panel-editor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--el-bg-color);
+}
+
+.content-panel-header-mobile {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--el-border-color-light);
+  background-color: var(--el-bg-color-overlay);
+  flex-shrink: 0;
+}
+
+.content-panel-title-mobile {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-actions-mobile {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.bookmark-tabs-mobile {
+  flex: 1;
+  overflow: hidden;
+}
+
+.bookmark-tabs-mobile :deep(.el-tabs__content) {
+  height: calc(100% - 40px);
+  overflow: hidden;
+}
+
+.bookmark-tab-label-mobile {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.card-editor-content-mobile {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.tab-full-content-mobile {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 桌面端布局（新的标签页模式） */
+.card-manager-desktop-layout {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.tab-content-area {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.tab-content-panel {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .card-manager-desktop-panel-right {

@@ -24,7 +24,8 @@
 
     <!-- 世界书编辑器 -->
     <div v-else class="worldbook-editor-wrapper">
-      <div class="worldbook-layout">
+      <!-- 桌面端：分栏布局 -->
+      <div class="worldbook-layout worldbook-layout-desktop">
         <Splitpanes class="default-theme">
           <Pane size="15" min-size="10" max-size="30">
             <WorldBookList
@@ -86,6 +87,75 @@
           </Pane>
         </Splitpanes>
       </div>
+
+      <!-- 移动端：标签页布局 -->
+      <div class="worldbook-layout worldbook-layout-mobile">
+        <el-tabs v-model="mobileActiveTab" type="border-card" class="worldbook-mobile-tabs">
+          <el-tab-pane name="list" label="条目列表">
+            <WorldBookList
+              :collection="mockCollection"
+              :active-book-id="mockActiveBookId"
+              @select-entry="handleMobileSelectEntry"
+              @add-entry="onListAddEntry"
+              @duplicate-entry="onListDuplicateEntry"
+              @delete-entry="onListDeleteEntry"
+              :selected-entry="selectedEntry"
+              :drag-drop-handlers="dragDropHandlers"
+              :hide-book-selector="true"
+            />
+          </el-tab-pane>
+          <el-tab-pane name="editor" :label="selectedEntry ? (selectedEntry.comment || '新条目') : '编辑器'">
+            <div class="worldbook-editor-panel-mobile">
+              <div class="content-panel-header-mobile">
+                <h2 class="content-panel-title-mobile">
+                  <Icon icon="ph:note-pencil-duotone" class="content-panel-icon" />
+                  {{ selectedEntry ? selectedEntry.comment || "新条目" : "未选择条目" }}
+                </h2>
+                <div class="editor-actions-mobile">
+                  <el-tag :type="saveStatusType" size="small">{{ saveStatusText }}</el-tag>
+                  <el-dropdown @command="handleMobileActionCommand">
+                    <el-button size="small">
+                      <Icon icon="ph:dots-three-vertical-duotone" />
+                    </el-button>
+                    <template #dropdown>
+                      <el-dropdown-menu>
+                        <el-dropdown-item command="toggleAutoSave">
+                          <Icon :icon="autoSaveMode === 'auto' ? 'ph:floppy-disk-duotone' : 'ph:hand-eye-duotone'" />
+                          {{ autoSaveMode === 'auto' ? '自动保存' : '监听模式' }}
+                        </el-dropdown-item>
+                        <el-dropdown-item v-if="selectedEntry" command="save" :disabled="saveStatus === 'saved'">
+                          <Icon icon="ph:floppy-disk-duotone" />
+                          保存
+                        </el-dropdown-item>
+                        <el-dropdown-item v-if="selectedEntry" command="delete" divided>
+                          <Icon icon="ph:trash-duotone" />
+                          删除
+                        </el-dropdown-item>
+                      </el-dropdown-menu>
+                    </template>
+                  </el-dropdown>
+                </div>
+              </div>
+              <WorldBookEditor
+                v-if="selectedEntry"
+                :entry="selectedEntry"
+                v-model="editableEntry"
+                :all-keywords="allKeywords"
+                :current-entry-index="currentEntryIndex"
+                :total-entries="totalEntries"
+                @go-to-previous="goToPreviousEntry"
+                @go-to-next="goToNextEntry"
+                :is-next-entry-in-different-book="false"
+                :is-previous-entry-in-different-book="false"
+                :save-status="saveStatus"
+              />
+              <div v-else class="editor-empty-state">
+                <el-empty description="请从左侧选择一个条目进行编辑" :image-size="80" />
+              </div>
+            </div>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
     </div>
 
     <!-- 世界书选择对话框 -->
@@ -98,7 +168,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { ElButton, ElEmpty, ElTag, ElTooltip, ElButtonGroup, ElMessage, ElMessageBox } from 'element-plus';
+import { ElButton, ElEmpty, ElTag, ElTooltip, ElButtonGroup, ElMessage, ElMessageBox, ElTabs, ElTabPane, ElDropdown, ElDropdownMenu, ElDropdownItem } from 'element-plus';
 import { Icon } from '@iconify/vue';
 import { useRouter } from 'vue-router';
 import { Splitpanes, Pane } from 'splitpanes';
@@ -113,6 +183,9 @@ import WorldBookSelectorDialog from './WorldBookSelectorDialog.vue';
 import { worldBookService } from '@/database/worldBookService';
 import { useWorldBookEntry } from '@/composables/worldbook/useWorldBookEntry';
 import { useWorldBookDragDrop } from '@/composables/worldbook/useWorldBookDragDrop';
+
+// 移动端状态
+const mobileActiveTab = ref<'list' | 'editor'>('list');
 
 interface Props {
   character: CharacterCardV3;
@@ -401,6 +474,27 @@ const handleBindWorldBook = async (bookId: string) => {
 const handleOpenInEditor = () => {
   router.push('/worldbook');
 };
+
+// 移动端选择条目后自动切换到编辑器标签页
+const handleMobileSelectEntry = (bookId: string, entryIndex: number) => {
+  onListSelectEntry(bookId, entryIndex);
+  mobileActiveTab.value = 'editor';
+};
+
+// 移动端下拉菜单命令处理
+const handleMobileActionCommand = (command: string) => {
+  switch (command) {
+    case 'toggleAutoSave':
+      toggleAutoSaveMode();
+      break;
+    case 'save':
+      saveCurrentEntry();
+      break;
+    case 'delete':
+      deleteSelectedEntry();
+      break;
+  }
+};
 </script>
 
 <style scoped>
@@ -455,10 +549,53 @@ const handleOpenInEditor = () => {
   height: 100%;
 }
 
+/* 桌面端布局 */
+.worldbook-layout-desktop {
+  display: flex;
+}
+
+.worldbook-layout-mobile {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .worldbook-layout-desktop {
+    display: none;
+  }
+
+  .worldbook-layout-mobile {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+}
+
+/* 移动端标签页 */
+.worldbook-mobile-tabs {
+  height: 100%;
+}
+
+.worldbook-mobile-tabs :deep(.el-tabs__content) {
+  height: calc(100% - 48px);
+  overflow: hidden;
+}
+
+.worldbook-mobile-tabs :deep(.el-tab-pane) {
+  height: 100%;
+  overflow: hidden;
+}
+
 .worldbook-editor-panel {
   height: 100%;
   display: flex;
   flex-direction: column;
+}
+
+.worldbook-editor-panel-mobile {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--el-bg-color);
 }
 
 .content-panel-header {
@@ -501,5 +638,38 @@ const handleOpenInEditor = () => {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* 移动端头部 */
+.content-panel-header-mobile {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--el-border-color-light);
+  background: var(--el-fill-color-extra-light);
+  flex-shrink: 0;
+}
+
+.content-panel-title-mobile {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.editor-actions-mobile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 </style>
