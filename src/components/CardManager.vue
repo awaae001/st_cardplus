@@ -227,15 +227,15 @@
         </div>
         <div class="notice-content">
           <h3>功能重构中</h3>
-          <p>角色卡管理器刚刚进行了重大重构，新增了侧边栏角色库、持久化存储等功能。</p>
-          <p><strong>⚠️ 重要提醒：</strong></p>
+          <p>角色卡管理器刚刚进行了重大重构，修复了 BUG ，新增了更多 BUG</p>
+          <p><strong>⚠️ 已知问题：</strong></p>
           <ul>
-            <li>新功能可能存在各种 bug</li>
-            <li>请保持耐心，坐和放宽</li>
-            <li>遇到问题可以反馈或等待修复</li>
+            <li>自动保存变成自动回滚</li>
+            <li>世界书绑定器工作异常</li>
+            <li>角色卡管理页面出现严重错误，会导致角色卡消失</li>
             <li>建议先在测试数据上尝试功能</li>
           </ul>
-          <p class="notice-thanks">感谢您的理解与支持！</p>
+          <p class="notice-thanks">我们正在努力修复</p>
         </div>
       </div>
       <template #footer>
