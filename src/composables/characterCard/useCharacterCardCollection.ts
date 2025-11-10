@@ -2,6 +2,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { v4 as uuidv4 } from 'uuid';
 import { initAutoSave, clearAutoSave } from '@/utils/localStorageUtils';
+import { extractAndDecodeCcv3, extractAndDecodeV2Card } from '@/utils/metadataSeparator';
 import type { CharacterCardV3 } from '@/types/character-card-v3';
 import type { CharacterCardCollection, CharacterCardItem } from '@/types/character-card-collection';
 import { characterCardService, type StoredCharacterCard } from '@/database/characterCardService';
@@ -107,16 +108,24 @@ export function useCharacterCardCollection() {
 
     try {
       const now = new Date().toISOString();
+
+      // 修复：在保存前，强制同步顶层数据到 cardData.data 内部
+      const synchronizedCardData = { ...cardData };
+      if (synchronizedCardData.data) {
+        synchronizedCardData.data.name = synchronizedCardData.name;
+        synchronizedCardData.data.description = synchronizedCardData.description;
+      }
+
       const storedCard: StoredCharacterCard = {
         id: cardId,
-        name: cardData.name || cardData.data?.name || '未命名角色',
-        description: cardData.description || cardData.data?.description || '',
-        avatar: cardData.avatar !== 'none' ? cardData.avatar : undefined,
-        cardData,
+        name: synchronizedCardData.name || synchronizedCardData.data?.name || '未命名角色',
+        description: synchronizedCardData.description || synchronizedCardData.data?.description || '',
+        avatar: synchronizedCardData.avatar !== 'none' ? synchronizedCardData.avatar : undefined,
+        cardData: synchronizedCardData, // 使用同步后的数据
         createdAt: existingCard.createdAt,
         updatedAt: now,
         order: existingCard.order,
-        tags: cardData.tags || cardData.data?.tags || [],
+        tags: synchronizedCardData.tags || synchronizedCardData.data?.tags || [],
         metadata: {},
       };
 
@@ -223,33 +232,66 @@ export function useCharacterCardCollection() {
     return await handleSaveCurrentCard(cardData);
   };
 
-  const handleImportFromFile = (file: File) => {
-    const reader = new FileReader();
-
-    reader.onload = async (e: ProgressEvent<FileReader>) => {
+  async function parseCardFromFile(file: File): Promise<CharacterCardV3 | null> {
+    if (file.type === 'application/json' || file.name.endsWith('.json')) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e: ProgressEvent<FileReader>) => {
+          try {
+            const jsonData = JSON.parse(e.target?.result as string);
+            if (!jsonData || typeof jsonData !== 'object') {
+              throw new Error('无效的 JSON 角色卡文件格式');
+            }
+            resolve(jsonData as CharacterCardV3);
+          } catch (error) {
+            reject(error);
+          }
+        };
+        reader.onerror = () => reject(new Error('读取 JSON 文件时出错'));
+        reader.readAsText(file);
+      });
+    } else if (file.type === 'image/png' || file.name.endsWith('.png')) {
       try {
-        const jsonData = JSON.parse(e.target?.result as string);
-
-        if (!jsonData || typeof jsonData !== 'object') {
-          throw new Error('无效的角色卡文件格式');
+        let characterCardData: CharacterCardV3 | null = null;
+        try {
+          characterCardData = await extractAndDecodeCcv3(file);
+          if (characterCardData) {
+            console.log('检测到 ccv3 格式角色卡数据');
+            return characterCardData;
+          }
+        } catch (error) {
+          console.log('未检测到 ccv3 格式数据，尝试 v2 格式...');
         }
 
-        // 处理角色卡数据
-        const cardId = await handleImportCard(jsonData);
-        if (cardId) {
-          ElMessage.success(`角色卡 "${jsonData.name || jsonData.data?.name || '未命名'}" 已成功导入！`);
+        characterCardData = await extractAndDecodeV2Card(file);
+        if (characterCardData) {
+          console.log('检测到 TavernAI v2 格式角色卡数据');
         }
+        return characterCardData;
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        ElMessage.error(`导入失败: ${errorMessage}`);
+        console.error('解析 PNG 文件时出错:', error);
+        return null;
       }
-    };
+    }
+    return null;
+  }
 
-    reader.onerror = () => {
-      ElMessage.error('读取文件时出错');
-    };
+  const handleImportFromFile = async (file: File) => {
+    try {
+      const cardData = await parseCardFromFile(file);
 
-    reader.readAsText(file);
+      if (cardData) {
+        const cardId = await handleImportCard(cardData);
+        if (cardId) {
+          ElMessage.success(`角色卡 "${cardData.name || (cardData.data as any)?.name || '未命名'}" 已成功导入！`);
+        }
+      } else {
+        ElMessage.error('无法从文件中解析角色卡数据。请检查文件格式是否正确 (.json 或 .png) 或 PNG 是否包含角色卡数据。');
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      ElMessage.error(`导入失败: ${errorMessage}`);
+    }
   };
 
   const handleExportCard = async (cardId: string) => {

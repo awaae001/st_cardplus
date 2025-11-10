@@ -167,7 +167,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { ElButton, ElEmpty, ElTag, ElTooltip, ElButtonGroup, ElMessage, ElMessageBox, ElTabs, ElTabPane, ElDropdown, ElDropdownMenu, ElDropdownItem } from 'element-plus';
 import { Icon } from '@iconify/vue';
 import { useRouter } from 'vue-router';
@@ -183,6 +183,7 @@ import WorldBookSelectorDialog from './WorldBookSelectorDialog.vue';
 import { worldBookService } from '@/database/worldBookService';
 import { useWorldBookEntry } from '@/composables/worldbook/useWorldBookEntry';
 import { useWorldBookDragDrop } from '@/composables/worldbook/useWorldBookDragDrop';
+import { convertCharacterBookToWorldBook, convertWorldBookToCharacterBook } from '@/utils/worldBookConverter';
 
 // 移动端状态
 const mobileActiveTab = ref<'list' | 'editor'>('list');
@@ -207,22 +208,23 @@ const hasWorldBook = computed(() => {
   return !!(book && !Array.isArray(book) && book.entries && book.entries.length >= 0);
 });
 
-// 将角色卡的 character_book 转换为 WorldBook 格式
-const mockActiveBook = computed<WorldBook | null>(() => {
-  if (!hasWorldBook.value) return null;
+// 本地可编辑的 WorldBook 状态（从 character_book 转换而来）
+const mockActiveBook = ref<WorldBook | null>(null);
 
-  const book = props.character.data.character_book;
-  if (!book || Array.isArray(book)) return null;
-
-  return {
-    id: 'character-book',
-    name: book.name || `${props.character.name}的世界书`,
-    entries: book.entries || [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    order: 0,
-  };
-});
+// 同步：当角色卡内的 character_book 变化时，刷新本地 worldbook 状态
+watch(
+  () => props.character.data.character_book,
+  (charBook) => {
+    if (!charBook || Array.isArray(charBook)) {
+      mockActiveBook.value = null;
+      return;
+    }
+    // 使用转换器确保编辑器使用 WorldBookEntry 结构
+    const wb = convertCharacterBookToWorldBook(charBook, 'character-book');
+    mockActiveBook.value = wb;
+  },
+  { immediate: true, deep: true }
+);
 
 const mockActiveBookId = 'character-book';
 
@@ -257,47 +259,43 @@ const {
   autoSaveMode,
   hasUnsavedChanges,
   toggleAutoSaveMode,
-} = useWorldBookEntry(mockActiveBook, {
+} = useWorldBookEntry(mockActiveBook as any, {
   updateEntries: async (entries: WorldBookEntry[]) => {
-    // 更新角色卡的世界书条目
-    const book = props.character.data.character_book;
-    if (book && !Array.isArray(book)) {
-      book.entries = entries;
+    // 更新本地 worldbook，再转换为 character_book 写回
+    if (mockActiveBook.value) {
+      mockActiveBook.value.entries = entries;
+      const characterBook = convertWorldBookToCharacterBook(mockActiveBook.value);
+      props.character.data.character_book = characterBook;
       emit('worldbookChanged');
     }
   },
   updateEntry: async (entry: WorldBookEntry) => {
-    // 更新单个条目
-    const book = props.character.data.character_book;
-    if (book && !Array.isArray(book) && book.entries) {
-      const index = book.entries.findIndex(e => e.uid === entry.uid);
-      if (index !== -1) {
-        book.entries[index] = entry;
-        emit('worldbookChanged');
-      }
+    // 更新本地 worldbook 的单个条目，再写回 character_book
+    if (mockActiveBook.value) {
+      const idx = mockActiveBook.value.entries.findIndex(e => e.uid === entry.uid);
+      if (idx !== -1) mockActiveBook.value.entries[idx] = entry;
+      const characterBook = convertWorldBookToCharacterBook(mockActiveBook.value);
+      props.character.data.character_book = characterBook;
+      emit('worldbookChanged');
     }
   },
   addEntry: async (entry: WorldBookEntry) => {
-    // 添加新条目
-    const book = props.character.data.character_book;
-    if (book && !Array.isArray(book)) {
-      if (!book.entries) book.entries = [];
-      book.entries.push(entry);
-      emit('worldbookChanged');
-      return entry;
-    }
-    return null;
+    if (!mockActiveBook.value) return null;
+    mockActiveBook.value.entries.push(entry);
+    const characterBook = convertWorldBookToCharacterBook(mockActiveBook.value);
+    props.character.data.character_book = characterBook;
+    emit('worldbookChanged');
+    return entry;
   },
   deleteEntry: async (entryId: number) => {
-    // 删除条目
-    const book = props.character.data.character_book;
-    if (book && !Array.isArray(book) && book.entries) {
-      const index = book.entries.findIndex(e => e.uid === entryId);
-      if (index !== -1) {
-        book.entries.splice(index, 1);
-        emit('worldbookChanged');
-        return true;
-      }
+    if (!mockActiveBook.value) return false;
+    const index = mockActiveBook.value.entries.findIndex(e => e.uid === entryId);
+    if (index !== -1) {
+      mockActiveBook.value.entries.splice(index, 1);
+      const characterBook = convertWorldBookToCharacterBook(mockActiveBook.value);
+      props.character.data.character_book = characterBook;
+      emit('worldbookChanged');
+      return true;
     }
     return false;
   },
@@ -318,9 +316,10 @@ const dragDropHandlers = useWorldBookDragDrop(
   },
   // updateBookEntries
   (bookId: string, entries: WorldBookEntry[]) => {
-    const book = props.character.data.character_book;
-    if (book && !Array.isArray(book)) {
-      book.entries = entries;
+    if (mockActiveBook.value) {
+      mockActiveBook.value.entries = entries;
+      const characterBook = convertWorldBookToCharacterBook(mockActiveBook.value);
+      props.character.data.character_book = characterBook;
       emit('worldbookChanged');
     }
   },
@@ -339,8 +338,12 @@ const allKeywords = computed(() => {
   if (!mockActiveBook.value) return [];
   const keywords = new Set<string>();
   mockActiveBook.value.entries.forEach(entry => {
-    entry.key.forEach(k => keywords.add(k));
-    entry.keysecondary.forEach(k => keywords.add(k));
+    if (entry.key && Array.isArray(entry.key)) {
+      entry.key.forEach(k => keywords.add(k));
+    }
+    if (entry.keysecondary && Array.isArray(entry.keysecondary)) {
+      entry.keysecondary.forEach(k => keywords.add(k));
+    }
   });
   return Array.from(keywords);
 });
@@ -456,10 +459,9 @@ const handleBindWorldBook = async (bookId: string) => {
     const collection = await worldBookService.getFullWorldBookCollection();
     const book = collection.books[bookId];
     if (book) {
-      props.character.data.character_book = {
-        name: book.name,
-        entries: book.entries,
-      };
+      // 转换为 CharacterBook 写回角色卡
+      const characterBook = convertWorldBookToCharacterBook(book);
+      props.character.data.character_book = characterBook;
       emit('worldbookChanged');
       ElMessage.success(`已绑定世界书: ${book.name}`);
     } else {

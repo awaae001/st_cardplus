@@ -251,7 +251,7 @@ export function downloadConvertedPng(
   }
 
   // 创建 Blob
-  const blob = new Blob([result.convertedData], { type: 'image/png' })
+  const blob = new Blob([result.convertedData.slice()], { type: 'image/png' })
 
   // 生成下载文件名（添加后缀以区分）
   const fileName = originalFileName || result.fileName

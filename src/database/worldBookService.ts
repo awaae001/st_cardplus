@@ -140,6 +140,14 @@ export const worldBookService = {
   },
 
   /**
+   * 获取某本书的所有条目（带数据库 id），并移除内部使用的 bookId 字段
+   */
+  async getEntriesForBook(bookId: string): Promise<WorldBookEntry[]> {
+    const stored = await db.entries.where('bookId').equals(bookId).toArray();
+    return stored.map(({ bookId: _ignored, ...rest }) => rest);
+  },
+
+  /**
    * 添加一个新条目
    */
   async addEntry(bookId: string, entry: WorldBookEntry): Promise<number> {
@@ -153,12 +161,30 @@ export const worldBookService = {
    * 注意: 需要条目的数据库主键 id
    */
   async updateEntry(entry: StoredWorldBookEntry): Promise<void> {
-    if (entry.id === undefined) {
-      console.error('[worldBookService] 更新条目失败：缺少数据库主键 id');
-      throw new Error("更新条目需要提供数据库主键 'id'");
+    const plainEntry = JSON.parse(JSON.stringify(entry));
+
+    // 优雅降级：若缺少 id，尝试通过 (bookId, uid) 定位记录，找不到则按新增处理
+    if (plainEntry.id === undefined) {
+      if (!plainEntry.bookId) {
+        console.error('[worldBookService] 更新条目失败：缺少 id 且缺少 bookId');
+        throw new Error("更新条目需要提供数据库主键 'id' 或者 (bookId, uid)");
+      }
+      const existed = await db.entries
+        .where('bookId')
+        .equals(plainEntry.bookId)
+        .and(e => e.uid === plainEntry.uid)
+        .first();
+
+      if (existed && existed.id !== undefined) {
+        plainEntry.id = existed.id;
+        await db.entries.put(plainEntry);
+        return;
+      }
+      // 找不到现有记录，则作为新增保存
+      await db.entries.add(plainEntry);
+      return;
     }
 
-    const plainEntry = JSON.parse(JSON.stringify(entry));
     await db.entries.put(plainEntry);
   },
 

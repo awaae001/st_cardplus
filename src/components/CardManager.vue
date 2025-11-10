@@ -261,12 +261,10 @@ import { ElButton, ElMessage, ElTabs, ElTabPane, ElDivider, ElDialog, ElScrollba
 import { Icon } from '@iconify/vue';
 import { watchDebounced } from '@vueuse/core';
 
-import CharacterCardList from '@/components/cardManager/CharacterCardList.vue';
 import CharacterCardActions from '@/components/cardManager/CharacterCardActions.vue';
 import CharacterCardTabs from '@/components/cardManager/CharacterCardTabs.vue';
 import CharacterCardHome from '@/components/cardManager/CharacterCardHome.vue';
 import CardEditor from '@/components/cardManager/CardEditor.vue';
-import WelcomeScreen from '@/components/cardManager/WelcomeScreen.vue';
 import RegexScriptSelectorDialog from '@/components/cardManager/RegexScriptSelectorDialog.vue';
 import CardWorldBookPanel from '@/components/cardManager/CardWorldBookPanel.vue';
 import CardRegexPanel from '@/components/cardManager/CardRegexPanel.vue';
@@ -365,7 +363,6 @@ const { isUploading, uploadProgress, fileInput, triggerFileInput, handleFileSele
     activeTab.value = 'editor';
     rightEditorTab.value = 'card';
   },
-  handleImportCard,
   handleImageUpdate
 );
 const { handleSave } = useCardExport(characterData, characterImageFile);
