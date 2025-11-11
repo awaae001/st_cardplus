@@ -52,7 +52,15 @@ export function useCharacterCardCollection() {
 
   onMounted(loadInitialData);
 
-  const handleSelectCard = (cardId: string) => {
+  const handleSelectCard = (cardId: string | null) => {
+    // 显式处理清空选中的情况
+    if (cardId === '' || cardId === null) {
+      characterCardCollection.value.activeCardId = null;
+      characterCardService.setActiveCardId(null);
+      return;
+    }
+
+    // 只有当卡片存在时才设置
     if (characterCardCollection.value.cards[cardId]) {
       characterCardCollection.value.activeCardId = cardId;
       characterCardService.setActiveCardId(cardId);
@@ -466,6 +474,24 @@ export function useCharacterCardCollection() {
 
     const currentCardId = activeCardId.value;
     if (!currentCardId) {
+      return;
+    }
+
+    // 数据验证：防止保存空数据覆盖现有角色卡
+    const hasValidName = !!(characterData.name || characterData.data?.name);
+    const hasAnyContent = !!(
+      characterData.description ||
+      characterData.personality ||
+      characterData.scenario ||
+      characterData.first_mes ||
+      characterData.data?.description ||
+      characterData.data?.personality ||
+      characterData.data?.scenario ||
+      characterData.data?.first_mes
+    );
+
+    if (!hasValidName && !hasAnyContent) {
+      console.warn('[useCharacterCardCollection] 阻止保存空角色卡数据，cardId:', currentCardId);
       return;
     }
 

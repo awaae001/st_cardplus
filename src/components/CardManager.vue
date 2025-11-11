@@ -532,10 +532,10 @@ const handleTabSwitch = (tabId: string) => {
       handleSelectCard(tab.cardId);
     }
   } else if (tab?.type === 'home') {
-    // 切换到主页时，重置编辑器
+    // 切换到主页时，先清空选中的角色卡，再重置编辑器
+    handleSelectCard(null);
     resetCharacter();
     characterImageFile.value = null;
-    handleSelectCard('');
   }
 };
 
@@ -585,7 +585,14 @@ const handleWorldBookChanged = async () => {
 watchDebounced(
   characterData,
   () => {
-    if (autoSaveMode.value === 'watch' && activeCard.value && activeCardId.value) {
+    // 必须同时满足：监听模式 + 有激活的角色卡 + 在角色卡编辑标签页
+    const currentTab = getActiveTab();
+    if (
+      autoSaveMode.value === 'watch' &&
+      activeCard.value &&
+      activeCardId.value &&
+      currentTab?.type === 'character-card'
+    ) {
       autoSaveCard(characterData.value);
     }
   },
@@ -597,7 +604,14 @@ watchDebounced(
 let autoSaveInterval: number | null = null;
 onMounted(() => {
   autoSaveInterval = window.setInterval(() => {
-    if (autoSaveMode.value === 'auto' && activeCard.value && activeCardId.value) {
+    // 必须同时满足：自动模式 + 有激活的角色卡 + 在角色卡编辑标签页
+    const currentTab = getActiveTab();
+    if (
+      autoSaveMode.value === 'auto' &&
+      activeCard.value &&
+      activeCardId.value &&
+      currentTab?.type === 'character-card'
+    ) {
       autoSaveCard(characterData.value);
     }
   }, 5000);
