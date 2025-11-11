@@ -1,7 +1,6 @@
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { v4 as uuidv4 } from 'uuid';
-import { initAutoSave, clearAutoSave } from '@/utils/localStorageUtils';
 import { extractAndDecodeCcv3, extractAndDecodeV2Card } from '@/utils/metadataSeparator';
 import type { CharacterCardV3 } from '@/types/character-card-v3';
 import type { CharacterCardCollection, CharacterCardItem } from '@/types/character-card-collection';
@@ -13,14 +12,6 @@ export function useCharacterCardCollection() {
     activeCardId: null,
   });
   const isLoading = ref(true);
-
-  // 自动保存相关状态
-  const saveStatus = ref<'idle' | 'saving' | 'saved' | 'error'>('idle');
-  const autoSaveMode = ref<'auto' | 'watch' | 'manual'>('watch'); // 默认监听模式
-  const lastSavedData = ref<string>('');
-  const hasUnsavedChanges = ref(false);
-  const isAutoSaving = ref(false);
-  let autoSaveTimer: number | null = null;
 
   const activeCardId = computed(() => characterCardCollection.value.activeCardId);
 
@@ -114,14 +105,22 @@ export function useCharacterCardCollection() {
       return;
     }
 
+    console.log('[handleUpdateCard] 开始更新角色卡:', cardId, '名称:', cardData.name, 'skipLocalUpdate:', skipLocalUpdate);
+
     try {
       const now = new Date().toISOString();
 
-      // 修复：在保存前，强制同步顶层数据到 cardData.data 内部
+      // 【关键修复】反转同步方向：从 data 同步到顶层（data 是真实数据源）
       const synchronizedCardData = { ...cardData };
       if (synchronizedCardData.data) {
-        synchronizedCardData.data.name = synchronizedCardData.name;
-        synchronizedCardData.data.description = synchronizedCardData.description;
+        // 从 data 层同步到顶层（用于兼容性）
+        synchronizedCardData.name = synchronizedCardData.data.name || synchronizedCardData.name;
+        synchronizedCardData.description = synchronizedCardData.data.description || synchronizedCardData.description;
+        synchronizedCardData.personality = synchronizedCardData.data.personality || synchronizedCardData.personality;
+        synchronizedCardData.scenario = synchronizedCardData.data.scenario || synchronizedCardData.scenario;
+        synchronizedCardData.first_mes = synchronizedCardData.data.first_mes || synchronizedCardData.first_mes;
+        synchronizedCardData.mes_example = synchronizedCardData.data.mes_example || synchronizedCardData.mes_example;
+        synchronizedCardData.tags = synchronizedCardData.data.tags || synchronizedCardData.tags;
       }
 
       const storedCard: StoredCharacterCard = {
@@ -137,18 +136,23 @@ export function useCharacterCardCollection() {
         metadata: {},
       };
 
+      console.log('[handleUpdateCard] 准备写入数据库，名称:', storedCard.name);
       await characterCardService.updateCard(storedCard);
+      console.log('[handleUpdateCard] 数据库更新成功');
 
       // 只在非自动保存时更新本地状态
-      // 自动保存时跳过本地更新，避免触发响应式系统
+      // 自动保存时跳过本地更新，避免触发响应式循环
       if (!skipLocalUpdate) {
+        console.log('[handleUpdateCard] 更新本地状态');
         characterCardCollection.value.cards[cardId] = {
-          ...cardData,
+          ...synchronizedCardData,
           id: cardId,
           createdAt: existingCard.createdAt,
           updatedAt: now,
           order: existingCard.order,
         };
+      } else {
+        console.log('[handleUpdateCard] 跳过本地状态更新');
       }
 
       if (!silent) {
@@ -180,13 +184,14 @@ export function useCharacterCardCollection() {
         }
       );
 
+      // 同时更新 data 和顶层（data 是真实数据源）
       const updatedCardData = {
         ...card,
-        name: newCardName,
         data: {
           ...card.data,
-          name: newCardName,
+          name: newCardName,  // data 层优先
         },
+        name: newCardName,  // 顶层同步
       };
 
       await handleUpdateCard(cardId, updatedCardData);
@@ -394,10 +399,11 @@ export function useCharacterCardCollection() {
         }
       );
 
-      // 创建默认的角色卡数据
+      // 创建默认的角色卡数据（确保 data 和顶层一致）
       const defaultData: CharacterCardV3 = {
         spec: 'chara_card_v3',
         spec_version: '3.0',
+        // 顶层字段（同步自 data）
         name: cardName,
         description: '',
         personality: '',
@@ -409,6 +415,7 @@ export function useCharacterCardCollection() {
         talkativeness: 0.5,
         fav: false,
         tags: [],
+        // data 层是真实数据源
         data: {
           name: cardName,
           description: '',
@@ -449,113 +456,6 @@ export function useCharacterCardCollection() {
     }
   };
 
-  // 切换自动保存模式
-  const toggleAutoSaveMode = () => {
-    const modes: Array<'auto' | 'watch' | 'manual'> = ['auto', 'watch', 'manual'];
-    const currentIndex = modes.indexOf(autoSaveMode.value);
-    const nextIndex = (currentIndex + 1) % modes.length;
-    autoSaveMode.value = modes[nextIndex];
-
-    const messages = {
-      auto: '已切换到自动保存模式：每 5 秒自动保存',
-      watch: '已切换到监听模式：检测到修改后 1.5 秒自动保存',
-      manual: '已切换到手动模式：自动保存已禁用'
-    };
-
-    ElMessage.info(messages[autoSaveMode.value]);
-  };
-
-  // 自动保存角色卡数据（用于接收 characterData）
-  const autoSaveCard = async (characterData: CharacterCardV3) => {
-    // 如果是手动模式，完全禁用自动保存
-    if (autoSaveMode.value === 'manual') {
-      return;
-    }
-
-    const currentCardId = activeCardId.value;
-    if (!currentCardId) {
-      return;
-    }
-
-    // 数据验证：防止保存空数据覆盖现有角色卡
-    const hasValidName = !!(characterData.name || characterData.data?.name);
-    const hasAnyContent = !!(
-      characterData.description ||
-      characterData.personality ||
-      characterData.scenario ||
-      characterData.first_mes ||
-      characterData.data?.description ||
-      characterData.data?.personality ||
-      characterData.data?.scenario ||
-      characterData.data?.first_mes
-    );
-
-    if (!hasValidName && !hasAnyContent) {
-      console.warn('[useCharacterCardCollection] 阻止保存空角色卡数据，cardId:', currentCardId);
-      return;
-    }
-
-    // 检查是否有未保存的修改
-    const currentData = JSON.stringify(characterData);
-    if (currentData === lastSavedData.value) {
-      return;
-    }
-
-    // 防止重复保存
-    if (isAutoSaving.value) {
-      return;
-    }
-
-    isAutoSaving.value = true;
-    saveStatus.value = 'saving';
-
-    try {
-      // 自动保存时跳过本地更新，避免触发 activeCard watch
-      await handleUpdateCard(currentCardId, characterData, true, true);
-
-      // 更新最后保存的数据状态
-      lastSavedData.value = currentData;
-      hasUnsavedChanges.value = false;
-
-      saveStatus.value = 'saved';
-
-      // 2秒后隐藏"已保存"提示
-      setTimeout(() => {
-        if (saveStatus.value === 'saved') {
-          saveStatus.value = 'idle';
-        }
-      }, 2000);
-    } catch (error) {
-      console.error('[useCharacterCardCollection] 自动保存失败:', error);
-      saveStatus.value = 'error';
-      // 5秒后隐藏错误提示
-      setTimeout(() => {
-        if (saveStatus.value === 'error') {
-          saveStatus.value = 'idle';
-        }
-      }, 5000);
-    } finally {
-      isAutoSaving.value = false;
-    }
-  };
-
-  // 启动定时自动保存（自动模式专用）
-  onMounted(() => {
-    autoSaveTimer = initAutoSave(
-      () => {
-        // 这里的自动保存将在 CardManager 中触发
-        // 因为这里无法直接访问 characterData
-      },
-      () => !!activeCardId.value
-    );
-  });
-
-  // 清理定时器
-  onBeforeUnmount(() => {
-    if (autoSaveTimer) {
-      clearAutoSave(autoSaveTimer);
-    }
-  });
 
   return {
     characterCardCollection,
@@ -575,10 +475,5 @@ export function useCharacterCardCollection() {
     handleClearAllCards,
     handleCreateNewCard,
     loadInitialData,
-    // 自动保存相关
-    saveStatus,
-    autoSaveMode,
-    toggleAutoSaveMode,
-    autoSaveCard,
   };
 }

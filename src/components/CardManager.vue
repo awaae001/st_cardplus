@@ -259,7 +259,6 @@
 import { ref, computed, onUnmounted, onMounted, watch } from 'vue';
 import { ElButton, ElMessage, ElTabs, ElTabPane, ElDivider, ElDialog, ElScrollbar } from 'element-plus';
 import { Icon } from '@iconify/vue';
-import { watchDebounced } from '@vueuse/core';
 
 import CharacterCardActions from '@/components/cardManager/CharacterCardActions.vue';
 import CharacterCardTabs from '@/components/cardManager/CharacterCardTabs.vue';
@@ -275,8 +274,9 @@ import { useCharacterCardCollection } from '@/composables/characterCard/useChara
 import { useCardImport } from '@/composables/characterCard/useCardImport';
 import { useCardExport } from '@/composables/characterCard/useCardExport';
 import { useTabManager } from '@/composables/characterCard/useTabManager';
+import { useCharacterCardAutoSave, type AutoSaveMode } from '@/composables/characterCard/useCharacterCardAutoSave';
 
-const { characterData, loadCharacter, resetCharacter } = useV3CharacterCard();
+const { characterData, isLoadingData, loadCharacter, resetCharacter } = useV3CharacterCard();
 
 // 标签页管理
 const {
@@ -309,12 +309,44 @@ const {
   handleExportAllCards,
   handleClearAllCards,
   handleCreateNewCard: handleCreateNewCardFromCollection,
-  // 自动保存相关
-  saveStatus,
-  autoSaveMode,
-  toggleAutoSaveMode,
-  autoSaveCard,
 } = useCharacterCardCollection();
+
+// 自动保存模式
+const autoSaveMode = ref<AutoSaveMode>('watch');
+
+// 自动保存逻辑
+const {
+  saveStatus,
+  manualSave,
+  resetSaveState,
+  updateSavedSnapshot,
+  cleanup: cleanupAutoSave,
+} = useCharacterCardAutoSave({
+  characterData,
+  activeCardId,
+  isLoadingData,
+  autoSaveMode,
+  onSave: async (cardId, data) => {
+    // 自动保存时跳过本地更新，避免触发响应式循环
+    await handleUpdateCard(cardId, data, true, true); // silent = true, skipLocalUpdate = true
+  },
+});
+
+// 切换自动保存模式
+const toggleAutoSaveMode = () => {
+  const modes: AutoSaveMode[] = ['auto', 'watch', 'manual'];
+  const currentIndex = modes.indexOf(autoSaveMode.value);
+  const nextIndex = (currentIndex + 1) % modes.length;
+  autoSaveMode.value = modes[nextIndex];
+
+  const messages = {
+    auto: '已切换到自动保存模式：每 5 秒自动保存',
+    watch: '已切换到监听模式：检测到修改后 1.5 秒自动保存',
+    manual: '已切换到手动模式：自动保存已禁用'
+  };
+
+  ElMessage.info(messages[autoSaveMode.value]);
+};
 
 // UI 状态
 const activeTab = ref('editor');
@@ -391,13 +423,13 @@ const handleRegexScriptsSelected = (selectedScripts: SillyTavernRegexScript[]) =
   handleSave();
 };
 
-// 角色卡内正则变更后自动保存
+// 角色卡内正则变更后触发手动保存
 const handleRegexChanged = async () => {
   if (activeCard.value && activeCardId.value) {
     try {
-      autoSaveCard(characterData.value);
+      await manualSave();
     } catch (error) {
-      console.error('自动保存正则更改失败:', error);
+      console.error('保存正则更改失败:', error);
       ElMessage.warning('正则脚本已更新，但保存到数据库失败。请手动保存角色卡。');
     }
   } else {
@@ -437,21 +469,30 @@ const dismissRefactorDialog = (dontShowToday = false) => {
   }
 };
 
-// 监听 activeCard 的变化,自动加载或重置编辑器
-watch([isLoading, activeCard], ([loading, card], [, prevCard]) => {
+// 监听 activeCardId 的变化,自动加载或重置编辑器
+// 注意：只监听 activeCardId，不监听 activeCard，避免因 activeCard 对象变化导致循环
+watch([isLoading, activeCardId], ([loading, cardId], [, prevCardId]) => {
   // 等待数据加载完成
   if (loading) return;
 
-  // activeCard 发生变化
-  if (card !== prevCard) {
-    if (card) {
-      // 有新的活动卡片,加载它
-      loadCharacter(card);
-      characterImageFile.value = null;
+  // activeCardId 发生变化
+  if (cardId !== prevCardId) {
+    if (cardId) {
+      // 有新的活动卡片 ID,从 collection 中获取并加载
+      const card = characterCardCollection.value.cards[cardId];
+      if (card) {
+        loadCharacter(card);
+        characterImageFile.value = null;
+        // 加载完成后，更新自动保存的快照
+        setTimeout(() => {
+          updateSavedSnapshot();
+        }, 100);
+      }
     } else {
       // 没有活动卡片(删除后或清空后),重置编辑器
       resetCharacter();
       characterImageFile.value = null;
+      resetSaveState();
     }
   }
 }, { immediate: true });
@@ -566,13 +607,13 @@ const handleDeleteCard = async (cardId: string) => {
   closeCharacterCardTab(cardId);
 };
 
-// 世界书更改后自动保存
+// 世界书更改后触发手动保存
 const handleWorldBookChanged = async () => {
   if (activeCard.value && activeCardId.value) {
     try {
-      autoSaveCard(characterData.value);
+      await manualSave();
     } catch (error) {
-      console.error('自动保存世界书更改失败:', error);
+      console.error('保存世界书更改失败:', error);
       ElMessage.warning('世界书已更新，但保存到数据库失败。请手动保存角色卡。');
     }
   } else {
@@ -580,50 +621,12 @@ const handleWorldBookChanged = async () => {
   }
 };
 
-// 使用防抖监听 characterData 的变化（监听模式专用）
-// 用户停止编辑 1.5 秒后自动保存
-watchDebounced(
-  characterData,
-  () => {
-    // 必须同时满足：监听模式 + 有激活的角色卡 + 在角色卡编辑标签页
-    const currentTab = getActiveTab();
-    if (
-      autoSaveMode.value === 'watch' &&
-      activeCard.value &&
-      activeCardId.value &&
-      currentTab?.type === 'character-card'
-    ) {
-      autoSaveCard(characterData.value);
-    }
-  },
-  { debounce: 1500, deep: true }
-);
-
-// 定时自动保存（自动模式专用）
-// 每 5 秒自动保存一次
-let autoSaveInterval: number | null = null;
-onMounted(() => {
-  autoSaveInterval = window.setInterval(() => {
-    // 必须同时满足：自动模式 + 有激活的角色卡 + 在角色卡编辑标签页
-    const currentTab = getActiveTab();
-    if (
-      autoSaveMode.value === 'auto' &&
-      activeCard.value &&
-      activeCardId.value &&
-      currentTab?.type === 'character-card'
-    ) {
-      autoSaveCard(characterData.value);
-    }
-  }, 5000);
-});
-
+// 清理资源
 onUnmounted(() => {
   if (imagePreviewUrl.value) {
     URL.revokeObjectURL(imagePreviewUrl.value);
   }
-  if (autoSaveInterval) {
-    clearInterval(autoSaveInterval);
-  }
+  cleanupAutoSave();
 });
 </script>
 

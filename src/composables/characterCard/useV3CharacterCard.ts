@@ -49,9 +49,15 @@ export function useV3CharacterCard() {
   // 使用 ref 创建响应式的角色数据状态
   const characterData = ref<CharacterCardV3>(getDefaultCharacterData());
 
+  // 数据加载标志（用于防止自动保存在加载时触发）
+  const isLoadingData = ref(false);
+
   // 用于加载新数据的函数
   // 用于加载新数据的函数，现在它会处理数据规范化
   const loadCharacter = (newData: any) => {
+    // 设置加载标志，防止自动保存触发
+    isLoadingData.value = true;
+
     console.log('useV3CharacterCard: loadCharacter called with data:', newData);
     console.log('useV3CharacterCard: newData keys:', Object.keys(newData));
     console.log('useV3CharacterCard: newData.name:', newData.name);
@@ -97,14 +103,27 @@ export function useV3CharacterCard() {
     mergedData.spec = 'chara_card_v3';
     mergedData.spec_version = '3.0';
 
-    // 数据同步：将顶层数据同步到 data 对象，确保 UI 响应
-    mergedData.data.name = mergedData.name;
-    mergedData.data.description = mergedData.description;
-    mergedData.data.personality = mergedData.personality;
-    mergedData.data.scenario = mergedData.scenario;
-    mergedData.data.first_mes = mergedData.first_mes;
-    mergedData.data.mes_example = mergedData.mes_example;
-    mergedData.data.tags = mergedData.tags;
+    // 优先使用 data 层，然后同步到顶层
+    // UI 组件绑定的是 data 层，所以 data 层是唯一真实数据源
+    // 顶层字段仅用于兼容性和快速访问
+
+    // 1. 优先使用 data 层的数据，如果 data 为空才使用顶层
+    mergedData.data.name = mergedData.data.name || mergedData.name;
+    mergedData.data.description = mergedData.data.description || mergedData.description;
+    mergedData.data.personality = mergedData.data.personality || mergedData.personality;
+    mergedData.data.scenario = mergedData.data.scenario || mergedData.scenario;
+    mergedData.data.first_mes = mergedData.data.first_mes || mergedData.first_mes;
+    mergedData.data.mes_example = mergedData.data.mes_example || mergedData.mes_example;
+    mergedData.data.tags = (mergedData.data.tags && mergedData.data.tags.length > 0) ? mergedData.data.tags : mergedData.tags;
+
+    // 2. 从 data 层同步到顶层（用于兼容性）
+    mergedData.name = mergedData.data.name;
+    mergedData.description = mergedData.data.description;
+    mergedData.personality = mergedData.data.personality;
+    mergedData.scenario = mergedData.data.scenario;
+    mergedData.first_mes = mergedData.data.first_mes;
+    mergedData.mes_example = mergedData.data.mes_example;
+    mergedData.tags = mergedData.data.tags;
 
     console.log('useV3CharacterCard: Final mergedData before assignment:', mergedData);
     console.log('useV3CharacterCard: characterData.value before update:', characterData.value);
@@ -115,14 +134,26 @@ export function useV3CharacterCard() {
     console.log('useV3CharacterCard: characterData.value after update:', characterData.value);
     console.log('useV3CharacterCard: characterData.value.name:', characterData.value.name);
     console.log('useV3CharacterCard: characterData.value.data.name:', characterData.value.data.name);
+
+    // 使用 nextTick 确保所有响应式更新完成后再重置标志
+    // 这样可以避免在数据加载过程中触发自动保存
+    setTimeout(() => {
+      isLoadingData.value = false;
+    }, 0);
   };
+
   // 用于重置为默认空状态的函数
   const resetCharacter = () => {
+    isLoadingData.value = true;
     characterData.value = getDefaultCharacterData();
+    setTimeout(() => {
+      isLoadingData.value = false;
+    }, 0);
   };
 
   return {
     characterData,
+    isLoadingData,
     loadCharacter,
     resetCharacter,
   };
