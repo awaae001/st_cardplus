@@ -65,7 +65,6 @@
                     :all-tags="allTags"
                     v-model:advanced-options-visible="advancedOptionsVisible"
                     @image-change="handleImageUpdate"
-                    @worldbook-changed="handleWorldBookChanged"
                   />
                 </el-scrollbar>
               </el-tab-pane>
@@ -137,6 +136,9 @@
                 <span v-if="rightEditorTab === 'card' && currentCardInTab" class="content-panel-text-highlight">
                   - {{ currentCardInTab.name || '未命名角色' }}
                 </span>
+                <span v-else-if="rightEditorTab === 'worldbook' && worldbookPanelRef?.hasWorldBook" class="content-panel-text-highlight">
+                  - {{ worldbookPanelRef?.currentWorldBookName }}
+                </span>
               </h2>
               <div class="header-actions" v-if="rightEditorTab === 'card'">
                 <CharacterCardActions
@@ -160,6 +162,21 @@
                   导出PNG
                 </el-button>
               </div>
+              <!-- 世界书操作按钮 -->
+              <div class="header-actions" v-else-if="rightEditorTab === 'worldbook'">
+                <el-tooltip content="将当前世界书添加到世界书数据库，不影响角色卡" placement="bottom">
+                  <el-button size="small" @click="handleAddWorldBookToDB" :disabled="!worldbookPanelRef?.hasWorldBook">
+                    <Icon icon="ph:database-duotone" />
+                    添加到 DB
+                  </el-button>
+                </el-tooltip>
+                <el-tooltip content="用世界书数据库中的世界书替换当前世界书" placement="bottom">
+                  <el-button size="small" @click="handleReplaceWorldBookFromDB" :disabled="!worldbookPanelRef?.hasWorldBook">
+                    <Icon icon="ph:arrows-counter-clockwise-duotone" />
+                    从 DB 替换
+                  </el-button>
+                </el-tooltip>
+              </div>
             </div>
             <el-tabs
               v-model="rightEditorTab"
@@ -182,7 +199,6 @@
                     :all-tags="allTags"
                     v-model:advanced-options-visible="advancedOptionsVisible"
                     @image-change="handleImageUpdate"
-                    @worldbook-changed="handleWorldBookChanged"
                   />
                 </el-scrollbar>
               </el-tab-pane>
@@ -195,7 +211,7 @@
                   </span>
                 </template>
                 <div class="tab-full-content">
-                  <CardWorldBookPanel :character="characterData" @worldbookChanged="handleWorldBookChanged" />
+                  <CardWorldBookPanel ref="worldbookPanelRef" :character="characterData" @worldbookChanged="handleWorldBookChanged" />
                 </div>
               </el-tab-pane>
 
@@ -227,13 +243,12 @@
         </div>
         <div class="notice-content">
           <h3>功能重构中</h3>
-          <p>角色卡管理器刚刚进行了重大重构，修复了 BUG ，新增了更多 BUG</p>
-          <p><strong>⚠️ 已知问题：</strong></p>
+          <p>角色卡管理器刚刚进行了重大重构，修复了 BUG ，正在优化显示 UI</p>
+          <p><strong>⚠️ 已知 UI 问题：</strong></p>
           <ul>
-            <li>自动保存变成自动回滚</li>
-            <li>世界书绑定器工作异常</li>
-            <li>角色卡管理页面出现严重错误，会导致角色卡消失</li>
-            <li>建议先在测试数据上尝试功能</li>
+            <li>随便乱飞的世界书 条目</li>
+            <li>无法滚动</li>
+            <li>UI 样式太丑</li>
           </ul>
           <p class="notice-thanks">我们正在努力修复</p>
         </div>
@@ -265,8 +280,8 @@ import CharacterCardTabs from '@/components/cardManager/CharacterCardTabs.vue';
 import CharacterCardHome from '@/components/cardManager/CharacterCardHome.vue';
 import CardEditor from '@/components/cardManager/CardEditor.vue';
 import RegexScriptSelectorDialog from '@/components/cardManager/RegexScriptSelectorDialog.vue';
-import CardWorldBookPanel from '@/components/cardManager/CardWorldBookPanel.vue';
-import CardRegexPanel from '@/components/cardManager/CardRegexPanel.vue';
+import CardWorldBookPanel from '@/components/cardManager/panel/CardWorldBookPanel.vue';
+import CardRegexPanel from '@/components/cardManager/panel/CardRegexPanel.vue';
 
 import { useV3CharacterCard } from '@/composables/characterCard/useV3CharacterCard';
 import type { SillyTavernRegexScript } from '@/composables/regex/types';
@@ -303,7 +318,6 @@ const {
   handleUpdateCard,
   handleRenameCard: handleRenameCardOriginal,
   handleDeleteCard: handleDeleteCardOriginal,
-  handleImportCard,
   handleImportFromFile,
   handleExportCard,
   handleExportAllCards,
@@ -362,9 +376,6 @@ const headerIcon = computed(() => {
   return 'ph:note-pencil-duotone';
 });
 const advancedOptionsVisible = ref(false);
-const hasUnsavedChanges = computed(() => {
-  return characterData.value.name !== '' || characterData.value.description !== '';
-});
 
 // 标签页相关计算属性
 const currentTab = computed(() => getActiveTab());
@@ -518,18 +529,6 @@ const handleExportCurrentCard = async () => {
   }
 };
 
-const handleSelectCardWithLoad = (cardId: string) => {
-  characterImageFile.value = null; // 切换卡片时重置图片
-  handleSelectCard(cardId);
-  const selectedCard = characterCardCollection.value.cards[cardId];
-  if (selectedCard) {
-    loadCharacter(selectedCard);
-    activeTab.value = 'editor';
-    rightEditorTab.value = 'card';
-    ElMessage.success(`已切换到角色卡: ${selectedCard.name || '未命名角色'}`);
-  }
-};
-
 const handleCreateNewCard = async () => {
   const cardId = await handleCreateNewCardFromCollection();
   if (cardId) {
@@ -619,6 +618,19 @@ const handleWorldBookChanged = async () => {
   } else {
     ElMessage.info('世界书已更新。请保存角色卡以将更改持久化。');
   }
+};
+
+// 世界书面板引用
+const worldbookPanelRef = ref<InstanceType<typeof CardWorldBookPanel>>();
+
+// 添加世界书到数据库
+const handleAddWorldBookToDB = () => {
+  worldbookPanelRef.value?.handleAddToDB();
+};
+
+// 从数据库替换世界书
+const handleReplaceWorldBookFromDB = () => {
+  worldbookPanelRef.value?.handleReplaceFromDB();
 };
 
 // 清理资源
@@ -737,6 +749,8 @@ onUnmounted(() => {
 .tab-full-content-mobile {
   height: 100%;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 桌面端布局（新的标签页模式） */
@@ -843,7 +857,9 @@ onUnmounted(() => {
 }
 .tab-full-content {
   height: 100%;
-  /* display: flex; */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 重构提示弹窗样式 */

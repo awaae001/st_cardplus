@@ -156,7 +156,7 @@ import type { SillyTavernRegexScript } from '@/composables/regex/types';
 import RegexEditorCore from '@/components/regex/RegexEditorCore.vue';
 import RegexAdvancedSettings from '@/components/regex/RegexAdvancedSettings.vue';
 import RegexSimulatorPanel from '@/components/regex/RegexSimulatorPanel.vue';
-import RegexScriptSelectorDialog from './RegexScriptSelectorDialog.vue';
+import RegexScriptSelectorDialog from '../RegexScriptSelectorDialog.vue';
 import { useRegexSimulator } from '@/composables/regex/useRegexSimulator';
 import { SUBSTITUTE_FIND_REGEX, type RegexScript } from '@/composables/regex/types';
 import { v4 as uuidv4 } from 'uuid';

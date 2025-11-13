@@ -9,6 +9,15 @@
     <!-- 未绑定世界书的提示 -->
     <div v-if="!hasWorldBook" class="empty-state">
       <el-empty description="当前角色卡未绑定世界书">
+        <template #description>
+          <div class="empty-description">
+            <p>当前角色卡未绑定世界书</p>
+            <p class="empty-hint">
+              「创建」将为角色卡创建一个全新的空世界书；<br>
+              「绑定」将从世界书数据库中选择一个现有世界书复制到角色卡中
+            </p>
+          </div>
+        </template>
         <div class="empty-actions">
           <el-button type="primary" @click="handleCreateNewWorldBook">
             <Icon icon="ph:plus-circle-duotone" />
@@ -67,21 +76,23 @@
                   </el-button-group>
                 </div>
               </div>
-              <WorldBookEditor
-                v-if="selectedEntry"
-                :entry="selectedEntry"
-                v-model="editableEntry"
-                :all-keywords="allKeywords"
-                :current-entry-index="currentEntryIndex"
-                :total-entries="totalEntries"
-                @go-to-previous="goToPreviousEntry"
-                @go-to-next="goToNextEntry"
-                :is-next-entry-in-different-book="false"
-                :is-previous-entry-in-different-book="false"
-                :save-status="saveStatus"
-              />
-              <div v-else class="editor-empty-state">
-                <el-empty description="请选择一个条目进行编辑" :image-size="100" />
+              <div class="worldbook-editor-container">
+                <WorldBookEditor
+                  v-if="selectedEntry"
+                  :entry="selectedEntry"
+                  v-model="editableEntry"
+                  :all-keywords="allKeywords"
+                  :current-entry-index="currentEntryIndex"
+                  :total-entries="totalEntries"
+                  @go-to-previous="goToPreviousEntry"
+                  @go-to-next="goToNextEntry"
+                  :is-next-entry-in-different-book="false"
+                  :is-previous-entry-in-different-book="false"
+                  :save-status="saveStatus"
+                />
+                <div v-else class="editor-empty-state">
+                  <el-empty description="请选择一个条目进行编辑" :image-size="100" />
+                </div>
               </div>
             </div>
           </Pane>
@@ -136,21 +147,23 @@
                   </el-dropdown>
                 </div>
               </div>
-              <WorldBookEditor
-                v-if="selectedEntry"
-                :entry="selectedEntry"
-                v-model="editableEntry"
-                :all-keywords="allKeywords"
-                :current-entry-index="currentEntryIndex"
-                :total-entries="totalEntries"
-                @go-to-previous="goToPreviousEntry"
-                @go-to-next="goToNextEntry"
-                :is-next-entry-in-different-book="false"
-                :is-previous-entry-in-different-book="false"
-                :save-status="saveStatus"
-              />
-              <div v-else class="editor-empty-state">
-                <el-empty description="请从左侧选择一个条目进行编辑" :image-size="80" />
+              <div class="worldbook-editor-container">
+                <WorldBookEditor
+                  v-if="selectedEntry"
+                  :entry="selectedEntry"
+                  v-model="editableEntry"
+                  :all-keywords="allKeywords"
+                  :current-entry-index="currentEntryIndex"
+                  :total-entries="totalEntries"
+                  @go-to-previous="goToPreviousEntry"
+                  @go-to-next="goToNextEntry"
+                  :is-next-entry-in-different-book="false"
+                  :is-previous-entry-in-different-book="false"
+                  :save-status="saveStatus"
+                />
+                <div v-else class="editor-empty-state">
+                  <el-empty description="请从左侧选择一个条目进行编辑" :image-size="80" />
+                </div>
               </div>
             </div>
           </el-tab-pane>
@@ -163,6 +176,24 @@
       v-model="showWorldBookSelector"
       @confirm="handleBindWorldBook"
     />
+
+    <!-- 世界书选择对话框 (用于替换) -->
+    <WorldBookSelectorDialog
+      v-model="showReplaceWorldBookSelector"
+      @confirm="handleConfirmReplace"
+    />
+
+    <!-- 确认对话框 -->
+    <ConfirmDialog
+      ref="confirmDialogRef"
+      :title="confirmConfig.title"
+      :message="confirmConfig.message"
+      :type="confirmConfig.type"
+      :confirm-text="confirmConfig.confirmText"
+      :cancel-text="confirmConfig.cancelText"
+      @confirm="confirmConfig.onConfirm"
+      @cancel="confirmConfig.onCancel"
+    />
   </div>
 </template>
 
@@ -170,16 +201,17 @@
 import { ref, computed, watch } from 'vue';
 import { ElButton, ElEmpty, ElTag, ElTooltip, ElButtonGroup, ElMessage, ElMessageBox, ElTabs, ElTabPane, ElDropdown, ElDropdownMenu, ElDropdownItem } from 'element-plus';
 import { Icon } from '@iconify/vue';
-import { useRouter } from 'vue-router';
 import { Splitpanes, Pane } from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
-import '../../css/worldbook.css'
+import '../../../css/worldbook.css'
 
 import type { CharacterCardV3 } from '@/types/character-card-v3';
+import type { CharacterBook } from '@/types/character-book';
 import type { WorldBook, WorldBookEntry, WorldBookCollection } from '@/types/types';
 import WorldBookEditor from '@/components/worldbook/WorldBookEditor.vue';
 import WorldBookList from '@/components/worldbook/WorldBookList.vue';
-import WorldBookSelectorDialog from './WorldBookSelectorDialog.vue';
+import WorldBookSelectorDialog from '../WorldBookSelectorDialog.vue';
+import ConfirmDialog from '../ConfirmDialog.vue';
 import { worldBookService } from '@/database/worldBookService';
 import { useWorldBookEntry } from '@/composables/worldbook/useWorldBookEntry';
 import { useWorldBookDragDrop } from '@/composables/worldbook/useWorldBookDragDrop';
@@ -198,9 +230,21 @@ interface Emits {
 
 const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
-const router = useRouter();
 
 const showWorldBookSelector = ref(false);
+const showReplaceWorldBookSelector = ref(false);
+const confirmDialogRef = ref<InstanceType<typeof ConfirmDialog>>();
+
+// 确认对话框配置
+const confirmConfig = ref({
+  title: '确认操作',
+  message: '',
+  type: 'info' as 'info' | 'warning' | 'danger',
+  confirmText: '确认',
+  cancelText: '取消',
+  onConfirm: () => {},
+  onCancel: () => {}
+});
 
 // 计算属性：是否有世界书
 const hasWorldBook = computed(() => {
@@ -378,11 +422,6 @@ const saveStatusText = computed(() => {
   }
 });
 
-// 方法
-const addNewEntry = () => {
-  addEntry();
-};
-
 const onListAddEntry = (_bookId: string) => {
   addEntry();
 };
@@ -445,6 +484,7 @@ const handleCreateNewWorldBook = () => {
   props.character.data.character_book = {
     name: `${props.character.name}的世界书`,
     entries: [],
+    extensions: {}
   };
   emit('worldbookChanged');
   ElMessage.success('已创建新世界书');
@@ -473,10 +513,6 @@ const handleBindWorldBook = async (bookId: string) => {
   }
 };
 
-const handleOpenInEditor = () => {
-  router.push('/worldbook');
-};
-
 // 移动端选择条目后自动切换到编辑器标签页
 const handleMobileSelectEntry = (bookId: string, entryIndex: number) => {
   onListSelectEntry(bookId, entryIndex);
@@ -497,6 +533,122 @@ const handleMobileActionCommand = (command: string) => {
       break;
   }
 };
+
+// 添加到 DB
+const handleAddToDB = async () => {
+  if (!mockActiveBook.value) {
+    ElMessage.error('没有可添加的世界书');
+    return;
+  }
+
+  const characterBook = props.character.data.character_book;
+  // 类型守卫：确保 characterBook 不是数组且有 extensions 字段
+  if (!characterBook || Array.isArray(characterBook)) {
+    ElMessage.error('角色卡世界书数据格式不正确');
+    return;
+  }
+
+  try {
+    // 检查是否已存在同名世界书
+    const collection = await worldBookService.getFullWorldBookCollection();
+    const existingBook = Object.values(collection.books).find(
+      book => book.name === mockActiveBook.value?.name
+    );
+
+    if (existingBook) {
+      // 如果存在同名世界书，询问用户
+      confirmConfig.value = {
+        title: '世界书已存在',
+        message: `数据库中已存在名为「${mockActiveBook.value.name}」的世界书。\n是否要更新该世界书的内容？`,
+        type: 'warning',
+        confirmText: '更新',
+        cancelText: '取消',
+        onConfirm: async () => {
+          try {
+            const charBook = props.character.data.character_book;
+            if (mockActiveBook.value && charBook && !Array.isArray(charBook)) {
+              // updateBookFromCharacterCard 只需要 bookId, characterBook, characterName 三个参数
+              await worldBookService.updateBookFromCharacterCard(
+                existingBook.id,
+                charBook as CharacterBook,
+                props.character.name
+              );
+              ElMessage.success('已更新世界书到数据库');
+              confirmDialogRef.value?.close();
+            }
+          } catch (error) {
+            console.error('更新世界书失败:', error);
+            ElMessage.error('更新世界书失败');
+          }
+        },
+        onCancel: () => {
+          confirmDialogRef.value?.close();
+        }
+      };
+      confirmDialogRef.value?.open();
+    } else {
+      // 不存在同名世界书，直接添加
+      await worldBookService.addBookFromCharacterCard(
+        characterBook as CharacterBook,
+        props.character.id || '',
+        props.character.name
+      );
+      ElMessage.success('已添加世界书到数据库');
+    }
+  } catch (error) {
+    console.error('添加世界书到数据库失败:', error);
+    ElMessage.error('添加世界书到数据库失败');
+  }
+};
+
+// 从 DB 替换
+const handleReplaceFromDB = () => {
+  // 显示确认对话框
+  confirmConfig.value = {
+    title: '确认替换世界书',
+    message: `此操作将用数据库中的世界书完全替换当前角色卡的世界书。\n当前世界书「${mockActiveBook.value?.name || '未命名世界书'}」的所有内容将被覆盖且无法恢复。\n\n确定要继续吗？`,
+    type: 'danger',
+    confirmText: '确认替换',
+    cancelText: '取消',
+    onConfirm: () => {
+      // 打开世界书选择器
+      showReplaceWorldBookSelector.value = true;
+      confirmDialogRef.value?.close();
+    },
+    onCancel: () => {
+      confirmDialogRef.value?.close();
+    }
+  };
+  confirmDialogRef.value?.open();
+};
+
+// 确认替换世界书
+const handleConfirmReplace = async (bookId: string) => {
+  try {
+    const collection = await worldBookService.getFullWorldBookCollection();
+    const book = collection.books[bookId];
+    if (book) {
+      // 转换为 CharacterBook 写回角色卡
+      const characterBook = convertWorldBookToCharacterBook(book);
+      props.character.data.character_book = characterBook;
+      emit('worldbookChanged');
+      ElMessage.success(`已替换为世界书: ${book.name}`);
+    } else {
+      ElMessage.error('未找到选中的世界书');
+    }
+  } catch (error) {
+    console.error('替换世界书失败:', error);
+    ElMessage.error('替换世界书失败');
+  }
+};
+
+// 暴露方法和属性给父组件
+defineExpose({
+  handleAddToDB,
+  handleReplaceFromDB,
+  currentWorldBookName: computed(() => mockActiveBook.value?.name || '未命名世界书'),
+  hasWorldBook
+});
 </script>
 
 <style scoped>
@@ -535,6 +687,21 @@ const handleMobileActionCommand = (command: string) => {
   padding: 40px;
 }
 
+.empty-description {
+  text-align: center;
+}
+
+.empty-description p {
+  margin: 8px 0;
+}
+
+.empty-hint {
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
+  line-height: 1.6;
+  margin-top: 12px;
+}
+
 .empty-actions {
   display: flex;
   gap: 12px;
@@ -544,16 +711,33 @@ const handleMobileActionCommand = (command: string) => {
 
 .worldbook-editor-wrapper {
   flex: 1;
-  /* overflow: hidden; */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .worldbook-layout {
+  flex: 1;
+  overflow: hidden;
   height: 100%;
+  min-height: 0; /* 关键：允许 flex 子元素缩小 */
 }
 
 /* 桌面端布局 */
 .worldbook-layout-desktop {
   display: flex;
+  flex-direction: column;
+}
+
+/* Splitpanes 容器样式修复 */
+.worldbook-layout-desktop :deep(.splitpanes) {
+  height: 100%;
+}
+
+.worldbook-layout-desktop :deep(.splitpanes__pane) {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .worldbook-layout-mobile {
@@ -591,6 +775,25 @@ const handleMobileActionCommand = (command: string) => {
   height: 100%;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  min-height: 0; /* 关键：允许内容缩小 */
+}
+
+/* WorldBookEditor 容器 */
+.worldbook-editor-container {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+}
+
+/* WorldBookEditor 内部滚动条样式 */
+.worldbook-editor-container :deep(.worldbook-editor-scrollbar) {
+  height: 100%;
+}
+
+.worldbook-editor-container :deep(.el-scrollbar__wrap) {
+  overflow-x: hidden !important;
 }
 
 .worldbook-editor-panel-mobile {
@@ -598,6 +801,15 @@ const handleMobileActionCommand = (command: string) => {
   display: flex;
   flex-direction: column;
   background: var(--el-bg-color);
+  overflow: hidden;
+  min-height: 0;
+}
+
+.worldbook-editor-panel-mobile .worldbook-editor-container {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
 }
 
 .content-panel-header {

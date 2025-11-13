@@ -28,14 +28,6 @@
       </div>
     </section>
 
-    <!-- 世界书 -->
-    <section class="form-section">
-      <h3 class="form-section-title">
-        <Icon icon="ph:book-open-duotone" class="form-section-icon" />世界书
-      </h3>
-      <InfoDisplayPanel type="worldbook" :character="character" @worldbook-changed="emit('worldbookChanged')" />
-    </section>
-
     <!-- 其他与正则 -->
     <section class="form-section">
       <h3 class="form-section-title">
@@ -82,7 +74,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'imageChange', file: File): void;
-  (e: 'worldbookChanged'): void;
   (e: 'update:advancedOptionsVisible', value: boolean): void;
 }>();
 

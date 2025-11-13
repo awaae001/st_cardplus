@@ -243,7 +243,13 @@ const handleNodeCollapse = (data: any) => {
 }
 
 .worldbook-list-scrollbar {
-  flex-grow: 1;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0; /* 关键：允许滚动区域收缩 */
+}
+
+.worldbook-list-scrollbar :deep(.el-scrollbar__wrap) {
+  overflow-x: hidden;
 }
 
 .worldbook-list-footer {
