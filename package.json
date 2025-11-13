@@ -21,6 +21,7 @@
     "@codemirror/theme-one-dark": "^6.1.3",
     "@codemirror/view": "^6.38.1",
     "@element-plus/icons-vue": "^2.3.1",
+    "@octokit/rest": "^22.0.1",
     "@tailwindcss/vite": "^4.0.17",
     "@vueuse/core": "^13.0.0",
     "codemirror": "^6.0.2",

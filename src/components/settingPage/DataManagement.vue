@@ -35,41 +35,84 @@
         </p>
       </div>
     </div>
-        <div class="setting-card">
+    <div class="setting-card">
       <div class="setting-content">
         <div class="setting-header">
           <div class="setting-info">
-            <span class="setting-label">WebDAV 同步</span>
+            <span class="setting-label">云同步</span>
             <Icon icon="material-symbols:cloud-sync-outline" width="20" height="20"
               style="margin-left: 8px; color: var(--el-color-primary);" />
           </div>
         </div>
-        <div v-if="snapshotAvailable" class="snapshot-revert-container">
-          <p>已从 WebDAV 获取新数据<br/>您可以在这里 <el-button type="primary" link @click="revertPull">撤销</el-button> 此操作，本次会话有效</p>
+
+        <!-- 撤销提示 -->
+        <div v-if="snapshotAvailable || gistSnapshotAvailable" class="snapshot-revert-container">
+          <p>已从云端获取新数据<br/>您可以在这里 <el-button type="primary" link @click="revertCurrentPull">撤销</el-button> 此操作，本次会话有效</p>
         </div>
-        <div class="webdav-settings">
+
+        <!-- 同步提供商选择 -->
+        <div class="sync-provider-selector">
+          <span class="provider-label">同步提供商</span>
+          <el-segmented v-model="selectedProvider" :options="providerOptions" size="default" />
+        </div>
+
+        <!-- WebDAV 配置 -->
+        <div v-show="selectedProvider === 'webdav'" class="sync-config-container">
           <el-input v-model="webdavConfig.url" placeholder="WebDAV URL" />
           <el-input v-model="webdavConfig.username" placeholder="用户名" />
           <el-input v-model="webdavConfig.password" placeholder="密码" type="password" show-password />
-          <div class="webdav-buttons">
-            <el-button @click="testWebDAV">
-              <Icon icon="material-symbols:add-link-rounded" style="margin-right: 8px;" />
-              测试链接
-            </el-button>
-            <el-button @click="pushToWebDAV" type="primary" plain>
-              <Icon icon="material-symbols:cloud-upload" style="margin-right: 8px;" />
-              推送
-            </el-button>
-            <el-button @click="pullFromWebDAV" type="success" plain>
-              <Icon icon="material-symbols:cloud-download-outline" style="margin-right: 8px;" />
-              拉取
-            </el-button>
-          </div>
+          <p class="provider-description">
+            将数据备份到你的 WebDAV 服务器<br/>
+            <span style="color: var(--el-color-warning);">请注意前端该死的跨域问题，尽量使用自建服务</span>
+          </p>
         </div>
-        <p class="setting-description" style="margin-top: 12px;">
-          将数据备份到你的 WebDAV 服务器 这将会上传一个包含所有设置、角色卡和项目的单一备份文件<br/>
-          请注意前端该死的跨域问题，尽量使用自建服务
-        </p>
+
+        <!-- GitHub Gist 配置 -->
+        <div v-show="selectedProvider === 'gist'" class="sync-config-container">
+          <el-input v-model="gistConfig.token" placeholder="GitHub Personal Access Token" type="password" show-password>
+            <template #append>
+              <el-button @click="openGistTokenHelp">
+                <Icon icon="material-symbols:help-outline" />
+              </el-button>
+            </template>
+          </el-input>
+          <el-input v-model="gistConfig.gistId" placeholder="Gist ID (可选，留空将创建新 Gist)">
+            <template #append>
+              <el-button @click="listGists" :disabled="!gistConfig.token">
+                <Icon icon="material-symbols:list" />
+              </el-button>
+            </template>
+          </el-input>
+          <div class="sync-time-display" v-if="gistConfig.lastSyncTime">
+            <Icon icon="material-symbols:schedule" style="margin-right: 4px;" />
+            <span>上次同步: {{ formatSyncTime(gistConfig.lastSyncTime) }}</span>
+          </div>
+          <p class="provider-description">
+            将数据备份到 GitHub Gist (私密 Gist)<br/>
+            需要创建 Personal Access Token 并赋予 <code>gist</code> 权限
+            <a href="https://github.com/settings/tokens/new?scopes=gist&description=ST-CardPlus-Sync" target="_blank" style="color: var(--el-color-primary);">创建 Token</a>
+            <br/>
+            <span style="color: var(--el-color-info); font-size: 12px;">
+              💡 单文件最大 100MB, Gist 总计最大 1GB · 首次推送自动创建 Gist, 后续更新同一个 Gist
+            </span>
+          </p>
+        </div>
+
+        <!-- 统一操作按钮 -->
+        <div class="sync-action-buttons">
+          <el-button @click="handleTestConnection">
+            <Icon icon="material-symbols:add-link-rounded" style="margin-right: 8px;" />
+            测试连接
+          </el-button>
+          <el-button @click="handlePush" type="primary" plain :disabled="!canPush">
+            <Icon icon="material-symbols:cloud-upload" style="margin-right: 8px;" />
+            推送
+          </el-button>
+          <el-button @click="handlePull" type="success" plain :disabled="!canPull">
+            <Icon icon="material-symbols:cloud-download-outline" style="margin-right: 8px;" />
+            拉取
+          </el-button>
+        </div>
       </div>
     </div>
     <div class="setting-card">
@@ -143,9 +186,19 @@ import { Icon } from '@iconify/vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { worldBookService, type WorldBookStats } from '@/database/worldBookService';
 import { characterCardService, type CharacterCardStats } from '@/database/characterCardService';
-import { ref, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { uploadToWebDAV, downloadFromWebDAV, testWebDAVConnection } from '@/utils/webdav';
 import { resetAppDatabase, exportAllDatabases, importAllDatabases } from '@/database/utils';
+import {
+  testGistConnection,
+  uploadToGist,
+  downloadFromGist,
+  createBackupGist,
+  listUserGists,
+  loadGistConfig,
+  saveGistConfig
+} from '@/utils/gist';
+import type { GistConfig, BackupData } from '@/types/gist';
 
 interface WebDAVConfig {
   url: string;
@@ -160,6 +213,41 @@ const webdavConfig = ref<WebDAVConfig>({
 });
 const webdavBackupFileName = 'st-cardplus-webdav-backup.json';
 const snapshotAvailable = ref(false);
+
+// GitHub Gist 配置
+const gistConfig = ref<GistConfig>({
+  token: '',
+  gistId: '',
+  lastSyncTime: undefined,
+  autoSync: false,
+});
+const gistSnapshotAvailable = ref(false);
+
+// 同步提供商选择
+type SyncProvider = 'webdav' | 'gist';
+const selectedProvider = ref<SyncProvider>('webdav');
+const providerOptions = [
+  { label: 'WebDAV', value: 'webdav', icon: 'material-symbols:cloud' },
+  { label: 'GitHub Gist', value: 'gist', icon: 'mdi:github' }
+];
+
+// 计算属性: 是否可以推送
+const canPush = computed(() => {
+  if (selectedProvider.value === 'webdav') {
+    return !!webdavConfig.value.url;
+  } else {
+    return !!gistConfig.value.token;
+  }
+});
+
+// 计算属性: 是否可以拉取
+const canPull = computed(() => {
+  if (selectedProvider.value === 'webdav') {
+    return !!webdavConfig.value.url;
+  } else {
+    return !!gistConfig.value.token && !!gistConfig.value.gistId;
+  }
+});
 
 const indexedDBUsage = ref({
   percentage: 0,
@@ -273,15 +361,31 @@ onMounted(() => {
   if (savedWebDAVConfig) {
     webdavConfig.value = JSON.parse(savedWebDAVConfig);
   }
-  
+
   const snapshot = sessionStorage.getItem('webdav-snapshot');
   if (snapshot) {
     snapshotAvailable.value = true;
+  }
+
+  // 加载 Gist 配置
+  const savedGistConfig = loadGistConfig();
+  if (savedGistConfig) {
+    gistConfig.value = savedGistConfig;
+  }
+
+  // 检查 Gist 快照
+  const gistSnapshot = sessionStorage.getItem('gist-snapshot');
+  if (gistSnapshot) {
+    gistSnapshotAvailable.value = true;
   }
 });
 
 watch(webdavConfig, (newConfig) => {
   localStorage.setItem('webdavConfig', JSON.stringify(newConfig));
+}, { deep: true });
+
+watch(gistConfig, (newConfig) => {
+  saveGistConfig(newConfig);
 }, { deep: true });
 
 const exportData = async () => {
@@ -517,26 +621,8 @@ const pushToWebDAV = async () => {
   }
   try {
     ElMessage.info('正在准备数据并上传...');
-    const data: { [key: string]: any } = {};
-    // 1. 备份 localStorage
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key) {
-        if (key === 'webdavConfig') continue;
-        data[key] = localStorage.getItem(key);
-      }
-    }
-
-    // 2. 备份所有 IndexedDB 数据库
-    try {
-      const dbData = await exportAllDatabases();
-      Object.assign(data, dbData);
-    } catch (error) {
-      ElMessage.error(`${error instanceof Error ? error.message : '备份数据库失败'}，推送中止`);
-      return;
-    }
-
-    const json = JSON.stringify(data, null, 2);
+    const backupData = await prepareBackupData();
+    const json = JSON.stringify(backupData, null, 2);
     await uploadToWebDAV(webdavConfig.value, webdavBackupFileName, json);
 
     ElMessage.success('数据已成功推送到 WebDAV 服务器');
@@ -554,15 +640,18 @@ const pullFromWebDAV = async () => {
   try {
     ElMessage.info('正在从服务器拉取数据...');
     const json = await downloadFromWebDAV(webdavConfig.value, webdavBackupFileName);
-    const data = JSON.parse(json);
+    const backupData = JSON.parse(json) as BackupData;
 
     ElMessageBox.confirm(
-      '这将用服务器上的备份覆盖所有现有本地数据 此操作可能会丢失你没有保存的想法 您确定要继续吗？',
+      `这将用服务器上的备份覆盖所有现有本地数据<br/>
+      <strong>备份时间:</strong> ${new Date(backupData.timestamp).toLocaleString('zh-CN')}<br/>
+      此操作可能会丢失你没有保存的更改 您确定要继续吗？`,
       '警告',
       {
         confirmButtonText: '确认覆盖',
         cancelButtonText: '取消',
         type: 'warning',
+        dangerouslyUseHTMLString: true,
       }
     )
       .then(async () => {
@@ -579,18 +668,22 @@ const pullFromWebDAV = async () => {
           Object.assign(snapshotData, dbSnapshot);
           sessionStorage.setItem('webdav-snapshot', JSON.stringify(snapshotData));
 
-          // 2. 恢复所有 IndexedDB 数据库
-          await importAllDatabases(data);
+          // 2. 将结构化备份转为扁平格式并恢复 IndexedDB
+          const flatData = {
+            ...backupData.localStorage,
+            ...backupData.databases,
+          };
+          await importAllDatabases(flatData);
 
-          // 3. 恢复 localStorage 数据
+          // 3. 恢复 localStorage 数据 (保留 WebDAV 配置)
           const preservedWebDAVConfig = localStorage.getItem('webdavConfig');
           localStorage.clear();
           if (preservedWebDAVConfig) {
             localStorage.setItem('webdavConfig', preservedWebDAVConfig);
           }
-          for (const key in data) {
-            if (Object.prototype.hasOwnProperty.call(data, key)) {
-              localStorage.setItem(key, data[key]);
+          for (const key in backupData.localStorage) {
+            if (Object.prototype.hasOwnProperty.call(backupData.localStorage, key)) {
+              localStorage.setItem(key, backupData.localStorage[key]);
             }
           }
 
@@ -644,6 +737,347 @@ const revertPull = async () => {
     ElMessage.error('没有可用的快照 请检查是否已执行拉取操作 ');
   }
   snapshotAvailable.value = false;
+};
+
+// ===== GitHub Gist 同步相关方法 =====
+
+// 格式化同步时间
+const formatSyncTime = (timestamp: string) => {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+
+  if (minutes < 1) return '刚刚';
+  if (minutes < 60) return `${minutes} 分钟前`;
+  if (hours < 24) return `${hours} 小时前`;
+  if (days < 7) return `${days} 天前`;
+  return date.toLocaleString('zh-CN');
+};
+
+// 打开 GitHub Token 帮助页面
+const openGistTokenHelp = () => {
+  window.open('https://github.com/settings/tokens/new?scopes=gist&description=ST-CardPlus-Sync', '_blank');
+};
+
+// 测试 Gist 连接
+const testGist = async () => {
+  if (!gistConfig.value.token) {
+    ElMessage.error('请输入 GitHub Personal Access Token');
+    return;
+  }
+
+  try {
+    ElMessage.info('正在测试连接...');
+    const result = await testGistConnection(gistConfig.value.token);
+
+    if (result.success) {
+      ElMessage.success(result.message);
+    } else {
+      ElMessage.error(result.message);
+    }
+  } catch (error) {
+    console.error('测试 Gist 连接失败:', error);
+    ElMessage.error(`连接失败: ${error instanceof Error ? error.message : '未知错误'}`);
+  }
+};
+
+// 列出用户的所有 Gists
+const listGists = async () => {
+  if (!gistConfig.value.token) {
+    ElMessage.error('请输入 GitHub Personal Access Token');
+    return;
+  }
+
+  try {
+    ElMessage.info('正在获取 Gist 列表...');
+    const result = await listUserGists(gistConfig.value.token);
+
+    if (result.success && result.data) {
+      const gists = result.data;
+      if (gists.length === 0) {
+        ElMessage.info('未找到备份 Gist，请先推送数据或创建新 Gist');
+        return;
+      }
+
+      // 显示选择对话框
+      ElMessageBox.alert(
+        gists.map((g: any) =>
+          `<div style="margin-bottom: 10px; padding: 8px; background: var(--el-fill-color-light); border-radius: 4px;">
+            <strong>ID:</strong> ${g.id}<br/>
+            <strong>描述:</strong> ${g.description}<br/>
+            <strong>更新:</strong> ${new Date(g.updated_at).toLocaleString('zh-CN')}
+          </div>`
+        ).join(''),
+        '您的备份 Gists',
+        {
+          dangerouslyUseHTMLString: true,
+          confirmButtonText: '关闭',
+        }
+      );
+    } else {
+      ElMessage.error(result.message);
+    }
+  } catch (error) {
+    console.error('获取 Gist 列表失败:', error);
+    ElMessage.error(`获取失败: ${error instanceof Error ? error.message : '未知错误'}`);
+  }
+};
+
+// 准备备份数据 (统一的结构化格式)
+const prepareBackupData = async (): Promise<BackupData> => {
+  const localStorageData: { [key: string]: any } = {};
+
+  // 1. 备份 localStorage (排除敏感配置)
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key !== 'gistConfig' && key !== 'webdavConfig') {
+      localStorageData[key] = localStorage.getItem(key);
+    }
+  }
+
+  // 2. 备份所有 IndexedDB 数据库
+  const dbData = await exportAllDatabases();
+
+  return {
+    timestamp: new Date().toISOString(),
+    version: '1.0.0',
+    localStorage: localStorageData,
+    databases: dbData as any,
+  };
+};
+
+// 推送到 Gist
+const pushToGist = async () => {
+  if (!gistConfig.value.token) {
+    ElMessage.error('请输入 GitHub Personal Access Token');
+    return;
+  }
+
+  try {
+    ElMessage.info('正在准备数据并上传...');
+    const backupData = await prepareBackupData();
+
+    const backupSize = JSON.stringify(backupData).length;
+    const backupSizeMB = (backupSize / (1024 * 1024)).toFixed(2);
+
+    console.log('[Gist Push] 准备的备份数据:', {
+      timestamp: backupData.timestamp,
+      version: backupData.version,
+      localStorageKeys: Object.keys(backupData.localStorage).length,
+      databaseKeys: Object.keys(backupData.databases),
+      totalSize: backupSize,
+      sizeMB: backupSizeMB
+    });
+
+    // 检查文件大小限制
+    if (backupSize > 100 * 1024 * 1024) {
+      ElMessage.warning(`备份文件过大 (${backupSizeMB}MB), 超过 Gist 单文件 100MB 限制，推送可能失败`);
+      return;
+    } else if (backupSize > 50 * 1024 * 1024) {
+      ElMessage.warning(`备份文件较大 (${backupSizeMB}MB), 建议清理无用数据`);
+    }
+
+    let result;
+    if (gistConfig.value.gistId) {
+      // 更新现有 Gist
+      console.log('[Gist Push] 更新现有 Gist:', gistConfig.value.gistId);
+      result = await uploadToGist(gistConfig.value.token, gistConfig.value.gistId, backupData);
+    } else {
+      // 创建新 Gist
+      console.log('[Gist Push] 创建新 Gist');
+      result = await createBackupGist(gistConfig.value.token, backupData);
+      if (result.success && result.data?.gistId) {
+        console.log('[Gist Push] 新 Gist ID:', result.data.gistId);
+        gistConfig.value.gistId = result.data.gistId;
+      }
+    }
+
+    console.log('[Gist Push] 推送结果:', result);
+
+    if (result.success) {
+      gistConfig.value.lastSyncTime = new Date().toISOString();
+      ElMessage.success(`${result.message} (大小: ${backupSizeMB}MB)`);
+    } else {
+      ElMessage.error(result.message);
+    }
+  } catch (error) {
+    console.error('[Gist Push] 推送失败:', error);
+    ElMessage.error(`推送失败: ${error instanceof Error ? error.message : '未知错误'}`);
+  }
+};
+
+// 从 Gist 拉取
+const pullFromGist = async () => {
+  if (!gistConfig.value.token || !gistConfig.value.gistId) {
+    ElMessage.error('请输入 Token 和 Gist ID');
+    return;
+  }
+
+  try {
+    ElMessage.info('正在从 Gist 拉取数据...');
+    const result = await downloadFromGist(gistConfig.value.token, gistConfig.value.gistId);
+
+    console.log('[Gist Pull] 下载结果:', result);
+
+    if (!result.success || !result.data) {
+      console.error('[Gist Pull] 下载失败:', result.message);
+      ElMessage.error(result.message);
+      return;
+    }
+
+    const backupData = result.data as BackupData;
+    console.log('[Gist Pull] 备份数据结构:', {
+      hasTimestamp: !!backupData.timestamp,
+      hasVersion: !!backupData.version,
+      hasLocalStorage: !!backupData.localStorage,
+      hasDatabases: !!backupData.databases,
+      localStorageKeys: backupData.localStorage ? Object.keys(backupData.localStorage).length : 0,
+      databaseKeys: backupData.databases ? Object.keys(backupData.databases) : []
+    });
+
+    ElMessageBox.confirm(
+      `这将用 Gist 上的备份覆盖所有现有本地数据<br/>
+      <strong>备份时间:</strong> ${new Date(backupData.timestamp).toLocaleString('zh-CN')}<br/>
+      此操作可能会丢失你没有保存的更改 您确定要继续吗？`,
+      '警告',
+      {
+        confirmButtonText: '确认覆盖',
+        cancelButtonText: '取消',
+        type: 'warning',
+        dangerouslyUseHTMLString: true,
+      }
+    )
+      .then(async () => {
+        try {
+          // 1. 创建快照
+          const snapshotData: { [key: string]: any } = {};
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key) {
+              snapshotData[key] = localStorage.getItem(key);
+            }
+          }
+          const dbSnapshot = await exportAllDatabases();
+          Object.assign(snapshotData, dbSnapshot);
+          sessionStorage.setItem('gist-snapshot', JSON.stringify(snapshotData));
+
+          // 2. 将结构化备份数据转换为扁平格式 (兼容 importAllDatabases)
+          const flatData: { [key: string]: any } = {
+            ...backupData.localStorage,
+            ...backupData.databases,
+          };
+
+          // 3. 恢复 IndexedDB 数据
+          await importAllDatabases(flatData);
+
+          // 4. 恢复 localStorage (保留 Gist 配置)
+          const preservedGistConfig = localStorage.getItem('gistConfig');
+          localStorage.clear();
+          if (preservedGistConfig) {
+            localStorage.setItem('gistConfig', preservedGistConfig);
+          }
+
+          for (const key in backupData.localStorage) {
+            if (Object.prototype.hasOwnProperty.call(backupData.localStorage, key)) {
+              localStorage.setItem(key, backupData.localStorage[key]);
+            }
+          }
+
+          // 更新同步时间
+          gistConfig.value.lastSyncTime = new Date().toISOString();
+          saveGistConfig(gistConfig.value);
+
+          ElMessage.success('数据已成功从 Gist 恢复，应用将重新加载');
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        } catch (restoreError) {
+          console.error('从 Gist 恢复数据失败:', restoreError);
+          ElMessage.error('恢复数据时发生错误，操作已终止');
+        }
+      })
+      .catch(() => {
+        ElMessage.info('操作已取消');
+      });
+  } catch (error) {
+    console.error('从 Gist 拉取失败:', error);
+    ElMessage.error(`拉取失败: ${error instanceof Error ? error.message : '未知错误'}`);
+  }
+};
+
+// 撤销 Gist 拉取
+const revertGistPull = async () => {
+  const snapshot = sessionStorage.getItem('gist-snapshot');
+  if (snapshot) {
+    try {
+      const data = JSON.parse(snapshot);
+
+      // 1. 恢复所有 IndexedDB 数据库
+      await importAllDatabases(data);
+
+      // 2. 恢复 localStorage
+      localStorage.clear();
+      for (const key in data) {
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
+          localStorage.setItem(key, data[key]);
+        }
+      }
+
+      // 3. 清除快照并重新加载
+      sessionStorage.removeItem('gist-snapshot');
+      ElMessage.success('操作已撤销，应用将重新加载');
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    } catch (error) {
+      console.error('恢复 Gist 快照失败:', error);
+      ElMessage.error('恢复快照失败，请检查控制台');
+    }
+  } else {
+    ElMessage.error('没有可用的快照 请检查是否已执行拉取操作');
+  }
+  gistSnapshotAvailable.value = false;
+};
+
+// ===== 统一的同步处理函数 =====
+
+// 统一测试连接
+const handleTestConnection = async () => {
+  if (selectedProvider.value === 'webdav') {
+    await testWebDAV();
+  } else {
+    await testGist();
+  }
+};
+
+// 统一推送
+const handlePush = async () => {
+  if (selectedProvider.value === 'webdav') {
+    await pushToWebDAV();
+  } else {
+    await pushToGist();
+  }
+};
+
+// 统一拉取
+const handlePull = async () => {
+  if (selectedProvider.value === 'webdav') {
+    await pullFromWebDAV();
+  } else {
+    await pullFromGist();
+  }
+};
+
+// 统一撤销
+const revertCurrentPull = async () => {
+  if (snapshotAvailable.value) {
+    await revertPull();
+  } else if (gistSnapshotAvailable.value) {
+    await revertGistPull();
+  }
 };
 </script>
 
@@ -738,5 +1172,60 @@ const revertPull = async () => {
   border-radius: 4px;
   margin-bottom: 15px;
   color: var(--el-color-success-dark-2);
+}
+
+.gist-sync-time {
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
+  text-align: left;
+  padding: 8px 0;
+}
+
+/* 同步提供商选择器 */
+.sync-provider-selector {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.provider-label {
+  font-size: 14px;
+  color: var(--el-text-color-regular);
+  font-weight: 500;
+  min-width: 80px;
+}
+
+/* 同步配置容器 */
+.sync-config-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.provider-description {
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
+  line-height: 1.5;
+  margin: 8px 0 0 0;
+  text-align: left;
+}
+
+/* 同步时间显示 */
+.sync-time-display {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
+  padding: 8px 0;
+}
+
+/* 统一操作按钮 */
+.sync-action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
 }
 </style>

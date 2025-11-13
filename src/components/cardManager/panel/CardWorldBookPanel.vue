@@ -37,24 +37,19 @@
       <div class="worldbook-layout worldbook-layout-desktop">
         <Splitpanes class="default-theme">
           <Pane size="15" min-size="10" max-size="30">
-            <WorldBookList
-              :collection="mockCollection"
-              :active-book-id="mockActiveBookId"
-              @select-entry="onListSelectEntry"
-              @add-entry="onListAddEntry"
-              @duplicate-entry="onListDuplicateEntry"
-              @delete-entry="onListDeleteEntry"
-              :selected-entry="selectedEntry"
-              :drag-drop-handlers="dragDropHandlers"
-              :hide-book-selector="true"
-            />
+            <WorldBookList :collection="mockCollection" :active-book-id="mockActiveBookId"
+              @select-entry="onListSelectEntry" @add-entry="onListAddEntry" @duplicate-entry="onListDuplicateEntry"
+              @delete-entry="onListDeleteEntry" :selected-entry="selectedEntry" :drag-drop-handlers="dragDropHandlers"
+              :hide-book-selector="true" />
           </Pane>
           <Pane size="85" min-size="70">
             <div class="worldbook-editor-panel">
               <div class="content-panel-header">
                 <h2 class="content-panel-title">
                   <Icon icon="ph:note-pencil-duotone" class="content-panel-icon" />
-                  编辑: <span class="content-panel-text-highlight">{{ selectedEntry ? selectedEntry.comment || "新条目" : "未选择条目" }}</span>
+                  编辑: <span class="content-panel-text-highlight">{{ selectedEntry ? selectedEntry.comment || "新条目" :
+                    "未选择条目"
+                    }}</span>
                 </h2>
                 <div class="editor-actions">
                   <el-tooltip content="保存状态" placement="top">
@@ -77,19 +72,11 @@
                 </div>
               </div>
               <div class="worldbook-editor-container">
-                <WorldBookEditor
-                  v-if="selectedEntry"
-                  :entry="selectedEntry"
-                  v-model="editableEntry"
-                  :all-keywords="allKeywords"
-                  :current-entry-index="currentEntryIndex"
-                  :total-entries="totalEntries"
-                  @go-to-previous="goToPreviousEntry"
-                  @go-to-next="goToNextEntry"
-                  :is-next-entry-in-different-book="false"
-                  :is-previous-entry-in-different-book="false"
-                  :save-status="saveStatus"
-                />
+                <WorldBookEditor v-if="selectedEntry" :entry="selectedEntry" v-model="editableEntry"
+                  :all-keywords="allKeywords" :current-entry-index="currentEntryIndex" :total-entries="totalEntries"
+                  @go-to-previous="goToPreviousEntry" @go-to-next="goToNextEntry"
+                  :is-next-entry-in-different-book="false" :is-previous-entry-in-different-book="false"
+                  :save-status="saveStatus" />
                 <div v-else class="editor-empty-state">
                   <el-empty description="请选择一个条目进行编辑" :image-size="100" />
                 </div>
@@ -103,17 +90,10 @@
       <div class="worldbook-layout worldbook-layout-mobile">
         <el-tabs v-model="mobileActiveTab" type="border-card" class="worldbook-mobile-tabs">
           <el-tab-pane name="list" label="条目列表">
-            <WorldBookList
-              :collection="mockCollection"
-              :active-book-id="mockActiveBookId"
-              @select-entry="handleMobileSelectEntry"
-              @add-entry="onListAddEntry"
-              @duplicate-entry="onListDuplicateEntry"
-              @delete-entry="onListDeleteEntry"
-              :selected-entry="selectedEntry"
-              :drag-drop-handlers="dragDropHandlers"
-              :hide-book-selector="true"
-            />
+            <WorldBookList :collection="mockCollection" :active-book-id="mockActiveBookId"
+              @select-entry="handleMobileSelectEntry" @add-entry="onListAddEntry"
+              @duplicate-entry="onListDuplicateEntry" @delete-entry="onListDeleteEntry" :selected-entry="selectedEntry"
+              :drag-drop-handlers="dragDropHandlers" :hide-book-selector="true" />
           </el-tab-pane>
           <el-tab-pane name="editor" :label="selectedEntry ? (selectedEntry.comment || '新条目') : '编辑器'">
             <div class="worldbook-editor-panel-mobile">
@@ -148,19 +128,11 @@
                 </div>
               </div>
               <div class="worldbook-editor-container">
-                <WorldBookEditor
-                  v-if="selectedEntry"
-                  :entry="selectedEntry"
-                  v-model="editableEntry"
-                  :all-keywords="allKeywords"
-                  :current-entry-index="currentEntryIndex"
-                  :total-entries="totalEntries"
-                  @go-to-previous="goToPreviousEntry"
-                  @go-to-next="goToNextEntry"
-                  :is-next-entry-in-different-book="false"
-                  :is-previous-entry-in-different-book="false"
-                  :save-status="saveStatus"
-                />
+                <WorldBookEditor v-if="selectedEntry" :entry="selectedEntry" v-model="editableEntry"
+                  :all-keywords="allKeywords" :current-entry-index="currentEntryIndex" :total-entries="totalEntries"
+                  @go-to-previous="goToPreviousEntry" @go-to-next="goToNextEntry"
+                  :is-next-entry-in-different-book="false" :is-previous-entry-in-different-book="false"
+                  :save-status="saveStatus" />
                 <div v-else class="editor-empty-state">
                   <el-empty description="请从左侧选择一个条目进行编辑" :image-size="80" />
                 </div>
@@ -172,28 +144,15 @@
     </div>
 
     <!-- 世界书选择对话框 -->
-    <WorldBookSelectorDialog
-      v-model="showWorldBookSelector"
-      @confirm="handleBindWorldBook"
-    />
+    <WorldBookSelectorDialog v-model="showWorldBookSelector" @confirm="handleBindWorldBook" />
 
     <!-- 世界书选择对话框 (用于替换) -->
-    <WorldBookSelectorDialog
-      v-model="showReplaceWorldBookSelector"
-      @confirm="handleConfirmReplace"
-    />
+    <WorldBookSelectorDialog v-model="showReplaceWorldBookSelector" @confirm="handleConfirmReplace" />
 
     <!-- 确认对话框 -->
-    <ConfirmDialog
-      ref="confirmDialogRef"
-      :title="confirmConfig.title"
-      :message="confirmConfig.message"
-      :type="confirmConfig.type"
-      :confirm-text="confirmConfig.confirmText"
-      :cancel-text="confirmConfig.cancelText"
-      @confirm="confirmConfig.onConfirm"
-      @cancel="confirmConfig.onCancel"
-    />
+    <ConfirmDialog ref="confirmDialogRef" :title="confirmConfig.title" :message="confirmConfig.message"
+      :type="confirmConfig.type" :confirm-text="confirmConfig.confirmText" :cancel-text="confirmConfig.cancelText"
+      @confirm="confirmConfig.onConfirm" @cancel="confirmConfig.onCancel" />
   </div>
 </template>
 
@@ -242,8 +201,8 @@ const confirmConfig = ref({
   type: 'info' as 'info' | 'warning' | 'danger',
   confirmText: '确认',
   cancelText: '取消',
-  onConfirm: () => {},
-  onCancel: () => {}
+  onConfirm: () => { },
+  onCancel: () => { }
 });
 
 // 计算属性：是否有世界书
@@ -720,7 +679,8 @@ defineExpose({
   flex: 1;
   overflow: hidden;
   height: 100%;
-  min-height: 0; /* 关键：允许 flex 子元素缩小 */
+  min-height: 0;
+  /* 关键：允许 flex 子元素缩小 */
 }
 
 /* 桌面端布局 */
@@ -776,7 +736,8 @@ defineExpose({
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  min-height: 0; /* 关键：允许内容缩小 */
+  min-height: 0;
+  /* 关键：允许内容缩小 */
 }
 
 /* WorldBookEditor 容器 */
