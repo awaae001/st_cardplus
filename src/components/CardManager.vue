@@ -42,7 +42,7 @@
                   <Icon icon="ph:upload-duotone" v-if="!isUploading" />
                   <span class="button-text">{{ isUploading ? uploadProgress : '加载PNG' }}</span>
                 </el-button>
-                <el-button type="success" @click="showExportDialog = true" size="small">
+                <el-button type="success" @click="handleExportWithOptions" size="small">
                   <Icon icon="ph:export-duotone" />
                   <span class="button-text">导出PNG</span>
                 </el-button>
@@ -138,30 +138,50 @@
       </template>
     </el-dialog>
 
-    <!-- 导出配置对话框 -->
-    <CardExportDialog v-model="showExportDialog" :character-data="characterData" @confirm="handleExportConfirm" />
+    <!-- 正则脚本选择对话框 -->
+    <RegexScriptSelectorDialog v-model="showRegexSelectorDialog" :default-selected-ids="defaultSelectedRegexIds"
+      @confirm="handleRegexScriptsSelected" />
+
+    <!-- 导出选项对话框 -->
+    <el-dialog v-model="showExportOptionsDialog" title="导出角色卡" width="400px" :close-on-click-modal="false">
+      <div class="export-options-content">
+        <el-text>请选择是否在导出的角色卡中包含正则脚本：</el-text>
+        <div class="export-option-buttons">
+          <el-button type="primary" @click="handleExportWithRegex" class="export-option-button">
+            <Icon icon="ph:brackets-curly-duotone" />
+            <span>包含正则脚本</span>
+          </el-button>
+          <el-button @click="handleExportWithoutRegex" class="export-option-button">
+            <Icon icon="ph:export-duotone" />
+            <span>跳过正则脚本</span>
+          </el-button>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="showExportOptionsDialog = false">取消</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onUnmounted, onMounted, watch } from 'vue';
-import { ElButton, ElMessage, ElTabs, ElTabPane, ElDivider, ElDialog } from 'element-plus';
+import { ElButton, ElMessage, ElTabs, ElTabPane, ElDivider, ElDialog, ElText } from 'element-plus';
 import { Icon } from '@iconify/vue';
 
-import CharacterCardActions from '@/components/cardManager/CharacterCardActions.vue';
-import CharacterCardTabs from '@/components/cardManager/CharacterCardTabs.vue';
-import CharacterCardHome from '@/components/cardManager/CharacterCardHome.vue';
+import CharacterCardActions from '@/components/cardManager/components/CharacterCardActions.vue';
+import CharacterCardTabs from '@/components/cardManager/components/CharacterCardTabs.vue';
+import CharacterCardHome from '@/components/cardManager/components/CharacterCardHome.vue';
 import CardEditor from '@/components/cardManager/CardEditor.vue';
-import CardExportDialog from '@/components/cardManager/CardExportDialog.vue';
+import RegexScriptSelectorDialog from '@/components/cardManager/RegexScriptSelectorDialog.vue';
 import CardWorldBookPanel from '@/components/cardManager/panel/CardWorldBookPanel.vue';
 import CardRegexPanel from '@/components/cardManager/panel/CardRegexPanel.vue';
 
 import { useV3CharacterCard } from '@/composables/characterCard/useV3CharacterCard';
 import type { SillyTavernRegexScript } from '@/composables/regex/types';
-import { useRegexCollection } from '@/composables/regex/useRegexCollection';
 import { useCharacterCardCollection } from '@/composables/characterCard/useCharacterCardCollection';
 import { useCardImport } from '@/composables/characterCard/useCardImport';
-import { useCardExport, type ExportRegexOption } from '@/composables/characterCard/useCardExport';
+import { useCardExport } from '@/composables/characterCard/useCardExport';
 import { useTabManager } from '@/composables/characterCard/useTabManager';
 import { useCharacterCardAutoSave, type AutoSaveMode } from '@/composables/characterCard/useCharacterCardAutoSave';
 
@@ -282,41 +302,46 @@ const { isUploading, uploadProgress, fileInput, triggerFileInput, handleFileSele
   },
   handleImageUpdate
 );
-const { handleExportWithRegexOptions } = useCardExport(characterData, characterImageFile);
-const { regexCollection } = useRegexCollection();
+const { handleSave } = useCardExport(characterData, characterImageFile);
 
-// 导出对话框
-const showExportDialog = ref(false);
+// 导出选项对话框
+const showExportOptionsDialog = ref(false);
 
-// 处理导出确认
-const handleExportConfirm = async (option: ExportRegexOption, selectedData?: string[] | SillyTavernRegexScript[]) => {
-  let selectedScripts: SillyTavernRegexScript[] | undefined;
+// 正则脚本选择对话框
+const showRegexSelectorDialog = ref(false);
+const defaultSelectedRegexIds = computed(() => {
+  const scripts = characterData.value.data.extensions?.regex_scripts || [];
+  return scripts.map((s: SillyTavernRegexScript) => s.id);
+});
 
-  // 如果选择了"绑定新正则"，需要从正则库中查询完整的脚本对象
-  if (option === 'bind-new' && selectedData && selectedData.length > 0) {
-    // 判断是否为字符串数组（脚本 ID）
-    if (typeof selectedData[0] === 'string') {
-      selectedScripts = [];
-      const categories = Object.values(regexCollection.value.categories);
-      const selectedScriptIds = selectedData as string[];
+// 显示导出选项对话框
+const handleExportWithOptions = () => {
+  showExportOptionsDialog.value = true;
+};
 
-      for (const category of categories) {
-        for (const script of category.scripts) {
-          if (selectedScriptIds.includes(script.id)) {
-            // 创建副本，移除 categoryId
-            const { categoryId, ...scriptWithoutCategoryId } = script;
-            selectedScripts.push(scriptWithoutCategoryId as SillyTavernRegexScript);
-          }
-        }
-      }
-    } else {
-      // 已经是完整的脚本对象
-      selectedScripts = selectedData as SillyTavernRegexScript[];
-    }
+// 包含正则脚本导出
+const handleExportWithRegex = () => {
+  showExportOptionsDialog.value = false;
+  showRegexSelectorDialog.value = true;
+};
+
+// 跳过正则脚本直接导出
+const handleExportWithoutRegex = () => {
+  showExportOptionsDialog.value = false;
+  // 直接导出,不修改正则脚本
+  handleSave();
+};
+
+// 处理正则脚本选择完成
+const handleRegexScriptsSelected = (selectedScripts: SillyTavernRegexScript[]) => {
+  // 更新角色卡的正则脚本
+  if (!characterData.value.data.extensions) {
+    characterData.value.data.extensions = {};
   }
+  characterData.value.data.extensions.regex_scripts = selectedScripts;
 
   // 执行导出
-  await handleExportWithRegexOptions(option, selectedScripts);
+  handleSave();
 };
 
 // 角色卡内正则变更后触发手动保存
@@ -768,5 +793,33 @@ onUnmounted(() => {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+}
+
+/* 导出选项对话框样式 */
+.export-options-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 8px 0;
+}
+
+.export-option-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.export-option-button {
+  width: 100%;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.export-option-button .iconify {
+  font-size: 18px;
 }
 </style>
