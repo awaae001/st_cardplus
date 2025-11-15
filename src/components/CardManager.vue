@@ -42,7 +42,7 @@
                   <Icon icon="ph:upload-duotone" v-if="!isUploading" />
                   <span class="button-text">{{ isUploading ? uploadProgress : '加载PNG' }}</span>
                 </el-button>
-                <el-button type="success" @click="handleExportWithOptions" size="small">
+                <el-button type="success" @click="handleSave" size="small">
                   <Icon icon="ph:export-duotone" />
                   <span class="button-text">导出PNG</span>
                 </el-button>
@@ -60,6 +60,34 @@
                     :disabled="!worldbookPanelRef?.hasWorldBook">
                     <Icon icon="ph:arrows-counter-clockwise-duotone" />
                     <span class="button-text">从 DB 替换</span>
+                  </el-button>
+                </el-tooltip>
+              </div>
+              <!-- 正则面板操作按钮 -->
+              <div class="header-actions" v-else-if="rightEditorTab === 'regex'">
+                <el-tooltip content="创建一个新的空白正则脚本" placement="bottom">
+                  <el-button size="small" @click="handleRegexCreateNew" :disabled="!currentCardInTab">
+                    <Icon icon="ph:file-plus-duotone" />
+                    <span class="button-text">创建新脚本</span>
+                  </el-button>
+                </el-tooltip>
+                <el-tooltip content="从正则脚本库中选择并添加脚本" placement="bottom">
+                  <el-button size="small" @click="handleRegexAddFromLibrary" :disabled="!currentCardInTab">
+                    <Icon icon="ph:books-duotone" />
+                    <span class="button-text">从正则库添加</span>
+                  </el-button>
+                </el-tooltip>
+                <el-divider direction="vertical" />
+                <el-tooltip content="将角色卡的正则脚本发送到正则编辑器（副本），之后完全独立" placement="bottom">
+                  <el-button size="small" @click="handleRegexSendToEditor" :disabled="!hasRegexScripts">
+                    <Icon icon="ph:upload-duotone" />
+                    <span class="button-text">发送到编辑器</span>
+                  </el-button>
+                </el-tooltip>
+                <el-tooltip content="用正则编辑器中的脚本替换角色卡的所有正则脚本" placement="bottom">
+                  <el-button size="small" @click="handleRegexReplaceFromEditor" :disabled="!currentCardInTab">
+                    <Icon icon="ph:arrow-counter-clockwise-duotone" />
+                    <span class="button-text">从编辑器替换</span>
                   </el-button>
                 </el-tooltip>
               </div>
@@ -100,7 +128,7 @@
                   </span>
                 </template>
                 <div class="tab-full-content">
-                  <CardRegexPanel :character="characterData" @regexChanged="handleRegexChanged" />
+                  <CardRegexPanel ref="regexPanelRef" :character="characterData" @regexChanged="handleRegexChanged" />
                 </div>
               </el-tab-pane>
             </el-tabs>
@@ -138,47 +166,22 @@
       </template>
     </el-dialog>
 
-    <!-- 正则脚本选择对话框 -->
-    <RegexScriptSelectorDialog v-model="showRegexSelectorDialog" :default-selected-ids="defaultSelectedRegexIds"
-      @confirm="handleRegexScriptsSelected" />
-
-    <!-- 导出选项对话框 -->
-    <el-dialog v-model="showExportOptionsDialog" title="导出角色卡" width="400px" :close-on-click-modal="false">
-      <div class="export-options-content">
-        <el-text>请选择是否在导出的角色卡中包含正则脚本：</el-text>
-        <div class="export-option-buttons">
-          <el-button type="primary" @click="handleExportWithRegex" class="export-option-button">
-            <Icon icon="ph:brackets-curly-duotone" />
-            <span>包含正则脚本</span>
-          </el-button>
-          <el-button @click="handleExportWithoutRegex" class="export-option-button">
-            <Icon icon="ph:export-duotone" />
-            <span>跳过正则脚本</span>
-          </el-button>
-        </div>
-      </div>
-      <template #footer>
-        <el-button @click="showExportOptionsDialog = false">取消</el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onUnmounted, onMounted, watch } from 'vue';
-import { ElButton, ElMessage, ElTabs, ElTabPane, ElDivider, ElDialog, ElText } from 'element-plus';
+import { ElButton, ElMessage, ElTabs, ElTabPane, ElDivider } from 'element-plus';
 import { Icon } from '@iconify/vue';
 
 import CharacterCardActions from '@/components/cardManager/components/CharacterCardActions.vue';
 import CharacterCardTabs from '@/components/cardManager/components/CharacterCardTabs.vue';
 import CharacterCardHome from '@/components/cardManager/components/CharacterCardHome.vue';
 import CardEditor from '@/components/cardManager/CardEditor.vue';
-import RegexScriptSelectorDialog from '@/components/cardManager/RegexScriptSelectorDialog.vue';
 import CardWorldBookPanel from '@/components/cardManager/panel/CardWorldBookPanel.vue';
 import CardRegexPanel from '@/components/cardManager/panel/CardRegexPanel.vue';
 
 import { useV3CharacterCard } from '@/composables/characterCard/useV3CharacterCard';
-import type { SillyTavernRegexScript } from '@/composables/regex/types';
 import { useCharacterCardCollection } from '@/composables/characterCard/useCharacterCardCollection';
 import { useCardImport } from '@/composables/characterCard/useCardImport';
 import { useCardExport } from '@/composables/characterCard/useCardExport';
@@ -304,45 +307,6 @@ const { isUploading, uploadProgress, fileInput, triggerFileInput, handleFileSele
 );
 const { handleSave } = useCardExport(characterData, characterImageFile);
 
-// 导出选项对话框
-const showExportOptionsDialog = ref(false);
-
-// 正则脚本选择对话框
-const showRegexSelectorDialog = ref(false);
-const defaultSelectedRegexIds = computed(() => {
-  const scripts = characterData.value.data.extensions?.regex_scripts || [];
-  return scripts.map((s: SillyTavernRegexScript) => s.id);
-});
-
-// 显示导出选项对话框
-const handleExportWithOptions = () => {
-  showExportOptionsDialog.value = true;
-};
-
-// 包含正则脚本导出
-const handleExportWithRegex = () => {
-  showExportOptionsDialog.value = false;
-  showRegexSelectorDialog.value = true;
-};
-
-// 跳过正则脚本直接导出
-const handleExportWithoutRegex = () => {
-  showExportOptionsDialog.value = false;
-  // 直接导出,不修改正则脚本
-  handleSave();
-};
-
-// 处理正则脚本选择完成
-const handleRegexScriptsSelected = (selectedScripts: SillyTavernRegexScript[]) => {
-  // 更新角色卡的正则脚本
-  if (!characterData.value.data.extensions) {
-    characterData.value.data.extensions = {};
-  }
-  characterData.value.data.extensions.regex_scripts = selectedScripts;
-
-  // 执行导出
-  handleSave();
-};
 
 // 角色卡内正则变更后触发手动保存
 const handleRegexChanged = async () => {
@@ -541,6 +505,35 @@ const handleAddWorldBookToDB = () => {
 // 从数据库替换世界书
 const handleReplaceWorldBookFromDB = () => {
   worldbookPanelRef.value?.handleReplaceFromDB();
+};
+
+// 正则面板引用
+const regexPanelRef = ref<InstanceType<typeof CardRegexPanel>>();
+
+// 计算属性：是否有正则脚本
+const hasRegexScripts = computed(() => {
+  const scripts = characterData.value.data.extensions?.regex_scripts;
+  return scripts && scripts.length > 0;
+});
+
+// 创建新正则脚本
+const handleRegexCreateNew = () => {
+  regexPanelRef.value?.handleCreateNew();
+};
+
+// 从正则库添加脚本
+const handleRegexAddFromLibrary = () => {
+  regexPanelRef.value?.handleAddFromLibrary();
+};
+
+// 发送到正则编辑器（副本）
+const handleRegexSendToEditor = () => {
+  regexPanelRef.value?.handleSendToRegexEditor();
+};
+
+// 从正则编辑器替换
+const handleRegexReplaceFromEditor = () => {
+  regexPanelRef.value?.handleReplaceFromRegexEditor();
 };
 
 // 清理资源
@@ -793,33 +786,5 @@ onUnmounted(() => {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-}
-
-/* 导出选项对话框样式 */
-.export-options-content {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding: 8px 0;
-}
-
-.export-option-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.export-option-button {
-  width: 100%;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 14px;
-}
-
-.export-option-button .iconify {
-  font-size: 18px;
 }
 </style>

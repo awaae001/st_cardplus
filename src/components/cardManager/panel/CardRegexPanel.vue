@@ -26,53 +26,28 @@
     <div v-else class="regex-editor-wrapper">
       <Splitpanes class="default-theme">
         <!-- 左侧：脚本列表 -->
-        <Pane size="30" min-size="20" max-size="50">
+        <Pane size="20" min-size="15" max-size="30">
           <div class="scripts-list-panel">
             <div class="scripts-list-header">
               <div class="scripts-count">
                 <Icon icon="ph:list-bullets-duotone" />
                 共 {{ regexScripts.length }} 个脚本
               </div>
-              <el-dropdown @command="handleAddCommand">
-                <el-button type="primary" size="small">
-                  <Icon icon="ph:plus-bold" />
-                  添加
-                  <Icon icon="ph:caret-down-bold" />
-                </el-button>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item command="new">创建新脚本</el-dropdown-item>
-                    <el-dropdown-item command="library">从正则库添加</el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
             </div>
 
             <el-scrollbar class="scripts-scrollbar" max-height="calc(100vh - 250px)">
               <div class="scripts-list">
-                <div
-                  v-for="(script, index) in regexScripts"
-                  :key="script.id"
-                  class="script-item"
+                <div v-for="(script, index) in regexScripts" :key="script.id" class="script-item"
                   :class="{ 'is-active': selectedScriptIndex === index, 'is-disabled': script.disabled }"
-                  @click="selectScript(index)"
-                >
+                  @click="selectScript(index)">
                   <div class="script-item-content">
-                    <Icon
-                      :icon="script.disabled ? 'ph:prohibit-duotone' : 'ph:code-duotone'"
-                      class="script-icon"
-                    />
+                    <Icon :icon="script.disabled ? 'ph:prohibit-duotone' : 'ph:code-duotone'" class="script-icon" />
                     <div class="script-info">
                       <div class="script-name">{{ script.scriptName || `脚本 ${index + 1}` }}</div>
                       <div class="script-find-regex">{{ truncateRegex(script.findRegex) }}</div>
                     </div>
                   </div>
-                  <el-button
-                    type="danger"
-                    size="small"
-                    text
-                    @click.stop="handleDeleteScript(index)"
-                  >
+                  <el-button type="danger" size="small" text @click.stop="handleDeleteScript(index)">
                     <Icon icon="ph:trash-duotone" />
                   </el-button>
                 </div>
@@ -82,7 +57,7 @@
         </Pane>
 
         <!-- 右侧：脚本编辑器 -->
-        <Pane size="70" min-size="50">
+        <Pane size="80" min-size="70">
           <div class="script-editor-panel">
             <div v-if="selectedScriptIndex === null" class="editor-empty-state">
               <el-empty description="请选择一个脚本进行编辑" :image-size="100" />
@@ -91,7 +66,8 @@
               <div class="content-panel-header">
                 <h2 class="content-panel-title">
                   <Icon icon="ph:code-duotone" class="content-panel-icon" />
-                  编辑: <span class="content-panel-text-highlight">{{ currentScriptRequired.scriptName || "未命名脚本" }}</span>
+                  编辑: <span class="content-panel-text-highlight">{{ currentScriptRequired.scriptName || "未命名脚本"
+                    }}</span>
                 </h2>
                 <div class="editor-actions">
                   <el-button-group size="small">
@@ -106,26 +82,20 @@
               <el-scrollbar class="editor-scrollbar" max-height="calc(100vh - 280px)">
                 <div class="editor-form">
                   <el-form :model="currentScriptRequired" label-position="top">
-                    <RegexEditorCore
-                      v-model:script-name="currentScriptRequired.scriptName"
+                    <RegexEditorCore v-model:script-name="currentScriptRequired.scriptName"
                       v-model:find-regex="currentScriptRequired.findRegex"
                       v-model:replace-string="currentScriptRequired.replaceString"
                       v-model:trim-strings="trimStringsText"
-                      v-model:substitute-regex="currentScriptRequired.substituteRegex"
-                    />
+                      v-model:substitute-regex="currentScriptRequired.substituteRegex" />
 
                     <RegexAdvancedSettings v-model="currentScriptRequired" />
 
                     <el-divider />
 
                     <!-- 测试面板 -->
-                    <RegexSimulatorPanel
-                      v-model:test-string="testString"
-                      v-model:render-html="renderHtml"
-                      v-model:user-macro-value="userMacroValue"
-                      v-model:char-macro-value="charMacroValue"
-                      :simulated-result="simulatedResult"
-                    />
+                    <RegexSimulatorPanel v-model:test-string="testString" v-model:render-html="renderHtml"
+                      v-model:user-macro-value="userMacroValue" v-model:char-macro-value="charMacroValue"
+                      :simulated-result="simulatedResult" />
                   </el-form>
                 </div>
               </el-scrollbar>
@@ -135,18 +105,18 @@
       </Splitpanes>
     </div>
 
-    <!-- 正则脚本选择对话框 -->
-    <RegexScriptSelectorDialog
-      v-model="showRegexSelector"
-      :default-selected-ids="selectedScriptIds"
-      @confirm="handleAddScriptsFromLibrary"
-    />
+    <!-- 正则脚本选择对话框（从库添加） -->
+    <RegexScriptSelectorDialog v-model="showRegexSelector" :default-selected-ids="selectedScriptIds"
+      @confirm="handleAddScriptsFromLibrary" />
+
+    <!-- 正则脚本选择对话框（替换） -->
+    <RegexScriptSelectorDialog v-model="showReplaceSelector" @confirm="handleReplaceScriptsFromLibrary" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { ElButton, ElEmpty, ElDropdown, ElDropdownMenu, ElDropdownItem, ElScrollbar, ElButtonGroup, ElForm, ElDivider, ElMessage, ElMessageBox } from 'element-plus';
+import { ElButton, ElEmpty, ElScrollbar, ElButtonGroup, ElForm, ElDivider, ElMessage, ElMessageBox } from 'element-plus';
 import { Icon } from '@iconify/vue';
 import { Splitpanes, Pane } from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
@@ -156,8 +126,9 @@ import type { SillyTavernRegexScript } from '@/composables/regex/types';
 import RegexEditorCore from '@/components/regex/RegexEditorCore.vue';
 import RegexAdvancedSettings from '@/components/regex/RegexAdvancedSettings.vue';
 import RegexSimulatorPanel from '@/components/regex/RegexSimulatorPanel.vue';
-import RegexScriptSelectorDialog from '../RegexScriptSelectorDialog.vue';
+import RegexScriptSelectorDialog from '../components/RegexScriptSelectorDialog.vue';
 import { useRegexSimulator } from '@/composables/regex/useRegexSimulator';
+import { useRegexCollection } from '@/composables/regex/useRegexCollection';
 import { SUBSTITUTE_FIND_REGEX, type RegexScript } from '@/composables/regex/types';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -173,7 +144,11 @@ const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
 const showRegexSelector = ref(false);
+const showReplaceSelector = ref(false);
 const selectedScriptIndex = ref<number | null>(null);
+
+// 正则脚本库管理
+const { handleImportFromCharacterCard } = useRegexCollection();
 
 // 模拟器状态
 const testString = ref('测试文本');
@@ -251,14 +226,6 @@ const truncateRegex = (regex: string) => {
   return regex;
 };
 
-const handleAddCommand = (command: string) => {
-  if (command === 'new') {
-    handleCreateNew();
-  } else if (command === 'library') {
-    handleAddFromLibrary();
-  }
-};
-
 const handleCreateNew = () => {
   const newScript: SillyTavernRegexScript = {
     id: uuidv4(),
@@ -328,6 +295,92 @@ const handleDeleteScript = async (index: number) => {
   }
 };
 
+// 发送到正则编辑器（副本）
+const handleSendToRegexEditor = async () => {
+  if (regexScripts.value.length === 0) {
+    ElMessage.warning('当前角色卡没有正则脚本');
+    return;
+  }
+
+  const characterId = props.character.id || 'unknown';
+  const characterName = props.character.data.name || '未命名角色';
+
+  try {
+    const categoryId = await handleImportFromCharacterCard(
+      regexScripts.value,
+      characterId,
+      characterName
+    );
+
+    if (categoryId) {
+      ElMessage.success({
+        message: `正则脚本已成功发送到正则编辑器！`,
+        duration: 3000,
+      });
+    }
+  } catch (error) {
+    console.error('发送正则脚本失败:', error);
+    ElMessage.error(`发送失败：${error instanceof Error ? error.message : '未知错误'}`);
+  }
+};
+
+// 从正则编辑器替换
+const handleReplaceFromRegexEditor = () => {
+  showReplaceSelector.value = true;
+};
+
+// 处理从正则编辑器替换脚本（完全替换）
+const handleReplaceScriptsFromLibrary = async (scripts: SillyTavernRegexScript[]) => {
+  if (scripts.length === 0) {
+    ElMessage.warning('请至少选择一个脚本');
+    return;
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      `确定要用选中的 ${scripts.length} 个脚本替换当前所有内嵌正则脚本吗？此操作将清空当前的 ${regexScripts.value.length} 个脚本。`,
+      '确认替换',
+      {
+        confirmButtonText: '确定替换',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    );
+
+    // 深拷贝并移除 categoryId
+    const clones = scripts.map(s => ({
+      id: s.id,
+      scriptName: s.scriptName,
+      findRegex: s.findRegex,
+      replaceString: s.replaceString,
+      trimStrings: s.trimStrings ?? [],
+      placement: s.placement ?? [],
+      disabled: s.disabled ?? false,
+      markdownOnly: s.markdownOnly ?? false,
+      promptOnly: s.promptOnly ?? false,
+      runOnEdit: s.runOnEdit ?? false,
+      substituteRegex: s.substituteRegex ?? SUBSTITUTE_FIND_REGEX.NONE,
+      minDepth: s.minDepth ?? null,
+      maxDepth: s.maxDepth ?? null,
+    } as SillyTavernRegexScript));
+
+    // 完全替换
+    regexScripts.value.splice(0, regexScripts.value.length, ...clones);
+
+    // 选中第一个脚本
+    if (regexScripts.value.length > 0) {
+      selectedScriptIndex.value = 0;
+    } else {
+      selectedScriptIndex.value = null;
+    }
+
+    ElMessage.success(`已替换为 ${clones.length} 个脚本`);
+    emit('regexChanged');
+  } catch {
+    // 用户取消
+  }
+};
+
 // 监听当前脚本的变化，触发保存
 watch(
   () => currentScript.value,
@@ -338,6 +391,14 @@ watch(
   },
   { deep: true }
 );
+
+// 导出方法供父组件调用
+defineExpose({
+  handleCreateNew,
+  handleAddFromLibrary,
+  handleSendToRegexEditor,
+  handleReplaceFromRegexEditor,
+});
 </script>
 
 <style scoped>
