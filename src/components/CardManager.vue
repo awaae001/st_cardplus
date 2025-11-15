@@ -64,7 +64,7 @@
                 </el-tooltip>
               </div>
             </div>
-            <el-tabs v-model="rightEditorTab" tab-position="top" class="bookmark-tabs">
+            <el-tabs v-model="rightEditorTab" tab-position="right" class="bookmark-tabs" stretch>
               <el-tab-pane name="card">
                 <template #label>
                   <span class="bookmark-tab-label">
@@ -72,14 +72,14 @@
                     <span class="bookmark-tab-text">角色卡</span>
                   </span>
                 </template>
-                <el-scrollbar class="card-editor-content">
+                <div class="tab-full-content">
                   <CardEditor v-if="currentCardInTab" :character="characterData" :image-preview-url="imagePreviewUrl"
                     :all-tags="allTags" v-model:advanced-options-visible="advancedOptionsVisible"
                     @image-change="handleImageUpdate" />
-                </el-scrollbar>
+                </div>
               </el-tab-pane>
 
-              <el-tab-pane name="worldbook">
+              <el-tab-pane name="worldbook" style="height: 100%;">
                 <template #label>
                   <span class="bookmark-tab-label">
                     <Icon icon="ph:books-duotone" class="bookmark-tab-icon" />
@@ -146,7 +146,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onUnmounted, onMounted, watch } from 'vue';
-import { ElButton, ElMessage, ElTabs, ElTabPane, ElDivider, ElDialog, ElScrollbar } from 'element-plus';
+import { ElButton, ElMessage, ElTabs, ElTabPane, ElDivider, ElDialog } from 'element-plus';
 import { Icon } from '@iconify/vue';
 
 import CharacterCardActions from '@/components/cardManager/CharacterCardActions.vue';
@@ -530,6 +530,7 @@ onUnmounted(() => {
 
 .tab-content-area {
   flex: 1;
+  min-height: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -538,6 +539,7 @@ onUnmounted(() => {
 
 .tab-content-panel {
   flex: 1;
+  min-height: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -608,39 +610,48 @@ onUnmounted(() => {
 }
 
 /* 编辑器内容 */
-.card-editor-content {
-  flex: 1;
-  overflow: hidden;
-}
-
-/* 标签页样式 */
+/* 右侧书签式标签页样式 */
 .bookmark-tabs {
   flex: 1;
-  overflow: hidden;
+  min-height: 0;
+  overflow: auto;
+  height: 100%;
 }
 
 .bookmark-tabs :deep(.el-tabs__content) {
-  height: calc(100% - 40px);
-  overflow: hidden;
+  height: 100%;
+  overflow: auto;
+}
+
+.bookmark-tabs :deep(.el-tabs__header) {
+  margin: 0;
+}
+
+.bookmark-tabs :deep(.el-tabs__nav-wrap) {
+  padding: 8px 0;
 }
 
 .bookmark-tab-label {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  padding: 4px 0;
+  writing-mode: horizontal-tb;
 }
 
 .bookmark-tab-icon {
-  font-size: 16px;
+  font-size: 18px;
+  flex-shrink: 0;
 }
 
 .bookmark-tab-text {
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .tab-full-content {
   height: 100%;
-  overflow: hidden;
+  overflow: auto;
   display: flex;
   flex-direction: column;
 }
@@ -675,12 +686,22 @@ onUnmounted(() => {
     /* 移动端隐藏按钮文字，只显示图标 */
   }
 
-  .bookmark-tab-text {
-    font-size: 12px;
+  /* 移动端书签样式调整 */
+  .bookmark-tabs :deep(.el-tabs__nav-wrap) {
+    padding: 4px 0;
+  }
+
+  .bookmark-tab-label {
+    gap: 6px;
+    padding: 2px 0;
   }
 
   .bookmark-tab-icon {
-    font-size: 14px;
+    font-size: 16px;
+  }
+
+  .bookmark-tab-text {
+    font-size: 13px;
   }
 }
 
