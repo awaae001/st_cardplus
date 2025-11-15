@@ -42,7 +42,7 @@
                   <Icon icon="ph:upload-duotone" v-if="!isUploading" />
                   <span class="button-text">{{ isUploading ? uploadProgress : '加载PNG' }}</span>
                 </el-button>
-                <el-button type="success" @click="handleSave" size="small">
+                <el-button type="success" @click="showExportDialog = true" size="small">
                   <Icon icon="ph:export-duotone" />
                   <span class="button-text">导出PNG</span>
                 </el-button>
@@ -138,9 +138,8 @@
       </template>
     </el-dialog>
 
-    <!-- 正则脚本选择对话框 -->
-    <RegexScriptSelectorDialog v-model="showRegexSelectorDialog" :default-selected-ids="defaultSelectedRegexIds"
-      @confirm="handleRegexScriptsSelected" />
+    <!-- 导出配置对话框 -->
+    <CardExportDialog v-model="showExportDialog" :character-data="characterData" @confirm="handleExportConfirm" />
   </div>
 </template>
 
@@ -153,15 +152,16 @@ import CharacterCardActions from '@/components/cardManager/CharacterCardActions.
 import CharacterCardTabs from '@/components/cardManager/CharacterCardTabs.vue';
 import CharacterCardHome from '@/components/cardManager/CharacterCardHome.vue';
 import CardEditor from '@/components/cardManager/CardEditor.vue';
-import RegexScriptSelectorDialog from '@/components/cardManager/RegexScriptSelectorDialog.vue';
+import CardExportDialog from '@/components/cardManager/CardExportDialog.vue';
 import CardWorldBookPanel from '@/components/cardManager/panel/CardWorldBookPanel.vue';
 import CardRegexPanel from '@/components/cardManager/panel/CardRegexPanel.vue';
 
 import { useV3CharacterCard } from '@/composables/characterCard/useV3CharacterCard';
 import type { SillyTavernRegexScript } from '@/composables/regex/types';
+import { useRegexCollection } from '@/composables/regex/useRegexCollection';
 import { useCharacterCardCollection } from '@/composables/characterCard/useCharacterCardCollection';
 import { useCardImport } from '@/composables/characterCard/useCardImport';
-import { useCardExport } from '@/composables/characterCard/useCardExport';
+import { useCardExport, type ExportRegexOption } from '@/composables/characterCard/useCardExport';
 import { useTabManager } from '@/composables/characterCard/useTabManager';
 import { useCharacterCardAutoSave, type AutoSaveMode } from '@/composables/characterCard/useCharacterCardAutoSave';
 
@@ -282,25 +282,41 @@ const { isUploading, uploadProgress, fileInput, triggerFileInput, handleFileSele
   },
   handleImageUpdate
 );
-const { handleSave } = useCardExport(characterData, characterImageFile);
+const { handleExportWithRegexOptions } = useCardExport(characterData, characterImageFile);
+const { regexCollection } = useRegexCollection();
 
-// 正则脚本选择对话框
-const showRegexSelectorDialog = ref(false);
-const defaultSelectedRegexIds = computed(() => {
-  const scripts = characterData.value.data.extensions?.regex_scripts || [];
-  return scripts.map((s: SillyTavernRegexScript) => s.id);
-});
+// 导出对话框
+const showExportDialog = ref(false);
 
-// 处理正则脚本选择完成
-const handleRegexScriptsSelected = (selectedScripts: SillyTavernRegexScript[]) => {
-  // 更新角色卡的正则脚本
-  if (!characterData.value.data.extensions) {
-    characterData.value.data.extensions = {};
+// 处理导出确认
+const handleExportConfirm = async (option: ExportRegexOption, selectedData?: string[] | SillyTavernRegexScript[]) => {
+  let selectedScripts: SillyTavernRegexScript[] | undefined;
+
+  // 如果选择了"绑定新正则"，需要从正则库中查询完整的脚本对象
+  if (option === 'bind-new' && selectedData && selectedData.length > 0) {
+    // 判断是否为字符串数组（脚本 ID）
+    if (typeof selectedData[0] === 'string') {
+      selectedScripts = [];
+      const categories = Object.values(regexCollection.value.categories);
+      const selectedScriptIds = selectedData as string[];
+
+      for (const category of categories) {
+        for (const script of category.scripts) {
+          if (selectedScriptIds.includes(script.id)) {
+            // 创建副本，移除 categoryId
+            const { categoryId, ...scriptWithoutCategoryId } = script;
+            selectedScripts.push(scriptWithoutCategoryId as SillyTavernRegexScript);
+          }
+        }
+      }
+    } else {
+      // 已经是完整的脚本对象
+      selectedScripts = selectedData as SillyTavernRegexScript[];
+    }
   }
-  characterData.value.data.extensions.regex_scripts = selectedScripts;
 
   // 执行导出
-  handleSave();
+  await handleExportWithRegexOptions(option, selectedScripts);
 };
 
 // 角色卡内正则变更后触发手动保存
