@@ -1,134 +1,24 @@
 <template>
   <div class="card-manager-container">
-    <!-- 移动端布局（新的标签页模式） -->
-    <div class="card-manager-mobile-layout">
+    <!-- 统一的标签页布局 -->
+    <div class="card-manager-layout">
       <!-- 顶部标签栏 -->
-      <CharacterCardTabs
-        :tabs="tabs"
-        :active-tab-id="activeTabId"
-        @switch-tab="handleTabSwitch"
-        @close-tab="handleTabClose"
-        @reorder-tabs="handleTabReorder"
-      />
-
-      <!-- 内容区域 -->
-      <div class="tab-content-area-mobile">
-        <!-- 主页 -->
-        <div v-if="currentTab?.type === 'home'" class="tab-content-panel-mobile">
-          <CharacterCardHome
-            :collection="characterCardCollection"
-            @open-card="handleOpenCardFromHome"
-            @create-new="handleCreateNewCard"
-            @rename-card="handleRenameCard"
-            @delete-card="handleDeleteCard"
-            @export-card="handleExportCard"
-            @export-all="handleExportAllCards"
-            @import-file="handleImportFromFile"
-            @clear-all="handleClearAllCards"
-          />
-        </div>
-
-        <!-- 角色卡编辑器 -->
-        <div v-else-if="currentTab?.type === 'character-card'" class="tab-content-panel-mobile">
-          <div class="card-manager-mobile-panel-editor">
-            <div class="content-panel-header-mobile">
-              <h2 class="content-panel-title-mobile">
-                <Icon :icon="headerIcon" class="content-panel-icon" />
-                {{ headerTitle }}
-              </h2>
-              <div class="header-actions-mobile" v-if="rightEditorTab === 'card'">
-                <el-button type="primary" @click="triggerFileInput" size="small" :loading="isUploading" :disabled="isUploading">
-                  <Icon icon="ph:upload-duotone" v-if="!isUploading" />
-                </el-button>
-                <el-button type="success" @click="handleSave" size="small">
-                  <Icon icon="ph:export-duotone" />
-                </el-button>
-              </div>
-            </div>
-            <el-tabs
-              v-model="rightEditorTab"
-              tab-position="top"
-              class="bookmark-tabs-mobile"
-            >
-              <el-tab-pane name="card">
-                <template #label>
-                  <span class="bookmark-tab-label-mobile">
-                    <Icon icon="ph:note-pencil-duotone" class="bookmark-tab-icon" />
-                    <span class="bookmark-tab-text">角色卡</span>
-                  </span>
-                </template>
-                <el-scrollbar class="card-editor-content-mobile">
-                  <CardEditor
-                    v-if="currentCardInTab"
-                    :character="characterData"
-                    :image-preview-url="imagePreviewUrl"
-                    :all-tags="allTags"
-                    v-model:advanced-options-visible="advancedOptionsVisible"
-                    @image-change="handleImageUpdate"
-                  />
-                </el-scrollbar>
-              </el-tab-pane>
-
-              <el-tab-pane name="worldbook">
-                <template #label>
-                  <span class="bookmark-tab-label-mobile">
-                    <Icon icon="ph:books-duotone" class="bookmark-tab-icon" />
-                    <span class="bookmark-tab-text">世界书</span>
-                  </span>
-                </template>
-                <div class="tab-full-content-mobile">
-                  <CardWorldBookPanel :character="characterData" @worldbookChanged="handleWorldBookChanged" />
-                </div>
-              </el-tab-pane>
-
-              <el-tab-pane name="regex">
-                <template #label>
-                  <span class="bookmark-tab-label-mobile">
-                    <Icon icon="ph:brackets-curly-duotone" class="bookmark-tab-icon" />
-                    <span class="bookmark-tab-text">正则</span>
-                  </span>
-                </template>
-                <div class="tab-full-content-mobile">
-                  <CardRegexPanel :character="characterData" @regexChanged="handleRegexChanged" />
-                </div>
-              </el-tab-pane>
-            </el-tabs>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 桌面端布局（新的标签页模式） -->
-    <div class="card-manager-desktop-layout">
-      <!-- 顶部标签栏 -->
-      <CharacterCardTabs
-        :tabs="tabs"
-        :active-tab-id="activeTabId"
-        @switch-tab="handleTabSwitch"
-        @close-tab="handleTabClose"
-        @reorder-tabs="handleTabReorder"
-      />
+      <CharacterCardTabs :tabs="tabs" :active-tab-id="activeTabId" @switch-tab="handleTabSwitch"
+        @close-tab="handleTabClose" @reorder-tabs="handleTabReorder" />
 
       <!-- 内容区域 -->
       <div class="tab-content-area">
         <!-- 主页 -->
         <div v-if="currentTab?.type === 'home'" class="tab-content-panel">
-          <CharacterCardHome
-            :collection="characterCardCollection"
-            @open-card="handleOpenCardFromHome"
-            @create-new="handleCreateNewCard"
-            @rename-card="handleRenameCard"
-            @delete-card="handleDeleteCard"
-            @export-card="handleExportCard"
-            @export-all="handleExportAllCards"
-            @import-file="handleImportFromFile"
-            @clear-all="handleClearAllCards"
-          />
+          <CharacterCardHome :collection="characterCardCollection" @open-card="handleOpenCardFromHome"
+            @create-new="handleCreateNewCard" @rename-card="handleRenameCard" @delete-card="handleDeleteCard"
+            @export-card="handleExportCard" @export-all="handleExportAllCards" @import-file="handleImportFromFile"
+            @clear-all="handleClearAllCards" />
         </div>
 
         <!-- 角色卡编辑器 -->
         <div v-else-if="currentTab?.type === 'character-card'" class="tab-content-panel">
-          <div class="card-manager-desktop-panel-right">
+          <div class="card-manager-panel-editor">
             <div class="content-panel-header">
               <h2 class="content-panel-title">
                 <Icon :icon="headerIcon" class="content-panel-icon" />
@@ -136,30 +26,25 @@
                 <span v-if="rightEditorTab === 'card' && currentCardInTab" class="content-panel-text-highlight">
                   - {{ currentCardInTab.name || '未命名角色' }}
                 </span>
-                <span v-else-if="rightEditorTab === 'worldbook' && worldbookPanelRef?.hasWorldBook" class="content-panel-text-highlight">
+                <span v-else-if="rightEditorTab === 'worldbook' && worldbookPanelRef?.hasWorldBook"
+                  class="content-panel-text-highlight">
                   - {{ worldbookPanelRef?.currentWorldBookName }}
                 </span>
               </h2>
               <div class="header-actions" v-if="rightEditorTab === 'card'">
-                <CharacterCardActions
-                  context="editor"
-                  :has-active-card="!!currentCardInTab"
-                  :save-status="saveStatus"
-                  :auto-save-mode="autoSaveMode"
-                  @toggle-mode="toggleAutoSaveMode"
-                  @save-card="handleSaveCurrentAsNew"
-                  @save-as-new="handleSaveAsNewCard"
-                  @update-card="handleUpdateActiveCard"
-                  @export-current="handleExportCurrentCard"
-                />
+                <CharacterCardActions context="editor" :has-active-card="!!currentCardInTab" :save-status="saveStatus"
+                  :auto-save-mode="autoSaveMode" @toggle-mode="toggleAutoSaveMode" @save-card="handleSaveCurrentAsNew"
+                  @save-as-new="handleSaveAsNewCard" @update-card="handleUpdateActiveCard"
+                  @export-current="handleExportCurrentCard" />
                 <el-divider direction="vertical" />
-                <el-button type="primary" @click="triggerFileInput" size="small" :loading="isUploading" :disabled="isUploading">
+                <el-button type="primary" @click="triggerFileInput" size="small" :loading="isUploading"
+                  :disabled="isUploading">
                   <Icon icon="ph:upload-duotone" v-if="!isUploading" />
-                  {{ isUploading ? uploadProgress : '加载PNG' }}
+                  <span class="button-text">{{ isUploading ? uploadProgress : '加载PNG' }}</span>
                 </el-button>
-                <el-button type="success" @click="handleExportWithRegexSelection" size="small">
+                <el-button type="success" @click="handleSave" size="small">
                   <Icon icon="ph:export-duotone" />
-                  导出PNG
+                  <span class="button-text">导出PNG</span>
                 </el-button>
               </div>
               <!-- 世界书操作按钮 -->
@@ -167,23 +52,19 @@
                 <el-tooltip content="将当前世界书添加到世界书数据库，不影响角色卡" placement="bottom">
                   <el-button size="small" @click="handleAddWorldBookToDB" :disabled="!worldbookPanelRef?.hasWorldBook">
                     <Icon icon="ph:database-duotone" />
-                    添加到 DB
+                    <span class="button-text">添加到 DB</span>
                   </el-button>
                 </el-tooltip>
                 <el-tooltip content="用世界书数据库中的世界书替换当前世界书" placement="bottom">
-                  <el-button size="small" @click="handleReplaceWorldBookFromDB" :disabled="!worldbookPanelRef?.hasWorldBook">
+                  <el-button size="small" @click="handleReplaceWorldBookFromDB"
+                    :disabled="!worldbookPanelRef?.hasWorldBook">
                     <Icon icon="ph:arrows-counter-clockwise-duotone" />
-                    从 DB 替换
+                    <span class="button-text">从 DB 替换</span>
                   </el-button>
                 </el-tooltip>
               </div>
             </div>
-            <el-tabs
-              v-model="rightEditorTab"
-              tab-position="right"
-              class="bookmark-tabs"
-              stretch
-            >
+            <el-tabs v-model="rightEditorTab" tab-position="top" class="bookmark-tabs">
               <el-tab-pane name="card">
                 <template #label>
                   <span class="bookmark-tab-label">
@@ -192,18 +73,13 @@
                   </span>
                 </template>
                 <el-scrollbar class="card-editor-content">
-                  <CardEditor
-                    v-if="currentCardInTab"
-                    :character="characterData"
-                    :image-preview-url="imagePreviewUrl"
-                    :all-tags="allTags"
-                    v-model:advanced-options-visible="advancedOptionsVisible"
-                    @image-change="handleImageUpdate"
-                  />
+                  <CardEditor v-if="currentCardInTab" :character="characterData" :image-preview-url="imagePreviewUrl"
+                    :all-tags="allTags" v-model:advanced-options-visible="advancedOptionsVisible"
+                    @image-change="handleImageUpdate" />
                 </el-scrollbar>
               </el-tab-pane>
 
-              <el-tab-pane name="worldbook" style="height: 100%; width: 100%;">
+              <el-tab-pane name="worldbook">
                 <template #label>
                   <span class="bookmark-tab-label">
                     <Icon icon="ph:books-duotone" class="bookmark-tab-icon" />
@@ -211,7 +87,8 @@
                   </span>
                 </template>
                 <div class="tab-full-content">
-                  <CardWorldBookPanel ref="worldbookPanelRef" :character="characterData" @worldbookChanged="handleWorldBookChanged" />
+                  <CardWorldBookPanel ref="worldbookPanelRef" :character="characterData"
+                    @worldbookChanged="handleWorldBookChanged" />
                 </div>
               </el-tab-pane>
 
@@ -262,11 +139,8 @@
     </el-dialog>
 
     <!-- 正则脚本选择对话框 -->
-    <RegexScriptSelectorDialog
-      v-model="showRegexSelectorDialog"
-      :default-selected-ids="defaultSelectedRegexIds"
-      @confirm="handleRegexScriptsSelected"
-    />
+    <RegexScriptSelectorDialog v-model="showRegexSelectorDialog" :default-selected-ids="defaultSelectedRegexIds"
+      @confirm="handleRegexScriptsSelected" />
   </div>
 </template>
 
@@ -417,11 +291,6 @@ const defaultSelectedRegexIds = computed(() => {
   return scripts.map((s: SillyTavernRegexScript) => s.id);
 });
 
-// 处理带正则选择的导出
-const handleExportWithRegexSelection = () => {
-  showRegexSelectorDialog.value = true;
-};
-
 // 处理正则脚本选择完成
 const handleRegexScriptsSelected = (selectedScripts: SillyTavernRegexScript[]) => {
   // 更新角色卡的正则脚本
@@ -429,7 +298,7 @@ const handleRegexScriptsSelected = (selectedScripts: SillyTavernRegexScript[]) =
     characterData.value.data.extensions = {};
   }
   characterData.value.data.extensions.regex_scripts = selectedScripts;
-  
+
   // 执行导出
   handleSave();
 };
@@ -651,110 +520,8 @@ onUnmounted(() => {
   background-color: var(--el-bg-color-page);
 }
 
-/* 移动端布局（新的标签页模式） */
-.card-manager-mobile-layout {
-  display: none;
-}
-
-@media (max-width: 1023px) {
-  .card-manager-mobile-layout {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    overflow: hidden;
-  }
-
-  .card-manager-desktop-layout {
-    display: none !important;
-  }
-}
-
-.tab-content-area-mobile {
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-}
-
-.tab-content-panel-mobile {
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  animation: fadeIn 0.2s ease-in-out;
-}
-
-.card-manager-mobile-panel-editor {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  background-color: var(--el-bg-color);
-}
-
-.content-panel-header-mobile {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--el-border-color-light);
-  background-color: var(--el-bg-color-overlay);
-  flex-shrink: 0;
-}
-
-.content-panel-title-mobile {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 0;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.header-actions-mobile {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-.bookmark-tabs-mobile {
-  flex: 1;
-  overflow: hidden;
-}
-
-.bookmark-tabs-mobile :deep(.el-tabs__content) {
-  height: calc(100% - 40px);
-  overflow: hidden;
-}
-
-.bookmark-tab-label-mobile {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 13px;
-}
-
-.card-editor-content-mobile {
-  height: 100%;
-  overflow-y: auto;
-}
-
-.tab-full-content-mobile {
-  height: 100%;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-/* 桌面端布局（新的标签页模式） */
-.card-manager-desktop-layout {
+/* 统一的布局 */
+.card-manager-layout {
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -782,13 +549,14 @@ onUnmounted(() => {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
-.card-manager-desktop-panel-right {
+.card-manager-panel-editor {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -816,6 +584,10 @@ onUnmounted(() => {
   font-size: 16px;
   font-weight: 600;
   color: var(--el-text-color-primary);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .content-panel-icon {
@@ -825,12 +597,14 @@ onUnmounted(() => {
 .content-panel-text-highlight {
   color: var(--el-color-primary);
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .header-actions {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 /* 编辑器内容 */
@@ -839,29 +613,75 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
-/* 右侧书签式标签页样式 */
+/* 标签页样式 */
 .bookmark-tabs {
-  height: 100%;
+  flex: 1;
+  overflow: hidden;
 }
+
 .bookmark-tabs :deep(.el-tabs__content) {
-  height: 100%;
+  height: calc(100% - 40px);
+  overflow: hidden;
 }
+
 .bookmark-tab-label {
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
+
 .bookmark-tab-icon {
   font-size: 16px;
 }
+
 .bookmark-tab-text {
   font-size: 13px;
 }
+
 .tab-full-content {
   height: 100%;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+}
+
+/* 移动端响应式调整 */
+@media (max-width: 768px) {
+  .content-panel-header {
+    height: auto;
+    padding: 10px 12px;
+  }
+
+  .content-panel-title {
+    font-size: 15px;
+    gap: 6px;
+  }
+
+  .content-panel-icon {
+    font-size: 16px;
+  }
+
+  .content-panel-text-highlight {
+    display: none;
+    /* 移动端隐藏角色名/世界书名 */
+  }
+
+  .header-actions {
+    gap: 6px;
+  }
+
+  .button-text {
+    display: none;
+    /* 移动端隐藏按钮文字，只显示图标 */
+  }
+
+  .bookmark-tab-text {
+    font-size: 12px;
+  }
+
+  .bookmark-tab-icon {
+    font-size: 14px;
+  }
 }
 
 /* 重构提示弹窗样式 */
