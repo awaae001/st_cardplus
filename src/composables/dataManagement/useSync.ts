@@ -1,0 +1,459 @@
+import { ref, computed, watch } from 'vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { uploadToWebDAV, downloadFromWebDAV, testWebDAVConnection } from '@/utils/webdav';
+import {
+  testGistConnection,
+  uploadToGist,
+  downloadFromGist,
+  createBackupGist,
+  listUserGists,
+  loadGistConfig,
+  saveGistConfig
+} from '@/utils/gist';
+import type { GistConfig, BackupData } from '@/types/gist';
+import { exportAllDatabases, importAllDatabases } from '@/database/utils';
+
+interface WebDAVConfig {
+  url: string;
+  username: string;
+  password: string;
+}
+
+export function useSync() {
+  // === State ===
+  const webdavConfig = ref<WebDAVConfig>({ url: '', username: '', password: '' });
+  const gistConfig = ref<GistConfig>({ token: '', gistId: '', lastSyncTime: undefined, autoSync: false });
+  
+  const snapshotAvailable = ref(false);
+  const gistSnapshotAvailable = ref(false);
+
+  type SyncProvider = 'webdav' | 'gist';
+  const selectedProvider = ref<SyncProvider>('webdav');
+  const providerOptions = [
+    { label: 'WebDAV', value: 'webdav', icon: 'material-symbols:cloud' },
+    { label: 'GitHub Gist', value: 'gist', icon: 'mdi:github' }
+  ];
+  const webdavBackupFileName = 'st-cardplus-webdav-backup.json';
+
+  // === Computed ===
+  const canPush = computed(() => {
+    if (selectedProvider.value === 'webdav') {
+      return !!webdavConfig.value.url;
+    } else {
+      return !!gistConfig.value.token;
+    }
+  });
+
+  const canPull = computed(() => {
+    if (selectedProvider.value === 'webdav') {
+      return !!webdavConfig.value.url;
+    } else {
+      return !!gistConfig.value.token && !!gistConfig.value.gistId;
+    }
+  });
+
+  // === Watchers ===
+  watch(webdavConfig, (newConfig) => {
+    localStorage.setItem('webdavConfig', JSON.stringify(newConfig));
+  }, { deep: true });
+
+  watch(gistConfig, (newConfig) => {
+    saveGistConfig(newConfig);
+  }, { deep: true });
+
+  // === Methods ===
+
+  // --- Data Preparation ---
+  const prepareBackupData = async (): Promise<BackupData> => {
+    const localStorageData: { [key: string]: any } = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key !== 'gistConfig' && key !== 'webdavConfig') {
+        localStorageData[key] = localStorage.getItem(key);
+      }
+    }
+    const dbData = await exportAllDatabases();
+    return {
+      timestamp: new Date().toISOString(),
+      version: '1.0.0',
+      localStorage: localStorageData,
+      databases: dbData as any,
+    };
+  };
+
+  // --- WebDAV ---
+  const testWebDAV = async () => {
+    if (!webdavConfig.value.url) {
+      ElMessage.error('请输入 WebDAV URL');
+      return;
+    }
+    try {
+      ElMessage.info('正在测试连接...');
+      await testWebDAVConnection(webdavConfig.value);
+      ElMessage.success('连接成功！');
+    } catch (error) {
+      console.error('WebDAV 连接测试失败:', error);
+      ElMessage.error(`连接失败: ${error instanceof Error ? error.message : '未知错误'}`);
+    }
+  };
+
+  const pushToWebDAV = async () => {
+    if (!webdavConfig.value.url) {
+      ElMessage.error('请输入 WebDAV URL');
+      return;
+    }
+    try {
+      ElMessage.info('正在准备数据并上传...');
+      const backupData = await prepareBackupData();
+      const json = JSON.stringify(backupData, null, 2);
+      await uploadToWebDAV(webdavConfig.value, webdavBackupFileName, json);
+      ElMessage.success('数据已成功推送到 WebDAV 服务器');
+    } catch (error) {
+      console.error('推送到 WebDAV 失败:', error);
+      ElMessage.error(`推送失败: ${error instanceof Error ? error.message : '未知错误'}`);
+    }
+  };
+
+  const pullFromWebDAV = async () => {
+    if (!webdavConfig.value.url) {
+      ElMessage.error('请输入 WebDAV URL');
+      return;
+    }
+    try {
+      ElMessage.info('正在从服务器拉取数据...');
+      const json = await downloadFromWebDAV(webdavConfig.value, webdavBackupFileName);
+      const backupData = JSON.parse(json) as BackupData;
+
+      ElMessageBox.confirm(
+        `这将用服务器上的备份覆盖所有现有本地数据<br/>
+        <strong>备份时间:</strong> ${new Date(backupData.timestamp).toLocaleString('zh-CN')}<br/>
+        此操作可能会丢失你没有保存的更改 您确定要继续吗？`,
+        '警告',
+        {
+          confirmButtonText: '确认覆盖',
+          cancelButtonText: '取消',
+          type: 'warning',
+          dangerouslyUseHTMLString: true,
+        }
+      ).then(async () => {
+        try {
+          const snapshotData: { [key: string]: any } = {};
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key) snapshotData[key] = localStorage.getItem(key);
+          }
+          const dbSnapshot = await exportAllDatabases();
+          Object.assign(snapshotData, dbSnapshot);
+          sessionStorage.setItem('webdav-snapshot', JSON.stringify(snapshotData));
+
+          const flatData = { ...backupData.localStorage, ...backupData.databases };
+          await importAllDatabases(flatData);
+
+          const preservedWebDAVConfig = localStorage.getItem('webdavConfig');
+          localStorage.clear();
+          if (preservedWebDAVConfig) localStorage.setItem('webdavConfig', preservedWebDAVConfig);
+          for (const key in backupData.localStorage) {
+            if (Object.prototype.hasOwnProperty.call(backupData.localStorage, key)) {
+              localStorage.setItem(key, backupData.localStorage[key]);
+            }
+          }
+
+          ElMessage.success('数据已成功从服务器恢复，应用将重新加载');
+          setTimeout(() => window.location.reload(), 2000);
+        } catch (restoreError) {
+          console.error('从 WebDAV 恢复数据失败:', restoreError);
+          ElMessage.error('恢复数据时发生错误，操作已终止');
+        }
+      }).catch(() => ElMessage.info('操作已取消'));
+    } catch (error) {
+      console.error('从 WebDAV 拉取失败:', error);
+      ElMessage.error(`拉取失败: ${error instanceof Error ? error.message : '未知错误'}`);
+    }
+  };
+
+  const revertPull = async () => {
+    const snapshot = sessionStorage.getItem('webdav-snapshot');
+    if (snapshot) {
+      try {
+        const data = JSON.parse(snapshot);
+        await importAllDatabases(data);
+        localStorage.clear();
+        for (const key in data) {
+          if (Object.prototype.hasOwnProperty.call(data, key)) {
+            localStorage.setItem(key, data[key]);
+          }
+        }
+        sessionStorage.removeItem('webdav-snapshot');
+        ElMessage.success('操作已撤销，应用将重新加载');
+        setTimeout(() => window.location.reload(), 1500);
+      } catch (error) {
+        console.error('恢复快照失败:', error);
+        ElMessage.error('恢复快照失败，请检查控制台 ');
+      }
+    } else {
+      ElMessage.error('没有可用的快照 请检查是否已执行拉取操作 ');
+    }
+    snapshotAvailable.value = false;
+  };
+
+  // --- Gist ---
+  const formatSyncTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (minutes < 1) return '刚刚';
+    if (minutes < 60) return `${minutes} 分钟前`;
+    if (hours < 24) return `${hours} 小时前`;
+    if (days < 7) return `${days} 天前`;
+    return date.toLocaleString('zh-CN');
+  };
+
+  const openGistTokenHelp = () => {
+    window.open('https://github.com/settings/tokens/new?scopes=gist&description=ST-CardPlus-Sync', '_blank');
+  };
+
+  const testGist = async () => {
+    if (!gistConfig.value.token) {
+      ElMessage.error('请输入 GitHub Personal Access Token');
+      return;
+    }
+    try {
+      ElMessage.info('正在测试连接...');
+      const result = await testGistConnection(gistConfig.value.token);
+      if (result.success) {
+        ElMessage.success(result.message);
+      } else {
+        ElMessage.error(result.message);
+      }
+    } catch (error) {
+      console.error('测试 Gist 连接失败:', error);
+      ElMessage.error(`连接失败: ${error instanceof Error ? error.message : '未知错误'}`);
+    }
+  };
+
+  const listGists = async () => {
+    if (!gistConfig.value.token) {
+      ElMessage.error('请输入 GitHub Personal Access Token');
+      return;
+    }
+    try {
+      ElMessage.info('正在获取 Gist 列表...');
+      const result = await listUserGists(gistConfig.value.token);
+      if (result.success && result.data) {
+        const gists = result.data;
+        if (gists.length === 0) {
+          ElMessage.info('未找到备份 Gist，请先推送数据或创建新 Gist');
+          return;
+        }
+        ElMessageBox.alert(
+          gists.map((g: any) =>
+            `<div style="margin-bottom: 10px; padding: 8px; background: var(--el-fill-color-light); border-radius: 4px;">
+              <strong>ID:</strong> ${g.id}<br/>
+              <strong>描述:</strong> ${g.description}<br/>
+              <strong>更新:</strong> ${new Date(g.updated_at).toLocaleString('zh-CN')}
+            </div>`
+          ).join(''),
+          '您的备份 Gists',
+          {
+            dangerouslyUseHTMLString: true,
+            confirmButtonText: '关闭',
+          }
+        );
+      } else {
+        ElMessage.error(result.message);
+      }
+    } catch (error) {
+      console.error('获取 Gist 列表失败:', error);
+      ElMessage.error(`获取失败: ${error instanceof Error ? error.message : '未知错误'}`);
+    }
+  };
+
+  const pushToGist = async () => {
+    if (!gistConfig.value.token) {
+      ElMessage.error('请输入 GitHub Personal Access Token');
+      return;
+    }
+    try {
+      ElMessage.info('正在准备数据并上传...');
+      const backupData = await prepareBackupData();
+      const backupSize = JSON.stringify(backupData).length;
+      const backupSizeMB = (backupSize / (1024 * 1024)).toFixed(2);
+
+      if (backupSize > 100 * 1024 * 1024) {
+        ElMessage.warning(`备份文件过大 (${backupSizeMB}MB), 超过 Gist 单文件 100MB 限制，推送可能失败`);
+        return;
+      } else if (backupSize > 50 * 1024 * 1024) {
+        ElMessage.warning(`备份文件较大 (${backupSizeMB}MB), 建议清理无用数据`);
+      }
+
+      let result;
+      if (gistConfig.value.gistId) {
+        result = await uploadToGist(gistConfig.value.token, gistConfig.value.gistId, backupData);
+      } else {
+        result = await createBackupGist(gistConfig.value.token, backupData);
+        if (result.success && result.data?.gistId) {
+          gistConfig.value.gistId = result.data.gistId;
+        }
+      }
+
+      if (result.success) {
+        gistConfig.value.lastSyncTime = new Date().toISOString();
+        ElMessage.success(`${result.message} (大小: ${backupSizeMB}MB)`);
+      } else {
+        ElMessage.error(result.message);
+      }
+    } catch (error) {
+      console.error('[Gist Push] 推送失败:', error);
+      ElMessage.error(`推送失败: ${error instanceof Error ? error.message : '未知错误'}`);
+    }
+  };
+
+  const pullFromGist = async () => {
+    if (!gistConfig.value.token || !gistConfig.value.gistId) {
+      ElMessage.error('请输入 Token 和 Gist ID');
+      return;
+    }
+    try {
+      ElMessage.info('正在从 Gist 拉取数据...');
+      const result = await downloadFromGist(gistConfig.value.token, gistConfig.value.gistId);
+
+      if (!result.success || !result.data) {
+        ElMessage.error(result.message);
+        return;
+      }
+
+      const backupData = result.data as BackupData;
+      ElMessageBox.confirm(
+        `这将用 Gist 上的备份覆盖所有现有本地数据<br/>
+        <strong>备份时间:</strong> ${new Date(backupData.timestamp).toLocaleString('zh-CN')}<br/>
+        此操作可能会丢失你没有保存的更改 您确定要继续吗？`,
+        '警告',
+        {
+          confirmButtonText: '确认覆盖',
+          cancelButtonText: '取消',
+          type: 'warning',
+          dangerouslyUseHTMLString: true,
+        }
+      ).then(async () => {
+        try {
+          const snapshotData: { [key: string]: any } = {};
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key) snapshotData[key] = localStorage.getItem(key);
+          }
+          const dbSnapshot = await exportAllDatabases();
+          Object.assign(snapshotData, dbSnapshot);
+          sessionStorage.setItem('gist-snapshot', JSON.stringify(snapshotData));
+
+          const flatData = { ...backupData.localStorage, ...backupData.databases };
+          await importAllDatabases(flatData);
+
+          const preservedGistConfig = localStorage.getItem('gistConfig');
+          localStorage.clear();
+          if (preservedGistConfig) localStorage.setItem('gistConfig', preservedGistConfig);
+          for (const key in backupData.localStorage) {
+            if (Object.prototype.hasOwnProperty.call(backupData.localStorage, key)) {
+              localStorage.setItem(key, backupData.localStorage[key]);
+            }
+          }
+
+          gistConfig.value.lastSyncTime = new Date().toISOString();
+          saveGistConfig(gistConfig.value);
+
+          ElMessage.success('数据已成功从 Gist 恢复，应用将重新加载');
+          setTimeout(() => window.location.reload(), 2000);
+        } catch (restoreError) {
+          console.error('从 Gist 恢复数据失败:', restoreError);
+          ElMessage.error('恢复数据时发生错误，操作已终止');
+        }
+      }).catch(() => ElMessage.info('操作已取消'));
+    } catch (error) {
+      console.error('从 Gist 拉取失败:', error);
+      ElMessage.error(`拉取失败: ${error instanceof Error ? error.message : '未知错误'}`);
+    }
+  };
+
+  const revertGistPull = async () => {
+    const snapshot = sessionStorage.getItem('gist-snapshot');
+    if (snapshot) {
+      try {
+        const data = JSON.parse(snapshot);
+        await importAllDatabases(data);
+        localStorage.clear();
+        for (const key in data) {
+          if (Object.prototype.hasOwnProperty.call(data, key)) {
+            localStorage.setItem(key, data[key]);
+          }
+        }
+        sessionStorage.removeItem('gist-snapshot');
+        ElMessage.success('操作已撤销，应用将重新加载');
+        setTimeout(() => window.location.reload(), 1500);
+      } catch (error) {
+        console.error('恢复 Gist 快照失败:', error);
+        ElMessage.error('恢复快照失败，请检查控制台');
+      }
+    } else {
+      ElMessage.error('没有可用的快照 请检查是否已执行拉取操作');
+    }
+    gistSnapshotAvailable.value = false;
+  };
+
+  // --- Unified Handlers ---
+  const handleTestConnection = async () => {
+    if (selectedProvider.value === 'webdav') await testWebDAV();
+    else await testGist();
+  };
+
+  const handlePush = async () => {
+    if (selectedProvider.value === 'webdav') await pushToWebDAV();
+    else await pushToGist();
+  };
+
+  const handlePull = async () => {
+    if (selectedProvider.value === 'webdav') await pullFromWebDAV();
+    else await pullFromGist();
+  };
+
+  const revertCurrentPull = async () => {
+    if (snapshotAvailable.value) await revertPull();
+    else if (gistSnapshotAvailable.value) await revertGistPull();
+  };
+
+  // --- Initialization ---
+  const initSync = () => {
+    const savedWebDAVConfig = localStorage.getItem('webdavConfig');
+    if (savedWebDAVConfig) webdavConfig.value = JSON.parse(savedWebDAVConfig);
+
+    const snapshot = sessionStorage.getItem('webdav-snapshot');
+    if (snapshot) snapshotAvailable.value = true;
+
+    const savedGistConfig = loadGistConfig();
+    if (savedGistConfig) gistConfig.value = savedGistConfig;
+
+    const gistSnapshot = sessionStorage.getItem('gist-snapshot');
+    if (gistSnapshot) gistSnapshotAvailable.value = true;
+  };
+
+  return {
+    webdavConfig,
+    gistConfig,
+    snapshotAvailable,
+    gistSnapshotAvailable,
+    selectedProvider,
+    providerOptions,
+    canPush,
+    canPull,
+    initSync,
+    handleTestConnection,
+    handlePush,
+    handlePull,
+    revertCurrentPull,
+    formatSyncTime,
+    openGistTokenHelp,
+    listGists,
+  };
+}

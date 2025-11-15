@@ -15,8 +15,20 @@ export function useCardExport(
     }
 
     try {
+      // 导出前从 data 层同步到顶层（确保导出的 JSON 兼容性）
+      const exportData = { ...characterData.value };
+      if (exportData.data) {
+        exportData.name = exportData.data.name || exportData.name;
+        exportData.description = exportData.data.description || exportData.description;
+        exportData.personality = exportData.data.personality || exportData.personality;
+        exportData.scenario = exportData.data.scenario || exportData.scenario;
+        exportData.first_mes = exportData.data.first_mes || exportData.first_mes;
+        exportData.mes_example = exportData.data.mes_example || exportData.mes_example;
+        exportData.tags = exportData.data.tags || exportData.tags;
+      }
+
       const imageBuffer = new Uint8Array(await characterImageFile.value.arrayBuffer());
-      const jsonDataString = JSON.stringify(characterData.value, null, 2);
+      const jsonDataString = JSON.stringify(exportData, null, 2);
       const newImageBuffer = writePngCard(imageBuffer, jsonDataString);
       const properBuffer = new Uint8Array(newImageBuffer);
       const blob = new Blob([properBuffer], { type: 'image/png' });
@@ -24,8 +36,8 @@ export function useCardExport(
 
       const link = document.createElement('a');
       link.href = url;
-      const fileName = characterData.value.name ? `${characterData.value.name}.png` : 'character.png';
-      link.download = fileName;
+      const fileName = exportData.data?.name || exportData.name || 'character.png';
+      link.download = `${fileName}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

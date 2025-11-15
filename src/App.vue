@@ -153,7 +153,7 @@ watch([() => route.path, isMobile], ([newPath, mobile]) => {
     setOverflowHidden(false);
     return;
   }
-  const overflowHiddenRoutes = ['/worldbook', '/ejs-editor', '/world', '/cardmanager', '/regex-editor'];
+  const overflowHiddenRoutes = ['/worldbook', '/ejs-editor', '/world',  '/regex-editor'];
   if (overflowHiddenRoutes.includes(newPath)) {
     setOverflowHidden(true);
   } else {
@@ -237,6 +237,8 @@ onUnmounted(() => {
   /* 为浮动按钮留出空间 */
   padding-top: 60px;
   margin-top: -54px;
+  /* 允许主内容区域在默认情况下滚动 */
+  overflow: auto;
 }
 
 .content-container.overflow-hidden {

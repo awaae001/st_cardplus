@@ -92,7 +92,7 @@
 import { computed } from 'vue';
 import { ElScrollbar, ElTooltip, ElTag } from 'element-plus';
 import { Icon } from '@iconify/vue';
-import CharacterCardActions from './CharacterCardActions.vue';
+import CharacterCardActions from './components/CharacterCardActions.vue';
 import type { CharacterCardCollection } from '@/types/character-card-collection';
 
 interface Props {

@@ -28,14 +28,6 @@
       </div>
     </section>
 
-    <!-- 世界书 -->
-    <section class="form-section">
-      <h3 class="form-section-title">
-        <Icon icon="ph:book-open-duotone" class="form-section-icon" />世界书
-      </h3>
-      <InfoDisplayPanel type="worldbook" :character="character" @worldbook-changed="emit('worldbookChanged')" />
-    </section>
-
     <!-- 其他与正则 -->
     <section class="form-section">
       <h3 class="form-section-title">
@@ -66,11 +58,11 @@
 <script setup lang="ts">
 import { ElCollapseTransition } from 'element-plus';
 import { Icon } from '@iconify/vue';
-import BasicInfoPanel from '@/components/cardManager/BasicInfoPanel.vue';
-import ImagePanel from '@/components/cardManager/ImagePanel.vue';
-import GreetingsPanel from '@/components/cardManager/GreetingsPanel.vue';
-import InfoDisplayPanel from '@/components/cardManager/InfoDisplayPanel.vue';
-import AdvancedInfoPanel from '@/components/cardManager/AdvancedInfoPanel.vue';
+import BasicInfoPanel from '@/components/cardManager/main/BasicInfoPanel.vue';
+import ImagePanel from '@/components/cardManager/main/ImagePanel.vue';
+import GreetingsPanel from '@/components/cardManager/main/GreetingsPanel.vue';
+import InfoDisplayPanel from '@/components/cardManager/main/InfoDisplayPanel.vue';
+import AdvancedInfoPanel from '@/components/cardManager/main/AdvancedInfoPanel.vue';
 import type { CharacterCardV3 } from '@/types/character-card-v3';
 
 const props = defineProps<{
@@ -82,7 +74,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'imageChange', file: File): void;
-  (e: 'worldbookChanged'): void;
   (e: 'update:advancedOptionsVisible', value: boolean): void;
 }>();
 

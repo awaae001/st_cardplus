@@ -172,6 +172,59 @@ function convertCharacterEntryToWorldEntry(charEntry: CharacterBookEntry, index:
     return worldEntry;
 }
 
+// 兼容性：有些场景下 character_book.entries 里混入了 WorldBookEntry 结构
+// 做一次宽松规范化，保证字段完整性
+function normalizeWorldEntryLike(input: any, index: number): WorldBookEntry {
+    const e = input || {};
+    const uid = e.uid ?? e.id ?? index;
+    const key = Array.isArray(e.key) ? e.key.map(String) : [];
+    const keysecondary = Array.isArray(e.keysecondary) ? e.keysecondary.map(String) : [];
+
+    const position = typeof e.position === 'number' ? e.position : convertPositionToNumber(e.position);
+
+    return {
+        id: typeof e.id === 'number' ? e.id : undefined,
+        uid,
+        comment: typeof e.comment === 'string' ? e.comment : '',
+        key,
+        content: typeof e.content === 'string' ? e.content : '',
+        addMemo: typeof e.addMemo === 'boolean' ? e.addMemo : !!e.comment,
+        order: typeof e.order === 'number' ? e.order : (typeof e.insertion_order === 'number' ? e.insertion_order : 100),
+        constant: !!e.constant,
+        disable: !!e.disable === true ? true : (e.enabled === false ? true : false),
+        keysecondary,
+        selectiveLogic: typeof e.selectiveLogic === 'number' ? e.selectiveLogic : 0,
+        selective: e.selective !== undefined ? !!e.selective : true,
+        excludeRecursion: !!e.excludeRecursion,
+        preventRecursion: !!e.preventRecursion,
+        delayUntilRecursion: !!e.delayUntilRecursion,
+        probability: typeof e.probability === 'number' ? e.probability : 100,
+        useProbability: e.useProbability !== undefined ? !!e.useProbability : true,
+        position,
+        role: typeof e.role === 'number' ? e.role : null,
+        depth: typeof e.depth === 'number' ? e.depth : 4,
+        caseSensitive: e.caseSensitive ?? null,
+        matchWholeWords: e.matchWholeWords ?? null,
+        vectorized: !!e.vectorized,
+        group: typeof e.group === 'string' ? e.group : '',
+        groupPriority: typeof e.groupPriority === 'number' ? e.groupPriority : 0,
+        groupOverride: !!e.groupOverride,
+        useGroupScoring: e.useGroupScoring ?? null,
+        sticky: typeof e.sticky === 'number' ? e.sticky : 0,
+        cooldown: typeof e.cooldown === 'number' ? e.cooldown : 0,
+        delay: typeof e.delay === 'number' ? e.delay : 0,
+        automationId: typeof e.automationId === 'string' ? e.automationId : '',
+        outletName: typeof e.outletName === 'string' ? e.outletName : '',
+        scanDepth: e.scanDepth ?? null,
+        matchPersonaDescription: !!e.matchPersonaDescription,
+        matchCharacterDescription: !!e.matchCharacterDescription,
+        matchCharacterPersonality: !!e.matchCharacterPersonality,
+        matchCharacterDepthPrompt: !!e.matchCharacterDepthPrompt,
+        matchScenario: !!e.matchScenario,
+        matchCreatorNotes: !!e.matchCreatorNotes,
+    };
+}
+
 /**
  * 将 CharacterBook 对象转换为 WorldBook 对象
  * @param charBook - 要转换的 CharacterBook 对象
@@ -185,7 +238,13 @@ export function convertCharacterBookToWorldBook(charBook: CharacterBook, worldBo
         id: worldBookId,
         name: charBook.name || 'Untitled World Book',
         description: charBook.description,
-        entries: charBook.entries.map(convertCharacterEntryToWorldEntry),
+        entries: (charBook.entries || []).map((entry: any, index: number) => {
+            // 宽松处理：若像 CharacterBookEntry 则转换；若像 WorldBookEntry 则规范化保留
+            if (entry && Array.isArray(entry.keys)) {
+                return convertCharacterEntryToWorldEntry(entry as CharacterBookEntry, index);
+            }
+            return normalizeWorldEntryLike(entry, index);
+        }),
         createdAt: now,
         updatedAt: now,
         order: 0, // 默认顺序

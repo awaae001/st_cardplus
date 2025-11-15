@@ -29,10 +29,9 @@
         @node-collapse="handleNodeCollapse"
       >
         <template #default="{ node, data }">
-          <div class="custom-tree-node" :class="{ 'is-disabled': data.isEntry && data.raw.disable }">
+          <div class="custom-tree-node" :class="{ 'is-disabled': data.isEntry && data.raw.disable, 'is-constant': data.isEntry && data.raw.constant }">
             <div class="node-main">
               <Icon :icon="data.icon" class="node-icon" />
-              <el-tag v-if="data.isEntry && data.raw.constant" type="success" size="small" effect="dark" class="node-tag">常驻</el-tag>
               <span class="node-label">{{ node.label }}</span>
               <el-tooltip v-if="!data.isEntry && data.raw.sourceCharacterName" :content="`来自: ${data.raw.sourceCharacterName}`" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
                 <Icon icon="ph:user-circle-duotone" class="source-icon" />
@@ -243,7 +242,13 @@ const handleNodeCollapse = (data: any) => {
 }
 
 .worldbook-list-scrollbar {
-  flex-grow: 1;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0; /* 关键：允许滚动区域收缩 */
+}
+
+.worldbook-list-scrollbar :deep(.el-scrollbar__wrap) {
+  overflow-x: hidden;
 }
 
 .worldbook-list-footer {
@@ -310,6 +315,26 @@ const handleNodeCollapse = (data: any) => {
 .custom-tree-node.is-disabled {
   color: var(--el-text-color-disabled);
   cursor: not-allowed;
+}
+
+.custom-tree-node.is-constant .node-label,
+.custom-tree-node.is-constant .node-icon {
+  color: var(--el-color-primary);
+}
+
+html.dark .custom-tree-node.is-constant .node-label,
+html.dark .custom-tree-node.is-constant .node-icon {
+  color: var(--el-color-primary-dark-2);
+}
+
+.custom-tree-node.is-constant.is-disabled .node-label,
+.custom-tree-node.is-constant.is-disabled .node-icon {
+  color: var(--el-color-primary-light-5);
+}
+
+html.dark .custom-tree-node.is-constant.is-disabled .node-label,
+html.dark .custom-tree-node.is-constant.is-disabled .node-icon {
+  color: var(--el-color-primary-light-5);
 }
 
 .node-actions {

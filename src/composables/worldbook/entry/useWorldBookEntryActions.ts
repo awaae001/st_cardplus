@@ -95,13 +95,17 @@ export function useWorldBookEntryActions(
       ElMessage.error("无法删除条目：没有活动的世界书");
       return;
     }
-    if (entryToDelete.id === undefined) {
-      ElMessage.error("无法删除条目：条目缺少数据库ID，请刷新页面重试");
+    // 允许两种上下文：
+    // - 世界书数据库：使用数据库主键 id
+    // - 角色卡内联世界书：可能没有 id，改用 uid
+    const deleteKey = entryToDelete.id ?? entryToDelete.uid;
+    if (deleteKey === undefined) {
+      ElMessage.error("无法删除条目：缺少标识 (id/uid)");
       return;
     }
 
     try {
-      const hasRemainingEntries = await callbacks.deleteEntry(entryToDelete.id);
+      const hasRemainingEntries = await callbacks.deleteEntry(deleteKey);
 
       if (hasRemainingEntries) {
         const newIndex = Math.min(

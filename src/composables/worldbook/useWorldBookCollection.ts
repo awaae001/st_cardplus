@@ -215,9 +215,16 @@ const loadInitialData = async () => {
 
         await worldBookService.addBook(newBook);
         await worldBookService.replaceEntriesForBook(newBook.id, loadedEntries);
+        // 从数据库回读条目并回填 id，保持导入顺序
+        const saved = await worldBookService.getEntriesForBook(newBook.id);
+        const mapByUid = new Map<number | undefined, WorldBookEntry>(saved.map(e => [e.uid, e]));
+        const merged = loadedEntries.map(e => {
+          const m = mapByUid.get(e.uid);
+          return m ? { ...e, id: m.id } : e;
+        });
 
         // 更新本地状态
-        worldBookCollection.value.books[newBook.id] = { ...newBook, entries: loadedEntries };
+        worldBookCollection.value.books[newBook.id] = { ...newBook, entries: merged };
         worldBookCollection.value.activeBookId = newBook.id;
         worldBookService.setActiveBookId(newBook.id);
 
@@ -267,9 +274,22 @@ const loadInitialData = async () => {
         worldBookService.replaceEntriesForBook(toBookId, newToEntries)
       ]);
 
-      // 更新本地状态
-      fromBook.entries = newFromEntries;
-      toBook.entries = newToEntries;
+      // 从数据库读取回填了 id 的条目，并按 uid 顺序合并，确保内存与数据库一致
+      const [savedFrom, savedTo] = await Promise.all([
+        worldBookService.getEntriesForBook(fromBookId),
+        worldBookService.getEntriesForBook(toBookId)
+      ]);
+      const mapFrom = new Map<number | undefined, WorldBookEntry>(savedFrom.map(e => [e.uid, e]));
+      const mapTo = new Map<number | undefined, WorldBookEntry>(savedTo.map(e => [e.uid, e]));
+
+      fromBook.entries = newFromEntries.map(e => {
+        const m = mapFrom.get(e.uid);
+        return m ? { ...e, id: m.id } : e;
+      });
+      toBook.entries = newToEntries.map(e => {
+        const m = mapTo.get(e.uid);
+        return m ? { ...e, id: m.id } : e;
+      });
       const now = new Date().toISOString();
       fromBook.updatedAt = now;
       toBook.updatedAt = now;
@@ -312,6 +332,13 @@ const loadInitialData = async () => {
     if (book) {
       const now = new Date().toISOString();
       await worldBookService.replaceEntriesForBook(bookId, entries);
+      // 读取数据库中保存后的条目，按 uid 回填 id，保持传入顺序
+      const savedEntries = await worldBookService.getEntriesForBook(bookId);
+      const savedByUid = new Map<number | undefined, WorldBookEntry>(savedEntries.map(e => [e.uid, e]));
+      const merged = entries.map(e => {
+        const matched = savedByUid.get(e.uid);
+        return matched ? { ...e, id: matched.id } : e;
+      });
       
       // 使用明确的字段构造来避免 Vue 响应式代理问题
       const bookToUpdate: StoredWorldBook = JSON.parse(JSON.stringify({
@@ -326,8 +353,8 @@ const loadInitialData = async () => {
       
       await worldBookService.updateBook(bookToUpdate);
 
-      // 更新本地状态
-      book.entries = entries;
+      // 更新本地状态（带正确的数据库 id）
+      book.entries = merged;
       book.updatedAt = now;
     }
   };
@@ -356,8 +383,13 @@ const loadInitialData = async () => {
   };
 
   const handleUpdateEntry = async (entry: WorldBookEntry) => {
-    if (!activeBook.value || entry.id === undefined) {
-      console.error('[useWorldBookCollection] 更新条目失败：缺少必要信息');
+    if (!activeBook.value) {
+      console.error('[useWorldBookCollection] 更新条目失败：没有活动书籍');
+      ElMessage.error("无法更新条目：没有活动书籍");
+      return;
+    }
+    if (entry.id === undefined && entry.uid === undefined) {
+      console.error('[useWorldBookCollection] 更新条目失败：缺少 id 与 uid');
       ElMessage.error("无法更新条目：缺少必要信息");
       return;
     }

@@ -1,7 +1,7 @@
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { v4 as uuidv4 } from 'uuid';
-import { initAutoSave, clearAutoSave } from '@/utils/localStorageUtils';
+import { extractAndDecodeCcv3, extractAndDecodeV2Card } from '@/utils/metadataSeparator';
 import type { CharacterCardV3 } from '@/types/character-card-v3';
 import type { CharacterCardCollection, CharacterCardItem } from '@/types/character-card-collection';
 import { characterCardService, type StoredCharacterCard } from '@/database/characterCardService';
@@ -12,14 +12,6 @@ export function useCharacterCardCollection() {
     activeCardId: null,
   });
   const isLoading = ref(true);
-
-  // 自动保存相关状态
-  const saveStatus = ref<'idle' | 'saving' | 'saved' | 'error'>('idle');
-  const autoSaveMode = ref<'auto' | 'watch' | 'manual'>('watch'); // 默认监听模式
-  const lastSavedData = ref<string>('');
-  const hasUnsavedChanges = ref(false);
-  const isAutoSaving = ref(false);
-  let autoSaveTimer: number | null = null;
 
   const activeCardId = computed(() => characterCardCollection.value.activeCardId);
 
@@ -51,7 +43,15 @@ export function useCharacterCardCollection() {
 
   onMounted(loadInitialData);
 
-  const handleSelectCard = (cardId: string) => {
+  const handleSelectCard = (cardId: string | null) => {
+    // 显式处理清空选中的情况
+    if (cardId === '' || cardId === null) {
+      characterCardCollection.value.activeCardId = null;
+      characterCardService.setActiveCardId(null);
+      return;
+    }
+
+    // 只有当卡片存在时才设置
     if (characterCardCollection.value.cards[cardId]) {
       characterCardCollection.value.activeCardId = cardId;
       characterCardService.setActiveCardId(cardId);
@@ -98,38 +98,62 @@ export function useCharacterCardCollection() {
     }
   };
 
-  const handleUpdateCard = async (cardId: string, cardData: CharacterCardV3, silent = false) => {
+  const handleUpdateCard = async (cardId: string, cardData: CharacterCardV3, silent = false, skipLocalUpdate = false) => {
     const existingCard = characterCardCollection.value.cards[cardId];
     if (!existingCard) {
       ElMessage.error('角色卡不存在');
       return;
     }
 
+    console.log('[handleUpdateCard] 开始更新角色卡:', cardId, '名称:', cardData.name, 'skipLocalUpdate:', skipLocalUpdate);
+
     try {
       const now = new Date().toISOString();
+
+      // 【关键修复】反转同步方向：从 data 同步到顶层（data 是真实数据源）
+      const synchronizedCardData = { ...cardData };
+      if (synchronizedCardData.data) {
+        // 从 data 层同步到顶层（用于兼容性）
+        synchronizedCardData.name = synchronizedCardData.data.name || synchronizedCardData.name;
+        synchronizedCardData.description = synchronizedCardData.data.description || synchronizedCardData.description;
+        synchronizedCardData.personality = synchronizedCardData.data.personality || synchronizedCardData.personality;
+        synchronizedCardData.scenario = synchronizedCardData.data.scenario || synchronizedCardData.scenario;
+        synchronizedCardData.first_mes = synchronizedCardData.data.first_mes || synchronizedCardData.first_mes;
+        synchronizedCardData.mes_example = synchronizedCardData.data.mes_example || synchronizedCardData.mes_example;
+        synchronizedCardData.tags = synchronizedCardData.data.tags || synchronizedCardData.tags;
+      }
+
       const storedCard: StoredCharacterCard = {
         id: cardId,
-        name: cardData.name || cardData.data?.name || '未命名角色',
-        description: cardData.description || cardData.data?.description || '',
-        avatar: cardData.avatar !== 'none' ? cardData.avatar : undefined,
-        cardData,
+        name: synchronizedCardData.name || synchronizedCardData.data?.name || '未命名角色',
+        description: synchronizedCardData.description || synchronizedCardData.data?.description || '',
+        avatar: synchronizedCardData.avatar !== 'none' ? synchronizedCardData.avatar : undefined,
+        cardData: synchronizedCardData, // 使用同步后的数据
         createdAt: existingCard.createdAt,
         updatedAt: now,
         order: existingCard.order,
-        tags: cardData.tags || cardData.data?.tags || [],
+        tags: synchronizedCardData.tags || synchronizedCardData.data?.tags || [],
         metadata: {},
       };
 
+      console.log('[handleUpdateCard] 准备写入数据库，名称:', storedCard.name);
       await characterCardService.updateCard(storedCard);
+      console.log('[handleUpdateCard] 数据库更新成功');
 
-      // 更新本地状态
-      characterCardCollection.value.cards[cardId] = {
-        ...cardData,
-        id: cardId,
-        createdAt: existingCard.createdAt,
-        updatedAt: now,
-        order: existingCard.order,
-      };
+      // 只在非自动保存时更新本地状态
+      // 自动保存时跳过本地更新，避免触发响应式循环
+      if (!skipLocalUpdate) {
+        console.log('[handleUpdateCard] 更新本地状态');
+        characterCardCollection.value.cards[cardId] = {
+          ...synchronizedCardData,
+          id: cardId,
+          createdAt: existingCard.createdAt,
+          updatedAt: now,
+          order: existingCard.order,
+        };
+      } else {
+        console.log('[handleUpdateCard] 跳过本地状态更新');
+      }
 
       if (!silent) {
         ElMessage.success('角色卡已更新！');
@@ -160,13 +184,14 @@ export function useCharacterCardCollection() {
         }
       );
 
+      // 同时更新 data 和顶层（data 是真实数据源）
       const updatedCardData = {
         ...card,
-        name: newCardName,
         data: {
           ...card.data,
-          name: newCardName,
+          name: newCardName,  // data 层优先
         },
+        name: newCardName,  // 顶层同步
       };
 
       await handleUpdateCard(cardId, updatedCardData);
@@ -220,33 +245,66 @@ export function useCharacterCardCollection() {
     return await handleSaveCurrentCard(cardData);
   };
 
-  const handleImportFromFile = (file: File) => {
-    const reader = new FileReader();
-
-    reader.onload = async (e: ProgressEvent<FileReader>) => {
+  async function parseCardFromFile(file: File): Promise<CharacterCardV3 | null> {
+    if (file.type === 'application/json' || file.name.endsWith('.json')) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e: ProgressEvent<FileReader>) => {
+          try {
+            const jsonData = JSON.parse(e.target?.result as string);
+            if (!jsonData || typeof jsonData !== 'object') {
+              throw new Error('无效的 JSON 角色卡文件格式');
+            }
+            resolve(jsonData as CharacterCardV3);
+          } catch (error) {
+            reject(error);
+          }
+        };
+        reader.onerror = () => reject(new Error('读取 JSON 文件时出错'));
+        reader.readAsText(file);
+      });
+    } else if (file.type === 'image/png' || file.name.endsWith('.png')) {
       try {
-        const jsonData = JSON.parse(e.target?.result as string);
-
-        if (!jsonData || typeof jsonData !== 'object') {
-          throw new Error('无效的角色卡文件格式');
+        let characterCardData: CharacterCardV3 | null = null;
+        try {
+          characterCardData = await extractAndDecodeCcv3(file);
+          if (characterCardData) {
+            console.log('检测到 ccv3 格式角色卡数据');
+            return characterCardData;
+          }
+        } catch (error) {
+          console.log('未检测到 ccv3 格式数据，尝试 v2 格式...');
         }
 
-        // 处理角色卡数据
-        const cardId = await handleImportCard(jsonData);
-        if (cardId) {
-          ElMessage.success(`角色卡 "${jsonData.name || jsonData.data?.name || '未命名'}" 已成功导入！`);
+        characterCardData = await extractAndDecodeV2Card(file);
+        if (characterCardData) {
+          console.log('检测到 TavernAI v2 格式角色卡数据');
         }
+        return characterCardData;
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        ElMessage.error(`导入失败: ${errorMessage}`);
+        console.error('解析 PNG 文件时出错:', error);
+        return null;
       }
-    };
+    }
+    return null;
+  }
 
-    reader.onerror = () => {
-      ElMessage.error('读取文件时出错');
-    };
+  const handleImportFromFile = async (file: File) => {
+    try {
+      const cardData = await parseCardFromFile(file);
 
-    reader.readAsText(file);
+      if (cardData) {
+        const cardId = await handleImportCard(cardData);
+        if (cardId) {
+          ElMessage.success(`角色卡 "${cardData.name || (cardData.data as any)?.name || '未命名'}" 已成功导入！`);
+        }
+      } else {
+        ElMessage.error('无法从文件中解析角色卡数据。请检查文件格式是否正确 (.json 或 .png) 或 PNG 是否包含角色卡数据。');
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      ElMessage.error(`导入失败: ${errorMessage}`);
+    }
   };
 
   const handleExportCard = async (cardId: string) => {
@@ -341,10 +399,11 @@ export function useCharacterCardCollection() {
         }
       );
 
-      // 创建默认的角色卡数据
+      // 创建默认的角色卡数据（确保 data 和顶层一致）
       const defaultData: CharacterCardV3 = {
         spec: 'chara_card_v3',
         spec_version: '3.0',
+        // 顶层字段（同步自 data）
         name: cardName,
         description: '',
         personality: '',
@@ -356,6 +415,7 @@ export function useCharacterCardCollection() {
         talkativeness: 0.5,
         fav: false,
         tags: [],
+        // data 层是真实数据源
         data: {
           name: cardName,
           description: '',
@@ -396,94 +456,6 @@ export function useCharacterCardCollection() {
     }
   };
 
-  // 切换自动保存模式
-  const toggleAutoSaveMode = () => {
-    const modes: Array<'auto' | 'watch' | 'manual'> = ['auto', 'watch', 'manual'];
-    const currentIndex = modes.indexOf(autoSaveMode.value);
-    const nextIndex = (currentIndex + 1) % modes.length;
-    autoSaveMode.value = modes[nextIndex];
-
-    const messages = {
-      auto: '已切换到自动保存模式：每 5 秒自动保存',
-      watch: '已切换到监听模式：检测到修改后 1.5 秒自动保存',
-      manual: '已切换到手动模式：自动保存已禁用'
-    };
-
-    ElMessage.info(messages[autoSaveMode.value]);
-  };
-
-  // 自动保存角色卡数据（用于接收 characterData）
-  const autoSaveCard = async (characterData: CharacterCardV3) => {
-    // 如果是手动模式，完全禁用自动保存
-    if (autoSaveMode.value === 'manual') {
-      return;
-    }
-
-    const currentCardId = activeCardId.value;
-    if (!currentCardId) {
-      return;
-    }
-
-    // 检查是否有未保存的修改
-    const currentData = JSON.stringify(characterData);
-    if (currentData === lastSavedData.value) {
-      return;
-    }
-
-    // 防止重复保存
-    if (isAutoSaving.value) {
-      return;
-    }
-
-    isAutoSaving.value = true;
-    saveStatus.value = 'saving';
-
-    try {
-      await handleUpdateCard(currentCardId, characterData, true);
-
-      // 更新最后保存的数据状态
-      lastSavedData.value = currentData;
-      hasUnsavedChanges.value = false;
-
-      saveStatus.value = 'saved';
-
-      // 2秒后隐藏"已保存"提示
-      setTimeout(() => {
-        if (saveStatus.value === 'saved') {
-          saveStatus.value = 'idle';
-        }
-      }, 2000);
-    } catch (error) {
-      console.error('[useCharacterCardCollection] 自动保存失败:', error);
-      saveStatus.value = 'error';
-      // 5秒后隐藏错误提示
-      setTimeout(() => {
-        if (saveStatus.value === 'error') {
-          saveStatus.value = 'idle';
-        }
-      }, 5000);
-    } finally {
-      isAutoSaving.value = false;
-    }
-  };
-
-  // 启动定时自动保存（自动模式专用）
-  onMounted(() => {
-    autoSaveTimer = initAutoSave(
-      () => {
-        // 这里的自动保存将在 CardManager 中触发
-        // 因为这里无法直接访问 characterData
-      },
-      () => !!activeCardId.value
-    );
-  });
-
-  // 清理定时器
-  onBeforeUnmount(() => {
-    if (autoSaveTimer) {
-      clearAutoSave(autoSaveTimer);
-    }
-  });
 
   return {
     characterCardCollection,
@@ -503,10 +475,5 @@ export function useCharacterCardCollection() {
     handleClearAllCards,
     handleCreateNewCard,
     loadInitialData,
-    // 自动保存相关
-    saveStatus,
-    autoSaveMode,
-    toggleAutoSaveMode,
-    autoSaveCard,
   };
 }
