@@ -319,12 +319,22 @@ const handleNodeCollapse = (data: any) => {
 
 .custom-tree-node.is-constant .node-label,
 .custom-tree-node.is-constant .node-icon {
-  color: var(--el-color-primary-light-5);
+  color: var(--el-color-primary);
 }
 
 html.dark .custom-tree-node.is-constant .node-label,
 html.dark .custom-tree-node.is-constant .node-icon {
-    color: var(--el-color-primary);
+  color: var(--el-color-primary-dark-2);
+}
+
+.custom-tree-node.is-constant.is-disabled .node-label,
+.custom-tree-node.is-constant.is-disabled .node-icon {
+  color: var(--el-color-primary-light-5);
+}
+
+html.dark .custom-tree-node.is-constant.is-disabled .node-label,
+html.dark .custom-tree-node.is-constant.is-disabled .node-icon {
+  color: var(--el-color-primary-light-5);
 }
 
 .node-actions {
