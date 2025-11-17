@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import { ElMessage } from 'element-plus';
-import { extractAndDecodeCcv3, extractAndDecodeV2Card } from '@/utils/metadataSeparator';
+import { read as readPngMetadata } from '@/utils/pngCardMetadata';
 import type { CharacterCardV3 } from '@/types/character-card-v3';
 
 /**
@@ -49,25 +49,19 @@ export function useCardImport(
     uploadProgress.value = '正在分析图片...';
 
     try {
-      let characterCardData: CharacterCardV3 | null = null;
+     const extractCharacterData = async (file: File): Promise<CharacterCardV3 | null> => {
+       try {
+         const arrayBuffer = await file.arrayBuffer();
+         const image = new Uint8Array(arrayBuffer);
+         const jsonData = readPngMetadata(image);
+         return JSON.parse(jsonData);
+       } catch (error) {
+         console.log('No valid character data found in PNG metadata.', error);
+         return null;
+       }
+     };
 
-      // 尝试 ccv3 格式
-      try {
-        characterCardData = await extractAndDecodeCcv3(file);
-        if (characterCardData) console.log('检测到 ccv3 格式角色卡数据');
-      } catch (error) {
-        console.log('未检测到 ccv3 格式数据，尝试 v2 格式...');
-      }
-
-      // 尝试 v2 格式
-      if (!characterCardData) {
-        try {
-          characterCardData = await extractAndDecodeV2Card(file);
-          if (characterCardData) console.log('检测到 TavernAI v2 格式角色卡数据');
-        } catch (error) {
-          console.log('未检测到 v2 格式数据');
-        }
-      }
+     const characterCardData = await extractCharacterData(file);
 
       if (characterCardData) {
         // 如果 PNG 包含元数据，则加载角色卡
