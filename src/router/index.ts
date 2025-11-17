@@ -71,12 +71,6 @@ const router = createRouter({
       meta: { title: '世界书转换器' }
     },
     {
-      path: '/toolbox/png-metadata',
-      name: 'pngMetadata',
-      component: () => import('../components/toolsbox/PngMetadataTool.vue'),
-      meta: { title: 'PNG 元数据工具' }
-    },
-    {
       path: '/toolbox/chinese-converter',
       name: 'chineseConverter',
       component: () => import('../components/toolsbox/ChineseConverter.vue'),
@@ -110,14 +104,4 @@ router.afterEach((to) => {
     document.title = '酒馆角色卡工具箱'
   }
 })
-// router.beforeEach((to, from, next) => {
-//   if (from.name) { // 如果不是首次加载
-//     const confirmLeave = window.confirm('确定离开？离开后数据清空')
-//     if (!confirmLeave) {
-//       return false
-//     }
-//   }
-//   next()
-// })
-
 export default router

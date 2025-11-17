@@ -216,14 +216,6 @@ export const toolboxFixedTools: ToolboxToolConfig[] = [
     category: 'converter'
   },
   {
-    id: 'png-metadata',
-    title: 'PNG元数据工具',
-    icon: 'mdi:file-image-plus-outline',
-    description: '读取或写入 PNG 图片的元数据',
-    route: '/toolbox/png-metadata',
-    category: 'metadata'
-  },
-  {
     id: 'database-migration',
     title: '数据库迁移助手',
     icon: 'ph:database-duotone',

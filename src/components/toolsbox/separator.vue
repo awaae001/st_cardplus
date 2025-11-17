@@ -24,106 +24,110 @@
 
             <el-divider></el-divider>
 
-            <div class="result-area" v-if="parsedData || characterData">
-                <el-tabs type="border-card">
-                    <el-tab-pane label="解析结果" v-if="parsedData">
-                        <pre>{{ parsedData }}</pre>
-                    </el-tab-pane>
-                    <el-tab-pane label="CCV3数据" v-if="characterData">
-                        <div class="data-stats">
-                            <div class="stat-item">
-                                <span>字符数: {{ charCount }}</span>
-                            </div>
-                            <div class="stat-item">
-                                <span>大小: {{ dataSize }} KB</span>
-                            </div>
-                            <div class="save-button">
-                                <el-button type="primary" @click="saveJson" style="float: right;">
-                                    保存JSON
-                                </el-button>
-                            </div>
-                        </div>
-                        <el-divider border-style="dashed" />
-                        <pre class="json-data">{{ characterData }}</pre>
-                    </el-tab-pane>
-                </el-tabs>
+            <div class="io-grid">
+                <div class="result-area" v-if="characterData">
+                    <h4>元数据 (JSON)</h4>
+                    <el-input v-model="characterData" type="textarea" :rows="18"
+                        placeholder="JSON 数据将显示在这里，或在此处输入要写入的数据..." class="json-textarea" />
+                </div>
+                <div v-else class="placeholder-box">
+                    <Icon icon="mdi:code-json" width="48" height="48" />
+                    <p>从PNG读取的元数据将显示在此处</p>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <el-button type="primary" @click="handleReadMetadata" :disabled="!uploadedImage">
+                    <Icon icon="material-symbols:upload-file" class="icon-left" />
+                    读取元数据
+                </el-button>
+                <el-button type="success" @click="handleWriteMetadata" :disabled="!uploadedImage || !characterData">
+                    <Icon icon="material-symbols:download" class="icon-left" />
+                    写入元数据并下载
+                </el-button>
             </div>
         </el-card>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import type { UploadFile } from 'element-plus';
 import { Icon } from '@iconify/vue';
 import { ElMessage } from 'element-plus';
-import { extractAndDecodeCcv3 } from '@/utils/metadataSeparator'; // Import the new utility function
+import { read, write } from '@/utils/pngCardMetadata';
 
-interface ParsedData {
-    filename: string
-    size?: number
-    type: string
-    lastModified: number
-}
-
-const imageUrl = ref('')
-const parsedData = ref<ParsedData | null>(null)
-const characterData = ref<any>(null)
-const initialData = ref<any>({})
-
-const charCount = computed(() => {
-    if (!characterData.value) return 0
-    return JSON.stringify(characterData.value).length
-})
-
-const dataSize = computed(() => {
-    if (!characterData.value) return 0
-    const size = new Blob([JSON.stringify(characterData.value)]).size
-    return (size / 1024).toFixed(2)
-})
-
-const saveJson = () => {
-    if (!characterData.value) return
-
-    const generateRandomNumber = () =>
-        Math.floor(10000000 + Math.random() * 90000000).toString()
-    const randomNumber = generateRandomNumber()
-
-    const jsonStr = JSON.stringify(characterData.value, null, 2)
-    const blob = new Blob([jsonStr], { type: 'application/json' })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = `character_card_${randomNumber}.json`
-    link.click()
-    URL.revokeObjectURL(link.href)
-    ElMessage.success('JSON文件已保存')
-}
-
-const importImage = async (file: File) => {
-    const decodedData = await extractAndDecodeCcv3(file);
-
-    if (decodedData) {
-        characterData.value = { ...initialData.value, ...decodedData };
-        ElMessage.success('数据已成功加载');
-    } else {
-        // 解码失败或未找到 ccv3 标签
-        ElMessage.error('无法从图片中加载数据，请检查图片是否包含有效的 ccv3 元数据');
-    }
-};
+const imageUrl = ref('');
+const characterData = ref('');
+const uploadedImage = ref<{ name: string; data: Uint8Array } | null>(null);
 
 const handleFileChange = (file: UploadFile) => {
-    if (!file.raw) return
-
-    // 生成预览URL
-    imageUrl.value = URL.createObjectURL(file.raw)
-    importImage(file.raw)
-
-    parsedData.value = {
-        filename: file.name,
-        size: file.size,
-        type: file.raw.type,
-        lastModified: file.raw.lastModified
+    if (!file.raw || file.raw.type !== 'image/png') {
+        ElMessage.error('请选择一个有效的 PNG 文件 (.png)');
+        return;
     }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const arrayBuffer = e.target?.result as ArrayBuffer;
+            uploadedImage.value = {
+                name: file.name,
+                data: new Uint8Array(arrayBuffer),
+            };
+            imageUrl.value = URL.createObjectURL(file.raw as Blob);
+            ElMessage.success(`已成功加载图片: ${file.name}`);
+            handleReadMetadata(); // 自动读取
+        } catch (error) {
+            ElMessage.error('读取文件时出错');
+        }
+    };
+    reader.readAsArrayBuffer(file.raw);
+};
+
+function handleReadMetadata() {
+    if (!uploadedImage.value) {
+        return ElMessage.warning('请先上传一个 PNG 图片');
+    }
+    try {
+        const jsonData = read(uploadedImage.value.data);
+        characterData.value = JSON.stringify(JSON.parse(jsonData), null, 2);
+        ElMessage.success('成功读取元数据！');
+    } catch (error: any) {
+        characterData.value = '';
+        ElMessage.error(`读取失败: ${error.message}`);
+    }
+}
+
+function handleWriteMetadata() {
+    if (!uploadedImage.value) {
+        return ElMessage.warning('请先上传一个 PNG 图片');
+    }
+    if (!characterData.value) {
+        return ElMessage.warning('请输入要写入的 JSON 数据');
+    }
+    try {
+        const parsedJson = JSON.parse(characterData.value);
+        const jsonString = JSON.stringify(parsedJson); // 压缩JSON
+
+        const newPngData = write(uploadedImage.value.data, jsonString);
+        downloadPng(newPngData, uploadedImage.value.name);
+
+    } catch (error: any) {
+        ElMessage.error(`写入失败: ${error.message}`);
+    }
+}
+
+function downloadPng(data: Uint8Array, fileName: string) {
+    const blob = new Blob([data as any], { type: 'image/p' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    ElMessage.success(`已开始下载: ${fileName}`);
 }
 </script>
 
@@ -170,30 +174,54 @@ const handleFileChange = (file: UploadFile) => {
     margin-top: 20px;
 }
 
-.json-data {
-    white-space: pre-wrap;
-    white-space: -moz-pre-wrap;
-    white-space: -pre-wrap;
-    white-space: -o-pre-wrap;
-    word-wrap: break-word;
-    overflow: auto;
+.io-grid {
+   display: grid;
+   grid-template-columns: 1fr;
+   gap: 20px;
+   margin-top: 20px;
 }
 
-.data-stats {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 10px;
-    flex-direction: row;
-    align-items: center;
+@media (min-width: 768px) {
+   .io-grid {
+       grid-template-columns: 1fr 1fr;
+   }
+   .preview-area {
+       grid-column: 1 / 2;
+   }
+   .result-area, .placeholder-box {
+       grid-column: 2 / 3;
+   }
 }
 
-.stat-item {
-    font-size: 14px;
-    color: var(--el-text-color-secondary);
+.result-area {
+   display: flex;
+   flex-direction: column;
+}
+.json-textarea {
+   font-family: 'Courier New', Courier, monospace;
+   flex-grow: 1;
 }
 
-.save-button {
-    clear: both;
-    margin-left: auto;
+.placeholder-box {
+   border: 2px dashed var(--el-border-color);
+   border-radius: 4px;
+   padding: 20px;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   text-align: center;
+   color: var(--el-text-color-secondary);
+   height: 100%;
+}
+
+.button-group {
+   margin-top: 20px;
+   display: flex;
+   gap: 10px;
+   justify-content: center;
+}
+.icon-left {
+   margin-right: 8px;
 }
 </style>
