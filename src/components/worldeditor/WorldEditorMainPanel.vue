@@ -238,8 +238,9 @@ const getCurrentProject = (integration: ProjectIntegration): Project | null => {
 }
 
 .editor-content {
-  flex-grow: 1;
-  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .editor-placeholder {

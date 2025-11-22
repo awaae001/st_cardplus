@@ -219,6 +219,10 @@ watch(
 
 
 <style scoped>
+.worldbook-editor-scrollbar {
+  height: 100%;
+}
+
 .leader-entry {
   display: flex;
   align-items: center;

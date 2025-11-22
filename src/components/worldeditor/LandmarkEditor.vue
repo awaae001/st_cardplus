@@ -242,3 +242,9 @@ watch(() => props.landmark, (newLandmark) => {
 }, { immediate: true });
 
 </script>
+
+<style scoped>
+.worldbook-editor-scrollbar {
+  height: 100%;
+}
+</style>

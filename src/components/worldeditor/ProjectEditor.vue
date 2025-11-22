@@ -31,5 +31,7 @@ const props = defineProps<Props>();
 <style scoped>
 .project-editor {
   padding: 20px;
+  height: 100%;
+  overflow-y: auto;
 }
 </style>
