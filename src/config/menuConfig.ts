@@ -206,14 +206,6 @@ export const toolboxFixedTools: ToolboxToolConfig[] = [
     category: 'converter'
   },
   {
-    id: 'database-migration',
-    title: '数据库迁移助手',
-    icon: 'ph:database-duotone',
-    description: '协助您将数据从旧版数据库迁移到新版数据库',
-    route: '/migration',
-    category: 'utility'
-  },
-  {
     id: 'chinese-converter',
     title: '简繁转换器',
     icon: 'material-symbols:translate',
