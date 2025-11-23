@@ -128,7 +128,7 @@
 import { ref, computed } from 'vue';
 import { ElCard, ElButton, ElRow, ElCol, ElCheckbox, ElMessage } from 'element-plus';
 import { Icon } from '@iconify/vue';
-import type { Project, EnhancedLandmark, EnhancedForce, ProjectIntegration, LandmarkType, ForceType } from '@/types/world-editor';
+import type { Project, EnhancedLandmark, EnhancedForce, ProjectIntegration } from '@/types/world-editor';
 import { cleanObject } from '@/utils/objectUtils';
 
 interface Props {
@@ -163,10 +163,10 @@ const selectedItems = computed(() => {
 });
 
 // 地标类型标签映射
-const getLandmarkTypeLabel = (type: LandmarkType): string => {
-  const labels = {
+const getLandmarkTypeLabel = (type: string): string => {
+  const labels: Record<string, string> = {
     city: '城市',
-    town: '城镇', 
+    town: '城镇',
     village: '村庄',
     fortress: '要塞',
     ruins: '遗迹',
@@ -183,8 +183,8 @@ const getLandmarkTypeLabel = (type: LandmarkType): string => {
 };
 
 // 势力类型标签映射
-const getForceTypeLabel = (type: ForceType): string => {
-  const labels = {
+const getForceTypeLabel = (type: string): string => {
+  const labels: Record<string, string> = {
     political: '政治组织',
     military: '军事组织',
     religious: '宗教组织',

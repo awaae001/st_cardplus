@@ -32,17 +32,21 @@
           <div class="form-grid-3-col">
             <div>
               <label class="form-label">类型</label>
-              <el-select v-model="landmark.type" class="form-full-width">
+              <el-select
+                v-model="landmark.type"
+                class="form-full-width"
+                filterable
+                allow-create
+                default-first-option
+                :reserve-keyword="false"
+                placeholder="选择或输入地标类型"
+              >
                 <el-option v-for="type in landmarkTypes" :key="type" :label="localizeLandmarkType(type)" :value="type" />
               </el-select>
             </div>
-             <div v-if="landmark.type === 'custom'">
-               <label class="form-label">自定义类型</label>
-               <el-input v-model="landmark.customType" placeholder="输入自定义类型" />
-             </div>
             <div class="form-grid-span-2">
               <label class="form-label">重要性 (1-5)</label>
-              <el-slider v-model.number="landmark.importance" :min="1" :max="5" show-stops />
+              <el-input-number v-model.number="landmark.importance" :min="1" controls-position="right" class="form-full-width" />
             </div>
             <div class="form-grid-span-3">
               <label class="form-label">标签</label>
@@ -158,7 +162,7 @@
 
 <script setup lang="ts">
 import { defineProps, watch, computed } from 'vue';
-import { ElScrollbar, ElForm, ElInput, ElSelect, ElOption, ElSlider, ElInputNumber, ElEmpty, ElTooltip } from 'element-plus';
+import { ElScrollbar, ElForm, ElInput, ElSelect, ElOption, ElInputNumber, ElEmpty, ElTooltip } from 'element-plus';
 import { Icon } from '@iconify/vue';
 import type { EnhancedLandmark } from '@/types/world-editor';
 import { LandmarkType } from '@/types/world-editor';
@@ -204,8 +208,8 @@ const commonTerrains = [
   '岛屿', '火山', '冰川', '河流', '湖泊'
 ];
 
-const localizeLandmarkType = (type: LandmarkType): string => {
-  const map: Record<LandmarkType, string> = {
+const localizeLandmarkType = (type: string): string => {
+  const map: Record<string, string> = {
     [LandmarkType.CITY]: '城市',
     [LandmarkType.TOWN]: '城镇',
     [LandmarkType.VILLAGE]: '村庄',

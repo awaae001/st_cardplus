@@ -2,7 +2,7 @@
   <div class="world-editor-main-panel">
     <template v-if="props.selectedItem">
       <div class="editor-header">
-        <h1 class="page-title">{{ isIntegration(props.selectedItem) ? '项目整合' : '编辑区域' }}</h1>
+        <h1 class="page-title">{{ isIntegration(props.selectedItem) ? '项目整合' : '在这里编辑' }}</h1>
         <WorldEditorActionButtons
           @save-to-file="handleSaveToFile"
           @load-from-file="handleLoadFromFile"
@@ -35,9 +35,9 @@
 <script setup lang="ts">
 import type { Project, EnhancedLandmark, EnhancedForce, ProjectIntegration } from '@/types/world-editor';
 import ProjectEditor from './ProjectEditor.vue';
-import LandmarkEditor from './LandmarkEditor.vue';
-import ForceEditor from './ForceEditor.vue';
-import IntegratedPanel from './IntegratedPanel.vue';
+import LandmarkEditor from './editorPacel/LandmarkEditor.vue';
+import ForceEditor from './editorPacel/ForceEditor.vue';
+import IntegratedPanel from './editorPacel/IntegratedPanel.vue';
 import WorldEditorActionButtons from './WorldEditorActionButtons.vue';
 import { ElMessage } from 'element-plus';
 
@@ -216,7 +216,7 @@ const getCurrentProject = (integration: ProjectIntegration): Project | null => {
 
 <style scoped>
 .page-title {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 600;
   margin: 0;
   color: var(--el-text-color-primary);

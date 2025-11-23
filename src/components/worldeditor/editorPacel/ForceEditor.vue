@@ -32,13 +32,21 @@
           <div class="form-grid-2-col">
             <div>
               <label class="form-label">类型</label>
-              <el-select v-model="force.type" class="form-full-width">
+              <el-select
+                v-model="force.type"
+                class="form-full-width"
+                filterable
+                allow-create
+                default-first-option
+                :reserve-keyword="false"
+                placeholder="选择或输入势力类型"
+              >
                 <el-option v-for="type in forceTypes" :key="type" :label="localizeForceType(type)" :value="type" />
               </el-select>
             </div>
             <div>
               <label class="form-label">强度 (1-5)</label>
-              <el-slider v-model.number="force.power" :min="1" :max="5" show-stops />
+              <el-input-number v-model.number="force.power" :min="1" controls-position="right" class="form-full-width" />
             </div>
           </div>
         </section>
@@ -145,7 +153,7 @@
 
 <script setup lang="ts">
 import { defineProps, toRefs, watch } from 'vue';
-import { ElScrollbar, ElForm, ElInput, ElSelect, ElOption, ElSlider, ElInputNumber, ElEmpty, ElButton, ElPopconfirm } from 'element-plus';
+import { ElScrollbar, ElForm, ElInput, ElSelect, ElOption, ElInputNumber, ElEmpty, ElButton, ElPopconfirm } from 'element-plus';
 import { Icon } from '@iconify/vue';
 import type { EnhancedForce } from '@/types/world-editor';
 import { ForceType } from '@/types/world-editor';
@@ -162,8 +170,8 @@ const { errors, validate } = useValidation();
 const { force } = toRefs(props);
 const forceTypes = Object.values(ForceType);
 
-const localizeForceType = (type: ForceType): string => {
-  const map: Record<ForceType, string> = {
+const localizeForceType = (type: string): string => {
+  const map: Record<string, string> = {
     [ForceType.POLITICAL]: '政治组织',
     [ForceType.MILITARY]: '军事组织',
     [ForceType.RELIGIOUS]: '宗教组织',

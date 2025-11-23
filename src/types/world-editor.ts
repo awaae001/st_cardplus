@@ -32,8 +32,7 @@ export interface EnhancedLandmark {
   description: string;           // 详细描述
 
   // 分类属性
-  type: LandmarkType;           // 地标类型
-  customType?: string;          // 自定义类型名称
+  type: string;           // 地标类型
   importance: ImportanceLevel;   // 重要性等级（1-5星）
   tags: string[];               // 自定义标签
 
@@ -112,7 +111,7 @@ export interface EnhancedForce {
   description: string;
 
   // 组织属性
-  type: ForceType;              // 势力类型
+  type: string;              // 势力类型
   power: PowerLevel;            // 势力强度
   structure: OrganizationStructure; // 组织结构
 
