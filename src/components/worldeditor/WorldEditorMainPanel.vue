@@ -13,7 +13,7 @@
       <div class="editor-content" :key="props.selectedItem.id">
         <ProjectEditor v-if="isProject(props.selectedItem)" :project="props.selectedItem" />
         <LandmarkEditor v-else-if="isLandmark(props.selectedItem)" :landmark="props.selectedItem" :all-landmarks="props.landmarks" :all-tags="props.allTags" :all-regions="props.allRegions" />
-        <ForceEditor v-else-if="isForce(props.selectedItem)" :force="props.selectedItem" :all-tags="props.allTags" />
+        <ForceEditor v-else-if="isForce(props.selectedItem)" :force="props.selectedItem" :all-tags="props.allTags" :all-forces="props.forces" :all-landmarks="props.landmarks" />
         <IntegratedPanel
           v-else-if="isIntegration(props.selectedItem)"
           :integration="props.selectedItem"

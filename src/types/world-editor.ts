@@ -124,20 +124,18 @@ export interface EnhancedForce {
   controlledTerritories: string[];  // 控制地标ID
   influenceAreas: string[];         // 影响区域ID
   headquarters?: string;            // 总部地标ID
-  branchLocations?: string[];       // 分部位置地标ID列表
+  branchLocations?: BranchLocation[];       // 分部位置列表
 
   // 外交关系
-  allies: Relationship[];       // 盟友关系
-  enemies: Relationship[];      // 敌对关系
+  allies: string[];       // 盟友势力ID列表
+  enemies: string[];      // 敌对势力ID列表
   neutral: string[];           // 中立势力ID
 
   // 资源与能力
   resources: Resource[];        // 拥有资源
   capabilities: string[];      // 特殊能力
   weaknesses: string[];        // 弱点
-
-  // 历史记录
-  history: HistoryEvent[];     // 重要历史事件
+ // 重要历史事件
   foundedDate?: string;        // 成立日期
 
   // 元数据
@@ -148,6 +146,17 @@ export interface EnhancedForce {
   updatedAt: string;
   version: number;
 }
+
+/**
+ * 势力分部信息
+ */
+export interface BranchLocation {
+  id: string; // 前端使用的唯一ID
+  type: string; // 分部类型，例如：分舵、接应点
+  locationId: string; // 关联的地标ID
+  manager?: string; // 主理人
+}
+
 
 /**
  * 势力类型
@@ -194,7 +203,6 @@ export interface Leader {
   name: string;
   title: string;
   description?: string;
-  characterId?: string;        // 关联角色卡ID
 }
 
 /**
@@ -238,114 +246,4 @@ export interface Resource {
   quantity: number;           // 数量
   quality: string;            // 品质
   source?: string;            // 来源
-}
-
-/**
- * 历史事件
- */
-export interface HistoryEvent {
-  date: string;
-  title: string;
-  description: string;
-  impact: string;             // 影响
-}
-
-
-// =================================================================
-// 关系图谱 (Relationship Graph) 相关类型
-// =================================================================
-
-export interface RelationshipGraph {
-  nodes: GraphNode[];
-  edges: GraphEdge[];
-}
-
-export interface GraphNode {
-  id: string;
-  type: 'landmark' | 'force';
-  name: string;
-  data: EnhancedLandmark | EnhancedForce;
-}
-
-export interface GraphEdge {
-  source: string; // source node id
-  target: string; // target node id
-  type: GraphEdgeType;
-  strength: number;
-  label?: string;
-}
-
-/**
- * 图谱中的关系类型
- */
-export enum GraphEdgeType {
-  CONTROLS = 'controls',           // 势力控制地标
-  INFLUENCES = 'influences',       // 势力影响地标
-  ALLIED_WITH = 'allied_with',     // 势力联盟
-  ENEMY_OF = 'enemy_of',          // 势力敌对
-  LOCATED_IN = 'located_in',      // 地标位于区域
-  CONNECTED_TO = 'connected_to'   // 地标连接
-}
-
-/**
- * 数据验证规则
- */
-export interface ValidationRule {
-  field: string;
-  rule: ValidationType;
-  message: string;
-  params?: any;
-}
-
-/**
- * 验证规则类型
- */
-export enum ValidationType {
-  REQUIRED = 'required',
-  UNIQUE = 'unique',
-  MIN_LENGTH = 'minLength',
-  MAX_LENGTH = 'maxLength',
-  PATTERN = 'pattern',
-  CUSTOM = 'custom'
-}
-
-/**
- * 操作历史记录条目
- */
-export interface HistoryEntry {
-  id: string;
-  timestamp: string;
-  action: ActionType;
-  target: 'landmark' | 'force';
-  targetId: string;
-  previousState: any;
-  newState: any;
-  description: string;
-}
-
-/**
- * 历史记录管理器接口
- */
-export interface IHistoryManager {
-  history: HistoryEntry[];
-  currentIndex: number;
-  maxHistorySize: number;
-
-  undo(): boolean;
-  redo(): boolean;
-  addEntry(entry: HistoryEntry): void;
-  clear(): void;
-  getHistory(): HistoryEntry[];
-}
-
-
-/**
- * 操作类型
- */
-export enum ActionType {
-  CREATE = 'create',
-  UPDATE = 'update',
-  DELETE = 'delete',
-  BATCH_UPDATE = 'batch_update',
-  IMPORT = 'import'
 }

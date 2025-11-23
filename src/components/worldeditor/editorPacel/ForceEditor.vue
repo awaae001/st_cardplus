@@ -93,17 +93,76 @@
               <p v-if="errors.headquarters" class="error-message">{{ errors.headquarters }}</p>
             </div>
             <div>
-              <label class="form-label">分部位置</label>
+              <label class="form-label">分部</label>
+              <div v-for="(branch, index) in force.branchLocations" :key="branch.id" class="branch-entry">
+                <el-input v-model="branch.type" placeholder="分部类型" class="branch-type-input" />
+                <el-select
+                  v-model="branch.locationId"
+                  filterable
+                  placeholder="选择位置"
+                  class="branch-location-input"
+                >
+                  <el-option
+                    v-for="landmark in projectLandmarks"
+                    :key="landmark.id"
+                    :label="landmark.name"
+                    :value="landmark.id"
+                  />
+                </el-select>
+                <el-input v-model="branch.manager" placeholder="主理人 (可选)" class="branch-manager-input" />
+                <el-popconfirm title="确定删除这个分部吗？" @confirm="removeBranchLocation(index)">
+                  <template #reference>
+                    <el-button type="danger" circle plain>
+                      <Icon icon="ph:trash-duotone" />
+                    </el-button>
+                  </template>
+                </el-popconfirm>
+              </div>
+              <el-button @click="addBranchLocation" type="primary" plain class="form-full-width">
+                <Icon icon="ph:plus-circle-duotone" /> 添加分部
+              </el-button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 外交关系 -->
+        <section class="form-section">
+          <h3 class="form-section-title">
+            <Icon icon="ph:handshake-duotone" class="form-section-icon" />外交关系
+          </h3>
+          <div class="form-grid-2-col">
+            <div>
+              <label class="form-label">盟友</label>
               <el-select
-                v-model="force.branchLocations"
+                v-model="force.allies"
                 multiple
                 filterable
-                allow-create
-                default-first-option
-                :reserve-keyword="false"
-                placeholder="输入分部位置，按回车确认"
+                placeholder="选择盟友势力"
                 class="form-full-width"
               >
+                <el-option
+                  v-for="item in filteredForces"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                />
+              </el-select>
+            </div>
+            <div>
+              <label class="form-label">宿敌</label>
+              <el-select
+                v-model="force.enemies"
+                multiple
+                filterable
+                placeholder="选择宿敌势力"
+                class="form-full-width"
+              >
+                <el-option
+                  v-for="item in filteredForces"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                />
               </el-select>
             </div>
           </div>
@@ -152,10 +211,10 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, toRefs, watch } from 'vue';
+import { defineProps, toRefs, watch, computed } from 'vue';
 import { ElScrollbar, ElForm, ElInput, ElSelect, ElOption, ElInputNumber, ElEmpty, ElButton, ElPopconfirm } from 'element-plus';
 import { Icon } from '@iconify/vue';
-import type { EnhancedForce } from '@/types/world-editor';
+import type { EnhancedForce, EnhancedLandmark, BranchLocation } from '@/types/world-editor';
 import { ForceType } from '@/types/world-editor';
 import { useValidation, forceValidationRules } from '@/composables/worldeditor/useValidation';
 import { v4 as uuidv4 } from 'uuid';
@@ -164,11 +223,27 @@ import '@/css/worldbook.css';
 interface Props {
   force: EnhancedForce | null;
   allTags?: string[];
+  allForces?: EnhancedForce[];
+  allLandmarks?: EnhancedLandmark[];
 }
 const props = defineProps<Props>();
 const { errors, validate } = useValidation();
 const { force } = toRefs(props);
 const forceTypes = Object.values(ForceType);
+
+const filteredForces = computed(() => {
+  if (!props.allForces || !props.force) {
+    return [];
+  }
+  return props.allForces.filter(f => f.id !== props.force!.id);
+});
+
+const projectLandmarks = computed(() => {
+  if (!props.allLandmarks || !props.force) {
+    return [];
+  }
+  return props.allLandmarks.filter(l => l.projectId === props.force!.projectId);
+});
 
 const localizeForceType = (type: string): string => {
   const map: Record<string, string> = {
@@ -206,6 +281,26 @@ const removeLeader = (index: number) => {
   }
 };
 
+const addBranchLocation = () => {
+  if (props.force) {
+    if (!props.force.branchLocations) {
+      props.force.branchLocations = [];
+    }
+    props.force.branchLocations.push({
+      id: uuidv4(),
+      type: '',
+      locationId: '',
+      manager: '',
+    });
+  }
+};
+
+const removeBranchLocation = (index: number) => {
+  if (props.force && props.force.branchLocations) {
+    props.force.branchLocations.splice(index, 1);
+  }
+};
+
 watch(
   () => props.force,
   (newForce) => {
@@ -217,6 +312,13 @@ watch(
       // Ensure branchLocations array exists
       if (!newForce.branchLocations) {
         newForce.branchLocations = [];
+      }
+      // Ensure allies and enemies arrays exist
+      if (!newForce.allies) {
+        newForce.allies = [];
+      }
+      if (!newForce.enemies) {
+        newForce.enemies = [];
       }
       validate(newForce, forceValidationRules);
     }
@@ -245,6 +347,25 @@ watch(
 
 .leader-name-input {
   flex-grow: 1;
+}
+
+.branch-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.branch-type-input {
+  width: 120px;
+}
+
+.branch-location-input {
+  flex-grow: 1;
+}
+
+.branch-manager-input {
+  width: 150px;
 }
 
 </style>

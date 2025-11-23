@@ -235,37 +235,79 @@ const clearForceSelection = () => {
   selectedForces.value = [];
 };
 
-// 生成简化的JSON数据（只保留核心字段：名称、介绍、类型、笔记）
+// 生成增强的、可读性强的JSON数据
 const generateJSON = (items: (EnhancedLandmark | EnhancedForce)[]): string => {
   if (items.length === 0) return '{}';
-  
-  const landmarks = items.filter((item): item is EnhancedLandmark => 'region' in item);
-  const forces = items.filter((item): item is EnhancedForce => 'power' in item);
-  
+
+  // 创建ID到名称的映射，以便将UUID替换为可读的名称
+  const landmarkIdToNameMap = new Map(props.landmarks.map(l => [l.id, l.name]));
+  const forceIdToNameMap = new Map(props.forces.map(f => [f.id, f.name]));
+
+  const idToName = (id: string, map: Map<string, string>) => map.get(id) || id;
+
+  const landmarks = items
+    .filter((item): item is EnhancedLandmark => 'region' in item)
+    .map(landmark => {
+      const cleanedLandmark = {
+        name: landmark.name,
+        description: landmark.description,
+        type: getLandmarkTypeLabel(landmark.type),
+        importance: landmark.importance,
+        tags: landmark.tags,
+        region: landmark.region,
+        // 将关联ID转换为名称
+        controllingForces: landmark.controllingForces?.map(id => idToName(id, forceIdToNameMap)),
+        relatedLandmarks: landmark.relatedLandmarks?.map(id => idToName(id, landmarkIdToNameMap)),
+        climate: landmark.climate,
+        terrain: landmark.terrain,
+        population: landmark.population,
+        resources: landmark.resources,
+        notes: landmark.notes,
+      };
+      return cleanObject(cleanedLandmark);
+    });
+
+  const forces = items
+    .filter((item): item is EnhancedForce => 'power' in item)
+    .map(force => {
+      const cleanedForce = {
+        name: force.name,
+        description: force.description,
+        type: getForceTypeLabel(force.type),
+        power: force.power,
+        leaders: force.leaders?.map(l => `${l.title}: ${l.name}`.trim()),
+        totalMembers: force.totalMembers,
+        // 将关联ID转换为名称
+        headquarters: force.headquarters ? idToName(force.headquarters, landmarkIdToNameMap) : undefined,
+        branchLocations: force.branchLocations?.map(branch => {
+          const locationName = idToName(branch.locationId, landmarkIdToNameMap);
+          const managerInfo = branch.manager ? ` (主理人: ${branch.manager})` : '';
+          return `${branch.type}: ${locationName}${managerInfo}`;
+        }),
+        allies: force.allies?.map(id => idToName(id, forceIdToNameMap)),
+        enemies: force.enemies?.map(id => idToName(id, forceIdToNameMap)),
+        capabilities: force.capabilities,
+        weaknesses: force.weaknesses,
+        tags: force.tags,
+        notes: force.notes,
+      };
+      return cleanObject(cleanedForce);
+    });
+
   const exportData = {
     project: {
       name: props.currentProject?.name || '未命名项目',
       description: props.currentProject?.description || ''
     },
-    landmarks: landmarks.map(landmark => cleanObject({
-      name: landmark.name,
-      description: landmark.description,
-      type: getLandmarkTypeLabel(landmark.type),
-      notes: landmark.notes
-    })),
-    forces: forces.map(force => cleanObject({
-      name: force.name,
-      description: force.description,
-      type: getForceTypeLabel(force.type),
-      notes: force.notes
-    })),
+    landmarks,
+    forces,
     summary: {
       landmarkCount: landmarks.length,
       forceCount: forces.length,
       totalCount: items.length
     }
   };
-  
+
   return JSON.stringify(exportData, null, 2);
 };
 
