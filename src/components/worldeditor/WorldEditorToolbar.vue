@@ -318,7 +318,8 @@ const handleNodeDrop = (draggingNode: any, dropNode: any, dropType: any) => {
 }
 
 .toolbar-list-scrollbar {
-  flex-grow: 1;
+  flex: 1;
+  min-height: 0;
 }
 
 .world-editor-tree {

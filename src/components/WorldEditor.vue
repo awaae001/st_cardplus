@@ -203,6 +203,7 @@ watch(
 
 .toolbar-container {
   height: 100%;
+  overflow: hidden;
 }
 
 .main-panel-container {
@@ -211,5 +212,7 @@ watch(
   border-radius: 4px;
   padding: 16px;
   border: 1px solid var(--el-border-color-lighter);
+  box-sizing: border-box;
+  overflow: hidden;
 }
 </style>
