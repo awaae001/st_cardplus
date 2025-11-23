@@ -92,6 +92,7 @@
                 filterable
                 allow-create
                 default-first-option
+                :reserve-keyword="false"
                 placeholder="输入分部位置，按回车确认"
                 class="form-full-width"
               >
@@ -108,12 +109,12 @@
           <div class="form-section-content">
             <div>
               <label class="form-label">特殊能力</label>
-              <el-select v-model="force.capabilities" multiple filterable allow-create default-first-option placeholder="例如：符文锻造, 元素抵抗" class="form-full-width">
+              <el-select v-model="force.capabilities" multiple filterable allow-create default-first-option :reserve-keyword="false" placeholder="例如：符文锻造, 元素抵抗" class="form-full-width">
               </el-select>
             </div>
             <div>
               <label class="form-label">弱点</label>
-              <el-select v-model="force.weaknesses" multiple filterable allow-create default-first-option placeholder="例如：惧怕暗影魔法, 内部纷争" class="form-full-width">
+              <el-select v-model="force.weaknesses" multiple filterable allow-create default-first-option :reserve-keyword="false" placeholder="例如：惧怕暗影魔法, 内部纷争" class="form-full-width">
               </el-select>
             </div>
           </div>
@@ -127,7 +128,7 @@
           <div class="form-section-content">
             <div>
               <label class="form-label">标签</label>
-              <el-select v-model="force.tags" multiple filterable allow-create default-first-option placeholder="例如：王国, 守序善良, 军事" class="form-full-width">
+              <el-select v-model="force.tags" multiple filterable allow-create default-first-option :reserve-keyword="false" placeholder="例如：王国, 守序善良, 军事" class="form-full-width">
                 <el-option v-for="tag in props.allTags" :key="tag" :label="tag" :value="tag" />
               </el-select>
             </div>

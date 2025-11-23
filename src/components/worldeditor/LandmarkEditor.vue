@@ -46,7 +46,7 @@
             </div>
             <div class="form-grid-span-3">
               <label class="form-label">标签</label>
-              <el-select v-model="landmark.tags" multiple filterable allow-create default-first-option placeholder="例如：山脉, 险峻, 神秘" class="form-full-width">
+              <el-select v-model="landmark.tags" multiple filterable allow-create default-first-option :reserve-keyword="false" placeholder="例如：山脉, 险峻, 神秘" class="form-full-width">
                 <el-option v-for="tag in props.allTags" :key="tag" :label="tag" :value="tag" />
               </el-select>
             </div>
@@ -135,7 +135,7 @@
             </div>
             <div class="form-grid-span-3">
               <label class="form-label">资源</label>
-              <el-select v-model="landmark.resources" multiple filterable allow-create default-first-option placeholder="例如：铁矿, 魔法水晶" class="form-full-width">
+              <el-select v-model="landmark.resources" multiple filterable allow-create default-first-option :reserve-keyword="false" placeholder="例如：铁矿, 魔法水晶" class="form-full-width">
               </el-select>
             </div>
           </div>
