@@ -137,6 +137,7 @@ export interface EnhancedForce {
   weaknesses: string[];        // 弱点
  // 重要历史事件
   foundedDate?: string;        // 成立日期
+  timeline?: HistoryEvent[];   // 时间线事件列表
 
   // 元数据
   tags: string[];
@@ -246,4 +247,115 @@ export interface Resource {
   quantity: number;           // 数量
   quality: string;            // 品质
   source?: string;            // 来源
+}
+
+/**
+ * 历史事件
+ */
+export interface HistoryEvent {
+  id: string;                 // 前端使用的唯一ID
+  date: string;
+  title: string;
+  description: string;
+  impact: string;             // 影响
+}
+
+
+// =================================================================
+// 关系图谱 (Relationship Graph) 相关类型
+// =================================================================
+
+export interface RelationshipGraph {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+}
+
+export interface GraphNode {
+  id: string;
+  type: 'landmark' | 'force';
+  name: string;
+  data: EnhancedLandmark | EnhancedForce;
+}
+
+export interface GraphEdge {
+  source: string; // source node id
+  target: string; // target node id
+  type: GraphEdgeType;
+  strength: number;
+  label?: string;
+}
+
+/**
+ * 图谱中的关系类型
+ */
+export enum GraphEdgeType {
+  CONTROLS = 'controls',           // 势力控制地标
+  INFLUENCES = 'influences',       // 势力影响地标
+  ALLIED_WITH = 'allied_with',     // 势力联盟
+  ENEMY_OF = 'enemy_of',          // 势力敌对
+  LOCATED_IN = 'located_in',      // 地标位于区域
+  CONNECTED_TO = 'connected_to'   // 地标连接
+}
+
+/**
+ * 数据验证规则
+ */
+export interface ValidationRule {
+  field: string;
+  rule: ValidationType;
+  message: string;
+  params?: any;
+}
+
+/**
+ * 验证规则类型
+ */
+export enum ValidationType {
+  REQUIRED = 'required',
+  UNIQUE = 'unique',
+  MIN_LENGTH = 'minLength',
+  MAX_LENGTH = 'maxLength',
+  PATTERN = 'pattern',
+  CUSTOM = 'custom'
+}
+
+/**
+ * 操作历史记录条目
+ */
+export interface HistoryEntry {
+  id: string;
+  timestamp: string;
+  action: ActionType;
+  target: 'landmark' | 'force';
+  targetId: string;
+  previousState: any;
+  newState: any;
+  description: string;
+}
+
+/**
+ * 历史记录管理器接口
+ */
+export interface IHistoryManager {
+  history: HistoryEntry[];
+  currentIndex: number;
+  maxHistorySize: number;
+
+  undo(): boolean;
+  redo(): boolean;
+  addEntry(entry: HistoryEntry): void;
+  clear(): void;
+  getHistory(): HistoryEntry[];
+}
+
+
+/**
+ * 操作类型
+ */
+export enum ActionType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  BATCH_UPDATE = 'batch_update',
+  IMPORT = 'import'
 }
