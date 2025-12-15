@@ -5,7 +5,7 @@
   "private": true,
   "version": "0.1.8",
   "type": "module",
-  "main": "dist-electron/main.js",
+  "main": "dist/electron/main.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

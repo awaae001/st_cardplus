@@ -38,9 +38,16 @@ export default defineConfig({
   plugins: [
     vue(),
     tailwindcss(),
-    electron({
-      entry: 'electron/main.ts', // 主进程入口文件
-    }),
+    electron([
+      {
+        entry: 'electron/main.ts',
+        vite: {
+          build: {
+            outDir: 'dist/electron',
+          },
+        },
+      },
+    ]),
   ],
   resolve: { // 添加 resolve 配置
     alias: {

@@ -1,7 +1,7 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "outDir": "../dist-electron",
+    "outDir": "../dist/electron",
     "module": "ESNext",
     "target": "es6",
     "sourceMap": true,
