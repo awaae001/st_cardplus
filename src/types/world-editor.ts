@@ -32,8 +32,7 @@ export interface EnhancedLandmark {
   description: string;           // 详细描述
 
   // 分类属性
-  type: LandmarkType;           // 地标类型
-  customType?: string;          // 自定义类型名称
+  type: string;           // 地标类型
   importance: ImportanceLevel;   // 重要性等级（1-5星）
   tags: string[];               // 自定义标签
 
@@ -112,7 +111,7 @@ export interface EnhancedForce {
   description: string;
 
   // 组织属性
-  type: ForceType;              // 势力类型
+  type: string;              // 势力类型
   power: PowerLevel;            // 势力强度
   structure: OrganizationStructure; // 组织结构
 
@@ -125,21 +124,20 @@ export interface EnhancedForce {
   controlledTerritories: string[];  // 控制地标ID
   influenceAreas: string[];         // 影响区域ID
   headquarters?: string;            // 总部地标ID
-  branchLocations?: string[];       // 分部位置地标ID列表
+  branchLocations?: BranchLocation[];       // 分部位置列表
 
   // 外交关系
-  allies: Relationship[];       // 盟友关系
-  enemies: Relationship[];      // 敌对关系
+  allies: string[];       // 盟友势力ID列表
+  enemies: string[];      // 敌对势力ID列表
   neutral: string[];           // 中立势力ID
 
   // 资源与能力
   resources: Resource[];        // 拥有资源
   capabilities: string[];      // 特殊能力
   weaknesses: string[];        // 弱点
-
-  // 历史记录
-  history: HistoryEvent[];     // 重要历史事件
+ // 重要历史事件
   foundedDate?: string;        // 成立日期
+  timeline?: HistoryEvent[];   // 时间线事件列表
 
   // 元数据
   tags: string[];
@@ -149,6 +147,17 @@ export interface EnhancedForce {
   updatedAt: string;
   version: number;
 }
+
+/**
+ * 势力分部信息
+ */
+export interface BranchLocation {
+  id: string; // 前端使用的唯一ID
+  type: string; // 分部类型，例如：分舵、接应点
+  locationId: string; // 关联的地标ID
+  manager?: string; // 主理人
+}
+
 
 /**
  * 势力类型
@@ -195,7 +204,6 @@ export interface Leader {
   name: string;
   title: string;
   description?: string;
-  characterId?: string;        // 关联角色卡ID
 }
 
 /**
@@ -245,6 +253,7 @@ export interface Resource {
  * 历史事件
  */
 export interface HistoryEvent {
+  id: string;                 // 前端使用的唯一ID
   date: string;
   title: string;
   description: string;

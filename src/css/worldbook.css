@@ -554,6 +554,8 @@
     padding: 16px;
     display: flex;
     flex-direction: column;
+    height: 100%;
+    box-sizing: border-box;
   }
   
   .worldbook-add-button-desktop {

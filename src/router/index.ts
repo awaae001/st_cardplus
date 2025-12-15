@@ -47,12 +47,6 @@ const router = createRouter({
       meta: { title: '工具箱' }
     },
     {
-      path: '/migration',
-      name: 'migration',
-      component: () => import('../pages/Migration.vue'),
-      meta: { title: '数据库迁移助手' }
-    },
-    {
       path: '/toolbox/json-formatter',
       name: 'jsonFormatter',
       component: () => import('../components/toolsbox/JsonFormatter.vue'),
@@ -69,12 +63,6 @@ const router = createRouter({
       name: 'worldbookConverter',
       component: () => import('../components/toolsbox/WorldBookConverterTool.vue'),
       meta: { title: '世界书转换器' }
-    },
-    {
-      path: '/toolbox/png-metadata',
-      name: 'pngMetadata',
-      component: () => import('../components/toolsbox/PngMetadataTool.vue'),
-      meta: { title: 'PNG 元数据工具' }
     },
     {
       path: '/toolbox/chinese-converter',
@@ -110,14 +98,4 @@ router.afterEach((to) => {
     document.title = '酒馆角色卡工具箱'
   }
 })
-// router.beforeEach((to, from, next) => {
-//   if (from.name) { // 如果不是首次加载
-//     const confirmLeave = window.confirm('确定离开？离开后数据清空')
-//     if (!confirmLeave) {
-//       return false
-//     }
-//   }
-//   next()
-// })
-
 export default router

@@ -20,7 +20,7 @@ function createWindow() {
     backgroundColor: '#ffffff',
     // titleBarStyle: 'hidden',
     trafficLightPosition: { x: 12, y: 12 },
-    icon: path.join(__dirname, '../src/image/logo.png')
+    icon: path.join(__dirname, '../../src/image/logo.png')
   });
 
   mainWindow.once('ready-to-show', () => {
@@ -28,14 +28,14 @@ function createWindow() {
   });
 
   mainWindow.webContents.on('did-fail-load', () => {
-    mainWindow?.loadFile(path.join(__dirname, '../dist/error.html'));
+    mainWindow?.loadFile(path.join(__dirname, '../error.html'));
   });
 
   if (process.env.NODE_ENV === 'development') {
     mainWindow.loadURL('http://localhost:3066');
     mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    mainWindow.loadFile(path.join(__dirname, '../index.html'));
   }
 
   mainWindow.on('closed', () => {

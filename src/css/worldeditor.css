@@ -4,7 +4,8 @@
 
 .world-editor-desktop-layout {
     display: flex;
-    flex-grow: 1;
+    flex: 1;
+    min-height: 0;
 }
 
 @media (max-width: 768px) {

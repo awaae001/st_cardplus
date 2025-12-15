@@ -168,16 +168,6 @@ export const toolboxToolItems: MenuItemConfig[] = [
     description: '在 CharacterBook 和 WorldBook 格式之间进行双向转换'
   },
   {
-    id: 'png-metadata',
-    type: 'tool',
-    visible: false,
-    order: 103,
-    title: 'PNG元数据工具',
-    icon: 'mdi:file-image-plus-outline',
-    route: '/toolbox/png-metadata',
-    description: '读取或写入 PNG 图片的元数据'
-  },
-  {
     id: 'chinese-converter',
     type: 'tool',
     visible: false,
@@ -214,22 +204,6 @@ export const toolboxFixedTools: ToolboxToolConfig[] = [
     description: '在 CharacterBook 和 WorldBook 格式之间进行双向转换',
     route: '/toolbox/worldbook-converter',
     category: 'converter'
-  },
-  {
-    id: 'png-metadata',
-    title: 'PNG元数据工具',
-    icon: 'mdi:file-image-plus-outline',
-    description: '读取或写入 PNG 图片的元数据',
-    route: '/toolbox/png-metadata',
-    category: 'metadata'
-  },
-  {
-    id: 'database-migration',
-    title: '数据库迁移助手',
-    icon: 'ph:database-duotone',
-    description: '协助您将数据从旧版数据库迁移到新版数据库',
-    route: '/migration',
-    category: 'utility'
   },
   {
     id: 'chinese-converter',

@@ -5,8 +5,7 @@
     "output": "dist"
   },
   "files": [
-    "dist/**/*", 
-    "dist-electron/**/*"
+    "dist/**/*"
   ],
   "nsis": {
     "oneClick": false,

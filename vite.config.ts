@@ -38,22 +38,27 @@ export default defineConfig({
   plugins: [
     vue(),
     tailwindcss(),
-    electron({
-      entry: 'electron/main.ts', // 主进程入口文件
-    }),
+    electron([
+      {
+        entry: 'electron/main.ts',
+        vite: {
+          build: {
+            outDir: 'dist/electron',
+          },
+        },
+      },
+    ]),
   ],
   resolve: { // 添加 resolve 配置
     alias: {
-      '@': path.resolve(__dirname, 'src'), // 定义 @ 别名指向 src 目录
+      '@': path.resolve(__dirname, 'src'),
       'fs': path.resolve(__dirname, 'src/polyfills/fs.js'),
       'path': path.resolve(__dirname, 'src/polyfills/path.js'),
       'os': path.resolve(__dirname, 'src/polyfills/os.js'),
-      // 确保 Vue 在生产环境中正确解析
       'vue': 'vue/dist/vue.esm-bundler.js',
     },
   },
   define: {
-    // 防止 Node.js 模块在浏览器环境中被访问
     global: 'globalThis',
     __APP_VERSION__: JSON.stringify(appVersion),
     __APP_COMMIT_COUNT__: JSON.stringify(appCommitCount),
@@ -69,7 +74,7 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist', // 打包输出目录
-    minify: 'terser', // 使用terser进行更严格的minify
+    minify: 'terser',
     cssCodeSplit: true, // 启用CSS代码分割
     rollupOptions: {
       output: {
@@ -77,12 +82,12 @@ export default defineConfig({
       },
       external: [], // 确保不排除 Vue
     },
-    chunkSizeWarningLimit: 1000, // 降低警告阈值到1000KB
+    chunkSizeWarningLimit: 1000, 
     sourcemap: false,
     terserOptions: {
       compress: {
         drop_console: true,
-        drop_debugger: true, // 移除debugger
+        drop_debugger: true, 
       },
     },
   },

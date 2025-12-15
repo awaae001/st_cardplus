@@ -1,7 +1,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { v4 as uuidv4 } from 'uuid';
-import { extractAndDecodeCcv3, extractAndDecodeV2Card } from '@/utils/metadataSeparator';
+import { read as readPngMetadata } from '@/utils/pngCardMetadata';
 import type { CharacterCardV3 } from '@/types/character-card-v3';
 import type { CharacterCardCollection, CharacterCardItem } from '@/types/character-card-collection';
 import { characterCardService, type StoredCharacterCard } from '@/database/characterCardService';
@@ -265,21 +265,11 @@ export function useCharacterCardCollection() {
       });
     } else if (file.type === 'image/png' || file.name.endsWith('.png')) {
       try {
-        let characterCardData: CharacterCardV3 | null = null;
-        try {
-          characterCardData = await extractAndDecodeCcv3(file);
-          if (characterCardData) {
-            console.log('检测到 ccv3 格式角色卡数据');
-            return characterCardData;
-          }
-        } catch (error) {
-          console.log('未检测到 ccv3 格式数据，尝试 v2 格式...');
-        }
-
-        characterCardData = await extractAndDecodeV2Card(file);
-        if (characterCardData) {
-          console.log('检测到 TavernAI v2 格式角色卡数据');
-        }
+        const arrayBuffer = await file.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
+        const metadataString = readPngMetadata(uint8Array);
+        const characterCardData = JSON.parse(metadataString) as CharacterCardV3;
+        console.log('成功从 PNG 文件中读取角色卡数据');
         return characterCardData;
       } catch (error) {
         console.error('解析 PNG 文件时出错:', error);
