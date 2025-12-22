@@ -18,7 +18,6 @@ interface AppSettings {
   betaFeaturesEnabled: boolean;
   umamiEnabled: boolean;
   autoSaveInterval: number;
-  useOldCharCardEditor: boolean;
   useOldWorldEditor: boolean;
   autoExpandSidebar: boolean;
   allowBodyScroll: boolean;
@@ -31,7 +30,6 @@ const defaultSettings: AppSettings = {
   betaFeaturesEnabled: false,
   umamiEnabled: true,
   autoSaveInterval: 5,
-  useOldCharCardEditor: false,
   useOldWorldEditor: false,
   autoExpandSidebar: false,
   allowBodyScroll: false,
@@ -141,22 +139,6 @@ export const setAutoSaveInterval = (interval: number) => {
   console.log('自动保存间隔设置已保存:', validInterval + '秒');
 };
 
-/**
- * 获取是否使用旧版角色卡编辑器
- * @returns 是否使用旧版编辑器
- */
-export const getUseOldCharCardEditor = (): boolean => {
-  return getSettings().useOldCharCardEditor;
-};
-
-/**
- * 设置是否使用旧版角色卡编辑器
- * @param enabled - 是否使用旧版编辑器
- */
-export const setUseOldCharCardEditor = (enabled: boolean) => {
-  saveSettings({ useOldCharCardEditor: enabled });
-  console.log('旧版编辑器设置已保存:', enabled);
-};
 
 /**
  * 获取是否使用旧版世界编辑器

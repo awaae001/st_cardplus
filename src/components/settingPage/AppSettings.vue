@@ -41,7 +41,6 @@ import {
   getBetaFeaturesEnabled, setBetaFeaturesEnabled,
   getUmamiEnabled, setUmamiEnabled,
   getAutoSaveInterval, setAutoSaveInterval,
-  getUseOldCharCardEditor, setUseOldCharCardEditor,
   getUseOldWorldEditor, setUseOldWorldEditor
 } from '@/utils/localStorageUtils';
 import { getAppSettings } from '@/composables/appSettings';
@@ -50,7 +49,6 @@ const betaFeaturesEnabled = ref(false);
 const umamiEnabled = ref(true);
 const autoSaveInterval = ref(5);
 const useOldSidebar = ref(false);
-const useOldCharCardEditor = ref(false);
 const useOldWorldEditor = ref(false);
 
 const onBetaFeaturesToggle = (value: boolean) => {
@@ -141,20 +139,6 @@ const onAutoSaveIntervalChange = (value: number | undefined) => {
   window.dispatchEvent(new CustomEvent('autoSaveIntervalChange', { detail: value }));
 };
 
-const onUseOldCharCardEditorToggle = (value: boolean) => {
-  setUseOldCharCardEditor(value);
-  ElMessageBox.confirm(
-    '此设置将在您下次刷新页面 (Ctrl+R) 后生效 ',
-    '提示',
-    {
-      confirmButtonText: '立即刷新',
-      cancelButtonText: '稍后',
-      type: 'info',
-    }
-  ).then(() => {
-    window.location.reload();
-  });
-};
 
 const onUseOldWorldEditorToggle = (value: boolean) => {
   setUseOldWorldEditor(value);
@@ -173,7 +157,6 @@ const onUseOldWorldEditorToggle = (value: boolean) => {
 
 const settings = computed(() => getAppSettings(
   {
-    useOldCharCardEditor,
     betaFeaturesEnabled,
     useOldSidebar,
     useOldWorldEditor,
@@ -181,7 +164,6 @@ const settings = computed(() => getAppSettings(
     autoSaveInterval
   },
   {
-    onUseOldCharCardEditorToggle,
     onBetaFeaturesToggle,
     onUseOldWorldEditorToggle,
     onUmamiToggle,
@@ -207,7 +189,6 @@ onMounted(() => {
   betaFeaturesEnabled.value = getBetaFeaturesEnabled();
   umamiEnabled.value = getUmamiEnabled();
   autoSaveInterval.value = getAutoSaveInterval();
-  useOldCharCardEditor.value = getUseOldCharCardEditor();
   useOldWorldEditor.value = getUseOldWorldEditor();
   toggleUmamiScript(umamiEnabled.value);
 });

@@ -83,11 +83,10 @@ import 'splitpanes/dist/splitpanes.css';
 import CharacterListSidebar from '../components/charcard/CharacterListSidebar.vue';
 import { useCharacterCollection } from '../composables/characterInfo/useCharacterCollection';
 import { useDevice } from '../composables/useDevice';
-import { getUseOldCharCardEditor } from '@/utils/localStorageUtils';
 
 const { isMobile } = useDevice();
 const activeTab = ref('list');
-const useNewEditor = ref(false);
+const useNewEditor = ref(true);
 const editorComponent = shallowRef<Component | null>(null);
 
 const {
@@ -137,14 +136,8 @@ watch(activeCharacter, (newCharacter) => {
 }, { immediate: true, deep: true });
 
 onMounted(async () => {
-  useNewEditor.value = !getUseOldCharCardEditor();
-  if (useNewEditor.value) {
-    const module = await import('../components/CharacterInfoEditor.vue');
-    editorComponent.value = module.default;
-  } else {
-    const module = await import('../components/old/charainfo/CharacterCardEditor.vue');
-    editorComponent.value = module.default;
-  }
+  const module = await import('../components/CharacterInfoEditor.vue');
+  editorComponent.value = module.default;
 });
 
 // Restore the original title when the component is unmounted

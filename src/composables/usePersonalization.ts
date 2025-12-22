@@ -3,7 +3,6 @@ import { ElMessageBox } from 'element-plus';
 import {
   getAutoExpandSidebar, setAutoExpandSidebar,
   getAllowBodyScroll, setAllowBodyScroll,
-  getUseOldCharCardEditor, setUseOldCharCardEditor,
   getUseOldWorldEditor, setUseOldWorldEditor,
   getSidebarConfig, setSidebarConfig,
   type SidebarConfig
@@ -13,7 +12,6 @@ export function usePersonalization() {
   const autoExpandSidebar = ref(false);
   const allowBodyScroll = ref(false);
   const useOldSidebar = ref(false);
-  const useOldCharCardEditor = ref(false);
   const useOldWorldEditor = ref(false);
   const sidebarConfig = ref<SidebarConfig>(getSidebarConfig());
 
@@ -48,7 +46,6 @@ export function usePersonalization() {
   };
 
   const onAllowBodyScrollToggle = createReloadConfirm(setAllowBodyScroll);
-  const onUseOldCharCardEditorToggle = createReloadConfirm(setUseOldCharCardEditor);
   const onUseOldWorldEditorToggle = createReloadConfirm(setUseOldWorldEditor);
 
   // 侧边栏配置相关方法
@@ -64,7 +61,6 @@ export function usePersonalization() {
   onMounted(() => {
     autoExpandSidebar.value = getAutoExpandSidebar();
     allowBodyScroll.value = getAllowBodyScroll();
-    useOldCharCardEditor.value = getUseOldCharCardEditor();
     useOldWorldEditor.value = getUseOldWorldEditor();
     refreshSidebarConfig();
   });
@@ -76,8 +72,6 @@ export function usePersonalization() {
     allowBodyScroll,
     onAllowBodyScrollToggle,
     useOldSidebar,
-    useOldCharCardEditor,
-    onUseOldCharCardEditorToggle,
     useOldWorldEditor,
     onUseOldWorldEditorToggle,
     sidebarConfig,

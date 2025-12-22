@@ -26,8 +26,8 @@
           <el-input v-model="trait.description" type="textarea" :rows="4" placeholder="描述" />
           <div v-for="(_, i) in trait.dialogueExamples" :key="i" class="cardInput">
             <el-input v-model="trait.dialogueExamples[i]" type="textarea" :rows="2"
-              :placeholder="`对话示例 ${i + 1}`" />
-            <el-button @click="removeDialogueExample(index, i)" size="small">
+              :placeholder="`对话示例 ${Number(i) + 1}`" />
+            <el-button @click="removeDialogueExample(index, Number(i))" size="small">
               <Icon icon="material-symbols:delete-outline" width="18" height="18" />
             </el-button>
           </div>
@@ -38,8 +38,8 @@
           <el-divider border-style="dashed" />
           <div v-for="(_, i) in trait.behaviorExamples" :key="i" class="cardInput">
             <el-input v-model="trait.behaviorExamples[i]" type="textarea" :rows="2"
-              :placeholder="`行为示例 ${i + 1}`" />
-            <el-button @click="removeBehaviorExample(index, i)" size="small">
+              :placeholder="`行为示例 ${Number(i) + 1}`" />
+            <el-button @click="removeBehaviorExample(index, Number(i))" size="small">
               <Icon icon="material-symbols:delete-outline" width="18" height="18" />
             </el-button>
           </div>
@@ -85,9 +85,9 @@
           <div v-for="(_, i) in relationship.dialogueExamples" :key="i">
             <el-divider border-style="dashed" />
             <el-input v-model="relationship.dialogueExamples[i]" type="textarea" :rows="3"
-              :placeholder="`对话示例 ${i + 1}`" />
+              :placeholder="`对话示例 ${Number(i) + 1}`" />
             <el-popconfirm title="删除此示例？" confirm-button-text="确定" cancel-button-text="取消" icon-color="red"
-              @confirm="relationship.dialogueExamples.splice(i, 1)">
+              @confirm="relationship.dialogueExamples.splice(Number(i), 1)">
               <template #reference>
                 <el-button title="删除此对话示例" style="margin-top: 4px; width: 100%;">
                   <Icon icon="material-symbols:delete-outline" width="18" height="18" />
@@ -138,6 +138,11 @@
             <Icon icon="material-symbols:drag-handle" width="20" height="20" />
           </div>
           <el-input v-model="skill.name" placeholder="技能名称" />
+          <el-select v-model="skill.type" placeholder="技能类型" allow-create filterable default-first-option style="margin-top: 1rem; width: 100%;">
+            <el-option label="主动" value="主动" />
+            <el-option label="被动" value="被动" />
+            <el-option label="天赋" value="天赋" />
+          </el-select>
           <el-input v-model="skill.description" type="textarea" :rows="2" placeholder="描述" />
           <el-input v-model="skill.dialogExample" type="textarea" :rows="2" placeholder="对话示例" />
           <el-input v-model="skill.behaviorExample" type="textarea" :rows="2" placeholder="行为示例" />

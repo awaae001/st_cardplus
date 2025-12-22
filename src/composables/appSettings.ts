@@ -29,7 +29,6 @@ export type SettingOption = SwitchSetting | NumberInputSetting;
 
 
 interface AppSettingsModels {
-  useOldCharCardEditor: Ref<boolean>;
   betaFeaturesEnabled: Ref<boolean>;
   useOldSidebar: Ref<boolean>;
   useOldWorldEditor: Ref<boolean>;
@@ -37,7 +36,6 @@ interface AppSettingsModels {
   autoSaveInterval: Ref<number>;
 }
 interface AppSettingsHandlers {
-  onUseOldCharCardEditorToggle: (value: boolean) => void;
   onBetaFeaturesToggle: (value: boolean) => void;
   onUseOldWorldEditorToggle: (value: boolean) => void;
   onUmamiToggle: (value: boolean) => void;
@@ -55,16 +53,6 @@ export const getAppSettings = (models: AppSettingsModels, handlers: AppSettingsH
       type: 'switch',
       model: models.betaFeaturesEnabled,
       handler: handlers.onBetaFeaturesToggle,
-    },
-    {
-      id: 'useOldCharCardEditor',
-      label: '使用旧版本角色信息编辑页面',
-      icon: 'material-symbols:edit-note-outline',
-      iconColor: 'var(--el-color-primary)',
-      description: '开启后将使用旧版本的角色信息编辑页面，它将缺乏维护 ',
-      type: 'switch',
-      model: models.useOldCharCardEditor,
-      handler: handlers.onUseOldCharCardEditorToggle,
     },
     {
       id: 'useOldWorldEditor',
@@ -99,6 +87,17 @@ export const getAppSettings = (models: AppSettingsModels, handlers: AppSettingsH
       max: 60,
       step: 1,
       unit: '秒',
+    }, 
+    {
+      id: 'useOldCharCardEditor',
+      label: '使用旧版本角色信息编辑页面（已移除）',
+      icon: 'material-symbols:block',
+      iconColor: 'var(--el-color-danger)',
+      description: '🚫 此功能已被完全移除。新版编辑器提供了更强大的功能和更好的用户体验。',
+      type: 'switch',
+      model: models.useOldSidebar,
+      handler: () => { },
+      disabled: true,
     },
     {
       id: 'useOldSidebar',

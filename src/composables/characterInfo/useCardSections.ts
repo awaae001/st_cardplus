@@ -20,6 +20,7 @@ export function useCardSections(form: Ref<CharacterCard>) {
   const addSkill = (): void => {
     form.value.skills.push({
       name: '',
+      type: '',
       description: '',
       dialogExample: '',
       behaviorExample: ''
