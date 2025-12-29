@@ -138,39 +138,11 @@
     </div>
 
     <input ref="fileInput" type="file" accept="image/png" style="display: none" @change="handleFileSelected" />
-
-    <!-- 重构提示弹窗 -->
-    <el-dialog v-model="showRefactorDialog" title="🚧 角色卡管理器重构通知" width="500px" :close-on-click-modal="false"
-      :close-on-press-escape="false" :show-close="false" center>
-      <div class="refactor-notice">
-        <div class="notice-icon">
-          <Icon icon="ph:wrench-duotone" />
-        </div>
-        <div class="notice-content">
-          <h3>功能重构中</h3>
-          <p>角色卡管理器刚刚进行了重大重构，修复了 BUG ，正在优化显示 UI</p>
-          <p><strong>⚠️ 已知 UI 问题：</strong></p>
-          <ul>
-            <li>随便乱飞的世界书 条目</li>
-            <li>无法滚动</li>
-            <li>UI 样式太丑</li>
-          </ul>
-          <p class="notice-thanks">我们正在努力修复</p>
-        </div>
-      </div>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button @click="dismissRefactorDialog(false)">知道了</el-button>
-          <el-button type="primary" @click="dismissRefactorDialog(true)">今天内不再提醒</el-button>
-        </div>
-      </template>
-    </el-dialog>
-
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onUnmounted, onMounted, watch } from 'vue';
+import { ref, computed, onUnmounted, watch } from 'vue';
 import { ElButton, ElMessage, ElTabs, ElTabPane, ElDivider } from 'element-plus';
 import { Icon } from '@iconify/vue';
 
@@ -297,7 +269,7 @@ const imagePreviewUrl = computed(() => {
 });
 
 // 文件导入与导出
-const { isUploading, uploadProgress, fileInput, triggerFileInput, handleFileSelected } = useCardImport(
+const { isUploading, uploadProgress,triggerFileInput, handleFileSelected } = useCardImport(
   (card) => {
     loadCharacter(card);
     activeTab.value = 'editor';
@@ -323,36 +295,6 @@ const handleRegexChanged = async () => {
 };
 
 
-// 重构提示弹窗
-const showRefactorDialog = ref(false);
-const REFACTOR_NOTICE_KEY = 'cardmanager_refactor_notice_dismissed';
-const TODAY_DATE = new Date().toDateString();
-
-onMounted(() => {
-  const dismissedData = localStorage.getItem(REFACTOR_NOTICE_KEY);
-  if (!dismissedData) {
-    showRefactorDialog.value = true;
-  } else {
-    try {
-      const { date } = JSON.parse(dismissedData);
-      if (date !== TODAY_DATE) {
-        showRefactorDialog.value = true;
-      }
-    } catch {
-      showRefactorDialog.value = true;
-    }
-  }
-});
-
-const dismissRefactorDialog = (dontShowToday = false) => {
-  showRefactorDialog.value = false;
-  if (dontShowToday) {
-    localStorage.setItem(REFACTOR_NOTICE_KEY, JSON.stringify({
-      date: TODAY_DATE,
-      dismissed: true
-    }));
-  }
-};
 
 // 监听 activeCardId 的变化,自动加载或重置编辑器
 // 注意：只监听 activeCardId，不监听 activeCard，避免因 activeCard 对象变化导致循环
@@ -418,12 +360,8 @@ const handleCreateNewCard = async () => {
   }
 };
 
-// ===== 新增标签页事件处理函数 =====
-
-// 从主页打开角色卡
 const handleOpenCardFromHome = (cardId: string, cardName: string) => {
   openCharacterCardTab(cardId, cardName);
-  // 加载角色卡数据到编辑器
   const card = characterCardCollection.value.cards[cardId];
   if (card) {
     characterImageFile.value = null;
@@ -432,7 +370,6 @@ const handleOpenCardFromHome = (cardId: string, cardName: string) => {
   }
 };
 
-// 标签页切换
 const handleTabSwitch = (tabId: string) => {
   switchToTab(tabId);
 
@@ -446,7 +383,6 @@ const handleTabSwitch = (tabId: string) => {
       handleSelectCard(tab.cardId);
     }
   } else if (tab?.type === 'home') {
-    // 切换到主页时，先清空选中的角色卡，再重置编辑器
     handleSelectCard(null);
     resetCharacter();
     characterImageFile.value = null;
@@ -473,14 +409,10 @@ const handleRenameCard = async (cardId: string) => {
   }
 };
 
-// 删除角色卡（同时关闭标签页）
 const handleDeleteCard = async (cardId: string) => {
   await handleDeleteCardOriginal(cardId);
-  // 关闭对应的标签页
   closeCharacterCardTab(cardId);
 };
-
-// 世界书更改后触发手动保存
 const handleWorldBookChanged = async () => {
   if (activeCard.value && activeCardId.value) {
     try {
@@ -739,52 +671,4 @@ onUnmounted(() => {
   }
 }
 
-/* 重构提示弹窗样式 */
-.refactor-notice {
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
-}
-
-.notice-icon {
-  font-size: 48px;
-  color: var(--el-color-warning);
-  flex-shrink: 0;
-}
-
-.notice-content h3 {
-  margin: 0 0 12px 0;
-  color: var(--el-color-warning);
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.notice-content p {
-  margin: 8px 0;
-  line-height: 1.6;
-  color: var(--el-text-color-primary);
-}
-
-.notice-content ul {
-  margin: 8px 0;
-  padding-left: 20px;
-}
-
-.notice-content li {
-  margin: 4px 0;
-  line-height: 1.5;
-  color: var(--el-text-color-regular);
-}
-
-.notice-thanks {
-  margin-top: 16px;
-  font-weight: 500;
-  color: var(--el-color-primary);
-}
-
-.dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-}
 </style>
