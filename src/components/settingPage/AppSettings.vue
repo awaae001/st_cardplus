@@ -38,10 +38,7 @@ import { Icon } from '@iconify/vue';
 import { ref, onMounted, computed } from 'vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import {
-  getBetaFeaturesEnabled, setBetaFeaturesEnabled,
-  getUmamiEnabled, setUmamiEnabled,
-  getAutoSaveInterval, setAutoSaveInterval,
-  getUseOldWorldEditor, setUseOldWorldEditor
+  getSetting, setSetting
 } from '@/utils/localStorageUtils';
 import { getAppSettings } from '@/composables/appSettings';
 
@@ -72,7 +69,7 @@ const onBetaFeaturesToggle = (value: boolean) => {
       }
     )
       .then(() => {
-        setBetaFeaturesEnabled(true);
+        setSetting('betaFeaturesEnabled', true);
         window.dispatchEvent(new CustomEvent('betaFeaturesToggle', { detail: true }));
         ElMessage({
           type: 'success',
@@ -87,7 +84,7 @@ const onBetaFeaturesToggle = (value: boolean) => {
         });
       });
   } else {
-    setBetaFeaturesEnabled(false);
+    setSetting('betaFeaturesEnabled', false);
     window.dispatchEvent(new CustomEvent('betaFeaturesToggle', { detail: false }));
   }
 };
@@ -113,7 +110,7 @@ const onUmamiToggle = (value: boolean) => {
       }
     )
       .then(() => {
-        setUmamiEnabled(false);
+        setSetting('umamiEnabled', false);
         toggleUmamiScript(false);
         ElMessage({
           type: 'success',
@@ -128,20 +125,20 @@ const onUmamiToggle = (value: boolean) => {
         });
       });
   } else {
-    setUmamiEnabled(true);
+    setSetting('umamiEnabled', true);
     toggleUmamiScript(true);
   }
 };
 
 const onAutoSaveIntervalChange = (value: number | undefined) => {
   if (value === undefined) return;
-  setAutoSaveInterval(value);
+  setSetting('autoSaveInterval', value);
   window.dispatchEvent(new CustomEvent('autoSaveIntervalChange', { detail: value }));
 };
 
 
 const onUseOldWorldEditorToggle = (value: boolean) => {
-  setUseOldWorldEditor(value);
+  setSetting('useOldWorldEditor', value);
   ElMessageBox.confirm(
     '此设置将在您下次刷新页面 (Ctrl+R) 后生效 ',
     '提示',
@@ -186,10 +183,10 @@ const toggleUmamiScript = (enabled: boolean) => {
 };
 
 onMounted(() => {
-  betaFeaturesEnabled.value = getBetaFeaturesEnabled();
-  umamiEnabled.value = getUmamiEnabled();
-  autoSaveInterval.value = getAutoSaveInterval();
-  useOldWorldEditor.value = getUseOldWorldEditor();
+  betaFeaturesEnabled.value = getSetting('betaFeaturesEnabled');
+  umamiEnabled.value = getSetting('umamiEnabled');
+  autoSaveInterval.value = getSetting('autoSaveInterval');
+  useOldWorldEditor.value = getSetting('useOldWorldEditor');
   toggleUmamiScript(umamiEnabled.value);
 });
 </script>

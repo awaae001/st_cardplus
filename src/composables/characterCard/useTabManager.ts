@@ -1,4 +1,10 @@
 import { ref, watch } from 'vue';
+import {
+  getSessionStorageItem,
+  setSessionStorageItem,
+  readSessionStorageJSON,
+  writeSessionStorageJSON,
+} from '@/utils/localStorageUtils';
 
 /**
  * 标签页类型
@@ -33,24 +39,23 @@ export function useTabManager() {
   // 当前激活的标签页 ID
   const activeTabId = ref<string>('home');
 
-  // 从 localStorage 恢复标签页状态
+  // 从 sessionStorage 恢复标签页状态
   const restoreTabsFromStorage = () => {
     try {
-      const storedTabs = localStorage.getItem('characterCardTabs');
-      const storedActiveTab = localStorage.getItem('characterCardActiveTab');
+      const storedTabs = readSessionStorageJSON<Tab[]>('characterCardTabs');
+      const storedActiveTab = getSessionStorageItem('characterCardActiveTab');
 
       if (storedTabs) {
-        const parsedTabs = JSON.parse(storedTabs) as Tab[];
         // 确保主页标签始终存在
-        if (!parsedTabs.find((t) => t.id === 'home')) {
-          parsedTabs.unshift({
+        if (!storedTabs.find((t) => t.id === 'home')) {
+          storedTabs.unshift({
             id: 'home',
             type: 'home',
             label: '角色卡库',
             closable: false,
           });
         }
-        tabs.value = parsedTabs;
+        tabs.value = storedTabs;
       }
 
       if (storedActiveTab) {
@@ -64,11 +69,11 @@ export function useTabManager() {
     }
   };
 
-  // 保存标签页状态到 localStorage
+  // 保存标签页状态到 sessionStorage
   const saveTabsToStorage = () => {
     try {
-      localStorage.setItem('characterCardTabs', JSON.stringify(tabs.value));
-      localStorage.setItem('characterCardActiveTab', activeTabId.value);
+      writeSessionStorageJSON('characterCardTabs', tabs.value);
+      setSessionStorageItem('characterCardActiveTab', activeTabId.value);
     } catch (error) {
       console.error('保存标签页状态失败:', error);
     }

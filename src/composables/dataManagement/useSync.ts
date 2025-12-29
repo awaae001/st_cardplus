@@ -12,6 +12,12 @@ import {
 } from '@/utils/gist';
 import type { GistConfig, BackupData } from '@/types/gist';
 import { exportAllDatabases, importAllDatabases } from '@/database/utils';
+import {
+  getSessionStorageItem,
+  removeSessionStorageItem,
+  readSessionStorageJSON,
+  writeSessionStorageJSON,
+} from '@/utils/localStorageUtils';
 
 interface WebDAVConfig {
   url: string;
@@ -125,7 +131,7 @@ export function useSync() {
         }
         const dbSnapshot = await exportAllDatabases();
         Object.assign(snapshotData, dbSnapshot);
-        sessionStorage.setItem(snapshotKey, JSON.stringify(snapshotData));
+        writeSessionStorageJSON(snapshotKey, snapshotData);
         snapshotAvailableRef.value = true;
         const flatData = { ...backupData.localStorage, ...backupData.databases };
         await importAllDatabases(flatData);
@@ -160,14 +166,14 @@ export function useSync() {
     snapshotKey: string,
     snapshotAvailableRef: Ref<boolean>
   ) => {
-    const snapshot = sessionStorage.getItem(snapshotKey);
-    if (!snapshot) {
+    const snapshotData = readSessionStorageJSON<{ [key: string]: any }>(snapshotKey);
+    if (!snapshotData) {
       ElMessage.error('没有可用的快照 请检查是否已执行拉取操作 ');
       return;
     }
 
     try {
-      const snapshotSize = new Blob([snapshot]).size;
+      const snapshotSize = new Blob([JSON.stringify(snapshotData)]).size;
       if (snapshotSize > 4500 * 1024) {
         await ElMessageBox.confirm(
           '当前 APP 数据内容已超出 浏览器 缓冲区有效容量，恢复系统运作可能运作不如意',
@@ -176,15 +182,14 @@ export function useSync() {
         );
       }
 
-      const data = JSON.parse(snapshot);
-      await importAllDatabases(data);
+      await importAllDatabases(snapshotData);
       localStorage.clear();
-      for (const key in data) {
-        if (Object.prototype.hasOwnProperty.call(data, key)) {
-          localStorage.setItem(key, data[key]);
+      for (const key in snapshotData) {
+        if (Object.prototype.hasOwnProperty.call(snapshotData, key)) {
+          localStorage.setItem(key, snapshotData[key]);
         }
       }
-      sessionStorage.removeItem(snapshotKey);
+      removeSessionStorageItem(snapshotKey);
       snapshotAvailableRef.value = false;
       ElMessage.success('操作已撤销，应用将重新加载');
       setTimeout(() => window.location.reload(), 1500);
@@ -428,14 +433,12 @@ export function useSync() {
     const savedWebDAVConfig = localStorage.getItem('webdavConfig');
     if (savedWebDAVConfig) webdavConfig.value = JSON.parse(savedWebDAVConfig);
 
-    const snapshot = sessionStorage.getItem('webdav-snapshot');
-    if (snapshot) snapshotAvailable.value = true;
+    if (getSessionStorageItem('webdav-snapshot')) snapshotAvailable.value = true;
 
     const savedGistConfig = loadGistConfig();
     if (savedGistConfig) gistConfig.value = savedGistConfig;
 
-    const gistSnapshot = sessionStorage.getItem('gist-snapshot');
-    if (gistSnapshot) gistSnapshotAvailable.value = true;
+    if (getSessionStorageItem('gist-snapshot')) gistSnapshotAvailable.value = true;
   };
 
   return {

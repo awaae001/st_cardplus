@@ -2,6 +2,7 @@ import { ref, computed, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import type { RegexCategory, RegexScriptCollection, SillyTavernRegexScript } from "./types";
 import { v4 as uuidv4 } from 'uuid';
+import { getSessionStorageItem, setSessionStorageItem } from '@/utils/localStorageUtils';
 
 const STORAGE_KEY = 'regex-script-collection';
 const ACTIVE_CATEGORY_KEY = 'regex-active-category-id';
@@ -20,12 +21,12 @@ export function useRegexCollection() {
     return regexCollection.value.categories[categoryId] || null;
   });
 
-  // 保存到 localStorage
+  // 保存到 sessionStorage
   const saveToStorage = () => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(regexCollection.value.categories));
       if (regexCollection.value.activeCategoryId) {
-        localStorage.setItem(ACTIVE_CATEGORY_KEY, regexCollection.value.activeCategoryId);
+        setSessionStorageItem(ACTIVE_CATEGORY_KEY, regexCollection.value.activeCategoryId);
       }
     } catch (error) {
       console.error('保存正则脚本集合失败:', error);
@@ -36,7 +37,7 @@ export function useRegexCollection() {
   const loadFromStorage = () => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      const savedActiveId = localStorage.getItem(ACTIVE_CATEGORY_KEY);
+      const savedActiveId = getSessionStorageItem(ACTIVE_CATEGORY_KEY);
 
       if (saved) {
         const categories = JSON.parse(saved);
@@ -81,7 +82,7 @@ export function useRegexCollection() {
   const handleSelectCategory = (categoryId: string) => {
     if (regexCollection.value.categories[categoryId]) {
       regexCollection.value.activeCategoryId = categoryId;
-      localStorage.setItem(ACTIVE_CATEGORY_KEY, categoryId);
+      setSessionStorageItem(ACTIVE_CATEGORY_KEY, categoryId);
     }
   };
 

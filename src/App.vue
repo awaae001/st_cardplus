@@ -83,7 +83,7 @@ import { ElContainer, ElAside, ElMain, ElMenu, ElMenuItem, ElIcon, ElButton, ElD
 import { useRouter, useRoute } from 'vue-router'
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useDark, useToggle, useWindowSize } from '@vueuse/core'
-import { getBetaFeaturesEnabled } from '@/utils/localStorageUtils'
+import { getSetting } from '@/utils/localStorageUtils'
 import { getIconComponent } from '@/config/menuConfig'
 import { provideOverflowControl } from '@/composables/useOverflowControl';
 import { usePersonalization } from '@/composables/usePersonalization';
@@ -178,7 +178,7 @@ const handleSidebarConfigChange = () => {
 };
 
 onMounted(() => {
-  betaFeaturesEnabled.value = getBetaFeaturesEnabled()
+  betaFeaturesEnabled.value = getSetting('betaFeaturesEnabled')
   refreshSidebarConfig() // 刷新侧边栏配置
   window.addEventListener('betaFeaturesToggle', handleBetaFeaturesToggle as EventListener)
   window.addEventListener('sidebarConfigChange', handleSidebarConfigChange as EventListener)

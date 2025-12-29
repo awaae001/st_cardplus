@@ -4,6 +4,11 @@ import type { CharacterBook } from '../types/character-book';
 import { convertCharacterBookToWorldBook } from '../utils/worldBookConverter';
 import { estimateEncodedSize } from './utils';
 import { v4 as uuidv4 } from 'uuid';
+import {
+  getSessionStorageItem,
+  setSessionStorageItem,
+  removeSessionStorageItem,
+} from '@/utils/localStorageUtils';
 
 export interface WorldBookExport {
   books: StoredWorldBook[];
@@ -55,8 +60,8 @@ export const worldBookService = {
       books[id] = book;
     }
 
-    // 4. 从 localStorage 获取并验证 activeBookId
-    const activeBookId = localStorage.getItem(ACTIVE_BOOK_ID_KEY);
+    // 4. 从 sessionStorage 获取并验证 activeBookId
+    const activeBookId = getSessionStorageItem(ACTIVE_BOOK_ID_KEY);
     const finalActiveBookId = activeBookId && books[activeBookId]
       ? activeBookId
       : (allBooksStored[0]?.id || null);
@@ -73,9 +78,9 @@ export const worldBookService = {
    */
   setActiveBookId(bookId: string | null): void {
     if (bookId) {
-      localStorage.setItem(ACTIVE_BOOK_ID_KEY, bookId);
+      setSessionStorageItem(ACTIVE_BOOK_ID_KEY, bookId);
     } else {
-      localStorage.removeItem(ACTIVE_BOOK_ID_KEY);
+      removeSessionStorageItem(ACTIVE_BOOK_ID_KEY);
     }
   },
 

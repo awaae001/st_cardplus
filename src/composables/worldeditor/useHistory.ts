@@ -1,6 +1,11 @@
 import { ref, readonly, onMounted } from 'vue';
 import type { HistoryEntry } from '@/types/world-editor';
 import { v4 as uuidv4 } from 'uuid';
+import {
+  readSessionStorageJSON,
+  writeSessionStorageJSON,
+  removeSessionStorageItem,
+} from '@/utils/localStorageUtils';
 
 export function useHistory(storageKey: string, maxHistorySize = 100) {
   const history = ref<HistoryEntry[]>([]);
@@ -15,7 +20,7 @@ export function useHistory(storageKey: string, maxHistorySize = 100) {
         history: history.value,
         currentIndex: currentIndex.value,
       };
-      sessionStorage.setItem(storageKey, JSON.stringify(state));
+      writeSessionStorageJSON(storageKey, state);
     } catch (e) {
       console.error("Failed to save history to sessionStorage", e);
     }
@@ -23,11 +28,10 @@ export function useHistory(storageKey: string, maxHistorySize = 100) {
 
   onMounted(() => {
     try {
-      const savedState = sessionStorage.getItem(storageKey);
+      const savedState = readSessionStorageJSON<{ history: HistoryEntry[]; currentIndex: number }>(storageKey);
       if (savedState) {
-        const { history: savedHistory, currentIndex: savedIndex } = JSON.parse(savedState);
-        history.value = savedHistory;
-        currentIndex.value = savedIndex;
+        history.value = savedState.history;
+        currentIndex.value = savedState.currentIndex;
         updateUndoRedoState();
       }
     } catch (e) {
@@ -90,7 +94,7 @@ export function useHistory(storageKey: string, maxHistorySize = 100) {
     history.value = [];
     currentIndex.value = -1;
     updateUndoRedoState();
-    sessionStorage.removeItem(storageKey);
+    removeSessionStorageItem(storageKey);
   };
 
   return {

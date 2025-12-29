@@ -1,7 +1,7 @@
 import { watch } from 'vue';
-import { loadFromLocalStorage, saveToLocalStorage } from '@/utils/localStorageUtils';
 import type { SillyTavernRegexScript } from './types';
 import type { Ref } from 'vue';
+import { readSessionStorageJSON, writeSessionStorageJSON } from '@/utils/localStorageUtils';
 
 const REGEX_SIMULATOR_STATE_KEY = 'regexSimulatorState';
 
@@ -39,7 +39,7 @@ export function useRegexPersistence(
    * 从本地存储加载状态并应用到组件的 Ref 中
    */
   const loadState = () => {
-    const savedState = loadFromLocalStorage(REGEX_SIMULATOR_STATE_KEY) as Partial<PersistentRegexState>;
+    const savedState = readSessionStorageJSON<Partial<PersistentRegexState>>(REGEX_SIMULATOR_STATE_KEY);
 
     const defaultScript = createDefaultScript();
     
@@ -72,7 +72,7 @@ export function useRegexPersistence(
       renderHtml: stateRefs.renderHtml.value,
       trimStrings: stateRefs.trimStrings.value,
     };
-    saveToLocalStorage(currentState, REGEX_SIMULATOR_STATE_KEY);
+    writeSessionStorageJSON(REGEX_SIMULATOR_STATE_KEY, currentState);
   };
 
   // 使用 setTimeout 实现防抖

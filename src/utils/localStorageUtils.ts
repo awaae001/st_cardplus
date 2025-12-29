@@ -1,5 +1,3 @@
-// --- Settings Management ---
-
 import {
   type MenuItemConfig,
   type MenuItemType,
@@ -24,8 +22,218 @@ interface AppSettings {
   sidebarConfig: SidebarConfig;
 }
 
-// 使用统一配置文件中的默认配置
+type LocalStorageSnapshot = Record<string, string | null>;
+type SessionStorageSnapshot = Record<string, string | null>;
+export type AppSettingsKey = keyof AppSettings;
 
+
+export const getLocalStorageItem = (key: string): string | null => {
+  try {
+    return localStorage.getItem(key);
+  } catch (error) {
+    console.error('读取本地存储失败:', error);
+    return null;
+  }
+};
+
+export const setLocalStorageItem = (key: string, value: string): void => {
+  try {
+    localStorage.setItem(key, value);
+  } catch (error) {
+    console.error('写入本地存储失败:', error);
+  }
+};
+
+export const setLocalStorageValue = (key: string, value: string | number | boolean | null | undefined): void => {
+  setLocalStorageItem(key, String(value));
+};
+
+export const removeLocalStorageItem = (key: string): void => {
+  try {
+    localStorage.removeItem(key);
+  } catch (error) {
+    console.error('移除本地存储失败:', error);
+  }
+};
+
+export const clearAllLocalStorage = (): void => {
+  try {
+    localStorage.clear();
+  } catch (error) {
+    console.error('清空本地存储失败:', error);
+  }
+};
+
+export const getLocalStorageKeys = (): string[] => {
+  const keys: string[] = [];
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key) keys.push(key);
+    }
+  } catch (error) {
+    console.error('读取本地存储键失败:', error);
+  }
+  return keys;
+};
+
+export const getLocalStorageSnapshot = (options?: { excludeKeys?: string[] }): LocalStorageSnapshot => {
+  const snapshot: LocalStorageSnapshot = {};
+  const excludeSet = new Set(options?.excludeKeys ?? []);
+  getLocalStorageKeys().forEach((key) => {
+    if (!excludeSet.has(key)) {
+      snapshot[key] = getLocalStorageItem(key);
+    }
+  });
+  return snapshot;
+};
+
+export const restoreLocalStorageSnapshot = (
+  snapshot: LocalStorageSnapshot,
+  options?: { preserveKeys?: string[] }
+): void => {
+  const preserved: LocalStorageSnapshot = {};
+  (options?.preserveKeys ?? []).forEach((key) => {
+    const value = getLocalStorageItem(key);
+    if (value !== null) preserved[key] = value;
+  });
+
+  clearAllLocalStorage();
+
+  Object.entries(preserved).forEach(([key, value]) => {
+    if (value !== null) setLocalStorageItem(key, value);
+  });
+
+  Object.entries(snapshot).forEach(([key, value]) => {
+    if (value !== null) setLocalStorageItem(key, value);
+  });
+};
+
+
+export const getSessionStorageItem = (key: string): string | null => {
+  try {
+    return sessionStorage.getItem(key);
+  } catch (error) {
+    console.error('读取会话存储失败:', error);
+    return null;
+  }
+};
+
+export const setSessionStorageItem = (key: string, value: string): void => {
+  try {
+    sessionStorage.setItem(key, value);
+  } catch (error) {
+    console.error('写入会话存储失败:', error);
+  }
+};
+
+export const setSessionStorageValue = (key: string, value: string | number | boolean | null | undefined): void => {
+  setSessionStorageItem(key, String(value));
+};
+
+export const removeSessionStorageItem = (key: string): void => {
+  try {
+    sessionStorage.removeItem(key);
+  } catch (error) {
+    console.error('移除会话存储失败:', error);
+  }
+};
+
+export const clearAllSessionStorage = (): void => {
+  try {
+    sessionStorage.clear();
+  } catch (error) {
+    console.error('清空会话存储失败:', error);
+  }
+};
+
+export const getSessionStorageKeys = (): string[] => {
+  const keys: string[] = [];
+  try {
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i);
+      if (key) keys.push(key);
+    }
+  } catch (error) {
+    console.error('读取会话存储键失败:', error);
+  }
+  return keys;
+};
+
+export const getSessionStorageSnapshot = (options?: { excludeKeys?: string[] }): SessionStorageSnapshot => {
+  const snapshot: SessionStorageSnapshot = {};
+  const excludeSet = new Set(options?.excludeKeys ?? []);
+  getSessionStorageKeys().forEach((key) => {
+    if (!excludeSet.has(key)) {
+      snapshot[key] = getSessionStorageItem(key);
+    }
+  });
+  return snapshot;
+};
+
+export const restoreSessionStorageSnapshot = (
+  snapshot: SessionStorageSnapshot,
+  options?: { preserveKeys?: string[] }
+): void => {
+  const preserved: SessionStorageSnapshot = {};
+  (options?.preserveKeys ?? []).forEach((key) => {
+    const value = getSessionStorageItem(key);
+    if (value !== null) preserved[key] = value;
+  });
+
+  clearAllSessionStorage();
+
+  Object.entries(preserved).forEach(([key, value]) => {
+    if (value !== null) setSessionStorageItem(key, value);
+  });
+
+  Object.entries(snapshot).forEach(([key, value]) => {
+    if (value !== null) setSessionStorageItem(key, value);
+  });
+};
+
+
+export const readLocalStorageJSON = <T>(key: string): T | null => {
+  const value = getLocalStorageItem(key);
+  if (!value) return null;
+  try {
+    return JSON.parse(value) as T;
+  } catch (error) {
+    console.error(`解析本地存储 JSON 失败: ${key}`, error);
+    return null;
+  }
+};
+
+export const writeLocalStorageJSON = (key: string, value: unknown): void => {
+  try {
+    setLocalStorageItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.error(`写入本地存储 JSON 失败: ${key}`, error);
+  }
+};
+
+
+export const readSessionStorageJSON = <T>(key: string): T | null => {
+  const value = getSessionStorageItem(key);
+  if (!value) return null;
+  try {
+    return JSON.parse(value) as T;
+  } catch (error) {
+    console.error(`解析会话存储 JSON 失败: ${key}`, error);
+    return null;
+  }
+};
+
+export const writeSessionStorageJSON = (key: string, value: unknown): void => {
+  try {
+    setSessionStorageItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.error(`写入会话存储 JSON 失败: ${key}`, error);
+  }
+};
+
+
+// 使用统一配置文件中的默认配置
 const defaultSettings: AppSettings = {
   betaFeaturesEnabled: false,
   umamiEnabled: true,
@@ -36,13 +244,23 @@ const defaultSettings: AppSettings = {
   sidebarConfig: createDefaultSidebarConfig(),
 };
 
+const normalizeSettingValue = <K extends AppSettingsKey>(key: K, value: AppSettings[K]): AppSettings[K] => {
+  if (key === 'autoSaveInterval') {
+    const interval = Number(value);
+    const fallback = defaultSettings.autoSaveInterval;
+    const safeInterval = Number.isFinite(interval) ? interval : fallback;
+    return Math.max(1, Math.min(60, safeInterval)) as AppSettings[K];
+  }
+  return value;
+};
+
 /**
  * 从本地存储加载设置
  * @returns AppSettings object
  */
 const getSettings = (): AppSettings => {
   try {
-    const savedSettings = localStorage.getItem(SETTINGS_KEY);
+    const savedSettings = getLocalStorageItem(SETTINGS_KEY);
     if (savedSettings) {
       const parsed = JSON.parse(savedSettings);
 
@@ -55,8 +273,6 @@ const getSettings = (): AppSettings => {
         // 尝试迁移配置以确保包含所有新功能
         sidebarConfig = migrateMenuConfig(sidebarConfig);
       }
-
-      // Merge with defaults to ensure all keys are present and handle migrations
       return {
         ...defaultSettings,
         ...parsed,
@@ -78,121 +294,30 @@ const saveSettings = (settings: Partial<AppSettings>) => {
   try {
     const currentSettings = getSettings();
     const newSettings = { ...currentSettings, ...settings };
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings));
+    setLocalStorageItem(SETTINGS_KEY, JSON.stringify(newSettings));
   } catch (error) {
     console.error('保存设置到本地存储失败:', error);
   }
 };
 
 /**
- * 获取测试版功能开关状态
- * @returns 测试版功能是否启用
+ * 读取单个设置项
+ * @param key - AppSettings key
  */
-export const getBetaFeaturesEnabled = (): boolean => {
-  return getSettings().betaFeaturesEnabled;
+export const getSetting = <K extends AppSettingsKey>(key: K): AppSettings[K] => {
+  const settings = getSettings();
+  return normalizeSettingValue(key, settings[key]);
 };
 
 /**
- * 设置测试版功能开关状态
- * @param enabled - 是否启用测试版功能
+ * 更新单个设置项
+ * @param key - AppSettings key
+ * @param value - setting value
  */
-export const setBetaFeaturesEnabled = (enabled: boolean) => {
-  saveSettings({ betaFeaturesEnabled: enabled });
-  console.log('测试版功能设置已保存:', enabled);
+export const setSetting = <K extends AppSettingsKey>(key: K, value: AppSettings[K]) => {
+  const normalized = normalizeSettingValue(key, value);
+  saveSettings({ [key]: normalized } as Partial<AppSettings>);
 };
-
-/**
- * 获取遥测功能开关状态
- * @returns 遥测功能是否启用
- */
-export const getUmamiEnabled = (): boolean => {
-  return getSettings().umamiEnabled;
-};
-
-/**
- * 设置遥测功能开关状态
- * @param enabled - 是否启用遥测功能
- */
-export const setUmamiEnabled = (enabled: boolean) => {
-  saveSettings({ umamiEnabled: enabled });
-  console.log('遥测设置已保存:', enabled);
-};
-
-/**
- * 获取自动保存间隔设置
- * @returns 自动保存间隔（秒）
- */
-export const getAutoSaveInterval = (): number => {
-    const interval = getSettings().autoSaveInterval;
-    // 确保间隔在合理范围内（1-60秒）
-    return Math.max(1, Math.min(60, interval));
-};
-
-/**
- * 设置自动保存间隔
- * @param interval - 自动保存间隔（秒）
- */
-export const setAutoSaveInterval = (interval: number) => {
-  // 确保间隔在合理范围内（1-60秒）
-  const validInterval = Math.max(1, Math.min(60, interval));
-  saveSettings({ autoSaveInterval: validInterval });
-  console.log('自动保存间隔设置已保存:', validInterval + '秒');
-};
-
-
-/**
- * 获取是否使用旧版世界编辑器
- * @returns 是否使用旧版世界编辑器
- */
-export const getUseOldWorldEditor = (): boolean => {
-  return getSettings().useOldWorldEditor;
-};
-
-/**
- * 设置是否使用旧版世界编辑器
- * @param enabled - 是否使用旧版世界编辑器
- */
-export const setUseOldWorldEditor = (enabled: boolean) => {
-  saveSettings({ useOldWorldEditor: enabled });
-  console.log('旧版世界编辑器设置已保存:', enabled);
-};
-
-/**
- * 获取侧边栏自动展开设置
- * @returns 侧边栏是否自动展开
- */
-export const getAutoExpandSidebar = (): boolean => {
-  return getSettings().autoExpandSidebar;
-};
-
-/**
- * 设置侧边栏自动展开
- * @param enabled - 是否启用
- */
-export const setAutoExpandSidebar = (enabled: boolean) => {
-  saveSettings({ autoExpandSidebar: enabled });
-  console.log('侧边栏自动展开设置已保存:', enabled);
-};
-
-/**
- * 获取是否允许页面滚动
- * @returns 是否允许页面滚动
- */
-export const getAllowBodyScroll = (): boolean => {
-  return getSettings().allowBodyScroll;
-};
-
-/**
- * 设置是否允许页面滚动
- * @param enabled - 是否允许
- */
-export const setAllowBodyScroll = (enabled: boolean) => {
-  saveSettings({ allowBodyScroll: enabled });
-  console.log('允许页面滚动设置已保存:', enabled);
-};
-
-
-// --- Data Management ---
 
 /**
  * 保存数据到本地存储
@@ -201,7 +326,7 @@ export const setAllowBodyScroll = (enabled: boolean) => {
  */
 export const saveToLocalStorage = (data: any, key = 'characterCardData') => {
   try {
-    localStorage.setItem(key, JSON.stringify(data));
+    writeLocalStorageJSON(key, data);
     console.log('数据已保存到本地存储');
   } catch (error) {
     console.error('保存到本地存储失败:', error);
@@ -216,11 +341,8 @@ export const saveToLocalStorage = (data: any, key = 'characterCardData') => {
  */
 export const loadFromLocalStorage = (key = 'characterCardData', processFn?: (data: any) => any) => {
   try {
-    const savedData = localStorage.getItem(key);
-    if (savedData) {
-      const parsedData = JSON.parse(savedData);
-      return processFn ? processFn(parsedData) : parsedData;
-    }
+    const parsedData = readLocalStorageJSON<any>(key);
+    if (parsedData !== null) return processFn ? processFn(parsedData) : parsedData;
   } catch (error) {
     console.error('从本地存储加载失败:', error);
   }
@@ -232,10 +354,8 @@ export const loadFromLocalStorage = (key = 'characterCardData', processFn?: (dat
  * @param key - 存储键名，默认为'characterCardData'
  */
 export const clearLocalStorage = (key = 'characterCardData') => {
-  localStorage.removeItem(key);
+  removeLocalStorageItem(key);
 };
-
-// --- Auto Save ---
 
 /**
  * 初始化自动保存
@@ -249,7 +369,7 @@ export const initAutoSave = (
   conditionFn: () => boolean,
   customInterval?: number
 ) => {
-  const intervalMs = customInterval || (getAutoSaveInterval() * 1000);
+  const intervalMs = customInterval || (getSetting('autoSaveInterval') * 1000);
   return window.setInterval(() => {
     if (conditionFn()) {
       saveFn();
@@ -265,7 +385,6 @@ export const clearAutoSave = (timerId: number) => {
   clearInterval(timerId);
 };
 
-// --- Sidebar Configuration Management ---
 
 /**
  * 获取侧边栏配置
