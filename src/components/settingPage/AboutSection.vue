@@ -10,7 +10,7 @@
       开发版本：
       <b v-if="appCommitCount === '1'">在线版_{{ appVersion }}</b>
       <b v-else>dev_{{ appVersion }}({{ appCommitCount }})</b>
-      [0.1.8]
+      [0.1.10]
     </p>
        <SurveyBanner :dismissible="false" />
   </div>

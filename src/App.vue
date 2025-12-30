@@ -140,7 +140,6 @@ const handleMouseLeave = () => {
   }
 }
 const betaFeaturesEnabled = ref(false)
-const router = useRouter()
 const handleBetaFeaturesToggle = (event: CustomEvent) => {
   betaFeaturesEnabled.value = event.detail
 }
