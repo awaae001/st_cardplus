@@ -12,6 +12,7 @@
       <b v-else>dev_{{ appVersion }}({{ appCommitCount }})</b>
       [0.1.8]
     </p>
+       <SurveyBanner :dismissible="false" />
   </div>
 
   <div class="changelog-section">
@@ -71,6 +72,7 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
 import { computed, onMounted, ref } from 'vue';
+import SurveyBanner from '@/components/SurveyBanner.vue';
 import { ElSelect, ElOption } from 'element-plus';
 
 const appVersion = __APP_VERSION__;

@@ -66,6 +66,7 @@
       </el-aside>
       <el-button v-if="isMobile" class="toggle-button" @click="toggleSidebar" :icon="IconMenu" circle />
       <el-main class="content-container" :class="{ 'overflow-hidden': isOverflowHidden }">
+            <SurveyBanner />
         <RouterView v-slot="{ Component, route }">
           <transition name="fade" mode="out-in">
             <component :is="Component" :key="route.path" />
@@ -78,6 +79,7 @@
 
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
+import SurveyBanner from '@/components/SurveyBanner.vue'
 import { Menu as IconMenu, Moon, Sunny, InfoFilled} from '@element-plus/icons-vue'
 import { ElContainer, ElAside, ElMain, ElMenu, ElMenuItem, ElIcon, ElButton, ElDrawer, ElDivider } from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
