@@ -1,4 +1,4 @@
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, type Ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { uploadToWebDAV, downloadFromWebDAV, testWebDAVConnection } from '@/utils/webdav';
 import {
@@ -12,6 +12,12 @@ import {
 } from '@/utils/gist';
 import type { GistConfig, BackupData } from '@/types/gist';
 import { exportAllDatabases, importAllDatabases } from '@/database/utils';
+import {
+  getSessionStorageItem,
+  removeSessionStorageItem,
+  readSessionStorageJSON,
+  writeSessionStorageJSON,
+} from '@/utils/localStorageUtils';
 
 interface WebDAVConfig {
   url: string;
@@ -81,6 +87,122 @@ export function useSync() {
     };
   };
 
+  // --- Generic Sync Operations ---
+  const genericPull = async (
+    provider: SyncProvider,
+    downloadFn: () => Promise<any>,
+    configKey: string,
+    snapshotKey: string,
+    snapshotAvailableRef: Ref<boolean>,
+    onSuccess?: () => void
+  ) => {
+    try {
+      ElMessage.info(`正在从 ${provider} 拉取数据...`);
+      const result = await downloadFn();
+
+      const backupData: BackupData | null = provider === 'webdav'
+        ? JSON.parse(result) as BackupData
+        : (result.success ? result.data as BackupData : null);
+
+      if (!backupData) {
+        ElMessage.error(provider === 'gist' ? result.message : '拉取失败或数据为空');
+        return;
+      }
+
+      await ElMessageBox.confirm(
+        `这将用服务器上的备份覆盖所有现有本地数据<br/>
+        <strong>备份时间:</strong> ${new Date(backupData.timestamp).toLocaleString('zh-CN')}<br/>
+        此操作可能会丢失你没有保存的更改 您确定要继续吗？`,
+        '警告',
+        {
+          confirmButtonText: '确认覆盖',
+          cancelButtonText: '取消',
+          type: 'warning',
+          dangerouslyUseHTMLString: true,
+        }
+      );
+
+
+      try {
+        const snapshotData: { [key: string]: any } = {};
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key) snapshotData[key] = localStorage.getItem(key);
+        }
+        const dbSnapshot = await exportAllDatabases();
+        Object.assign(snapshotData, dbSnapshot);
+        writeSessionStorageJSON(snapshotKey, snapshotData);
+        snapshotAvailableRef.value = true;
+        const flatData = { ...backupData.localStorage, ...backupData.databases };
+        await importAllDatabases(flatData);
+        const preservedConfig = localStorage.getItem(configKey);
+        localStorage.clear();
+        if (preservedConfig) localStorage.setItem(configKey, preservedConfig);
+        for (const key in backupData.localStorage) {
+          if (Object.prototype.hasOwnProperty.call(backupData.localStorage, key)) {
+            localStorage.setItem(key, backupData.localStorage[key]);
+          }
+        }
+        onSuccess?.();
+
+        ElMessage.success(`数据已成功从 ${provider} 恢复，应用将重新加载`);
+        setTimeout(() => window.location.reload(), 2000);
+      } catch (restoreError) {
+        console.error(`从 ${provider} 恢复数据失败:`, restoreError);
+        ElMessage.error('恢复数据时发生错误，操作已终止');
+      }
+    } catch (error) {
+      if (error === 'cancel') {
+        ElMessage.info('操作已取消');
+      } else {
+        console.error(`从 ${provider} 拉取失败:`, error);
+        ElMessage.error(`拉取失败: ${error instanceof Error ? error.message : '未知错误'}`);
+      }
+    }
+  };
+
+  const genericRevert = async (
+    provider: SyncProvider,
+    snapshotKey: string,
+    snapshotAvailableRef: Ref<boolean>
+  ) => {
+    const snapshotData = readSessionStorageJSON<{ [key: string]: any }>(snapshotKey);
+    if (!snapshotData) {
+      ElMessage.error('没有可用的快照 请检查是否已执行拉取操作 ');
+      return;
+    }
+
+    try {
+      const snapshotSize = new Blob([JSON.stringify(snapshotData)]).size;
+      if (snapshotSize > 4500 * 1024) {
+        await ElMessageBox.confirm(
+          '当前 APP 数据内容已超出 浏览器 缓冲区有效容量，恢复系统运作可能运作不如意',
+          '警告',
+          { confirmButtonText: '仍然继续', cancelButtonText: '取消', type: 'warning' }
+        );
+      }
+
+      await importAllDatabases(snapshotData);
+      localStorage.clear();
+      for (const key in snapshotData) {
+        if (Object.prototype.hasOwnProperty.call(snapshotData, key)) {
+          localStorage.setItem(key, snapshotData[key]);
+        }
+      }
+      removeSessionStorageItem(snapshotKey);
+      snapshotAvailableRef.value = false;
+      ElMessage.success('操作已撤销，应用将重新加载');
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (error) {
+      if (error === 'cancel') {
+        ElMessage.info('操作已取消');
+      } else {
+        console.error(`恢复 ${provider} 快照失败:`, error);
+        ElMessage.error('恢复快照失败，请检查控制台');
+      }
+    }
+  };
+
   // --- WebDAV ---
   const testWebDAV = async () => {
     if (!webdavConfig.value.url) {
@@ -119,81 +241,17 @@ export function useSync() {
       ElMessage.error('请输入 WebDAV URL');
       return;
     }
-    try {
-      ElMessage.info('正在从服务器拉取数据...');
-      const json = await downloadFromWebDAV(webdavConfig.value, webdavBackupFileName);
-      const backupData = JSON.parse(json) as BackupData;
-
-      ElMessageBox.confirm(
-        `这将用服务器上的备份覆盖所有现有本地数据<br/>
-        <strong>备份时间:</strong> ${new Date(backupData.timestamp).toLocaleString('zh-CN')}<br/>
-        此操作可能会丢失你没有保存的更改 您确定要继续吗？`,
-        '警告',
-        {
-          confirmButtonText: '确认覆盖',
-          cancelButtonText: '取消',
-          type: 'warning',
-          dangerouslyUseHTMLString: true,
-        }
-      ).then(async () => {
-        try {
-          const snapshotData: { [key: string]: any } = {};
-          for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key) snapshotData[key] = localStorage.getItem(key);
-          }
-          const dbSnapshot = await exportAllDatabases();
-          Object.assign(snapshotData, dbSnapshot);
-          sessionStorage.setItem('webdav-snapshot', JSON.stringify(snapshotData));
-
-          const flatData = { ...backupData.localStorage, ...backupData.databases };
-          await importAllDatabases(flatData);
-
-          const preservedWebDAVConfig = localStorage.getItem('webdavConfig');
-          localStorage.clear();
-          if (preservedWebDAVConfig) localStorage.setItem('webdavConfig', preservedWebDAVConfig);
-          for (const key in backupData.localStorage) {
-            if (Object.prototype.hasOwnProperty.call(backupData.localStorage, key)) {
-              localStorage.setItem(key, backupData.localStorage[key]);
-            }
-          }
-
-          ElMessage.success('数据已成功从服务器恢复，应用将重新加载');
-          setTimeout(() => window.location.reload(), 2000);
-        } catch (restoreError) {
-          console.error('从 WebDAV 恢复数据失败:', restoreError);
-          ElMessage.error('恢复数据时发生错误，操作已终止');
-        }
-      }).catch(() => ElMessage.info('操作已取消'));
-    } catch (error) {
-      console.error('从 WebDAV 拉取失败:', error);
-      ElMessage.error(`拉取失败: ${error instanceof Error ? error.message : '未知错误'}`);
-    }
+    await genericPull(
+      'webdav',
+      () => downloadFromWebDAV(webdavConfig.value, webdavBackupFileName),
+      'webdavConfig',
+      'webdav-snapshot',
+      snapshotAvailable
+    );
   };
 
   const revertPull = async () => {
-    const snapshot = sessionStorage.getItem('webdav-snapshot');
-    if (snapshot) {
-      try {
-        const data = JSON.parse(snapshot);
-        await importAllDatabases(data);
-        localStorage.clear();
-        for (const key in data) {
-          if (Object.prototype.hasOwnProperty.call(data, key)) {
-            localStorage.setItem(key, data[key]);
-          }
-        }
-        sessionStorage.removeItem('webdav-snapshot');
-        ElMessage.success('操作已撤销，应用将重新加载');
-        setTimeout(() => window.location.reload(), 1500);
-      } catch (error) {
-        console.error('恢复快照失败:', error);
-        ElMessage.error('恢复快照失败，请检查控制台 ');
-      }
-    } else {
-      ElMessage.error('没有可用的快照 请检查是否已执行拉取操作 ');
-    }
-    snapshotAvailable.value = false;
+    await genericRevert('webdav', 'webdav-snapshot', snapshotAvailable);
   };
 
   // --- Gist ---
@@ -317,89 +375,21 @@ export function useSync() {
       ElMessage.error('请输入 Token 和 Gist ID');
       return;
     }
-    try {
-      ElMessage.info('正在从 Gist 拉取数据...');
-      const result = await downloadFromGist(gistConfig.value.token, gistConfig.value.gistId);
-
-      if (!result.success || !result.data) {
-        ElMessage.error(result.message);
-        return;
+    await genericPull(
+      'gist',
+      () => downloadFromGist(gistConfig.value.token!, gistConfig.value.gistId!),
+      'gistConfig',
+      'gist-snapshot',
+      gistSnapshotAvailable,
+      () => {
+        gistConfig.value.lastSyncTime = new Date().toISOString();
+        saveGistConfig(gistConfig.value);
       }
-
-      const backupData = result.data as BackupData;
-      ElMessageBox.confirm(
-        `这将用 Gist 上的备份覆盖所有现有本地数据<br/>
-        <strong>备份时间:</strong> ${new Date(backupData.timestamp).toLocaleString('zh-CN')}<br/>
-        此操作可能会丢失你没有保存的更改 您确定要继续吗？`,
-        '警告',
-        {
-          confirmButtonText: '确认覆盖',
-          cancelButtonText: '取消',
-          type: 'warning',
-          dangerouslyUseHTMLString: true,
-        }
-      ).then(async () => {
-        try {
-          const snapshotData: { [key: string]: any } = {};
-          for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key) snapshotData[key] = localStorage.getItem(key);
-          }
-          const dbSnapshot = await exportAllDatabases();
-          Object.assign(snapshotData, dbSnapshot);
-          sessionStorage.setItem('gist-snapshot', JSON.stringify(snapshotData));
-
-          const flatData = { ...backupData.localStorage, ...backupData.databases };
-          await importAllDatabases(flatData);
-
-          const preservedGistConfig = localStorage.getItem('gistConfig');
-          localStorage.clear();
-          if (preservedGistConfig) localStorage.setItem('gistConfig', preservedGistConfig);
-          for (const key in backupData.localStorage) {
-            if (Object.prototype.hasOwnProperty.call(backupData.localStorage, key)) {
-              localStorage.setItem(key, backupData.localStorage[key]);
-            }
-          }
-
-          gistConfig.value.lastSyncTime = new Date().toISOString();
-          saveGistConfig(gistConfig.value);
-
-          ElMessage.success('数据已成功从 Gist 恢复，应用将重新加载');
-          setTimeout(() => window.location.reload(), 2000);
-        } catch (restoreError) {
-          console.error('从 Gist 恢复数据失败:', restoreError);
-          ElMessage.error('恢复数据时发生错误，操作已终止');
-        }
-      }).catch(() => ElMessage.info('操作已取消'));
-    } catch (error) {
-      console.error('从 Gist 拉取失败:', error);
-      ElMessage.error(`拉取失败: ${error instanceof Error ? error.message : '未知错误'}`);
-    }
+    );
   };
 
   const revertGistPull = async () => {
-    const snapshot = sessionStorage.getItem('gist-snapshot');
-    if (snapshot) {
-      try {
-        const data = JSON.parse(snapshot);
-        await importAllDatabases(data);
-        localStorage.clear();
-        for (const key in data) {
-          if (Object.prototype.hasOwnProperty.call(data, key)) {
-            localStorage.setItem(key, data[key]);
-          }
-        }
-        sessionStorage.removeItem('gist-snapshot');
-        ElMessage.success('操作已撤销，应用将重新加载');
-        setTimeout(() => window.location.reload(), 1500);
-      } catch (error) {
-        console.error('恢复 Gist 快照失败:', error);
-        ElMessage.error('恢复快照失败，请检查控制台');
-      }
-    } else {
-      ElMessage.error('没有可用的快照 请检查是否已执行拉取操作');
-    }
-    gistSnapshotAvailable.value = false;
+    await genericRevert('gist', 'gist-snapshot', gistSnapshotAvailable);
   };
 
   // --- Unified Handlers ---
@@ -409,8 +399,23 @@ export function useSync() {
   };
 
   const handlePush = async () => {
-    if (selectedProvider.value === 'webdav') await pushToWebDAV();
-    else await pushToGist();
+    ElMessageBox.confirm(
+      '确定要将本地数据推送到云端吗？这将覆盖云端上已有的备份。',
+      '确认推送',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    ).then(async () => {
+      if (selectedProvider.value === 'webdav') {
+        await pushToWebDAV();
+      } else {
+        await pushToGist();
+      }
+    }).catch(() => {
+      ElMessage.info('推送操作已取消');
+    });
   };
 
   const handlePull = async () => {
@@ -428,14 +433,12 @@ export function useSync() {
     const savedWebDAVConfig = localStorage.getItem('webdavConfig');
     if (savedWebDAVConfig) webdavConfig.value = JSON.parse(savedWebDAVConfig);
 
-    const snapshot = sessionStorage.getItem('webdav-snapshot');
-    if (snapshot) snapshotAvailable.value = true;
+    if (getSessionStorageItem('webdav-snapshot')) snapshotAvailable.value = true;
 
     const savedGistConfig = loadGistConfig();
     if (savedGistConfig) gistConfig.value = savedGistConfig;
 
-    const gistSnapshot = sessionStorage.getItem('gist-snapshot');
-    if (gistSnapshot) gistSnapshotAvailable.value = true;
+    if (getSessionStorageItem('gist-snapshot')) gistSnapshotAvailable.value = true;
   };
 
   return {

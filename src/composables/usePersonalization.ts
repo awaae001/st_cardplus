@@ -1,10 +1,7 @@
 import { ref, onMounted } from 'vue';
 import { ElMessageBox } from 'element-plus';
 import {
-  getAutoExpandSidebar, setAutoExpandSidebar,
-  getAllowBodyScroll, setAllowBodyScroll,
-  getUseOldCharCardEditor, setUseOldCharCardEditor,
-  getUseOldWorldEditor, setUseOldWorldEditor,
+  getSetting, setSetting,
   getSidebarConfig, setSidebarConfig,
   type SidebarConfig
 } from '@/utils/localStorageUtils';
@@ -13,7 +10,6 @@ export function usePersonalization() {
   const autoExpandSidebar = ref(false);
   const allowBodyScroll = ref(false);
   const useOldSidebar = ref(false);
-  const useOldCharCardEditor = ref(false);
   const useOldWorldEditor = ref(false);
   const sidebarConfig = ref<SidebarConfig>(getSidebarConfig());
 
@@ -33,7 +29,7 @@ export function usePersonalization() {
   };
 
   const onAutoExpandSidebarToggle = (value: boolean) => {
-    setAutoExpandSidebar(value);
+    setSetting('autoExpandSidebar', value);
     ElMessageBox.confirm(
       '此设置将在您下次刷新页面 (Ctrl+R) 后生效 ',
       '提示',
@@ -47,9 +43,8 @@ export function usePersonalization() {
     });
   };
 
-  const onAllowBodyScrollToggle = createReloadConfirm(setAllowBodyScroll);
-  const onUseOldCharCardEditorToggle = createReloadConfirm(setUseOldCharCardEditor);
-  const onUseOldWorldEditorToggle = createReloadConfirm(setUseOldWorldEditor);
+  const onAllowBodyScrollToggle = createReloadConfirm((value) => setSetting('allowBodyScroll', value));
+  const onUseOldWorldEditorToggle = createReloadConfirm((value) => setSetting('useOldWorldEditor', value));
 
   // 侧边栏配置相关方法
   const refreshSidebarConfig = () => {
@@ -62,10 +57,9 @@ export function usePersonalization() {
   };
 
   onMounted(() => {
-    autoExpandSidebar.value = getAutoExpandSidebar();
-    allowBodyScroll.value = getAllowBodyScroll();
-    useOldCharCardEditor.value = getUseOldCharCardEditor();
-    useOldWorldEditor.value = getUseOldWorldEditor();
+    autoExpandSidebar.value = getSetting('autoExpandSidebar');
+    allowBodyScroll.value = getSetting('allowBodyScroll');
+    useOldWorldEditor.value = getSetting('useOldWorldEditor');
     refreshSidebarConfig();
   });
 
@@ -76,8 +70,6 @@ export function usePersonalization() {
     allowBodyScroll,
     onAllowBodyScrollToggle,
     useOldSidebar,
-    useOldCharCardEditor,
-    onUseOldCharCardEditorToggle,
     useOldWorldEditor,
     onUseOldWorldEditorToggle,
     sidebarConfig,

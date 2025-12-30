@@ -1,6 +1,7 @@
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { resetAppDatabase, exportAllDatabases, importAllDatabases } from '@/database/utils';
 import { characterCardService } from '@/database/characterCardService';
+import { removeSessionStorageItem } from '@/utils/localStorageUtils';
 
 export function useLocalData(updateStorageInfo: () => Promise<void>) {
 
@@ -111,8 +112,8 @@ export function useLocalData(updateStorageInfo: () => Promise<void>) {
       try {
         await resetAppDatabase();
         localStorage.clear();
-        sessionStorage.removeItem('webdav-snapshot');
-        sessionStorage.removeItem('gist-snapshot');
+        removeSessionStorageItem('webdav-snapshot');
+        removeSessionStorageItem('gist-snapshot');
 
         ElMessage.success('所有本地数据已清除并重建数据库，应用将重新加载');
         await updateStorageInfo();

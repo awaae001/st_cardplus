@@ -38,11 +38,7 @@ import { Icon } from '@iconify/vue';
 import { ref, onMounted, computed } from 'vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import {
-  getBetaFeaturesEnabled, setBetaFeaturesEnabled,
-  getUmamiEnabled, setUmamiEnabled,
-  getAutoSaveInterval, setAutoSaveInterval,
-  getUseOldCharCardEditor, setUseOldCharCardEditor,
-  getUseOldWorldEditor, setUseOldWorldEditor
+  getSetting, setSetting
 } from '@/utils/localStorageUtils';
 import { getAppSettings } from '@/composables/appSettings';
 
@@ -50,7 +46,6 @@ const betaFeaturesEnabled = ref(false);
 const umamiEnabled = ref(true);
 const autoSaveInterval = ref(5);
 const useOldSidebar = ref(false);
-const useOldCharCardEditor = ref(false);
 const useOldWorldEditor = ref(false);
 
 const onBetaFeaturesToggle = (value: boolean) => {
@@ -74,7 +69,7 @@ const onBetaFeaturesToggle = (value: boolean) => {
       }
     )
       .then(() => {
-        setBetaFeaturesEnabled(true);
+        setSetting('betaFeaturesEnabled', true);
         window.dispatchEvent(new CustomEvent('betaFeaturesToggle', { detail: true }));
         ElMessage({
           type: 'success',
@@ -89,7 +84,7 @@ const onBetaFeaturesToggle = (value: boolean) => {
         });
       });
   } else {
-    setBetaFeaturesEnabled(false);
+    setSetting('betaFeaturesEnabled', false);
     window.dispatchEvent(new CustomEvent('betaFeaturesToggle', { detail: false }));
   }
 };
@@ -115,7 +110,7 @@ const onUmamiToggle = (value: boolean) => {
       }
     )
       .then(() => {
-        setUmamiEnabled(false);
+        setSetting('umamiEnabled', false);
         toggleUmamiScript(false);
         ElMessage({
           type: 'success',
@@ -130,34 +125,20 @@ const onUmamiToggle = (value: boolean) => {
         });
       });
   } else {
-    setUmamiEnabled(true);
+    setSetting('umamiEnabled', true);
     toggleUmamiScript(true);
   }
 };
 
 const onAutoSaveIntervalChange = (value: number | undefined) => {
   if (value === undefined) return;
-  setAutoSaveInterval(value);
+  setSetting('autoSaveInterval', value);
   window.dispatchEvent(new CustomEvent('autoSaveIntervalChange', { detail: value }));
 };
 
-const onUseOldCharCardEditorToggle = (value: boolean) => {
-  setUseOldCharCardEditor(value);
-  ElMessageBox.confirm(
-    '此设置将在您下次刷新页面 (Ctrl+R) 后生效 ',
-    '提示',
-    {
-      confirmButtonText: '立即刷新',
-      cancelButtonText: '稍后',
-      type: 'info',
-    }
-  ).then(() => {
-    window.location.reload();
-  });
-};
 
 const onUseOldWorldEditorToggle = (value: boolean) => {
-  setUseOldWorldEditor(value);
+  setSetting('useOldWorldEditor', value);
   ElMessageBox.confirm(
     '此设置将在您下次刷新页面 (Ctrl+R) 后生效 ',
     '提示',
@@ -173,7 +154,6 @@ const onUseOldWorldEditorToggle = (value: boolean) => {
 
 const settings = computed(() => getAppSettings(
   {
-    useOldCharCardEditor,
     betaFeaturesEnabled,
     useOldSidebar,
     useOldWorldEditor,
@@ -181,7 +161,6 @@ const settings = computed(() => getAppSettings(
     autoSaveInterval
   },
   {
-    onUseOldCharCardEditorToggle,
     onBetaFeaturesToggle,
     onUseOldWorldEditorToggle,
     onUmamiToggle,
@@ -204,11 +183,10 @@ const toggleUmamiScript = (enabled: boolean) => {
 };
 
 onMounted(() => {
-  betaFeaturesEnabled.value = getBetaFeaturesEnabled();
-  umamiEnabled.value = getUmamiEnabled();
-  autoSaveInterval.value = getAutoSaveInterval();
-  useOldCharCardEditor.value = getUseOldCharCardEditor();
-  useOldWorldEditor.value = getUseOldWorldEditor();
+  betaFeaturesEnabled.value = getSetting('betaFeaturesEnabled');
+  umamiEnabled.value = getSetting('umamiEnabled');
+  autoSaveInterval.value = getSetting('autoSaveInterval');
+  useOldWorldEditor.value = getSetting('useOldWorldEditor');
   toggleUmamiScript(umamiEnabled.value);
 });
 </script>

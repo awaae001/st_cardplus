@@ -23,6 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 dist-electron/main.js
+.vscode/
 
 doc/
 pnpm-lock.yaml

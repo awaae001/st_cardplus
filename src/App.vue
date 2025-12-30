@@ -66,6 +66,7 @@
       </el-aside>
       <el-button v-if="isMobile" class="toggle-button" @click="toggleSidebar" :icon="IconMenu" circle />
       <el-main class="content-container" :class="{ 'overflow-hidden': isOverflowHidden }">
+            <SurveyBanner />
         <RouterView v-slot="{ Component, route }">
           <transition name="fade" mode="out-in">
             <component :is="Component" :key="route.path" />
@@ -78,12 +79,13 @@
 
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
+import SurveyBanner from '@/components/SurveyBanner.vue'
 import { Menu as IconMenu, Moon, Sunny, InfoFilled} from '@element-plus/icons-vue'
 import { ElContainer, ElAside, ElMain, ElMenu, ElMenuItem, ElIcon, ElButton, ElDrawer, ElDivider } from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useDark, useToggle, useWindowSize } from '@vueuse/core'
-import { getBetaFeaturesEnabled } from '@/utils/localStorageUtils'
+import { getSetting } from '@/utils/localStorageUtils'
 import { getIconComponent } from '@/config/menuConfig'
 import { provideOverflowControl } from '@/composables/useOverflowControl';
 import { usePersonalization } from '@/composables/usePersonalization';
@@ -138,7 +140,6 @@ const handleMouseLeave = () => {
   }
 }
 const betaFeaturesEnabled = ref(false)
-const router = useRouter()
 const handleBetaFeaturesToggle = (event: CustomEvent) => {
   betaFeaturesEnabled.value = event.detail
 }
@@ -178,7 +179,7 @@ const handleSidebarConfigChange = () => {
 };
 
 onMounted(() => {
-  betaFeaturesEnabled.value = getBetaFeaturesEnabled()
+  betaFeaturesEnabled.value = getSetting('betaFeaturesEnabled')
   refreshSidebarConfig() // 刷新侧边栏配置
   window.addEventListener('betaFeaturesToggle', handleBetaFeaturesToggle as EventListener)
   window.addEventListener('sidebarConfigChange', handleSidebarConfigChange as EventListener)

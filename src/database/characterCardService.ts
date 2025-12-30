@@ -2,6 +2,11 @@ import { db } from './db';
 import type { StoredCharacterCard } from './db';
 import type { CharacterCardV3 } from '../types/character-card-v3';
 import { estimateEncodedSize, sanitizeForIndexedDB } from './utils';
+import {
+  getSessionStorageItem,
+  setSessionStorageItem,
+  removeSessionStorageItem,
+} from '@/utils/localStorageUtils';
 
 // 重新导出 StoredCharacterCard 类型供外部使用
 export type { StoredCharacterCard };
@@ -42,8 +47,8 @@ export const characterCardService = {
       };
     });
 
-    // 从 localStorage 获取并验证 activeCardId
-    const activeCardId = localStorage.getItem(ACTIVE_CARD_ID_KEY);
+    // 从 sessionStorage 获取并验证 activeCardId
+    const activeCardId = getSessionStorageItem(ACTIVE_CARD_ID_KEY);
     const finalActiveCardId = activeCardId && cards[activeCardId]
       ? activeCardId
       : (allCardsStored[0]?.id || null);
@@ -59,9 +64,9 @@ export const characterCardService = {
    */
   setActiveCardId(cardId: string | null): void {
     if (cardId) {
-      localStorage.setItem(ACTIVE_CARD_ID_KEY, cardId);
+      setSessionStorageItem(ACTIVE_CARD_ID_KEY, cardId);
     } else {
-      localStorage.removeItem(ACTIVE_CARD_ID_KEY);
+      removeSessionStorageItem(ACTIVE_CARD_ID_KEY);
     }
   },
 

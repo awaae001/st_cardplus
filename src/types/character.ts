@@ -63,6 +63,7 @@ export interface Relationship {
  */
 export interface Skill {
   name: string;           // 技能名称
+  type: string;           // 技能类型
   description: string;    // 技能描述
   dialogExample: string;  // 对话示例
   behaviorExample: string; // 行为示例
