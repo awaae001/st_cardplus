@@ -26,32 +26,58 @@
       <div v-if="characters.length === 0" class="empty-list">
         <el-empty description="没有角色" :image-size="60" />
       </div>
-      <ul v-else class="character-list">
-        <li
-          v-for="character in characters"
-          :key="character.id"
-          :class="['character-list-item', { 'is-active': character.id === activeCharacterId }]"
-          @click="emit('select', character.id!)"
-        >
-          <span class="character-name">{{ character.chineseName || '未命名角色' }}</span>
-          <el-tooltip content="删除角色" placement="top">
-            <button
-              @click.stop="emit('delete', character.id!)"
-              class="delete-button"
-            >
-              <Icon icon="ph:trash-duotone" />
+      <draggable
+        v-else
+        v-model="localCharacters"
+        item-key="id"
+        tag="ul"
+        class="character-list"
+        ghost-class="character-list-ghost"
+        :animation="200"
+        handle=".drag-handle"
+        :move="handleMove"
+        @end="handleDragEnd"
+      >
+        <template #item="{ element: character }">
+          <li
+            :class="['character-list-item', { 'is-active': character.id === activeCharacterId }]"
+            @click="emit('select', character.id!)"
+          >
+            <button class="drag-handle" aria-label="拖动排序" @click.stop>
+              <Icon icon="ph:dots-six-vertical" />
             </button>
-          </el-tooltip>
-        </li>
-      </ul>
+            <span class="character-name">{{ character.chineseName || '未命名角色' }}</span>
+            <div class="character-actions" :class="{ 'is-active': character.starred }">
+              <el-tooltip :content="character.starred ? '取消星标' : '设为星标'" placement="top">
+                <button
+                  @click.stop="emit('toggle-star', character.id!, !character.starred)"
+                  class="star-button"
+                  :class="{ 'is-active': character.starred }"
+                >
+                  <Icon :icon="character.starred ? 'ph:star-fill' : 'ph:star'" />
+                </button>
+              </el-tooltip>
+              <el-tooltip content="删除角色" placement="top">
+                <button
+                  @click.stop="emit('delete', character.id!)"
+                  class="delete-button"
+                >
+                  <Icon icon="ph:trash-duotone" />
+                </button>
+              </el-tooltip>
+            </div>
+          </li>
+        </template>
+      </draggable>
     </el-scrollbar>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { ElScrollbar, ElTooltip, ElEmpty } from 'element-plus';
 import { Icon } from '@iconify/vue';
+import draggable from 'vuedraggable';
 import type { CharacterCard } from '../../types/character';
 
 interface Props {
@@ -59,16 +85,26 @@ interface Props {
   activeCharacterId: string | null;
 }
 
-defineProps<Props>();
-
 const emit = defineEmits<{
   (e: 'select', id: string): void;
   (e: 'create'): void;
   (e: 'delete', id: string): void;
   (e: 'import', file: File): void;
+  (e: 'reorder', orderedIds: string[]): void;
+  (e: 'toggle-star', id: string, starred: boolean): void;
 }>();
 
 const fileInput = ref<HTMLInputElement | null>(null);
+const props = defineProps<Props>();
+const localCharacters = ref<CharacterCard[]>([...props.characters]);
+
+watch(
+  () => props.characters,
+  (newCharacters) => {
+    localCharacters.value = [...newCharacters];
+  },
+  { deep: true }
+);
 
 const triggerFileInput = () => {
   fileInput.value?.click();
@@ -82,6 +118,20 @@ const handleFileImport = (event: Event) => {
     // Reset file input to allow importing the same file again
     target.value = '';
   }
+};
+
+const handleDragEnd = () => {
+  const orderedIds = localCharacters.value
+    .map((character) => character.id)
+    .filter((id): id is string => !!id);
+  emit('reorder', orderedIds);
+};
+
+const handleMove = (event: { draggedContext: { element: CharacterCard }, relatedContext: { element?: CharacterCard } }) => {
+  const draggedCharacter = event.draggedContext.element;
+  const relatedCharacter = event.relatedContext.element;
+  if (!relatedCharacter) return true;
+  return !!draggedCharacter.starred === !!relatedCharacter.starred;
 };
 </script>
 
@@ -138,6 +188,11 @@ const handleFileImport = (event: Event) => {
   margin: 0;
 }
 
+.character-list-ghost {
+  opacity: 0.6;
+  background-color: var(--el-fill-color-light);
+}
+
 .character-list-item {
   display: flex;
   justify-content: space-between;
@@ -149,6 +204,22 @@ const handleFileImport = (event: Event) => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+  color: var(--el-text-color-secondary);
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: grab;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
 }
 
 .character-list-item:hover {
@@ -167,22 +238,53 @@ const handleFileImport = (event: Event) => {
   text-overflow: ellipsis;
 }
 
+.character-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.star-button {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--el-text-color-secondary);
+  border-radius: 4px;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.star-button.is-active {
+  color: var(--el-color-warning);
+}
+
+.star-button:hover {
+  background-color: var(--el-color-warning-light-9);
+}
+
 .delete-button {
   background: none;
   border: none;
   padding: 4px;
-  margin-left: 8px;
   cursor: pointer;
   color: var(--el-text-color-secondary);
   border-radius: 4px;
   font-size: 14px;
   display: flex;
   align-items: center;
-  opacity: 0;
-  transition: opacity 0.2s ease;
+  opacity: 1;
 }
 
-.character-list-item:hover .delete-button {
+.character-actions.is-active {
+  opacity: 1;
+}
+
+.character-list-item:hover .character-actions {
   opacity: 1;
 }
 
