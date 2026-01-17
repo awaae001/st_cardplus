@@ -10,11 +10,11 @@
             </span>
           </template>
           <WorldEditorToolbar :projects="projects" :landmarks="landmarks" :forces="forces" :selected-item="selectedItem"
-            :can-undo="canUndo" :can-redo="canRedo" @select="handleSelection" @add="handleAdd" @delete="handleDelete"
-            @undo="handleUndo" @redo="handleRedo" @edit="handleEdit" @copy="handleCopy"
-            :drag-drop-handlers="dragDropHandlers" />
+            :can-undo="canUndo" :can-redo="canRedo" @select="handleSelection" @open-graph="handleOpenGraph"
+            @add="handleAdd" @delete="handleDelete" @undo="handleUndo" @redo="handleRedo" @edit="handleEdit"
+            @copy="handleCopy" :drag-drop-handlers="dragDropHandlers" />
         </el-tab-pane>
-        <el-tab-pane name="editor" class="world-editor-tab-pane" :disabled="!selectedItem">
+        <el-tab-pane name="editor" class="world-editor-tab-pane" :disabled="!selectedItem && !graphProjectId">
           <template #label>
             <span class="world-editor-tab-label">
               <Icon icon="ph:note-pencil-duotone" class="world-editor-tab-icon" />
@@ -23,8 +23,23 @@
               }}</span>
             </span>
           </template>
-          <WorldEditorMainPanel :selected-item="selectedItem" :all-tags="allTags" :landmarks="landmarks"
-            :forces="forces" :projects="projects" />
+          <WorldGraph
+            v-if="graphProjectId"
+            :projects="projects"
+            :landmarks="landmarks"
+            :forces="forces"
+            :active-project-id="graphProjectId || activeProjectId"
+            @edit-item="handleEditFromGraph"
+          />
+          <WorldEditorMainPanel
+            v-else
+            :selected-item="selectedItem"
+            :all-tags="allTags"
+            :landmarks="landmarks"
+            :forces="forces"
+            :projects="projects"
+            @update:selected-item="handleSelectionFromChild"
+          />
         </el-tab-pane>
       </el-tabs>
     </div>
@@ -35,14 +50,29 @@
           <div class="toolbar-container">
             <WorldEditorToolbar :projects="projects" :landmarks="landmarks" :forces="forces"
               :selected-item="selectedItem" :can-undo="canUndo" :can-redo="canRedo" @select="handleSelection"
-              @add="handleAdd" @delete="handleDelete" @undo="handleUndo" @redo="handleRedo" @edit="handleEdit"
-              @copy="handleCopy" :drag-drop-handlers="dragDropHandlers" />
+              @open-graph="handleOpenGraph" @add="handleAdd" @delete="handleDelete" @undo="handleUndo"
+              @redo="handleRedo" @edit="handleEdit" @copy="handleCopy" :drag-drop-handlers="dragDropHandlers" />
           </div>
         </Pane>
         <Pane size="85" min-size="70">
           <div class="main-panel-container">
-            <WorldEditorMainPanel :selected-item="selectedItem" :all-tags="allTags" :landmarks="landmarks"
-              :forces="forces" :projects="projects" />
+            <WorldGraph
+              v-if="graphProjectId"
+              :projects="projects"
+              :landmarks="landmarks"
+              :forces="forces"
+              :active-project-id="graphProjectId || activeProjectId"
+              @edit-item="handleEditFromGraph"
+            />
+            <WorldEditorMainPanel
+              v-else
+              :selected-item="selectedItem"
+              :all-tags="allTags"
+              :landmarks="landmarks"
+              :forces="forces"
+              :projects="projects"
+              @update:selected-item="handleSelectionFromChild"
+            />
           </div>
         </Pane>
       </Splitpanes>
@@ -62,6 +92,7 @@ import type { Project, EnhancedLandmark, EnhancedForce, ProjectIntegration } fro
 import { ActionType } from '@/types/world-editor';
 import WorldEditorToolbar from './worldeditor/WorldEditorToolbar.vue';
 import WorldEditorMainPanel from './worldeditor/WorldEditorMainPanel.vue';
+import WorldGraph from './worldeditor/WorldGraph.vue';
 import ProjectModal from './worldeditor/ProjectModal.vue';
 import { useHistory } from '@/composables/worldeditor/useHistory';
 import { useWorldEditor } from '@/composables/worldeditor/useWorldEditor';
@@ -69,6 +100,7 @@ import { useWorldEditorUI } from '@/composables/worldeditor/useWorldEditorUI';
 import { useDragAndDrop } from '@/composables/worldeditor/useDragAndDrop';
 
 const activeTab = ref('list');
+const graphProjectId = ref<string | null>(null);
 
 // Core Logic
 const {
@@ -76,6 +108,7 @@ const {
   landmarks,
   forces,
   selectedItem,
+  activeProjectId,
   allTags,
   handleSelection: coreHandleSelection,
   handleAdd: handleAddEntity,
@@ -86,6 +119,22 @@ const {
 
 const handleSelection = (item: Project | EnhancedLandmark | EnhancedForce | ProjectIntegration) => {
   coreHandleSelection(item);
+  activeTab.value = 'editor';
+  graphProjectId.value = null;
+};
+
+const handleSelectionFromChild = (item: Project | EnhancedLandmark | EnhancedForce | ProjectIntegration) => {
+  coreHandleSelection(item);
+  graphProjectId.value = null;
+};
+
+const handleEditFromGraph = (item: EnhancedLandmark) => {
+  coreHandleSelection(item);
+  activeTab.value = 'editor';
+};
+
+const handleOpenGraph = (projectId: string) => {
+  graphProjectId.value = projectId;
   activeTab.value = 'editor';
 };
 
@@ -215,4 +264,5 @@ watch(
   box-sizing: border-box;
   overflow: hidden;
 }
+
 </style>

@@ -17,7 +17,6 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps } from 'vue';
 import type { Project } from '@/types/world-editor';
 import { ElForm, ElFormItem, ElInput } from 'element-plus';
 

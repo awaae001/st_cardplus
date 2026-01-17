@@ -79,8 +79,10 @@ export function useWorldEditor() {
     importance: ImportanceLevel.NORMAL,
     tags: [],
     region: '',
+    position: undefined,
     controllingForces: [],
     relatedLandmarks: [],
+    roadConnections: [],
     resources: [],
     notes: '',
     createdAt: new Date().toISOString(),
@@ -107,7 +109,7 @@ export function useWorldEditor() {
     resources: [],
     capabilities: [],
     weaknesses: [],
-    history: [],
+    timeline: [],
     tags: [],
     notes: '',
     createdAt: new Date().toISOString(),
@@ -219,78 +221,6 @@ export function useWorldEditor() {
       projects.value = savedData.projects;
       landmarks.value = savedData.landmarks || [];
       forces.value = savedData.forces || [];
-    } else {
-      const defaultProject = {
-        id: uuidv4(),
-        name: '默认项目',
-        description: '这是一个默认项目',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      projects.value.push(defaultProject);
-    }
-
-    const defaultProjectId = projects.value[0]?.id;
-
-    if (savedData && savedData.landmarks && savedData.landmarks.length > 0) {
-      landmarks.value = savedData.landmarks;
-    } else {
-      if (defaultProjectId) {
-        landmarks.value.push({
-          id: uuidv4(),
-          projectId: defaultProjectId,
-          name: '晨星城',
-          description: '一座位于北境山脉中的坚固矮人城市，以其精湛的工艺和丰富的矿产而闻名 ',
-          type: LandmarkType.CITY,
-          importance: ImportanceLevel.MAJOR,
-          tags: ['矮人', '矿业', '山城'],
-          region: '北境',
-          controllingForces: [],
-          relatedLandmarks: [],
-          climate: '寒带',
-          population: 15000,
-          resources: ['秘银', '精金', '黑铁'],
-          defenseLevel: 9,
-          notes: '城市的防御工事几乎坚不可摧 ',
-          imageUrl: '',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          version: 1,
-        });
-      }
-    }
-
-    if (savedData && savedData.forces && savedData.forces.length > 0) {
-      forces.value = savedData.forces;
-    } else {
-      if (defaultProjectId) {
-        forces.value.push({
-          id: uuidv4(),
-          projectId: defaultProjectId,
-          name: '暗影兄弟会',
-          description: '一个在大陆阴影中运作的秘密刺客组织，以其高效和无情而著称 ',
-          type: ForceType.CRIMINAL,
-          power: PowerLevel.STRONG,
-          structure: { hierarchy: ['导师', '刺客大师', '刺客'], decisionMaking: '独裁', recruitment: '选拔' },
-          leaders: [{ id: uuidv4(), name: '夜刃', title: '大导师' }],
-          members: [],
-          totalMembers: 200,
-          controlledTerritories: [],
-          influenceAreas: [],
-          allies: [],
-          enemies: [],
-          neutral: [],
-          resources: [],
-          capabilities: ['潜行', '毒药'],
-          weaknesses: ['光明魔法'],
-          history: [],
-          tags: ['秘密', '刺客', '混乱中立'],
-          notes: '他们的总部位置是一个严守的秘密 ',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          version: 1,
-        });
-      }
     }
 
     if (!selectedItem.value) {
@@ -303,6 +233,7 @@ export function useWorldEditor() {
     landmarks,
     forces,
     selectedItem,
+    activeProjectId,
     allTags,
     allRegions,
     handleSelection,

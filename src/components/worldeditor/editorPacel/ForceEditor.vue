@@ -105,7 +105,21 @@
           <div class="form-section-content">
             <div>
               <label class="form-label">总部位置</label>
-              <el-input v-model="force.headquarters" placeholder="例如：暴风城要塞" />
+              <el-select
+                v-model="force.headquarters"
+                filterable
+                allow-create
+                default-first-option
+                placeholder="选择或输入总部地标"
+                class="form-full-width"
+              >
+                <el-option
+                  v-for="landmark in projectLandmarks"
+                  :key="landmark.id"
+                  :label="landmark.name"
+                  :value="landmark.id"
+                />
+              </el-select>
               <p v-if="errors.headquarters" class="error-message">{{ errors.headquarters }}</p>
             </div>
             <div>
@@ -309,10 +323,10 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, toRefs, watch, computed } from 'vue';
+import { toRefs, watch, computed } from 'vue';
 import { ElScrollbar, ElForm, ElInput, ElSelect, ElOption, ElInputNumber, ElEmpty, ElButton, ElPopconfirm } from 'element-plus';
 import { Icon } from '@iconify/vue';
-import type { EnhancedForce, EnhancedLandmark, BranchLocation } from '@/types/world-editor';
+import type { EnhancedForce, EnhancedLandmark } from '@/types/world-editor';
 import { ForceType } from '@/types/world-editor';
 import { useValidation, forceValidationRules } from '@/composables/worldeditor/useValidation';
 import { v4 as uuidv4 } from 'uuid';

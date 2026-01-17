@@ -82,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
 import { ElScrollbar, ElTooltip, ElTree, ElInput } from 'element-plus';
 import { Icon } from '@iconify/vue';
 import { Search } from '@element-plus/icons-vue';
@@ -107,6 +107,7 @@ interface Props {
 const props = defineProps<Props>();
 const emit = defineEmits<{
   (e: 'select', item: SelectableItem): void;
+  (e: 'open-graph', projectId: string): void;
   (e: 'add', type: 'project' | 'landmark' | 'force'): void;
   (e: 'edit', item: Project | EnhancedLandmark | EnhancedForce): void;
   (e: 'copy', item: EnhancedLandmark | EnhancedForce): void;
@@ -165,7 +166,7 @@ const treeData = computed(() => {
           children: projectLandmarks.map(landmark => ({
             id: landmark.id,
             label: landmark.name,
-            icon: 'ph:map-pin-line-duotone',
+            icon: iconForLandmarkType(landmark.type),
             isEntry: true,
             type: 'landmark',
             raw: landmark,
@@ -193,6 +194,14 @@ const treeData = computed(() => {
           type: 'integration',
           raw: integrationNode,
         },
+        {
+          id: `${project.id}-graph`,
+          label: '节点图',
+          icon: 'ph:share-network-duotone',
+          isEntry: true,
+          type: 'graph',
+          raw: { projectId: project.id },
+        },
       ],
     };
   });
@@ -209,6 +218,15 @@ watch(() => props.projects, (newProjects) => {
     });
   }
 }, { immediate: true });
+
+watch(treeData, () => {
+  nextTick(() => {
+    const store = treeRef.value?.store;
+    if (store && typeof store === 'object' && 'setDefaultExpandedKeys' in store) {
+      (store as any).setDefaultExpandedKeys(expandedKeys.value);
+    }
+  });
+});
 
 const handleNodeExpand = (data: { id: string | number }) => {
   if (!expandedKeys.value.includes(data.id)) {
@@ -229,7 +247,44 @@ const currentNodeKey = computed(() => {
 
 const handleNodeClick = (data: any) => {
   if (data.isEntry) {
+    if (data.type === 'graph') {
+      emit('open-graph', data.raw.projectId);
+      return;
+    }
     emit('select', data.raw);
+  }
+};
+
+const iconForLandmarkType = (type?: string) => {
+  switch (type) {
+    case 'city':
+      return 'ph:buildings-duotone';
+    case 'town':
+      return 'ph:house-line-duotone';
+    case 'village':
+      return 'ph:house-duotone';
+    case 'fortress':
+      return 'ph:castle-turret-duotone';
+    case 'ruins':
+      return 'ph:skull-duotone';
+    case 'dungeon':
+      return 'ph:spiral-duotone';
+    case 'temple':
+      return 'ph:bank-duotone';
+    case 'academy':
+      return 'ph:graduation-cap-duotone';
+    case 'harbor':
+      return 'ph:anchor-duotone';
+    case 'market':
+      return 'ph:storefront-duotone';
+    case 'natural':
+      return 'ph:leaf-duotone';
+    case 'ocean':
+      return 'ph:waves-duotone';
+    case 'mystical':
+      return 'ph:sparkle-duotone';
+    default:
+      return 'ph:map-pin-line-duotone';
   }
 };
 

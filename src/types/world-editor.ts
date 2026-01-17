@@ -40,10 +40,12 @@ export interface EnhancedLandmark {
   region?: string;              // 所属区域
   keyLandmarkId?: string;       // 关联的重要地标ID
   relativePosition?: RelativePosition; // 相对位置关系
+  position?: { x: number; y: number }; // 地图节点位置
 
   // 关系管理
   controllingForces: string[];  // 控制势力ID列表
   relatedLandmarks: string[];   // 相关地标ID列表
+  roadConnections?: RoadConnection[]; // 道路连接与手柄信息
 
   // 扩展属性
   climate?: string;             // 气候类型
@@ -75,6 +77,7 @@ export enum LandmarkType {
   HARBOR = 'harbor',           // 港口
   MARKET = 'market',           // 市场
   NATURAL = 'natural',         // 自然景观
+  OCEAN = 'ocean',             // 海洋
   MYSTICAL = 'mystical',       // 神秘地点
   CUSTOM = 'custom'            // 自定义
 }
@@ -98,6 +101,15 @@ export interface RelativePosition {
   south?: string; // 南方地标ID
   east?: string;  // 东方地标ID
   west?: string;  // 西方地标ID
+}
+
+/**
+ * 道路连接信息
+ */
+export interface RoadConnection {
+  targetId: string;
+  handle?: string;
+  targetHandle?: string;
 }
 
 /**

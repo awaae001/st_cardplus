@@ -12,7 +12,15 @@
       </div>
       <div class="editor-content" :key="props.selectedItem.id">
         <ProjectEditor v-if="isProject(props.selectedItem)" :project="props.selectedItem" />
-        <LandmarkEditor v-else-if="isLandmark(props.selectedItem)" :landmark="props.selectedItem" :all-landmarks="props.landmarks" :all-tags="props.allTags" :all-regions="props.allRegions" />
+        <LandmarkEditor
+          v-else-if="isLandmark(props.selectedItem)"
+          :landmark="props.selectedItem"
+          :all-landmarks="props.landmarks"
+          :all-tags="props.allTags"
+          :all-regions="props.allRegions"
+          :all-forces="props.forces"
+          @select-force="handleSelectForce"
+        />
         <ForceEditor v-else-if="isForce(props.selectedItem)" :force="props.selectedItem" :all-tags="props.allTags" :all-forces="props.forces" :all-landmarks="props.landmarks" />
         <IntegratedPanel
           v-else-if="isIntegration(props.selectedItem)"
@@ -65,6 +73,10 @@ const updateSelectedItem = (importedData: any) => {
   };
   emit('update:selectedItem', updatedItem);
   ElMessage.success('导入成功！');
+};
+
+const handleSelectForce = (force: EnhancedForce) => {
+  emit('update:selectedItem', force);
 };
 
 // 对于整合面板，我们需要特殊处理剪贴板和文件系统操作

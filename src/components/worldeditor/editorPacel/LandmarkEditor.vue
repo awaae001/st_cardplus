@@ -104,6 +104,33 @@
           </div>
         </section>
 
+        <!-- 势力驻地 -->
+        <section class="form-section">
+          <h3 class="form-section-title">
+            <Icon icon="ph:flag-duotone" class="form-section-icon" />势力驻地
+          </h3>
+          <div class="form-section-content">
+            <div v-if="forcesAtLandmark.length === 0" class="empty-inline">
+              暂无势力驻扎在此地标
+            </div>
+            <div v-else class="force-summary-list">
+              <div v-for="force in forcesAtLandmark" :key="force.id" class="force-summary-item">
+                <div class="force-summary-main">
+                  <span class="force-summary-name">{{ force.name }}</span>
+                  <div class="force-summary-tags">
+                    <el-tag v-for="tag in force.roles" :key="tag" size="small" type="info" effect="plain">
+                      {{ tag }}
+                    </el-tag>
+                  </div>
+                </div>
+                <el-button size="small" type="primary" plain @click="emitSelectForce(force.raw)">
+                  快速编辑
+                </el-button>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- 扩展属性 -->
         <section class="form-section">
           <h3 class="form-section-title">
@@ -161,10 +188,10 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, watch, computed } from 'vue';
-import { ElScrollbar, ElForm, ElInput, ElSelect, ElOption, ElInputNumber, ElEmpty, ElTooltip } from 'element-plus';
+import { watch, computed } from 'vue';
+import { ElScrollbar, ElForm, ElInput, ElSelect, ElOption, ElInputNumber, ElEmpty, ElTooltip, ElTag, ElButton } from 'element-plus';
 import { Icon } from '@iconify/vue';
-import type { EnhancedLandmark } from '@/types/world-editor';
+import type { EnhancedLandmark, EnhancedForce } from '@/types/world-editor';
 import { LandmarkType } from '@/types/world-editor';
 import { useValidation } from '@/composables/worldeditor/useValidation';
 import '@/css/worldbook.css';
@@ -173,9 +200,13 @@ interface Props {
   landmark: EnhancedLandmark | null;
   allLandmarks?: EnhancedLandmark[];
   allTags?: string[];
+  allForces?: EnhancedForce[];
 }
 
 const props = defineProps<Props>();
+const emit = defineEmits<{
+  (e: 'select-force', force: EnhancedForce): void;
+}>();
 
 // 虽然WorldBookEditor中没有直接使用，但考虑到LandmarkEditor原有功能，暂时保留校验逻辑
 // 如果父组件统一处理，则可以移除
@@ -238,6 +269,28 @@ const filteredLandmarks = computed(() => {
   );
 });
 
+const forcesAtLandmark = computed(() => {
+  if (!props.allForces || !props.landmark) return [];
+  const landmark = props.landmark;
+  return props.allForces
+    .filter(force => force.projectId === landmark.projectId)
+    .map(force => {
+      const roles: string[] = [];
+      if (force.headquarters === landmark.id || force.headquarters === landmark.name) {
+        roles.push('总部');
+      }
+      if (force.branchLocations?.some(branch => branch.locationId === landmark.id)) {
+        roles.push('分部');
+      }
+      return { id: force.id, name: force.name, roles, raw: force };
+    })
+    .filter(force => force.roles.length > 0);
+});
+
+const emitSelectForce = (force: EnhancedForce) => {
+  emit('select-force', force);
+};
+
 // 确保 relativePosition 对象存在
 watch(() => props.landmark, (newLandmark) => {
   if (newLandmark && !newLandmark.relativePosition) {
@@ -250,5 +303,44 @@ watch(() => props.landmark, (newLandmark) => {
 <style scoped>
 .worldbook-editor-scrollbar {
   height: 100%;
+}
+
+.empty-inline {
+  color: var(--el-text-color-secondary);
+  font-size: 13px;
+}
+
+.force-summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.force-summary-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--el-border-color-light);
+  background: var(--el-fill-color-light);
+  gap: 12px;
+}
+
+.force-summary-main {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.force-summary-name {
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+.force-summary-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 </style>
