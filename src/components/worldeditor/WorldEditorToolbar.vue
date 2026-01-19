@@ -58,7 +58,7 @@
     <el-scrollbar class="toolbar-list-scrollbar">
       <el-tree ref="treeRef" :data="treeData" :props="treeProps" node-key="id" :key="treeKey"
         :default-expanded-keys="expandedKeys" :current-node-key="currentNodeKey" highlight-current
-        @node-click="handleNodeClick" @node-expand="handleNodeExpand" @node-collapse="handleNodeCollapse" class="world-editor-tree" :expand-on-click-node="false"
+        @node-click="handleNodeClick" @node-expand="handleNodeExpand" @node-collapse="handleNodeCollapse" class="world-editor-tree" :expand-on-click-node="true"
         :filter-node-method="filterNode" draggable :allow-drag="props.dragDropHandlers.allowDrag"
         :allow-drop="props.dragDropHandlers.allowDrop" @node-drop="handleNodeDrop">
         <template #default="{ node, data }">
