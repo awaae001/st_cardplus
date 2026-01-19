@@ -130,6 +130,7 @@ const handleSelectionFromChild = (item: Project | EnhancedLandmark | EnhancedFor
 
 const handleEditFromGraph = (item: EnhancedLandmark) => {
   coreHandleSelection(item);
+  graphProjectId.value = null;
   activeTab.value = 'editor';
 };
 
