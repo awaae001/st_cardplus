@@ -9,11 +9,14 @@
         <Controls position="bottom-right" />
         <template #node-landmark="{ data }">
           <div class="landmark-node" :class="nodeSizeClass(data.type)">
+            <span class="landmark-region-tail" :style="{ backgroundColor: data.regionColor || 'transparent' }"></span>
             <div class="landmark-node-header">
               <Icon :icon="iconForType(data.type)" class="landmark-node-icon" />
               <div class="landmark-node-title">{{ data.name }}</div>
             </div>
-            <div class="landmark-node-subtitle" v-if="data.region">{{ data.region }}</div>
+            <el-tooltip v-if="data.region" :content="data.region" placement="top">
+              <span class="landmark-region-dot" :style="{ backgroundColor: data.regionColor }"></span>
+            </el-tooltip>
             <div class="landmark-node-forces" v-if="data.forces.length > 0">
               <div v-for="force in data.forces.slice(0, 3)" :key="force.id" class="landmark-node-force">
                 <span class="force-name">{{ force.name }}</span>
@@ -56,7 +59,12 @@
         </div>
         <div class="inspector-field">
           <label class="inspector-label">区域</label>
-          <el-input v-model="selectedLandmark.region" placeholder="所属区域" />
+          <div class="inspector-region-select">
+            <span class="inspector-region-dot" :style="{ backgroundColor: selectedRegionColor }"></span>
+            <el-select v-model="selectedLandmark.regionId" clearable placeholder="所属区域">
+              <el-option v-for="region in projectRegions" :key="region.id" :label="region.name" :value="region.id" />
+            </el-select>
+          </div>
         </div>
         <div class="inspector-field">
           <label class="inspector-label">道路连接</label>
@@ -90,8 +98,8 @@ import {
 import { Background } from '@vue-flow/background';
 import { Controls } from '@vue-flow/controls';
 import { Icon } from '@iconify/vue';
-import { ElInput, ElButton, ElSelect, ElOption } from 'element-plus';
-import type { Project, EnhancedLandmark, EnhancedForce, RoadConnection } from '@/types/world-editor';
+import { ElInput, ElButton, ElSelect, ElOption, ElTooltip } from 'element-plus';
+import type { Project, EnhancedLandmark, EnhancedForce, EnhancedRegion, RoadConnection } from '@/types/world-editor';
 import { LandmarkType } from '@/types/world-editor';
 import '@vue-flow/core/dist/style.css';
 import '@vue-flow/controls/dist/style.css';
@@ -100,6 +108,7 @@ interface Props {
   projects: Project[];
   landmarks: EnhancedLandmark[];
   forces: EnhancedForce[];
+  regions: EnhancedRegion[];
   activeProjectId?: string | null;
 }
 
@@ -191,6 +200,12 @@ const projectForces = computed(() => {
   if (!activeProjectId.value) return [];
   return props.forces.filter(f => f.projectId === activeProjectId.value);
 });
+const projectRegions = computed(() => {
+  if (!activeProjectId.value) return [];
+  return props.regions.filter(r => r.projectId === activeProjectId.value);
+});
+const regionNameMap = computed(() => new Map(projectRegions.value.map(region => [region.id, region.name])));
+const regionColorMap = computed(() => new Map(projectRegions.value.map(region => [region.id, region.color])));
 const selectedLandmark = computed(() => {
   if (!selectedLandmarkId.value) return null;
   return projectLandmarks.value.find(l => l.id === selectedLandmarkId.value) || null;
@@ -201,6 +216,11 @@ const selectedConnections = computed(() => {
   return related
     .map(id => projectLandmarks.value.find(l => l.id === id))
     .filter((item): item is EnhancedLandmark => Boolean(item));
+});
+const selectedRegionColor = computed(() => {
+  const regionId = selectedLandmark.value?.regionId;
+  if (!regionId) return 'transparent';
+  return regionColorMap.value.get(regionId) || 'transparent';
 });
 
 const createDefaultPosition = (index: number) => {
@@ -245,7 +265,8 @@ const buildNodes = () => {
       data: {
         id: landmark.id,
         name: landmark.name,
-        region: landmark.region,
+        region: landmark.regionId ? regionNameMap.value.get(landmark.regionId) : '',
+        regionColor: landmark.regionId ? regionColorMap.value.get(landmark.regionId) : '',
         forces: forcesAt,
         type: landmark.type,
       },
@@ -644,6 +665,20 @@ const clearSelection = () => {
   gap: 6px;
 }
 
+.inspector-region-select {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inspector-region-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
 .inspector-label {
   font-size: 13px;
   font-weight: 600;
@@ -686,6 +721,8 @@ const clearSelection = () => {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  position: relative;
+  overflow: hidden;
 }
 
 .landmark-node.is-large {
@@ -698,6 +735,8 @@ const clearSelection = () => {
   display: flex;
   align-items: center;
   gap: 8px;
+  position: relative;
+  z-index: 1;
 }
 
 .landmark-node-icon {
@@ -714,15 +753,23 @@ const clearSelection = () => {
   text-overflow: ellipsis;
 }
 
-.landmark-node-subtitle {
-  font-size: 12px;
-  color: #64748b;
+.landmark-region-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.7);
 }
 
 .landmark-node-forces {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  position: relative;
+  z-index: 1;
 }
 
 .landmark-node-force {
@@ -746,6 +793,8 @@ const clearSelection = () => {
 .landmark-node-more {
   font-size: 11px;
   color: #64748b;
+  position: relative;
+  z-index: 1;
 }
 
 .landmark-handle {
@@ -753,6 +802,17 @@ const clearSelection = () => {
   height: 10px;
   background: #2563eb;
   border: 2px solid #ffffff;
+}
+
+.landmark-region-tail {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 32px;
+  height: 100%;
+  border-radius: 0 0 10px 0;
+  opacity: 0.9;
+  pointer-events: none;
 }
 
 @media (max-width: 900px) {

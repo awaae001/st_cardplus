@@ -9,7 +9,7 @@
               <span class="world-editor-tab-text">项目列表</span>
             </span>
           </template>
-          <WorldEditorToolbar :projects="projects" :landmarks="landmarks" :forces="forces" :selected-item="selectedItem"
+          <WorldEditorToolbar :projects="projects" :landmarks="landmarks" :forces="forces" :regions="regions" :selected-item="selectedItem"
             :can-undo="canUndo" :can-redo="canRedo" @select="handleSelection" @open-graph="handleOpenGraph"
             @add="handleAdd" @delete="handleDelete" @undo="handleUndo" @redo="handleRedo" @edit="handleEdit"
             @copy="handleCopy" :drag-drop-handlers="dragDropHandlers" />
@@ -28,6 +28,7 @@
             :projects="projects"
             :landmarks="landmarks"
             :forces="forces"
+            :regions="regions"
             :active-project-id="graphProjectId || activeProjectId"
             @edit-item="handleEditFromGraph"
           />
@@ -35,8 +36,11 @@
             v-else
             :selected-item="selectedItem"
             :all-tags="allTags"
+            :all-regions="allRegions"
             :landmarks="landmarks"
             :forces="forces"
+            :regions="regions"
+            :create-region="createRegion"
             :projects="projects"
             @update:selected-item="handleSelectionFromChild"
           />
@@ -48,7 +52,7 @@
       <Splitpanes class="default-theme" style="height: 100%">
         <Pane size="15" min-size="12" max-size="30">
           <div class="toolbar-container">
-            <WorldEditorToolbar :projects="projects" :landmarks="landmarks" :forces="forces"
+            <WorldEditorToolbar :projects="projects" :landmarks="landmarks" :forces="forces" :regions="regions"
               :selected-item="selectedItem" :can-undo="canUndo" :can-redo="canRedo" @select="handleSelection"
               @open-graph="handleOpenGraph" @add="handleAdd" @delete="handleDelete" @undo="handleUndo"
               @redo="handleRedo" @edit="handleEdit" @copy="handleCopy" :drag-drop-handlers="dragDropHandlers" />
@@ -61,6 +65,7 @@
               :projects="projects"
               :landmarks="landmarks"
               :forces="forces"
+              :regions="regions"
               :active-project-id="graphProjectId || activeProjectId"
               @edit-item="handleEditFromGraph"
             />
@@ -68,8 +73,11 @@
               v-else
               :selected-item="selectedItem"
               :all-tags="allTags"
+              :all-regions="allRegions"
               :landmarks="landmarks"
               :forces="forces"
+              :regions="regions"
+              :create-region="createRegion"
               :projects="projects"
               @update:selected-item="handleSelectionFromChild"
             />
@@ -88,7 +96,7 @@ import { Icon } from "@iconify/vue";
 import { Splitpanes, Pane } from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
 import '@/css/worldeditor.css';
-import type { Project, EnhancedLandmark, EnhancedForce, ProjectIntegration } from '@/types/world-editor';
+import type { Project, EnhancedLandmark, EnhancedForce, EnhancedRegion, ProjectIntegration } from '@/types/world-editor';
 import { ActionType } from '@/types/world-editor';
 import WorldEditorToolbar from './worldeditor/WorldEditorToolbar.vue';
 import WorldEditorMainPanel from './worldeditor/WorldEditorMainPanel.vue';
@@ -107,9 +115,12 @@ const {
   projects,
   landmarks,
   forces,
+  regions,
   selectedItem,
   activeProjectId,
   allTags,
+  allRegions,
+  createRegion,
   handleSelection: coreHandleSelection,
   handleAdd: handleAddEntity,
   handleDelete,
@@ -117,13 +128,13 @@ const {
   handleProjectSubmit
 } = useWorldEditor();
 
-const handleSelection = (item: Project | EnhancedLandmark | EnhancedForce | ProjectIntegration) => {
+const handleSelection = (item: Project | EnhancedLandmark | EnhancedForce | EnhancedRegion | ProjectIntegration) => {
   coreHandleSelection(item);
   activeTab.value = 'editor';
   graphProjectId.value = null;
 };
 
-const handleSelectionFromChild = (item: Project | EnhancedLandmark | EnhancedForce | ProjectIntegration) => {
+const handleSelectionFromChild = (item: Project | EnhancedLandmark | EnhancedForce | EnhancedRegion | ProjectIntegration) => {
   coreHandleSelection(item);
   graphProjectId.value = null;
 };
@@ -149,13 +160,13 @@ const {
 } = useWorldEditorUI(handleProjectSubmit);
 
 // Drag and Drop Logic
-const dragDropHandlers = useDragAndDrop(landmarks, forces);
+const dragDropHandlers = useDragAndDrop(landmarks, forces, regions);
 
 // History Management
 const { canUndo, canRedo, add, undo, redo } = useHistory('world-editor-history');
 
 // Event Handlers
-const handleAdd = (type: 'project' | 'landmark' | 'force') => {
+const handleAdd = (type: 'project' | 'landmark' | 'force' | 'region') => {
   if (type === 'project') {
     handleAddProject();
   } else {
@@ -163,7 +174,7 @@ const handleAdd = (type: 'project' | 'landmark' | 'force') => {
   }
 };
 
-const handleEdit = (item: Project | EnhancedLandmark | EnhancedForce | ProjectIntegration) => {
+const handleEdit = (item: Project | EnhancedLandmark | EnhancedForce | EnhancedRegion | ProjectIntegration) => {
   if ('createdAt' in item && !('projectId' in item)) { // Is a Project
     handleEditProject(item as Project);
   } else {
@@ -186,11 +197,13 @@ const handleUndo = () => {
     return false;
   };
 
-  if (!updateEntity(landmarks.value, restoredState) && !updateEntity(forces.value, restoredState)) {
-    if ('region' in restoredState) { // is landmark
+  if (!updateEntity(landmarks.value, restoredState) && !updateEntity(forces.value, restoredState) && !updateEntity(regions.value, restoredState)) {
+    if ('importance' in restoredState) { // is landmark
       landmarks.value.push(restoredState as EnhancedLandmark);
-    } else { // is force
+    } else if ('power' in restoredState) { // is force
       forces.value.push(restoredState as EnhancedForce);
+    } else { // is force
+      regions.value.push(restoredState as EnhancedRegion);
     }
     selectedItem.value = restoredState;
   }
@@ -210,8 +223,8 @@ const handleRedo = () => {
     return false;
   };
 
-  if (!updateEntity(landmarks.value, restoredState)) {
-    updateEntity(forces.value, restoredState);
+  if (!updateEntity(landmarks.value, restoredState) && !updateEntity(forces.value, restoredState)) {
+    updateEntity(regions.value, restoredState);
   }
 };
 
@@ -224,9 +237,17 @@ watch(
       const newState = JSON.parse(newJson);
 
       if (oldState.id === newState.id) {
+        let target: 'landmark' | 'force' | 'region' = 'force';
+        if ('importance' in newState) {
+          target = 'landmark';
+        } else if ('power' in newState) {
+          target = 'force';
+        } else {
+          target = 'region';
+        }
         add({
           action: ActionType.UPDATE,
-          target: 'region' in newState ? 'landmark' : 'force',
+          target,
           targetId: newState.id,
           previousState: oldState,
           newState: newState,

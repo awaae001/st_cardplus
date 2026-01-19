@@ -128,13 +128,14 @@
 import { ref, computed } from 'vue';
 import { ElCard, ElButton, ElRow, ElCol, ElCheckbox, ElMessage } from 'element-plus';
 import { Icon } from '@iconify/vue';
-import type { Project, EnhancedLandmark, EnhancedForce, ProjectIntegration } from '@/types/world-editor';
+import type { Project, EnhancedLandmark, EnhancedForce, EnhancedRegion, ProjectIntegration } from '@/types/world-editor';
 import { cleanObject } from '@/utils/objectUtils';
 
 interface Props {
   integration: ProjectIntegration;
   currentProject: Project | null;
   landmarks: EnhancedLandmark[];
+  regions: EnhancedRegion[];
   forces: EnhancedForce[];
 }
 
@@ -153,6 +154,11 @@ const projectLandmarks = computed(() => {
 const projectForces = computed(() => {
   if (!props.currentProject) return [];
   return props.forces.filter(f => f.projectId === props.currentProject!.id);
+});
+
+const projectRegions = computed(() => {
+  if (!props.currentProject) return [];
+  return props.regions.filter(r => r.projectId === props.currentProject!.id);
 });
 
 // 计算选中的所有项目
@@ -242,6 +248,7 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce)[]): string => {
   // 创建ID到名称的映射，以便将UUID替换为可读的名称
   const landmarkIdToNameMap = new Map(props.landmarks.map(l => [l.id, l.name]));
   const forceIdToNameMap = new Map(props.forces.map(f => [f.id, f.name]));
+  const regionIdToNameMap = new Map(props.regions.map(r => [r.id, r.name]));
 
   const idToName = (id: string, map: Map<string, string>) => map.get(id) || id;
   const toNameList = (value?: string | string[], map?: Map<string, string>) => {
@@ -251,7 +258,7 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce)[]): string => {
   };
 
   const landmarks = items
-    .filter((item): item is EnhancedLandmark => 'region' in item)
+    .filter((item): item is EnhancedLandmark => 'importance' in item)
     .map(landmark => {
       const relativePosition = landmark.relativePosition
         ? {
@@ -267,7 +274,7 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce)[]): string => {
         type: getLandmarkTypeLabel(landmark.type),
         importance: landmark.importance,
         tags: landmark.tags,
-        region: landmark.region,
+        region: landmark.regionId ? idToName(landmark.regionId, regionIdToNameMap) : undefined,
         relativePosition,
         // 将关联ID转换为名称
         controllingForces: landmark.controllingForces?.map(id => idToName(id, forceIdToNameMap)),
@@ -308,17 +315,28 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce)[]): string => {
       return cleanObject(cleanedForce);
     });
 
+  const regions = projectRegions.value.map(region => {
+    const cleanedRegion = {
+      name: region.name,
+      description: region.description,
+      notes: region.notes,
+    };
+    return cleanObject(cleanedRegion);
+  });
+
   const exportData = {
     project: {
       name: props.currentProject?.name || '未命名项目',
       description: props.currentProject?.description || ''
     },
     landmarks,
+    regions,
     forces,
     summary: {
       landmarkCount: landmarks.length,
+      regionCount: regions.length,
       forceCount: forces.length,
-      totalCount: items.length
+      totalCount: items.length + regions.length
     }
   };
 

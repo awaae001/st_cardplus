@@ -37,7 +37,7 @@ export interface EnhancedLandmark {
   tags: string[];               // 自定义标签
 
   // 位置信息
-  region?: string;              // 所属区域
+  regionId?: string;            // 所属区域ID
   keyLandmarkId?: string;       // 关联的重要地标ID
   relativePosition?: RelativePosition; // 相对位置关系
   position?: { x: number; y: number }; // 地图节点位置
@@ -60,6 +60,21 @@ export interface EnhancedLandmark {
   createdAt: string;            // 创建时间
   updatedAt: string;            // 更新时间
   version: number;              // 版本号
+}
+
+/**
+ * 区域实体接口
+ */
+export interface EnhancedRegion {
+  id: string;                    // UUID 唯一标识
+  projectId: string;             // 所属项目ID
+  name: string;                  // 区域名称
+  description: string;           // 区域介绍
+  color: string;                 // 区域颜色
+  notes: string;                 // 额外备注
+  createdAt: string;             // 创建时间
+  updatedAt: string;             // 更新时间
+  version: number;               // 版本号
 }
 
 /**
@@ -338,7 +353,7 @@ export interface HistoryEntry {
   id: string;
   timestamp: string;
   action: ActionType;
-  target: 'landmark' | 'force';
+  target: 'landmark' | 'force' | 'region';
   targetId: string;
   previousState: any;
   newState: any;

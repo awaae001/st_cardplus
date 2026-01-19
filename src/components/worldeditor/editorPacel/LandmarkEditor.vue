@@ -62,7 +62,18 @@
             <div class="form-section-content">
               <div>
                 <label class="form-label">所属区域</label>
-                <el-input v-model="landmark.region" placeholder="例如：北境" />
+                <div class="region-select">
+                  <el-select v-model="landmark.regionId" clearable filterable allow-create default-first-option
+                    :reserve-keyword="false" placeholder="选择或输入区域名称" class="form-full-width"
+                    @change="handleRegionChange">
+                    <el-option v-for="region in projectRegions" :key="region.id" :label="region.name" :value="region.id">
+                      <div class="region-option">
+                        <span class="region-option-dot" :style="{ backgroundColor: region.color }"></span>
+                        <span>{{ region.name }}</span>
+                      </div>
+                    </el-option>
+                  </el-select>
+                </div>
               </div>
               <div>
                 <label class="form-label">重要地标</label>
@@ -196,7 +207,7 @@
 import { watch, computed } from 'vue';
 import { ElScrollbar, ElForm, ElInput, ElSelect, ElOption, ElInputNumber, ElEmpty, ElTooltip, ElTag, ElButton } from 'element-plus';
 import { Icon } from '@iconify/vue';
-import type { EnhancedLandmark, EnhancedForce } from '@/types/world-editor';
+import type { EnhancedLandmark, EnhancedForce, EnhancedRegion } from '@/types/world-editor';
 import { LandmarkType } from '@/types/world-editor';
 import { useValidation } from '@/composables/worldeditor/useValidation';
 import '@/css/worldbook.css';
@@ -206,6 +217,8 @@ interface Props {
   allLandmarks?: EnhancedLandmark[];
   allTags?: string[];
   allForces?: EnhancedForce[];
+  allRegions?: EnhancedRegion[];
+  createRegion?: (name: string, projectId: string) => EnhancedRegion;
 }
 
 const props = defineProps<Props>();
@@ -283,6 +296,24 @@ const filteredLandmarks = computed(() => {
     isConnectedLandmark(props.landmark!, item)
   );
 });
+
+const projectRegions = computed(() => {
+  if (!props.landmark || !props.allRegions) return [];
+  return props.allRegions.filter(region => region.projectId === props.landmark!.projectId);
+});
+
+const handleRegionChange = (value?: string) => {
+  if (!props.landmark || !value) return;
+  const existing = projectRegions.value.find(region => region.id === value);
+  if (existing) return;
+  if (!props.createRegion) {
+    props.landmark.regionId = undefined;
+    return;
+  }
+  const created = props.createRegion(value, props.landmark.projectId);
+  props.landmark.regionId = created.id;
+};
+
 
 const forcesAtLandmark = computed(() => {
   if (!props.allForces || !props.landmark) return [];
@@ -390,5 +421,25 @@ watch([() => props.landmark, filteredLandmarks], ([landmark]) => {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+.region-select {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.region-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.region-option-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: 1px solid var(--el-border-color);
+  flex-shrink: 0;
 }
 </style>
