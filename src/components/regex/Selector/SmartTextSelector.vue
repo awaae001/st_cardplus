@@ -20,6 +20,11 @@
       </div>
     </div>
 
+    <div class="tool-description" v-if="inputMode === 'manual'">
+      <Icon icon="material-symbols:info-outline" width="16" height="16" class="info-icon" />
+      <span>{{ getToolDescription(selectionMode) }}</span>
+    </div>
+
     <div class="text-area-wrapper" v-if="inputMode === 'manual'">
       <div
         ref="textAreaRef"
@@ -130,7 +135,6 @@ const emit = defineEmits<{
   regexGenerated: [regex: string, replaceString: string]
 }>()
 
-const textAreaRef = ref<HTMLDivElement>()
 const selectionMode = ref<'anchor' | 'variable' | 'start' | 'end'>('anchor')
 const inputMode = ref<'manual' | 'token'>('manual')
 const isSelecting = ref(false)
@@ -346,6 +350,21 @@ const handleTokenSelection = (selection: TextSelection) => {
     ElMessage.warning(error instanceof Error ? error.message : '添加选择失败')
   }
 }
+
+const getToolDescription = (mode: string) => {
+  switch (mode) {
+    case 'anchor':
+      return '锚点模式：选择固定不变的文本作为定位参照，生成的正则将精确匹配这些内容。'
+    case 'variable':
+      return '变量模式：选择变化的内容（如名字、数值），生成的正则将使用通配符捕获这部分。'
+    case 'start':
+      return '起始符：标记匹配区域的开始边界（前瞻断言），不包含在匹配结果中。'
+    case 'end':
+      return '终止符：标记匹配区域的结束边界（后瞻断言），不包含在匹配结果中。'
+    default:
+      return ''
+  }
+}
 </script>
 
 <style scoped>
@@ -366,6 +385,24 @@ const handleTokenSelection = (selection: TextSelection) => {
 .selector-header h4 {
   margin: 0;
   color: var(--el-text-color-primary);
+}
+
+.tool-description {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background-color: var(--el-fill-color-lighter);
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--el-text-color-regular);
+  border-left: 3px solid var(--el-color-primary);
+}
+
+.tool-description .info-icon {
+  color: var(--el-color-primary);
+  flex-shrink: 0;
 }
 
 .mode-controls {

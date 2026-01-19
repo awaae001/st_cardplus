@@ -443,10 +443,11 @@ const recalcRelativePositions = () => {
     if (!landmark.relativePosition) {
       landmark.relativePosition = {};
     }
-    landmark.relativePosition.north = closest.north.id;
-    landmark.relativePosition.south = closest.south.id;
-    landmark.relativePosition.east = closest.east.id;
-    landmark.relativePosition.west = closest.west.id;
+    const singleSelection = (id?: string) => (id ? [id] : []);
+    landmark.relativePosition.north = singleSelection(closest.north.id);
+    landmark.relativePosition.south = singleSelection(closest.south.id);
+    landmark.relativePosition.east = singleSelection(closest.east.id);
+    landmark.relativePosition.west = singleSelection(closest.west.id);
   });
 };
 

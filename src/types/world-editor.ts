@@ -97,10 +97,10 @@ export enum ImportanceLevel {
  * 相对位置关系
  */
 export interface RelativePosition {
-  north?: string; // 北方地标ID
-  south?: string; // 南方地标ID
-  east?: string;  // 东方地标ID
-  west?: string;  // 西方地标ID
+  north?: string[]; // 北方地标ID列表
+  south?: string[]; // 南方地标ID列表
+  east?: string[];  // 东方地标ID列表
+  west?: string[];  // 西方地标ID列表
 }
 
 /**

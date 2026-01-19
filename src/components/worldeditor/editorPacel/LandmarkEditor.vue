@@ -78,25 +78,25 @@
             <div v-if="landmark.relativePosition" class="form-grid-4-col">
               <div>
                 <label class="form-label">北</label>
-                <el-select v-model="landmark.relativePosition.north" clearable filterable placeholder="选择北方地标" class="form-full-width">
+                <el-select v-model="landmark.relativePosition.north" multiple clearable filterable collapse-tags :reserve-keyword="false" placeholder="选择北方地标" class="form-full-width">
                   <el-option v-for="item in filteredLandmarks" :key="item.id" :label="item.name" :value="item.id" />
                 </el-select>
               </div>
               <div>
                 <label class="form-label">南</label>
-                <el-select v-model="landmark.relativePosition.south" clearable filterable placeholder="选择南方地标" class="form-full-width">
+                <el-select v-model="landmark.relativePosition.south" multiple clearable filterable collapse-tags :reserve-keyword="false" placeholder="选择南方地标" class="form-full-width">
                   <el-option v-for="item in filteredLandmarks" :key="item.id" :label="item.name" :value="item.id" />
                 </el-select>
               </div>
               <div>
                 <label class="form-label">东</label>
-                <el-select v-model="landmark.relativePosition.east" clearable filterable placeholder="选择东方地标" class="form-full-width">
+                <el-select v-model="landmark.relativePosition.east" multiple clearable filterable collapse-tags :reserve-keyword="false" placeholder="选择东方地标" class="form-full-width">
                   <el-option v-for="item in filteredLandmarks" :key="item.id" :label="item.name" :value="item.id" />
                 </el-select>
               </div>
               <div>
                 <label class="form-label">西</label>
-                <el-select v-model="landmark.relativePosition.west" clearable filterable placeholder="选择西方地标" class="form-full-width">
+                <el-select v-model="landmark.relativePosition.west" multiple clearable filterable collapse-tags :reserve-keyword="false" placeholder="选择西方地标" class="form-full-width">
                   <el-option v-for="item in filteredLandmarks" :key="item.id" :label="item.name" :value="item.id" />
                 </el-select>
               </div>
@@ -291,10 +291,28 @@ const emitSelectForce = (force: EnhancedForce) => {
   emit('select-force', force);
 };
 
-// 确保 relativePosition 对象存在
+const normalizeRelativePosition = (landmark: EnhancedLandmark) => {
+  if (!landmark.relativePosition) {
+    landmark.relativePosition = { north: [], south: [], east: [], west: [] };
+    return;
+  }
+  const relativePosition = landmark.relativePosition as {
+    north?: string | string[];
+    south?: string | string[];
+    east?: string | string[];
+    west?: string | string[];
+  };
+  const ensureArray = (value?: string | string[]) => (Array.isArray(value) ? value : value ? [value] : []);
+  landmark.relativePosition.north = ensureArray(relativePosition.north);
+  landmark.relativePosition.south = ensureArray(relativePosition.south);
+  landmark.relativePosition.east = ensureArray(relativePosition.east);
+  landmark.relativePosition.west = ensureArray(relativePosition.west);
+};
+
+// 确保 relativePosition 对象存在并做兼容处理
 watch(() => props.landmark, (newLandmark) => {
-  if (newLandmark && !newLandmark.relativePosition) {
-    newLandmark.relativePosition = {};
+  if (newLandmark) {
+    normalizeRelativePosition(newLandmark);
   }
 }, { immediate: true });
 

@@ -244,10 +244,23 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce)[]): string => {
   const forceIdToNameMap = new Map(props.forces.map(f => [f.id, f.name]));
 
   const idToName = (id: string, map: Map<string, string>) => map.get(id) || id;
+  const toNameList = (value?: string | string[], map?: Map<string, string>) => {
+    if (!value) return [];
+    const list = Array.isArray(value) ? value : [value];
+    return list.map(id => idToName(id, map || new Map()));
+  };
 
   const landmarks = items
     .filter((item): item is EnhancedLandmark => 'region' in item)
     .map(landmark => {
+      const relativePosition = landmark.relativePosition
+        ? {
+            north: toNameList(landmark.relativePosition.north, landmarkIdToNameMap),
+            south: toNameList(landmark.relativePosition.south, landmarkIdToNameMap),
+            east: toNameList(landmark.relativePosition.east, landmarkIdToNameMap),
+            west: toNameList(landmark.relativePosition.west, landmarkIdToNameMap),
+          }
+        : undefined;
       const cleanedLandmark = {
         name: landmark.name,
         description: landmark.description,
@@ -255,6 +268,7 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce)[]): string => {
         importance: landmark.importance,
         tags: landmark.tags,
         region: landmark.region,
+        relativePosition,
         // 将关联ID转换为名称
         controllingForces: landmark.controllingForces?.map(id => idToName(id, forceIdToNameMap)),
         relatedLandmarks: landmark.relatedLandmarks?.map(id => idToName(id, landmarkIdToNameMap)),
