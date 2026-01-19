@@ -59,12 +59,12 @@
         </div>
         <div class="inspector-field">
           <label class="inspector-label">区域</label>
-          <div class="inspector-region-select">
-            <span class="inspector-region-dot" :style="{ backgroundColor: selectedRegionColor }"></span>
-            <el-select v-model="selectedLandmark.regionId" clearable placeholder="所属区域">
-              <el-option v-for="region in projectRegions" :key="region.id" :label="region.name" :value="region.id" />
-            </el-select>
-          </div>
+          <RegionSelect
+            v-model="selectedLandmark.regionId"
+            :regions="projectRegions"
+            placeholder="所属区域"
+            :show-selected-color="true"
+          />
         </div>
         <div class="inspector-field">
           <label class="inspector-label">道路连接</label>
@@ -101,6 +101,8 @@ import { Icon } from '@iconify/vue';
 import { ElInput, ElButton, ElSelect, ElOption, ElTooltip } from 'element-plus';
 import type { Project, EnhancedLandmark, EnhancedForce, EnhancedRegion, RoadConnection } from '@/types/world-editor';
 import { LandmarkType } from '@/types/world-editor';
+import { getLandmarkTypeIcon, getLandmarkTypeLabel } from '@/utils/worldeditor/landmarkMeta';
+import RegionSelect from './RegionSelect.vue';
 import '@vue-flow/core/dist/style.css';
 import '@vue-flow/controls/dist/style.css';
 
@@ -168,25 +170,7 @@ const RemovableEdge = (props: EdgeProps) => {
 
 const edgeTypes = { removable: RemovableEdge };
 
-const localizeLandmarkType = (type: string): string => {
-  const map: Record<string, string> = {
-    [LandmarkType.CITY]: '城市',
-    [LandmarkType.TOWN]: '城镇',
-    [LandmarkType.VILLAGE]: '村庄',
-    [LandmarkType.FORTRESS]: '要塞',
-    [LandmarkType.RUINS]: '遗迹',
-    [LandmarkType.DUNGEON]: '地下城',
-    [LandmarkType.TEMPLE]: '神殿',
-    [LandmarkType.ACADEMY]: '学院',
-    [LandmarkType.HARBOR]: '港口',
-    [LandmarkType.MARKET]: '市场',
-    [LandmarkType.NATURAL]: '自然景观',
-    [LandmarkType.OCEAN]: '海洋',
-    [LandmarkType.MYSTICAL]: '神秘地点',
-    [LandmarkType.CUSTOM]: '自定义',
-  };
-  return map[type] || type;
-};
+const localizeLandmarkType = (type: string): string => getLandmarkTypeLabel(type);
 
 const activeProjectId = computed(() => {
   if (props.activeProjectId) return props.activeProjectId;
@@ -216,11 +200,6 @@ const selectedConnections = computed(() => {
   return related
     .map(id => projectLandmarks.value.find(l => l.id === id))
     .filter((item): item is EnhancedLandmark => Boolean(item));
-});
-const selectedRegionColor = computed(() => {
-  const regionId = selectedLandmark.value?.regionId;
-  if (!regionId) return 'transparent';
-  return regionColorMap.value.get(regionId) || 'transparent';
 });
 
 const createDefaultPosition = (index: number) => {
@@ -274,38 +253,7 @@ const buildNodes = () => {
   });
 };
 
-const iconForType = (type?: string) => {
-  switch (type) {
-    case 'city':
-      return 'ph:buildings-duotone';
-    case 'town':
-      return 'ph:house-line-duotone';
-    case 'village':
-      return 'ph:house-duotone';
-    case 'fortress':
-      return 'ph:castle-turret-duotone';
-    case 'ruins':
-      return 'ph:skull-duotone';
-    case 'dungeon':
-      return 'ph:spiral-duotone';
-    case 'temple':
-      return 'ph:bank-duotone';
-    case 'academy':
-      return 'ph:graduation-cap-duotone';
-    case 'harbor':
-      return 'ph:anchor-duotone';
-    case 'market':
-      return 'ph:storefront-duotone';
-    case 'natural':
-      return 'ph:leaf-duotone';
-    case 'ocean':
-      return 'ph:waves-duotone';
-    case 'mystical':
-      return 'ph:sparkle-duotone';
-    default:
-      return 'ph:map-pin-duotone';
-  }
-};
+const iconForType = (type?: string) => getLandmarkTypeIcon(type);
 
 const nodeSizeClass = (type?: string) => {
   if (type === 'natural') return 'is-large';
@@ -665,20 +613,6 @@ const clearSelection = () => {
   gap: 6px;
 }
 
-.inspector-region-select {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.inspector-region-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  border: 1px solid #e2e8f0;
-  flex-shrink: 0;
-}
-
 .inspector-label {
   font-size: 13px;
   font-weight: 600;
@@ -722,7 +656,6 @@ const clearSelection = () => {
   flex-direction: column;
   gap: 6px;
   position: relative;
-  overflow: hidden;
 }
 
 .landmark-node.is-large {

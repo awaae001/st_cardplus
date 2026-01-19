@@ -62,18 +62,14 @@
             <div class="form-section-content">
               <div>
                 <label class="form-label">所属区域</label>
-                <div class="region-select">
-                  <el-select v-model="landmark.regionId" clearable filterable allow-create default-first-option
-                    :reserve-keyword="false" placeholder="选择或输入区域名称" class="form-full-width"
-                    @change="handleRegionChange">
-                    <el-option v-for="region in projectRegions" :key="region.id" :label="region.name" :value="region.id">
-                      <div class="region-option">
-                        <span class="region-option-dot" :style="{ backgroundColor: region.color }"></span>
-                        <span>{{ region.name }}</span>
-                      </div>
-                    </el-option>
-                  </el-select>
-                </div>
+                <RegionSelect
+                  v-model="landmark.regionId"
+                  :regions="projectRegions"
+                  :project-id="landmark.projectId"
+                  :allow-create="true"
+                  placeholder="选择或输入区域名称"
+                  :create-region="props.createRegion"
+                />
               </div>
               <div>
                 <label class="form-label">重要地标</label>
@@ -209,7 +205,9 @@ import { ElScrollbar, ElForm, ElInput, ElSelect, ElOption, ElInputNumber, ElEmpt
 import { Icon } from '@iconify/vue';
 import type { EnhancedLandmark, EnhancedForce, EnhancedRegion } from '@/types/world-editor';
 import { LandmarkType } from '@/types/world-editor';
+import { getLandmarkTypeLabel } from '@/utils/worldeditor/landmarkMeta';
 import { useValidation } from '@/composables/worldeditor/useValidation';
+import RegionSelect from '../RegionSelect.vue';
 import '@/css/worldbook.css';
 
 interface Props {
@@ -257,24 +255,7 @@ const commonTerrains = [
   '岛屿', '火山', '冰川', '河流', '湖泊'
 ];
 
-const localizeLandmarkType = (type: string): string => {
-  const map: Record<string, string> = {
-    [LandmarkType.CITY]: '城市',
-    [LandmarkType.TOWN]: '城镇',
-    [LandmarkType.VILLAGE]: '村庄',
-    [LandmarkType.FORTRESS]: '要塞',
-    [LandmarkType.RUINS]: '遗迹',
-    [LandmarkType.DUNGEON]: '地下城',
-    [LandmarkType.TEMPLE]: '神殿',
-    [LandmarkType.ACADEMY]: '学院',
-    [LandmarkType.HARBOR]: '港口',
-    [LandmarkType.MARKET]: '市场',
-    [LandmarkType.NATURAL]: '自然景观',
-    [LandmarkType.MYSTICAL]: '神秘地点',
-    [LandmarkType.CUSTOM]: '自定义',
-  };
-  return map[type] || type;
-};
+const localizeLandmarkType = (type: string): string => getLandmarkTypeLabel(type);
 
 const isConnectedLandmark = (source: EnhancedLandmark, target: EnhancedLandmark) => {
   if (source.relatedLandmarks?.includes(target.id)) return true;
@@ -302,17 +283,6 @@ const projectRegions = computed(() => {
   return props.allRegions.filter(region => region.projectId === props.landmark!.projectId);
 });
 
-const handleRegionChange = (value?: string) => {
-  if (!props.landmark || !value) return;
-  const existing = projectRegions.value.find(region => region.id === value);
-  if (existing) return;
-  if (!props.createRegion) {
-    props.landmark.regionId = undefined;
-    return;
-  }
-  const created = props.createRegion(value, props.landmark.projectId);
-  props.landmark.regionId = created.id;
-};
 
 
 const forcesAtLandmark = computed(() => {
@@ -423,23 +393,4 @@ watch([() => props.landmark, filteredLandmarks], ([landmark]) => {
   gap: 6px;
 }
 
-.region-select {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.region-option {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.region-option-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  border: 1px solid var(--el-border-color);
-  flex-shrink: 0;
-}
 </style>

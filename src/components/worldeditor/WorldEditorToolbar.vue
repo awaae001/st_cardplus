@@ -108,6 +108,7 @@ import { ElScrollbar, ElTooltip, ElTree, ElInput, ElDropdown, ElDropdownMenu, El
 import { Icon } from '@iconify/vue';
 import { Search } from '@element-plus/icons-vue';
 import type { Project, EnhancedLandmark, EnhancedForce, EnhancedRegion, ProjectIntegration } from '../../types/world-editor';
+import { getLandmarkTypeIcon } from '@/utils/worldeditor/landmarkMeta';
 
 type SelectableItem = Project | EnhancedLandmark | EnhancedForce | EnhancedRegion | ProjectIntegration;
 
@@ -190,7 +191,7 @@ const treeData = computed(() => {
           children: projectLandmarks.map(landmark => ({
             id: landmark.id,
             label: landmark.name,
-            icon: iconForLandmarkType(landmark.type),
+            icon: getLandmarkTypeIcon(landmark.type),
             isEntry: true,
             type: 'landmark',
             raw: landmark,
@@ -292,39 +293,6 @@ const handleNodeClick = (data: any) => {
       return;
     }
     emit('select', data.raw);
-  }
-};
-
-const iconForLandmarkType = (type?: string) => {
-  switch (type) {
-    case 'city':
-      return 'ph:buildings-duotone';
-    case 'town':
-      return 'ph:house-line-duotone';
-    case 'village':
-      return 'ph:house-duotone';
-    case 'fortress':
-      return 'ph:castle-turret-duotone';
-    case 'ruins':
-      return 'ph:skull-duotone';
-    case 'dungeon':
-      return 'ph:spiral-duotone';
-    case 'temple':
-      return 'ph:bank-duotone';
-    case 'academy':
-      return 'ph:graduation-cap-duotone';
-    case 'harbor':
-      return 'ph:anchor-duotone';
-    case 'market':
-      return 'ph:storefront-duotone';
-    case 'natural':
-      return 'ph:leaf-duotone';
-    case 'ocean':
-      return 'ph:waves-duotone';
-    case 'mystical':
-      return 'ph:sparkle-duotone';
-    default:
-      return 'ph:map-pin-line-duotone';
   }
 };
 

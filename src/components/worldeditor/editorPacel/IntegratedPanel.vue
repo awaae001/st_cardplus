@@ -130,6 +130,7 @@ import { ElCard, ElButton, ElRow, ElCol, ElCheckbox, ElMessage } from 'element-p
 import { Icon } from '@iconify/vue';
 import type { Project, EnhancedLandmark, EnhancedForce, EnhancedRegion, ProjectIntegration } from '@/types/world-editor';
 import { cleanObject } from '@/utils/objectUtils';
+import { getLandmarkTypeLabel } from '@/utils/worldeditor/landmarkMeta';
 
 interface Props {
   integration: ProjectIntegration;
@@ -168,25 +169,6 @@ const selectedItems = computed(() => {
   return [...landmarks, ...forces];
 });
 
-// 地标类型标签映射
-const getLandmarkTypeLabel = (type: string): string => {
-  const labels: Record<string, string> = {
-    city: '城市',
-    town: '城镇',
-    village: '村庄',
-    fortress: '要塞',
-    ruins: '遗迹',
-    dungeon: '地下城',
-    temple: '神殿',
-    academy: '学院',
-    harbor: '港口',
-    market: '市场',
-    natural: '自然景观',
-    mystical: '神秘地点',
-    custom: '自定义'
-  };
-  return labels[type] || type;
-};
 
 // 势力类型标签映射
 const getForceTypeLabel = (type: string): string => {
