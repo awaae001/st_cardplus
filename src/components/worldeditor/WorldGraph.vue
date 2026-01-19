@@ -9,6 +9,7 @@
         :connection-mode="ConnectionMode.Strict"
         :min-zoom="0.2"
         :max-zoom="2"
+        :edge-types="edgeTypes"
         @node-drag-stop="handleNodeDragStop"
         @connect="handleConnect"
         @edges-change="handleEdgesChange"
@@ -103,8 +104,21 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
-import { VueFlow, Handle, Position, ConnectionMode, type Edge, type Node } from '@vue-flow/core';
+import { computed, ref, watch, h } from 'vue';
+import {
+  VueFlow,
+  Handle,
+  Position,
+  ConnectionMode,
+  BaseEdge,
+  EdgeLabelRenderer,
+  getBezierPath,
+  type Edge,
+  type Node,
+  type EdgeProps,
+  type Connection,
+  type EdgeChange
+} from '@vue-flow/core';
 import { Background } from '@vue-flow/background';
 import { Controls } from '@vue-flow/controls';
 import { Icon } from '@iconify/vue';
@@ -130,6 +144,55 @@ const nodes = ref<Node[]>([]);
 const edges = ref<Edge[]>([]);
 const selectedLandmarkId = ref<string | null>(null);
 const landmarkTypes = Object.values(LandmarkType);
+
+const RemovableEdge = (props: EdgeProps) => {
+  const [edgePath, labelX, labelY] = getBezierPath(props);
+  const onRemove = (event: MouseEvent) => {
+    event.stopPropagation();
+    const remove = props.data?.onRemove as undefined | ((edgeId: string) => void);
+    remove?.(props.id);
+  };
+
+  return h('g', { class: 'removable-edge' }, [
+    h(BaseEdge, { path: edgePath, markerEnd: props.markerEnd }),
+    h(EdgeLabelRenderer, null, {
+      default: () =>
+        h(
+          'div',
+          {
+            class: 'edge-label',
+            style: {
+              position: 'absolute',
+              top: '0',
+              left: '0',
+              transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
+              pointerEvents: 'all'
+            }
+          },
+          [
+            h(
+              'button',
+              {
+                class: 'edge-remove-button',
+                type: 'button',
+                onClick: onRemove,
+                style: {
+                  borderRadius: '999px',
+                  color: '#000',
+                  cursor: 'pointer',
+                  fontSize: '11px',
+                  lineHeight: '1',
+                }
+              },
+              'X'
+            )
+          ]
+        )
+    })
+  ]);
+};
+
+const edgeTypes = { removable: RemovableEdge };
 
 const localizeLandmarkType = (type: string): string => {
   const map: Record<string, string> = {
@@ -275,6 +338,24 @@ const getRoadConnection = (landmark: EnhancedLandmark, targetId: string): RoadCo
   return landmark.roadConnections.find(conn => conn.targetId === targetId) || null;
 };
 
+const removeEdgeById = (edgeId: string) => {
+  const edge = edges.value.find(item => item.id === edgeId);
+  if (!edge) return;
+  const source = edge.source;
+  const target = edge.target;
+  const sourceLandmark = projectLandmarks.value.find(item => item.id === source);
+  const targetLandmark = projectLandmarks.value.find(item => item.id === target);
+  if (sourceLandmark) {
+    sourceLandmark.relatedLandmarks = (sourceLandmark.relatedLandmarks || []).filter(id => id !== target);
+    sourceLandmark.roadConnections = (sourceLandmark.roadConnections || []).filter(conn => conn.targetId !== target);
+  }
+  if (targetLandmark) {
+    targetLandmark.relatedLandmarks = (targetLandmark.relatedLandmarks || []).filter(id => id !== source);
+    targetLandmark.roadConnections = (targetLandmark.roadConnections || []).filter(conn => conn.targetId !== source);
+  }
+  buildEdges();
+};
+
 const buildEdges = () => {
   const list = projectLandmarks.value;
   const existing = new Set<string>();
@@ -302,7 +383,10 @@ const buildEdges = () => {
       target,
       sourceHandle,
       targetHandle,
-      type: 'default',
+      type: 'removable',
+      data: {
+        onRemove: removeEdgeById
+      }
     });
   };
 
@@ -355,11 +439,13 @@ const upsertRoadConnection = (
   }
 };
 
-const handleConnect = (params: { source?: string; target?: string; sourceHandle?: string; targetHandle?: string }) => {
+const handleConnect = (params: Connection) => {
   const source = params.source;
   const target = params.target;
   if (!source || !target || source === target) return;
 
+  const sourceHandle = params.sourceHandle ?? undefined;
+  const targetHandle = params.targetHandle ?? undefined;
 
   const sourceLandmark = projectLandmarks.value.find(item => item.id === source);
   const targetLandmark = projectLandmarks.value.find(item => item.id === target);
@@ -377,16 +463,17 @@ const handleConnect = (params: { source?: string; target?: string; sourceHandle?
   if (!targetLandmark.relatedLandmarks.includes(source)) {
     targetLandmark.relatedLandmarks.push(source);
   }
-  upsertRoadConnection(sourceLandmark, target, params.sourceHandle, params.targetHandle);
-  upsertRoadConnection(targetLandmark, source, params.targetHandle, params.sourceHandle);
+  upsertRoadConnection(sourceLandmark, target, sourceHandle, targetHandle);
+  upsertRoadConnection(targetLandmark, source, targetHandle, sourceHandle);
   buildEdges();
 };
 
-const handleEdgesChange = (changes: { id: string; type: string }[]) => {
+const handleEdgesChange = (changes: EdgeChange[]) => {
   const removed = changes.filter(change => change.type === 'remove');
   if (removed.length === 0) return;
 
   removed.forEach(change => {
+    if (!('id' in change)) return;
     const edge = edges.value.find(item => item.id === change.id);
     if (!edge) return;
     const source = edge.source;
@@ -502,6 +589,15 @@ const clearSelection = () => {
   font-size: 12px;
   color: var(--el-text-color-secondary);
   margin-top: 4px;
+}
+
+:deep(.vue-flow__edge-labels) {
+  pointer-events: all;
+}
+
+:deep(.edge-remove-button:hover) {
+  color: var(--el-color-danger);
+  border-color: var(--el-color-danger);
 }
 
 .graph-inspector-body {
