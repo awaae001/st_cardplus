@@ -1,20 +1,10 @@
 <template>
   <div class="world-graph">
     <div class="graph-canvas">
-      <VueFlow
-        :nodes="nodes"
-        :edges="edges"
-        :fit-view-on-init="true"
-        :delete-key-code="['Backspace', 'Delete']"
-        :connection-mode="ConnectionMode.Strict"
-        :min-zoom="0.2"
-        :max-zoom="2"
-        :edge-types="edgeTypes"
-        @node-drag-stop="handleNodeDragStop"
-        @connect="handleConnect"
-        @edges-change="handleEdgesChange"
-        @node-click="handleNodeClick"
-      >
+      <VueFlow :nodes="nodes" :edges="edges" :fit-view-on-init="true" :delete-key-code="['Backspace', 'Delete']"
+        :connection-mode="ConnectionMode.Strict" :min-zoom="0.2" :max-zoom="2" :edge-types="edgeTypes"
+        @node-drag-stop="handleNodeDragStop" @connect="handleConnect" @edges-change="handleEdgesChange"
+        @node-click="handleNodeClick">
         <Background :gap="18" :size="1" color="#c9ced6" />
         <Controls position="bottom-right" />
         <template #node-landmark="{ data }">
@@ -25,11 +15,7 @@
             </div>
             <div class="landmark-node-subtitle" v-if="data.region">{{ data.region }}</div>
             <div class="landmark-node-forces" v-if="data.forces.length > 0">
-              <div
-                v-for="force in data.forces.slice(0, 3)"
-                :key="force.id"
-                class="landmark-node-force"
-              >
+              <div v-for="force in data.forces.slice(0, 3)" :key="force.id" class="landmark-node-force">
                 <span class="force-name">{{ force.name }}</span>
                 <span class="force-role">{{ force.role }}</span>
               </div>
@@ -49,31 +35,23 @@
         </template>
       </VueFlow>
     </div>
-    <div class="graph-inspector">
-      <div class="graph-inspector-header">
+
+    <div v-if="selectedLandmark" class="graph-inspector-popup" :style="inspectorStyle">
+      <div class="graph-inspector-header" @mousedown="startDrag">
         <div class="graph-inspector-title">节点信息</div>
-        <div class="graph-inspector-subtitle">拖拽节点调整位置，拖拽连线连接道路</div>
+        <button @click="clearSelection" class="close-button">
+          <Icon icon="ph:x" />
+        </button>
       </div>
-      <div v-if="selectedLandmark" class="graph-inspector-body">
+      <div class="graph-inspector-body">
         <div class="inspector-field">
           <label class="inspector-label">名称</label>
           <el-input v-model="selectedLandmark.name" placeholder="节点名称" />
         </div>
         <div class="inspector-field">
           <label class="inspector-label">类型</label>
-          <el-select
-            v-model="selectedLandmark.type"
-            filterable
-            allow-create
-            default-first-option
-            placeholder="选择或输入类型"
-          >
-            <el-option
-              v-for="type in landmarkTypes"
-              :key="type"
-              :label="localizeLandmarkType(type)"
-              :value="type"
-            />
+          <el-select v-model="selectedLandmark.type" filterable allow-create default-first-option placeholder="选择或输入类型">
+            <el-option v-for="type in landmarkTypes" :key="type" :label="localizeLandmarkType(type)" :value="type" />
           </el-select>
         </div>
         <div class="inspector-field">
@@ -93,26 +71,16 @@
         </div>
         <div class="inspector-actions">
           <el-button type="primary" @click="emitEditSelected">打开详细编辑</el-button>
-          <el-button @click="clearSelection">清除选择</el-button>
         </div>
-      </div>
-      <div v-else class="graph-inspector-empty">
-        点击地图中的地标查看详情
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, h } from 'vue';
+import { computed, ref, watch, h, onBeforeUnmount, type CSSProperties } from 'vue';
 import {
-  VueFlow,
-  Handle,
-  Position,
-  ConnectionMode,
-  BaseEdge,
-  EdgeLabelRenderer,
-  getBezierPath,
+  VueFlow, Handle, Position, ConnectionMode, BaseEdge, EdgeLabelRenderer, getBezierPath,
   type Edge,
   type Node,
   type EdgeProps,
@@ -185,11 +153,8 @@ const RemovableEdge = (props: EdgeProps) => {
                 }
               },
               'X'
-            )
-          ]
-        )
-    })
-  ]);
+            )])
+    })]);
 };
 
 const edgeTypes = { removable: RemovableEdge };
@@ -218,22 +183,18 @@ const activeProjectId = computed(() => {
   if (props.activeProjectId) return props.activeProjectId;
   return props.projects[0]?.id || null;
 });
-
 const projectLandmarks = computed(() => {
   if (!activeProjectId.value) return [];
   return props.landmarks.filter(l => l.projectId === activeProjectId.value);
 });
-
 const projectForces = computed(() => {
   if (!activeProjectId.value) return [];
   return props.forces.filter(f => f.projectId === activeProjectId.value);
 });
-
 const selectedLandmark = computed(() => {
   if (!selectedLandmarkId.value) return null;
   return projectLandmarks.value.find(l => l.id === selectedLandmarkId.value) || null;
 });
-
 const selectedConnections = computed(() => {
   if (!selectedLandmark.value) return [];
   const related = selectedLandmark.value.relatedLandmarks || [];
@@ -492,6 +453,46 @@ const handleEdgesChange = (changes: EdgeChange[]) => {
   buildEdges();
 };
 
+const inspectorPosition = ref({ x: 50, y: 50 });
+const isDragging = ref(false);
+const dragStart = ref({ x: 0, y: 0 });
+
+const inspectorStyle = computed((): CSSProperties => ({
+  position: 'absolute',
+  left: `${inspectorPosition.value.x}px`,
+  top: `${inspectorPosition.value.y}px`,
+  zIndex: 10,
+}));
+
+const startDrag = (event: MouseEvent) => {
+  isDragging.value = true;
+  dragStart.value = {
+    x: event.clientX - inspectorPosition.value.x,
+    y: event.clientY - inspectorPosition.value.y,
+  };
+  document.addEventListener('mousemove', onDrag);
+  document.addEventListener('mouseup', stopDrag);
+};
+
+const onDrag = (event: MouseEvent) => {
+  if (!isDragging.value) return;
+  inspectorPosition.value = {
+    x: event.clientX - dragStart.value.x,
+    y: event.clientY - dragStart.value.y,
+  };
+};
+
+const stopDrag = () => {
+  isDragging.value = false;
+  document.removeEventListener('mousemove', onDrag);
+  document.removeEventListener('mouseup', stopDrag);
+};
+
+onBeforeUnmount(() => {
+  document.removeEventListener('mousemove', onDrag);
+  document.removeEventListener('mouseup', stopDrag);
+});
+
 const handleNodeClick = (event: unknown, node?: Node) => {
   const resolvedNode = node ?? (event as { node?: Node })?.node;
   if (!resolvedNode?.id) return;
@@ -501,6 +502,19 @@ const handleNodeClick = (event: unknown, node?: Node) => {
 const recalcRelativePositions = () => {
   const list = projectLandmarks.value.filter(item => item.position);
   list.forEach(landmark => {
+    const connectedIds = new Set<string>();
+    (landmark.relatedLandmarks || []).forEach(id => connectedIds.add(id));
+    (landmark.roadConnections || []).forEach(conn => connectedIds.add(conn.targetId));
+    list.forEach(other => {
+      if (other.id === landmark.id) return;
+      if (other.relatedLandmarks?.includes(landmark.id)) {
+        connectedIds.add(other.id);
+      }
+      if (other.roadConnections?.some(conn => conn.targetId === landmark.id)) {
+        connectedIds.add(other.id);
+      }
+    });
+    const connectedCandidates = list.filter(item => connectedIds.has(item.id));
     const position = landmark.position;
     if (!position) return;
     const closest = {
@@ -510,7 +524,7 @@ const recalcRelativePositions = () => {
       west: { id: undefined as string | undefined, dist: Number.POSITIVE_INFINITY },
     };
 
-    list.forEach(other => {
+    connectedCandidates.forEach(other => {
       if (other.id === landmark.id || !other.position) return;
       const dx = other.position.x - position.x;
       const dy = other.position.y - position.y;
@@ -552,9 +566,10 @@ const clearSelection = () => {
 <style scoped>
 .world-graph {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
+  grid-template-columns: 1fr;
   gap: 16px;
   height: 100%;
+  position: relative;
 }
 
 .graph-canvas {
@@ -565,30 +580,29 @@ const clearSelection = () => {
   overflow: hidden;
 }
 
-.graph-inspector {
-  display: flex;
-  flex-direction: column;
+.graph-inspector-popup {
+  width: 300px;
+  background: var(--el-bg-color);
   border: 1px solid var(--el-border-color-light);
   border-radius: 8px;
-  background: var(--el-bg-color);
   padding: 16px;
-  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .graph-inspector-header {
-  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: move;
 }
 
 .graph-inspector-title {
   font-size: 15px;
   font-weight: 600;
   color: var(--el-text-color-primary);
-}
-
-.graph-inspector-subtitle {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-  margin-top: 4px;
 }
 
 :deep(.vue-flow__edge-labels) {
@@ -598,6 +612,18 @@ const clearSelection = () => {
 :deep(.edge-remove-button:hover) {
   color: var(--el-color-danger);
   border-color: var(--el-color-danger);
+}
+
+.close-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--el-text-color-secondary);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .graph-inspector-body {

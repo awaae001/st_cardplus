@@ -263,6 +263,14 @@ const localizeLandmarkType = (type: string): string => {
   return map[type] || type;
 };
 
+const isConnectedLandmark = (source: EnhancedLandmark, target: EnhancedLandmark) => {
+  if (source.relatedLandmarks?.includes(target.id)) return true;
+  if (source.roadConnections?.some(conn => conn.targetId === target.id)) return true;
+  if (target.relatedLandmarks?.includes(source.id)) return true;
+  if (target.roadConnections?.some(conn => conn.targetId === source.id)) return true;
+  return false;
+};
+
 // 过滤掉当前正在编辑的地标，用于相对位置选择
 // 过滤掉当前正在编辑的地标，并且只显示当前项目下的地标
 const filteredLandmarks = computed(() => {
@@ -270,7 +278,9 @@ const filteredLandmarks = computed(() => {
     return [];
   }
   return props.allLandmarks.filter(item =>
-    item.id !== props.landmark!.id && item.projectId === props.landmark!.projectId
+    item.id !== props.landmark!.id &&
+    item.projectId === props.landmark!.projectId &&
+    isConnectedLandmark(props.landmark!, item)
   );
 });
 
@@ -314,10 +324,26 @@ const normalizeRelativePosition = (landmark: EnhancedLandmark) => {
   landmark.relativePosition.west = ensureArray(relativePosition.west);
 };
 
+const pruneRelativePosition = (landmark: EnhancedLandmark, allowedIds: Set<string>) => {
+  normalizeRelativePosition(landmark);
+  const relativePosition = landmark.relativePosition!;
+  const filterIds = (value?: string[]) => (value || []).filter(id => allowedIds.has(id));
+  relativePosition.north = filterIds(relativePosition.north);
+  relativePosition.south = filterIds(relativePosition.south);
+  relativePosition.east = filterIds(relativePosition.east);
+  relativePosition.west = filterIds(relativePosition.west);
+};
+
 watch(() => props.landmark, (newLandmark) => {
   if (newLandmark) {
     normalizeRelativePosition(newLandmark);
   }
+}, { immediate: true });
+
+watch([() => props.landmark, filteredLandmarks], ([landmark]) => {
+  if (!landmark) return;
+  const allowedIds = new Set(filteredLandmarks.value.map(item => item.id));
+  pruneRelativePosition(landmark, allowedIds);
 }, { immediate: true });
 
 </script>

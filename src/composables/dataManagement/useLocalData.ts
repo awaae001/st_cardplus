@@ -160,7 +160,6 @@ export function useLocalData(updateStorageInfo: () => Promise<void>) {
         }
 
         await characterCardService.clearDatabase();
-
         ElMessage.success(`已成功清理 ${removedCount} 个无效缓存条目和角色卡数据库，应用将重新加载`);
         await updateStorageInfo();
         setTimeout(() => {
