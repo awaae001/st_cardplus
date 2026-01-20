@@ -128,13 +128,15 @@
 import { ref, computed } from 'vue';
 import { ElCard, ElButton, ElRow, ElCol, ElCheckbox, ElMessage } from 'element-plus';
 import { Icon } from '@iconify/vue';
-import type { Project, EnhancedLandmark, EnhancedForce, ProjectIntegration } from '@/types/world-editor';
+import type { Project, EnhancedLandmark, EnhancedForce, EnhancedRegion, ProjectIntegration } from '@/types/world-editor';
 import { cleanObject } from '@/utils/objectUtils';
+import { getLandmarkTypeLabel } from '@/utils/worldeditor/landmarkMeta';
 
 interface Props {
   integration: ProjectIntegration;
   currentProject: Project | null;
   landmarks: EnhancedLandmark[];
+  regions: EnhancedRegion[];
   forces: EnhancedForce[];
 }
 
@@ -155,6 +157,11 @@ const projectForces = computed(() => {
   return props.forces.filter(f => f.projectId === props.currentProject!.id);
 });
 
+const projectRegions = computed(() => {
+  if (!props.currentProject) return [];
+  return props.regions.filter(r => r.projectId === props.currentProject!.id);
+});
+
 // 计算选中的所有项目
 const selectedItems = computed(() => {
   const landmarks = projectLandmarks.value.filter(l => selectedLandmarks.value.includes(l.id));
@@ -162,25 +169,6 @@ const selectedItems = computed(() => {
   return [...landmarks, ...forces];
 });
 
-// 地标类型标签映射
-const getLandmarkTypeLabel = (type: string): string => {
-  const labels: Record<string, string> = {
-    city: '城市',
-    town: '城镇',
-    village: '村庄',
-    fortress: '要塞',
-    ruins: '遗迹',
-    dungeon: '地下城',
-    temple: '神殿',
-    academy: '学院',
-    harbor: '港口',
-    market: '市场',
-    natural: '自然景观',
-    mystical: '神秘地点',
-    custom: '自定义'
-  };
-  return labels[type] || type;
-};
 
 // 势力类型标签映射
 const getForceTypeLabel = (type: string): string => {
@@ -242,19 +230,34 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce)[]): string => {
   // 创建ID到名称的映射，以便将UUID替换为可读的名称
   const landmarkIdToNameMap = new Map(props.landmarks.map(l => [l.id, l.name]));
   const forceIdToNameMap = new Map(props.forces.map(f => [f.id, f.name]));
+  const regionIdToNameMap = new Map(props.regions.map(r => [r.id, r.name]));
 
   const idToName = (id: string, map: Map<string, string>) => map.get(id) || id;
+  const toNameList = (value?: string | string[], map?: Map<string, string>) => {
+    if (!value) return [];
+    const list = Array.isArray(value) ? value : [value];
+    return list.map(id => idToName(id, map || new Map()));
+  };
 
   const landmarks = items
-    .filter((item): item is EnhancedLandmark => 'region' in item)
+    .filter((item): item is EnhancedLandmark => 'importance' in item)
     .map(landmark => {
+      const relativePosition = landmark.relativePosition
+        ? {
+            north: toNameList(landmark.relativePosition.north, landmarkIdToNameMap),
+            south: toNameList(landmark.relativePosition.south, landmarkIdToNameMap),
+            east: toNameList(landmark.relativePosition.east, landmarkIdToNameMap),
+            west: toNameList(landmark.relativePosition.west, landmarkIdToNameMap),
+          }
+        : undefined;
       const cleanedLandmark = {
         name: landmark.name,
         description: landmark.description,
         type: getLandmarkTypeLabel(landmark.type),
         importance: landmark.importance,
         tags: landmark.tags,
-        region: landmark.region,
+        region: landmark.regionId ? idToName(landmark.regionId, regionIdToNameMap) : undefined,
+        relativePosition,
         // 将关联ID转换为名称
         controllingForces: landmark.controllingForces?.map(id => idToName(id, forceIdToNameMap)),
         relatedLandmarks: landmark.relatedLandmarks?.map(id => idToName(id, landmarkIdToNameMap)),
@@ -294,17 +297,28 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce)[]): string => {
       return cleanObject(cleanedForce);
     });
 
+  const regions = projectRegions.value.map(region => {
+    const cleanedRegion = {
+      name: region.name,
+      description: region.description,
+      notes: region.notes,
+    };
+    return cleanObject(cleanedRegion);
+  });
+
   const exportData = {
     project: {
       name: props.currentProject?.name || '未命名项目',
       description: props.currentProject?.description || ''
     },
     landmarks,
+    regions,
     forces,
     summary: {
       landmarkCount: landmarks.length,
+      regionCount: regions.length,
       forceCount: forces.length,
-      totalCount: items.length
+      totalCount: items.length + regions.length
     }
   };
 

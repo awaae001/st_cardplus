@@ -12,7 +12,7 @@
               <span>{{ item.title }}</span>
             </el-menu-item>
           </template>
-          <div class="flex-grow"></div>
+          <div class="grow"></div>
           <div class="custom-menu-item theme-toggle-item" @click="smoothToggleDark">
             <el-icon class="theme-icon">
               <Moon v-if="!isDark" />
@@ -41,7 +41,7 @@
               <span>{{ item.title }}</span>
             </el-menu-item>
           </template>
-          <div class="flex-grow"></div>
+          <div class="grow"></div>
           <el-divider />
           <div class="custom-menu-item theme-toggle-item" @click="smoothToggleDark">
             <el-icon class="theme-icon">
@@ -82,7 +82,7 @@ import { RouterView } from 'vue-router'
 import SurveyBanner from '@/components/SurveyBanner.vue'
 import { Menu as IconMenu, Moon, Sunny, InfoFilled} from '@element-plus/icons-vue'
 import { ElContainer, ElAside, ElMain, ElMenu, ElMenuItem, ElIcon, ElButton, ElDrawer, ElDivider } from 'element-plus'
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useDark, useToggle, useWindowSize } from '@vueuse/core'
 import { getSetting } from '@/utils/localStorageUtils'
@@ -171,8 +171,6 @@ const smoothToggleDark = () => {
   }, 500)
 }
 
-
-
 // 监听侧边栏配置变化的自定义事件
 const handleSidebarConfigChange = () => {
   refreshSidebarConfig();
@@ -183,8 +181,6 @@ onMounted(() => {
   refreshSidebarConfig() // 刷新侧边栏配置
   window.addEventListener('betaFeaturesToggle', handleBetaFeaturesToggle as EventListener)
   window.addEventListener('sidebarConfigChange', handleSidebarConfigChange as EventListener)
-  // 根据初始屏幕尺寸设置侧边栏状态
-  // 根据初始屏幕尺寸设置侧边栏状态
   const initialCollapse = isMobile.value;
   isCollapse.value = initialCollapse;
   userToggledCollapse.value = initialCollapse;
@@ -235,11 +231,9 @@ onUnmounted(() => {
 .content-container {
   padding: 8px;
   position: relative;
-  /* 为浮动按钮留出空间 */
   padding-top: 60px;
   margin-top: -54px;
-  /* 允许主内容区域在默认情况下滚动 */
-  overflow: auto;
+  /* overflow: auto; */
 }
 
 .content-container.overflow-hidden {

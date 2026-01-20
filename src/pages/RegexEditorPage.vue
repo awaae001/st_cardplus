@@ -564,7 +564,7 @@ watch(
   () => {
     if (!selectedScript.value) return;
 
-    if (saveTimer) clearTimeout(saveTimer);
+      if (saveTimer) clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
       if (selectedScript.value && activeCategory.value) {
         // 更新选中的脚本
@@ -578,6 +578,7 @@ watch(
           activeCategory.value.scripts[scriptIndex] = updatedScript;
           selectedScript.value = updatedScript;
           activeCategory.value.updatedAt = new Date().toISOString();
+          saveToStorage();
         }
       }
       saveTimer = null;

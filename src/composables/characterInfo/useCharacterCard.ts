@@ -10,6 +10,7 @@ export const createDefaultCharacterCard = (id?: string): CharacterCard => {
   const card: CharacterCard = {
     chineseName: '',
     japaneseName: '',
+    starred: false,
     gender: '',
     customGender: '',
     age: 0,

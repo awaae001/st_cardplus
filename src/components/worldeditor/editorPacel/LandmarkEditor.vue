@@ -32,25 +32,21 @@
           <div class="form-grid-3-col">
             <div>
               <label class="form-label">类型</label>
-              <el-select
-                v-model="landmark.type"
-                class="form-full-width"
-                filterable
-                allow-create
-                default-first-option
-                :reserve-keyword="false"
-                placeholder="选择或输入地标类型"
-              >
-                <el-option v-for="type in landmarkTypes" :key="type" :label="localizeLandmarkType(type)" :value="type" />
+              <el-select v-model="landmark.type" class="form-full-width" filterable allow-create default-first-option
+                :reserve-keyword="false" placeholder="选择或输入地标类型">
+                <el-option v-for="type in landmarkTypes" :key="type" :label="localizeLandmarkType(type)"
+                  :value="type" />
               </el-select>
             </div>
             <div class="form-grid-span-2">
               <label class="form-label">重要性 (1-5)</label>
-              <el-input-number v-model.number="landmark.importance" :min="1" controls-position="right" class="form-full-width" />
+              <el-input-number v-model.number="landmark.importance" :min="1" controls-position="right"
+                class="form-full-width" />
             </div>
             <div class="form-grid-span-3">
               <label class="form-label">标签</label>
-              <el-select v-model="landmark.tags" multiple filterable allow-create default-first-option :reserve-keyword="false" placeholder="例如：山脉, 险峻, 神秘" class="form-full-width">
+              <el-select v-model="landmark.tags" multiple filterable allow-create default-first-option
+                :reserve-keyword="false" placeholder="例如：山脉, 险峻, 神秘" class="form-full-width">
                 <el-option v-for="tag in props.allTags" :key="tag" :label="tag" :value="tag" />
               </el-select>
             </div>
@@ -66,11 +62,19 @@
             <div class="form-section-content">
               <div>
                 <label class="form-label">所属区域</label>
-                <el-input v-model="landmark.region" placeholder="例如：北境" />
+                <RegionSelect
+                  v-model="landmark.regionId"
+                  :regions="projectRegions"
+                  :project-id="landmark.projectId"
+                  :allow-create="true"
+                  placeholder="选择或输入区域名称"
+                  :create-region="props.createRegion"
+                />
               </div>
               <div>
                 <label class="form-label">重要地标</label>
-                <el-select v-model="landmark.keyLandmarkId" clearable filterable placeholder="选择一个重要地标" class="form-full-width">
+                <el-select v-model="landmark.keyLandmarkId" clearable filterable placeholder="选择一个重要地标"
+                  class="form-full-width">
                   <el-option v-for="item in filteredLandmarks" :key="item.id" :label="item.name" :value="item.id" />
                 </el-select>
               </div>
@@ -78,27 +82,58 @@
             <div v-if="landmark.relativePosition" class="form-grid-4-col">
               <div>
                 <label class="form-label">北</label>
-                <el-select v-model="landmark.relativePosition.north" clearable filterable placeholder="选择北方地标" class="form-full-width">
+                <el-select v-model="landmark.relativePosition.north" multiple clearable filterable collapse-tags
+                  :reserve-keyword="false" placeholder="选择北方地标" class="form-full-width">
                   <el-option v-for="item in filteredLandmarks" :key="item.id" :label="item.name" :value="item.id" />
                 </el-select>
               </div>
               <div>
                 <label class="form-label">南</label>
-                <el-select v-model="landmark.relativePosition.south" clearable filterable placeholder="选择南方地标" class="form-full-width">
+                <el-select v-model="landmark.relativePosition.south" multiple clearable filterable collapse-tags
+                  :reserve-keyword="false" placeholder="选择南方地标" class="form-full-width">
                   <el-option v-for="item in filteredLandmarks" :key="item.id" :label="item.name" :value="item.id" />
                 </el-select>
               </div>
               <div>
                 <label class="form-label">东</label>
-                <el-select v-model="landmark.relativePosition.east" clearable filterable placeholder="选择东方地标" class="form-full-width">
+                <el-select v-model="landmark.relativePosition.east" multiple clearable filterable collapse-tags
+                  :reserve-keyword="false" placeholder="选择东方地标" class="form-full-width">
                   <el-option v-for="item in filteredLandmarks" :key="item.id" :label="item.name" :value="item.id" />
                 </el-select>
               </div>
               <div>
                 <label class="form-label">西</label>
-                <el-select v-model="landmark.relativePosition.west" clearable filterable placeholder="选择西方地标" class="form-full-width">
+                <el-select v-model="landmark.relativePosition.west" multiple clearable filterable collapse-tags
+                  :reserve-keyword="false" placeholder="选择西方地标" class="form-full-width">
                   <el-option v-for="item in filteredLandmarks" :key="item.id" :label="item.name" :value="item.id" />
                 </el-select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 势力驻地 -->
+        <section class="form-section">
+          <h3 class="form-section-title">
+            <Icon icon="ph:flag-duotone" class="form-section-icon" />势力驻地
+          </h3>
+          <div class="form-section-content">
+            <div v-if="forcesAtLandmark.length === 0" class="empty-inline">
+              暂无势力驻扎在此地标
+            </div>
+            <div v-else class="force-summary-list">
+              <div v-for="force in forcesAtLandmark" :key="force.id" class="force-summary-item">
+                <div class="force-summary-main">
+                  <span class="force-summary-name">{{ force.name }}</span>
+                  <div class="force-summary-tags">
+                    <el-tag v-for="tag in force.roles" :key="tag" size="small" type="info" effect="plain">
+                      {{ tag }}
+                    </el-tag>
+                  </div>
+                </div>
+                <el-button size="small" type="primary" plain @click="emitSelectForce(force.raw)">
+                  快速编辑
+                </el-button>
               </div>
             </div>
           </div>
@@ -112,7 +147,8 @@
           <div class="form-grid-3-col">
             <div>
               <label class="form-label">气候</label>
-              <el-select v-model="landmark.climate" filterable allow-create default-first-option placeholder="例如：寒带苔原" class="form-full-width">
+              <el-select v-model="landmark.climate" filterable allow-create default-first-option placeholder="例如：寒带苔原"
+                class="form-full-width">
                 <el-option v-for="item in commonClimates" :key="item.name" :label="item.name" :value="item.name">
                   <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                     <span>{{ item.name }}</span>
@@ -125,7 +161,8 @@
             </div>
             <div>
               <label class="form-label">地形</label>
-              <el-select v-model="landmark.terrain" filterable allow-create default-first-option placeholder="例如：山地, 森林" class="form-full-width">
+              <el-select v-model="landmark.terrain" filterable allow-create default-first-option placeholder="例如：山地, 森林"
+                class="form-full-width">
                 <el-option v-for="terrain in commonTerrains" :key="terrain" :label="terrain" :value="terrain" />
               </el-select>
             </div>
@@ -133,13 +170,15 @@
               <label class="form-label">人口</label>
               <el-input-number v-model.number="landmark.population" controls-position="right" class="form-full-width" />
             </div>
-             <div>
+            <div>
               <label class="form-label">防御等级</label>
-              <el-input-number v-model.number="landmark.defenseLevel" controls-position="right" class="form-full-width" />
+              <el-input-number v-model.number="landmark.defenseLevel" controls-position="right"
+                class="form-full-width" />
             </div>
             <div class="form-grid-span-3">
               <label class="form-label">资源</label>
-              <el-select v-model="landmark.resources" multiple filterable allow-create default-first-option :reserve-keyword="false" placeholder="例如：铁矿, 魔法水晶" class="form-full-width">
+              <el-select v-model="landmark.resources" multiple filterable allow-create default-first-option
+                :reserve-keyword="false" placeholder="例如：铁矿, 魔法水晶" class="form-full-width">
               </el-select>
             </div>
           </div>
@@ -161,21 +200,29 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, watch, computed } from 'vue';
-import { ElScrollbar, ElForm, ElInput, ElSelect, ElOption, ElInputNumber, ElEmpty, ElTooltip } from 'element-plus';
+import { watch, computed } from 'vue';
+import { ElScrollbar, ElForm, ElInput, ElSelect, ElOption, ElInputNumber, ElEmpty, ElTooltip, ElTag, ElButton } from 'element-plus';
 import { Icon } from '@iconify/vue';
-import type { EnhancedLandmark } from '@/types/world-editor';
+import type { EnhancedLandmark, EnhancedForce, EnhancedRegion } from '@/types/world-editor';
 import { LandmarkType } from '@/types/world-editor';
+import { getLandmarkTypeLabel } from '@/utils/worldeditor/landmarkMeta';
 import { useValidation } from '@/composables/worldeditor/useValidation';
+import RegionSelect from '../RegionSelect.vue';
 import '@/css/worldbook.css';
 
 interface Props {
   landmark: EnhancedLandmark | null;
   allLandmarks?: EnhancedLandmark[];
   allTags?: string[];
+  allForces?: EnhancedForce[];
+  allRegions?: EnhancedRegion[];
+  createRegion?: (name: string, projectId: string) => EnhancedRegion;
 }
 
 const props = defineProps<Props>();
+const emit = defineEmits<{
+  (e: 'select-force', force: EnhancedForce): void;
+}>();
 
 // 虽然WorldBookEditor中没有直接使用，但考虑到LandmarkEditor原有功能，暂时保留校验逻辑
 // 如果父组件统一处理，则可以移除
@@ -208,23 +255,14 @@ const commonTerrains = [
   '岛屿', '火山', '冰川', '河流', '湖泊'
 ];
 
-const localizeLandmarkType = (type: string): string => {
-  const map: Record<string, string> = {
-    [LandmarkType.CITY]: '城市',
-    [LandmarkType.TOWN]: '城镇',
-    [LandmarkType.VILLAGE]: '村庄',
-    [LandmarkType.FORTRESS]: '要塞',
-    [LandmarkType.RUINS]: '遗迹',
-    [LandmarkType.DUNGEON]: '地下城',
-    [LandmarkType.TEMPLE]: '神殿',
-    [LandmarkType.ACADEMY]: '学院',
-    [LandmarkType.HARBOR]: '港口',
-    [LandmarkType.MARKET]: '市场',
-    [LandmarkType.NATURAL]: '自然景观',
-    [LandmarkType.MYSTICAL]: '神秘地点',
-    [LandmarkType.CUSTOM]: '自定义',
-  };
-  return map[type] || type;
+const localizeLandmarkType = (type: string): string => getLandmarkTypeLabel(type);
+
+const isConnectedLandmark = (source: EnhancedLandmark, target: EnhancedLandmark) => {
+  if (source.relatedLandmarks?.includes(target.id)) return true;
+  if (source.roadConnections?.some(conn => conn.targetId === target.id)) return true;
+  if (target.relatedLandmarks?.includes(source.id)) return true;
+  if (target.roadConnections?.some(conn => conn.targetId === source.id)) return true;
+  return false;
 };
 
 // 过滤掉当前正在编辑的地标，用于相对位置选择
@@ -234,15 +272,79 @@ const filteredLandmarks = computed(() => {
     return [];
   }
   return props.allLandmarks.filter(item =>
-    item.id !== props.landmark!.id && item.projectId === props.landmark!.projectId
+    item.id !== props.landmark!.id &&
+    item.projectId === props.landmark!.projectId &&
+    isConnectedLandmark(props.landmark!, item)
   );
 });
 
-// 确保 relativePosition 对象存在
-watch(() => props.landmark, (newLandmark) => {
-  if (newLandmark && !newLandmark.relativePosition) {
-    newLandmark.relativePosition = {};
+const projectRegions = computed(() => {
+  if (!props.landmark || !props.allRegions) return [];
+  return props.allRegions.filter(region => region.projectId === props.landmark!.projectId);
+});
+
+
+
+const forcesAtLandmark = computed(() => {
+  if (!props.allForces || !props.landmark) return [];
+  const landmark = props.landmark;
+  return props.allForces
+    .filter(force => force.projectId === landmark.projectId)
+    .map(force => {
+      const roles: string[] = [];
+      if (force.headquarters === landmark.id || force.headquarters === landmark.name) {
+        roles.push('总部');
+      }
+      if (force.branchLocations?.some(branch => branch.locationId === landmark.id)) {
+        roles.push('分部');
+      }
+      return { id: force.id, name: force.name, roles, raw: force };
+    })
+    .filter(force => force.roles.length > 0);
+});
+
+const emitSelectForce = (force: EnhancedForce) => {
+  emit('select-force', force);
+};
+
+const normalizeRelativePosition = (landmark: EnhancedLandmark) => {
+  if (!landmark.relativePosition) {
+    landmark.relativePosition = { north: [], south: [], east: [], west: [] };
+    return;
   }
+  const relativePosition = landmark.relativePosition as {
+    north?: string | string[];
+    south?: string | string[];
+    east?: string | string[];
+    west?: string | string[];
+  };
+  const ensureArray = (value?: string | string[]) => (Array.isArray(value) ? value : value ? [value] : []);
+  landmark.relativePosition.north = ensureArray(relativePosition.north);
+  landmark.relativePosition.south = ensureArray(relativePosition.south);
+  landmark.relativePosition.east = ensureArray(relativePosition.east);
+  landmark.relativePosition.west = ensureArray(relativePosition.west);
+};
+
+const pruneRelativePosition = (landmark: EnhancedLandmark, allowedIds: Set<string>) => {
+  normalizeRelativePosition(landmark);
+  const relativePosition = landmark.relativePosition!;
+  const filterIds = (value?: string[]) => (value || []).filter(id => allowedIds.has(id));
+  relativePosition.north = filterIds(relativePosition.north);
+  relativePosition.south = filterIds(relativePosition.south);
+  relativePosition.east = filterIds(relativePosition.east);
+  relativePosition.west = filterIds(relativePosition.west);
+};
+
+watch(() => props.landmark, (newLandmark) => {
+  if (newLandmark) {
+    normalizeRelativePosition(newLandmark);
+  }
+}, { immediate: true });
+
+watch([() => props.landmark, filteredLandmarks], ([landmark]) => {
+  if (!landmark) return;
+  const allowedIds = new Set(filteredLandmarks.value.map(item => item.id));
+  pruneRelativePosition(landmark, allowedIds);
 }, { immediate: true });
 
 </script>
@@ -251,4 +353,44 @@ watch(() => props.landmark, (newLandmark) => {
 .worldbook-editor-scrollbar {
   height: 100%;
 }
+
+.empty-inline {
+  color: var(--el-text-color-secondary);
+  font-size: 13px;
+}
+
+.force-summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.force-summary-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--el-border-color-light);
+  background: var(--el-fill-color-light);
+  gap: 12px;
+}
+
+.force-summary-main {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.force-summary-name {
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+.force-summary-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 </style>

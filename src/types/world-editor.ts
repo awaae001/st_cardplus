@@ -37,13 +37,15 @@ export interface EnhancedLandmark {
   tags: string[];               // 自定义标签
 
   // 位置信息
-  region?: string;              // 所属区域
+  regionId?: string;            // 所属区域ID
   keyLandmarkId?: string;       // 关联的重要地标ID
   relativePosition?: RelativePosition; // 相对位置关系
+  position?: { x: number; y: number }; // 地图节点位置
 
   // 关系管理
   controllingForces: string[];  // 控制势力ID列表
   relatedLandmarks: string[];   // 相关地标ID列表
+  roadConnections?: RoadConnection[]; // 道路连接与手柄信息
 
   // 扩展属性
   climate?: string;             // 气候类型
@@ -61,6 +63,21 @@ export interface EnhancedLandmark {
 }
 
 /**
+ * 区域实体接口
+ */
+export interface EnhancedRegion {
+  id: string;                    // UUID 唯一标识
+  projectId: string;             // 所属项目ID
+  name: string;                  // 区域名称
+  description: string;           // 区域介绍
+  color: string;                 // 区域颜色
+  notes: string;                 // 额外备注
+  createdAt: string;             // 创建时间
+  updatedAt: string;             // 更新时间
+  version: number;               // 版本号
+}
+
+/**
  * 地标类型枚举
  */
 export enum LandmarkType {
@@ -74,7 +91,12 @@ export enum LandmarkType {
   ACADEMY = 'academy',         // 学院
   HARBOR = 'harbor',           // 港口
   MARKET = 'market',           // 市场
+  PLANET = 'planet',           // 星球
+  FACTORY = 'factory',         // 工厂
+  SPACEPORT = 'spaceport',     // 星港
+  DERELICT_SHIP = 'derelict_ship', // 废弃飞船
   NATURAL = 'natural',         // 自然景观
+  OCEAN = 'ocean',             // 海洋
   MYSTICAL = 'mystical',       // 神秘地点
   CUSTOM = 'custom'            // 自定义
 }
@@ -94,10 +116,19 @@ export enum ImportanceLevel {
  * 相对位置关系
  */
 export interface RelativePosition {
-  north?: string; // 北方地标ID
-  south?: string; // 南方地标ID
-  east?: string;  // 东方地标ID
-  west?: string;  // 西方地标ID
+  north?: string[]; // 北方地标ID列表
+  south?: string[]; // 南方地标ID列表
+  east?: string[];  // 东方地标ID列表
+  west?: string[];  // 西方地标ID列表
+}
+
+/**
+ * 道路连接信息
+ */
+export interface RoadConnection {
+  targetId: string;
+  handle?: string;
+  targetHandle?: string;
 }
 
 /**
@@ -326,7 +357,7 @@ export interface HistoryEntry {
   id: string;
   timestamp: string;
   action: ActionType;
-  target: 'landmark' | 'force';
+  target: 'landmark' | 'force' | 'region';
   targetId: string;
   previousState: any;
   newState: any;

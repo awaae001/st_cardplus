@@ -12,13 +12,24 @@
       </div>
       <div class="editor-content" :key="props.selectedItem.id">
         <ProjectEditor v-if="isProject(props.selectedItem)" :project="props.selectedItem" />
-        <LandmarkEditor v-else-if="isLandmark(props.selectedItem)" :landmark="props.selectedItem" :all-landmarks="props.landmarks" :all-tags="props.allTags" :all-regions="props.allRegions" />
+        <LandmarkEditor
+          v-else-if="isLandmark(props.selectedItem)"
+          :landmark="props.selectedItem"
+          :all-landmarks="props.landmarks"
+          :all-tags="props.allTags"
+          :all-regions="props.allRegions"
+          :all-forces="props.forces"
+          :create-region="props.createRegion"
+          @select-force="handleSelectForce"
+        />
+        <RegionEditor v-else-if="isRegion(props.selectedItem)" :region="props.selectedItem" />
         <ForceEditor v-else-if="isForce(props.selectedItem)" :force="props.selectedItem" :all-tags="props.allTags" :all-forces="props.forces" :all-landmarks="props.landmarks" />
         <IntegratedPanel
           v-else-if="isIntegration(props.selectedItem)"
           :integration="props.selectedItem"
           :current-project="getCurrentProject(props.selectedItem)"
           :landmarks="props.landmarks || []"
+          :regions="props.regions || []"
           :forces="props.forces || []"
         />
         <div v-else class="editor-placeholder">
@@ -33,27 +44,30 @@
 </template>
 
 <script setup lang="ts">
-import type { Project, EnhancedLandmark, EnhancedForce, ProjectIntegration } from '@/types/world-editor';
+import type { Project, EnhancedLandmark, EnhancedForce, EnhancedRegion, ProjectIntegration } from '@/types/world-editor';
 import ProjectEditor from './ProjectEditor.vue';
 import LandmarkEditor from './editorPacel/LandmarkEditor.vue';
 import ForceEditor from './editorPacel/ForceEditor.vue';
+import RegionEditor from './editorPacel/RegionEditor.vue';
 import IntegratedPanel from './editorPacel/IntegratedPanel.vue';
 import WorldEditorActionButtons from './WorldEditorActionButtons.vue';
 import { ElMessage } from 'element-plus';
 
 interface Props {
-  selectedItem: Project | EnhancedLandmark | EnhancedForce | ProjectIntegration | null;
+  selectedItem: Project | EnhancedLandmark | EnhancedForce | EnhancedRegion | ProjectIntegration | null;
   allTags?: string[];
-  allRegions?: string[];
+  allRegions?: EnhancedRegion[];
   landmarks?: EnhancedLandmark[];
   forces?: EnhancedForce[];
+  regions?: EnhancedRegion[];
+  createRegion?: (name: string, projectId: string) => EnhancedRegion;
   projects?: Project[];
 }
 
 const props = defineProps<Props>();
 
 const emit = defineEmits<{
-  (e: 'update:selectedItem', item: Project | EnhancedLandmark | EnhancedForce): void;
+  (e: 'update:selectedItem', item: Project | EnhancedLandmark | EnhancedForce | EnhancedRegion): void;
 }>();
 
 const updateSelectedItem = (importedData: any) => {
@@ -67,6 +81,10 @@ const updateSelectedItem = (importedData: any) => {
   ElMessage.success('导入成功！');
 };
 
+const handleSelectForce = (force: EnhancedForce) => {
+  emit('update:selectedItem', force);
+};
+
 // 对于整合面板，我们需要特殊处理剪贴板和文件系统操作
 const handleCopyToClipboard = () => {
   if (!props.selectedItem) return;
@@ -77,11 +95,13 @@ const handleCopyToClipboard = () => {
     if (currentProject) {
       const projectLandmarks = props.landmarks?.filter(l => l.projectId === currentProject.id) || [];
       const projectForces = props.forces?.filter(f => f.projectId === currentProject.id) || [];
+      const projectRegions = props.regions?.filter(r => r.projectId === currentProject.id) || [];
       
       const exportData = {
         project: currentProject,
         landmarks: projectLandmarks,
-        forces: projectForces
+        forces: projectForces,
+        regions: projectRegions
       };
       
       navigator.clipboard.writeText(JSON.stringify(exportData, null, 2))
@@ -129,11 +149,13 @@ const handleSaveToFile = () => {
     if (currentProject) {
       const projectLandmarks = props.landmarks?.filter(l => l.projectId === currentProject.id) || [];
       const projectForces = props.forces?.filter(f => f.projectId === currentProject.id) || [];
+      const projectRegions = props.regions?.filter(r => r.projectId === currentProject.id) || [];
       
       const exportData = {
         project: currentProject,
         landmarks: projectLandmarks,
-        forces: projectForces
+        forces: projectForces,
+        regions: projectRegions
       };
       
       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
@@ -196,11 +218,15 @@ const isProject = (item: any): item is Project => {
 }
 
 const isLandmark = (item: any): item is EnhancedLandmark => {
-  return item && 'projectId' in item && 'region' in item;
+  return item && 'projectId' in item && 'importance' in item;
 };
 
 const isForce = (item: any): item is EnhancedForce => {
   return item && 'projectId' in item && 'power' in item;
+}
+
+const isRegion = (item: any): item is EnhancedRegion => {
+  return item && 'projectId' in item && 'color' in item;
 }
 
 const isIntegration = (item: any): item is ProjectIntegration => {

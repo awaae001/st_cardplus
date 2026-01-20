@@ -35,14 +35,100 @@ export function useCharacterCollection() {
     saveToLS(characterCollection.value, LOCAL_STORAGE_KEY_CHARACTER_MANAGER);
   };
 
+  const ensureCharacterOrder = () => {
+    const characters = { ...characterCollection.value.characters };
+    const values = Object.values(characters);
+    const hasAnyOrder = values.some((character) => typeof character.order === 'number');
+
+    if (!hasAnyOrder) {
+      const starredCharacters = values.filter((character) => !!character.starred);
+      const regularCharacters = values.filter((character) => !character.starred);
+      starredCharacters.forEach((character, index) => {
+        if (!character.id) return;
+        characters[character.id] = {
+          ...character,
+          order: index,
+          starred: typeof character.starred === 'boolean' ? character.starred : false,
+        };
+      });
+      regularCharacters.forEach((character, index) => {
+        if (!character.id) return;
+        characters[character.id] = {
+          ...character,
+          order: index,
+          starred: typeof character.starred === 'boolean' ? character.starred : false,
+        };
+      });
+    } else {
+      let maxStarredOrder = values
+        .filter((character) => !!character.starred)
+        .reduce((max, character) => {
+          const currentOrder = typeof character.order === 'number' ? character.order : -1;
+          return Math.max(max, currentOrder);
+        }, -1);
+      let maxRegularOrder = values
+        .filter((character) => !character.starred)
+        .reduce((max, character) => {
+          const currentOrder = typeof character.order === 'number' ? character.order : -1;
+          return Math.max(max, currentOrder);
+        }, -1);
+
+      values.forEach((character) => {
+        if (!character.id) return;
+        if (typeof character.starred !== 'boolean') {
+          characters[character.id] = {
+            ...character,
+            starred: false,
+          };
+        }
+        if (typeof character.order === 'number') return;
+        if (character.starred) {
+          maxStarredOrder += 1;
+          characters[character.id] = {
+            ...character,
+            order: maxStarredOrder,
+            starred: true,
+          };
+          return;
+        }
+        maxRegularOrder += 1;
+        characters[character.id] = {
+          ...character,
+          order: maxRegularOrder,
+          starred: false,
+        };
+      });
+    }
+
+    characterCollection.value = {
+      ...characterCollection.value,
+      characters,
+    };
+  };
+
+  const getNextOrder = (starred: boolean) => {
+    const orders = Object.values(characterCollection.value.characters)
+      .filter((character) => !!character.starred === starred)
+      .map((character) => character.order)
+      .filter((order): order is number => typeof order === 'number');
+    return orders.length > 0 ? Math.max(...orders) + 1 : 0;
+  };
+
   onMounted(() => {
     const loadedData = loadFromLS(LOCAL_STORAGE_KEY_CHARACTER_MANAGER);
     if (loadedData && typeof loadedData === 'object' && loadedData.characters) {
       characterCollection.value = loadedData as CharacterCollection;
+      ensureCharacterOrder();
     } else {
       // Initialize with a default character if none exist
       const newId = uuidv4();
-      const defaultCharacter = { ...createDefaultCharacterCard(), id: newId, chineseName: "默认角色" };
+      const defaultCharacter = {
+        ...createDefaultCharacterCard(),
+        id: newId,
+        order: 0,
+        starred: false,
+        chineseName: "默认角色",
+      };
       characterCollection.value = {
         characters: { [newId]: defaultCharacter },
         activeCharacterId: newId,
@@ -84,6 +170,8 @@ export function useCharacterCollection() {
       const newCharacter: CharacterCard = {
         ...createDefaultCharacterCard(),
         id: newId,
+        order: getNextOrder(false),
+        starred: false,
         chineseName: characterName,
       };
 
@@ -173,6 +261,8 @@ export function useCharacterCollection() {
           ...createDefaultCharacterCard(),
           ...processedData,
           id: newId, // 始终分配新ID以避免冲突
+          order: getNextOrder(false),
+          starred: typeof processedData.starred === 'boolean' ? processedData.starred : false,
         };
         
         // 如果没有中文名，但有英文名或日文名，则使用它们
@@ -222,6 +312,54 @@ export function useCharacterCollection() {
     }
   };
 
+  const setCharacterStar = (characterId: string, starred: boolean) => {
+    const character = characterCollection.value.characters[characterId];
+    if (!character) return;
+
+    if (!!character.starred === starred) return;
+
+    const updatedCharacter = {
+      ...character,
+      starred,
+      order: getNextOrder(starred),
+    };
+
+    characterCollection.value = {
+      ...characterCollection.value,
+      characters: {
+        ...characterCollection.value.characters,
+        [characterId]: updatedCharacter,
+      },
+    };
+  };
+
+  const reorderCharacters = (orderedIds: string[]) => {
+    const updatedCharacters = { ...characterCollection.value.characters };
+    let starredIndex = 0;
+    let regularIndex = 0;
+    orderedIds.forEach((id) => {
+      if (!updatedCharacters[id]) return;
+      if (updatedCharacters[id].starred) {
+        updatedCharacters[id] = {
+          ...updatedCharacters[id],
+          order: starredIndex,
+        };
+        starredIndex += 1;
+        return;
+      }
+      updatedCharacters[id] = {
+        ...updatedCharacters[id],
+        order: regularIndex,
+      };
+      regularIndex += 1;
+    });
+
+    characterCollection.value = {
+      ...characterCollection.value,
+      characters: updatedCharacters,
+    };
+  };
+
   return {
     characterCollection,
     activeCharacterId,
@@ -231,5 +369,7 @@ export function useCharacterCollection() {
     handleDeleteCharacter,
     handleImportCharacter,
     updateCharacter,
+    setCharacterStar,
+    reorderCharacters,
   };
 }

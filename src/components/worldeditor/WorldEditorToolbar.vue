@@ -4,21 +4,36 @@
     <div class="toolbar-header">
       <h3 class="toolbar-title">世界编辑器</h3>
       <div class="header-actions">
-        <el-tooltip content="新增项目" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
-          <button @click="emit('add', 'project')" class="btn-primary-adv action-button">
-            <Icon icon="ph:folder-plus-duotone" />
-          </button>
-        </el-tooltip>
         <el-tooltip content="新增地标" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
           <button @click="emit('add', 'landmark')" class="btn-primary-adv action-button">
             <Icon icon="ph:map-pin-duotone" />
           </button>
         </el-tooltip>
-        <el-tooltip content="新增势力" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
-          <button @click="emit('add', 'force')" class="btn-primary-adv action-button">
-            <Icon icon="ph:flag-duotone" />
+        <el-dropdown trigger="click" placement="bottom-end" @command="handleAddCommand">
+          <button class="btn-primary-adv action-button action-button-split">
+            <Icon icon="ph:caret-down-duotone" />
           </button>
-        </el-tooltip>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="project">
+                <Icon icon="ph:folder-plus-duotone" class="dropdown-item-icon" />
+                新增项目
+              </el-dropdown-item>
+              <el-dropdown-item command="landmark">
+                <Icon icon="ph:map-pin-duotone" class="dropdown-item-icon" />
+                新增地标
+              </el-dropdown-item>
+              <el-dropdown-item command="region">
+                <Icon icon="ph:squares-four-duotone" class="dropdown-item-icon" />
+                新增区域
+              </el-dropdown-item>
+              <el-dropdown-item command="force">
+                <Icon icon="ph:flag-duotone" class="dropdown-item-icon" />
+                新增势力
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
       </div>
     </div>
 
@@ -35,7 +50,30 @@
         </button>
       </div>
       <div class="search-controls">
-        <el-input v-model="searchQuery" placeholder="搜索地标或势力..." clearable :prefix-icon="Search" />
+        <el-input v-model="searchQuery" placeholder="搜索地标、势力或区域..." clearable :prefix-icon="Search" />
+      </div>
+    </div>
+
+    <div class="toolbar-marquee" role="status" aria-live="polite">
+      <div class="toolbar-marquee-track">
+        <div class="toolbar-marquee-content">
+          <span>节点图系统仍在测试开发</span>
+          <span class="toolbar-marquee-divider">•</span>
+          <span>有问题或建议您可以</span>
+          <a class="toolbar-marquee-link" href="https://github.com/awaae001/st_cardplus/issues" target="_blank"
+            rel="noopener noreferrer">
+            前往 GitHub 提出
+          </a>
+        </div>
+        <div class="toolbar-marquee-content" aria-hidden="true">
+          <span>节点图系统仍在测试开发</span>
+          <span class="toolbar-marquee-divider">•</span>
+          <span>有问题或建议您可以</span>
+          <a class="toolbar-marquee-link" href="https://github.com/awaae001/st_cardplus/issues" target="_blank"
+            rel="noopener noreferrer">
+            前往 GitHub 提出
+          </a>
+        </div>
       </div>
     </div>
 
@@ -43,17 +81,21 @@
     <el-scrollbar class="toolbar-list-scrollbar">
       <el-tree ref="treeRef" :data="treeData" :props="treeProps" node-key="id" :key="treeKey"
         :default-expanded-keys="expandedKeys" :current-node-key="currentNodeKey" highlight-current
-        @node-click="handleNodeClick" @node-expand="handleNodeExpand" @node-collapse="handleNodeCollapse" class="world-editor-tree" :expand-on-click-node="false"
-        :filter-node-method="filterNode" draggable :allow-drag="props.dragDropHandlers.allowDrag"
-        :allow-drop="props.dragDropHandlers.allowDrop" @node-drop="handleNodeDrop">
+        @node-click="handleNodeClick" @node-expand="handleNodeExpand" @node-collapse="handleNodeCollapse"
+        class="world-editor-tree" :expand-on-click-node="true" :filter-node-method="filterNode" draggable
+        :allow-drag="props.dragDropHandlers.allowDrag" :allow-drop="props.dragDropHandlers.allowDrop"
+        @node-drop="handleNodeDrop">
         <template #default="{ node, data }">
           <div class="custom-tree-node">
             <div class="node-main">
               <Icon :icon="data.icon" class="node-icon" />
+              <span v-if="data.type === 'region' || data.type === 'landmark'" class="region-color-dot"
+                :class="{ 'is-empty': !data.regionColor && data.type === 'landmark' }"
+                :style="{ backgroundColor: data.type === 'region' ? data.color : data.regionColor }"></span>
               <span class="node-label">{{ node.label }}</span>
             </div>
             <div class="node-actions"
-              v-if="data.isEntry && (data.type === 'project' || data.type === 'landmark' || data.type === 'force')">
+              v-if="data.isEntry && (data.type === 'project' || data.type === 'landmark' || data.type === 'force' || data.type === 'region')">
               <el-tooltip content="复制" placement="top" :show-arrow="false" :offset="8" :hide-after="0"
                 v-if="data.type !== 'project' && data.type !== 'integration'">
                 <button @click.stop="emit('copy', data.raw)" class="list-item-action-button">
@@ -82,18 +124,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
-import { ElScrollbar, ElTooltip, ElTree, ElInput } from 'element-plus';
+import { ref, computed, watch, nextTick } from 'vue';
+import { ElScrollbar, ElTooltip, ElTree, ElInput, ElDropdown, ElDropdownMenu, ElDropdownItem } from 'element-plus';
 import { Icon } from '@iconify/vue';
 import { Search } from '@element-plus/icons-vue';
-import type { Project, EnhancedLandmark, EnhancedForce, ProjectIntegration } from '../../types/world-editor';
+import type { Project, EnhancedLandmark, EnhancedForce, EnhancedRegion, ProjectIntegration } from '../../types/world-editor';
+import { getLandmarkTypeIcon } from '@/utils/worldeditor/landmarkMeta';
 
-type SelectableItem = Project | EnhancedLandmark | EnhancedForce | ProjectIntegration;
+type SelectableItem = Project | EnhancedLandmark | EnhancedForce | EnhancedRegion | ProjectIntegration;
 
 interface Props {
   projects: Project[];
   landmarks: EnhancedLandmark[];
   forces: EnhancedForce[];
+  regions: EnhancedRegion[];
   selectedItem: SelectableItem | null;
   canUndo: boolean;
   canRedo: boolean;
@@ -107,9 +151,10 @@ interface Props {
 const props = defineProps<Props>();
 const emit = defineEmits<{
   (e: 'select', item: SelectableItem): void;
-  (e: 'add', type: 'project' | 'landmark' | 'force'): void;
-  (e: 'edit', item: Project | EnhancedLandmark | EnhancedForce): void;
-  (e: 'copy', item: EnhancedLandmark | EnhancedForce): void;
+  (e: 'open-graph', projectId: string): void;
+  (e: 'add', type: 'project' | 'landmark' | 'force' | 'region'): void;
+  (e: 'edit', item: Project | EnhancedLandmark | EnhancedForce | EnhancedRegion): void;
+  (e: 'copy', item: EnhancedLandmark | EnhancedForce | EnhancedRegion): void;
   (e: 'delete', item: SelectableItem): void;
   (e: 'undo'): void;
   (e: 'redo'): void;
@@ -139,7 +184,9 @@ const treeProps = {
 const treeData = computed(() => {
   return props.projects.map(project => {
     const projectLandmarks = props.landmarks.filter(l => l.projectId === project.id);
+    const projectRegions = props.regions.filter(r => r.projectId === project.id);
     const projectForces = props.forces.filter(f => f.projectId === project.id);
+    const regionColorMap = new Map(projectRegions.map(region => [region.id, region.color]));
 
     // 创建整合节点数据
     const integrationNode: ProjectIntegration = {
@@ -165,10 +212,26 @@ const treeData = computed(() => {
           children: projectLandmarks.map(landmark => ({
             id: landmark.id,
             label: landmark.name,
-            icon: 'ph:map-pin-line-duotone',
+            icon: getLandmarkTypeIcon(landmark.type),
             isEntry: true,
             type: 'landmark',
             raw: landmark,
+            regionColor: landmark.regionId ? regionColorMap.get(landmark.regionId) : '',
+          })),
+        },
+        {
+          id: `${project.id}-regions`,
+          label: `区域 (${projectRegions.length})`,
+          icon: 'ph:squares-four-duotone',
+          isEntry: false,
+          children: projectRegions.map(region => ({
+            id: region.id,
+            label: region.name,
+            icon: 'ph:square-duotone',
+            isEntry: true,
+            type: 'region',
+            raw: region,
+            color: region.color,
           })),
         },
         {
@@ -193,6 +256,14 @@ const treeData = computed(() => {
           type: 'integration',
           raw: integrationNode,
         },
+        {
+          id: `${project.id}-graph`,
+          label: '节点图',
+          icon: 'ph:share-network-duotone',
+          isEntry: true,
+          type: 'graph',
+          raw: { projectId: project.id },
+        },
       ],
     };
   });
@@ -209,6 +280,15 @@ watch(() => props.projects, (newProjects) => {
     });
   }
 }, { immediate: true });
+
+watch(treeData, () => {
+  nextTick(() => {
+    const store = treeRef.value?.store;
+    if (store && typeof store === 'object' && 'setDefaultExpandedKeys' in store) {
+      (store as any).setDefaultExpandedKeys(expandedKeys.value);
+    }
+  });
+});
 
 const handleNodeExpand = (data: { id: string | number }) => {
   if (!expandedKeys.value.includes(data.id)) {
@@ -229,6 +309,10 @@ const currentNodeKey = computed(() => {
 
 const handleNodeClick = (data: any) => {
   if (data.isEntry) {
+    if (data.type === 'graph') {
+      emit('open-graph', data.raw.projectId);
+      return;
+    }
     emit('select', data.raw);
   }
 };
@@ -237,6 +321,10 @@ const handleNodeDrop = (draggingNode: any, dropNode: any, dropType: any) => {
   if (props.dragDropHandlers.handleNodeDrop(draggingNode, dropNode, dropType, treeRef.value)) {
     emit('node-drop');
   }
+};
+
+const handleAddCommand = (command: 'project' | 'landmark' | 'region' | 'force') => {
+  emit('add', command);
 };
 </script>
 
@@ -274,12 +362,57 @@ const handleNodeDrop = (draggingNode: any, dropNode: any, dropType: any) => {
   font-size: 16px;
 }
 
+.action-button-split {
+  padding: 0 6px;
+}
+
+.dropdown-item-icon {
+  margin-right: 8px;
+  font-size: 16px;
+}
+
 .controls-section {
   padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 12px;
   border-bottom: 1px solid var(--el-border-color-light);
+}
+
+.toolbar-marquee {
+  border-bottom: 1px solid var(--el-border-color-light);
+  background: var(--el-fill-color-extra-light);
+  overflow: hidden;
+}
+
+.toolbar-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: toolbar-marquee-scroll 18s linear infinite;
+}
+
+.toolbar-marquee-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--el-text-color-regular);
+  white-space: nowrap;
+}
+
+.toolbar-marquee-divider {
+  opacity: 0.6;
+}
+
+.toolbar-marquee-link {
+  color: var(--el-color-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.toolbar-marquee-link:hover {
+  text-decoration: underline;
 }
 
 .history-controls {
@@ -406,5 +539,28 @@ const handleNodeDrop = (draggingNode: any, dropNode: any, dropType: any) => {
 .list-item-action-button.is-danger:hover {
   background-color: var(--el-color-danger-light-9);
   color: var(--el-color-danger);
+}
+
+.region-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  margin-right: 8px;
+  border: 1px solid var(--el-border-color);
+  flex-shrink: 0;
+}
+
+.region-color-dot.is-empty {
+  background-color: transparent;
+}
+
+@keyframes toolbar-marquee-scroll {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
 }
 </style>

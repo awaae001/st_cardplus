@@ -29,86 +29,84 @@
           <h3 class="form-section-title">
             <Icon icon="ph:bank-duotone" class="form-section-icon" />组织属性
           </h3>
-          <div class="form-grid-2-col">
-            <div>
-              <label class="form-label">类型</label>
-              <el-select
-                v-model="force.type"
-                class="form-full-width"
-                filterable
-                allow-create
-                default-first-option
-                :reserve-keyword="false"
-                placeholder="选择或输入势力类型"
-              >
-                <el-option v-for="type in forceTypes" :key="type" :label="localizeForceType(type)" :value="type" />
-              </el-select>
-            </div>
-            <div>
-              <label class="form-label">强度 (1-5)</label>
-              <el-input-number v-model.number="force.power" :min="1" controls-position="right" class="form-full-width" />
-            </div>
-          </div>
-        </section>
-
-        <!-- 人员管理 -->
-        <section class="form-section">
-          <h3 class="form-section-title">
-            <Icon icon="ph:users-three-duotone" class="form-section-icon" />人员管理
-          </h3>
-          <div class="form-grid-2-col">
-             <div>
-              <label class="form-label">总成员数</label>
-              <el-input-number v-model.number="force.totalMembers" controls-position="right" class="form-full-width" />
+          <div class="form-section-content">
+            <div class="form-grid-2-col">
+              <div>
+                <label class="form-label">类型</label>
+                <el-select
+                  v-model="force.type"
+                  class="form-full-width"
+                  filterable
+                  allow-create
+                  default-first-option
+                  :reserve-keyword="false"
+                  placeholder="选择或输入势力类型"
+                >
+                  <el-option v-for="type in forceTypes" :key="type" :label="localizeForceType(type)" :value="type" />
+                </el-select>
+              </div>
+              <div>
+                <label class="form-label">强度 (1-5)</label>
+                <el-input-number v-model.number="force.power" :min="1" controls-position="right" class="form-full-width" />
+              </div>
+              <div>
+                <label class="form-label">总部位置</label>
+                <el-select
+                  v-model="force.headquarters"
+                  filterable
+                  allow-create
+                  default-first-option
+                  placeholder="选择或输入总部地标"
+                  class="form-full-width"
+                >
+                  <el-option
+                    v-for="landmark in projectLandmarks"
+                    :key="landmark.id"
+                    :label="landmark.name"
+                    :value="landmark.id"
+                  />
+                </el-select>
+                <p v-if="errors.headquarters" class="error-message">{{ errors.headquarters }}</p>
+              </div>
+              <div>
+                <label class="form-label">总成员数</label>
+                <el-input-number v-model.number="force.totalMembers" controls-position="right" class="form-full-width" />
+              </div>
             </div>
             <div>
               <label class="form-label">领导者</label>
               <div class="entry-cards-grid">
                 <div v-for="(leader, index) in force.leaders" :key="leader.id" class="entry-card">
-                <div class="entry-card-header">
-                  <span class="entry-card-title">领导者 {{ index + 1 }}</span>
-                  <el-popconfirm title="确定删除这位领导者吗？" @confirm="removeLeader(index)">
-                    <template #reference>
-                      <el-button type="danger" circle plain size="small">
-                        <Icon icon="ph:trash-duotone" />
-                      </el-button>
-                    </template>
-                  </el-popconfirm>
-                </div>
-
-                <div class="entry-card-body">
-                  <div class="entry-field">
-                    <label class="entry-field-label">头衔</label>
-                    <el-input v-model="leader.title" placeholder="例如: 议会首席" />
+                  <div class="entry-card-header">
+                    <span class="entry-card-title">领导者 {{ index + 1 }}</span>
+                    <el-popconfirm title="确定删除这位领导者吗？" @confirm="removeLeader(index)">
+                      <template #reference>
+                        <el-button type="danger" circle plain size="small">
+                          <Icon icon="ph:trash-duotone" />
+                        </el-button>
+                      </template>
+                    </el-popconfirm>
                   </div>
 
-                  <div class="entry-field">
-                    <label class="entry-field-label">姓名</label>
-                    <el-input v-model="leader.name" placeholder="例如: 麦格尼·铜须" />
+                  <div class="entry-card-body">
+                    <div class="entry-field">
+                      <label class="entry-field-label">头衔</label>
+                      <el-input v-model="leader.title" placeholder="例如: 议会首席" />
+                    </div>
+
+                    <div class="entry-field">
+                      <label class="entry-field-label">姓名</label>
+                      <el-input v-model="leader.name" placeholder="例如: 麦格尼·铜须" />
+                    </div>
                   </div>
                 </div>
-              </div>
               </div>
 
               <el-button @click="addLeader" type="primary" plain class="form-full-width">
                 <Icon icon="ph:plus-circle-duotone" /> 添加领导者
               </el-button>
             </div>
-          </div>
-        </section>
-
-        <!-- 地域控制 -->
-        <section class="form-section">
-          <h3 class="form-section-title">
-            <Icon icon="ph:map-pin-duotone" class="form-section-icon" />地域控制
-          </h3>
-          <div class="form-section-content">
-            <div>
-              <label class="form-label">总部位置</label>
-              <el-input v-model="force.headquarters" placeholder="例如：暴风城要塞" />
-              <p v-if="errors.headquarters" class="error-message">{{ errors.headquarters }}</p>
-            </div>
-            <div>
+                        <div>
               <label class="form-label">分部</label>
               <div class="entry-cards-grid">
                 <div v-for="(branch, index) in force.branchLocations" :key="branch.id" class="entry-card">
@@ -161,67 +159,69 @@
           </div>
         </section>
 
-        <!-- 外交关系 -->
-        <section class="form-section">
-          <h3 class="form-section-title">
-            <Icon icon="ph:handshake-duotone" class="form-section-icon" />外交关系
-          </h3>
-          <div class="form-grid-2-col">
-            <div>
-              <label class="form-label">盟友</label>
-              <el-select
-                v-model="force.allies"
-                multiple
-                filterable
-                placeholder="选择盟友势力"
-                class="form-full-width"
-              >
-                <el-option
-                  v-for="item in filteredForces"
-                  :key="item.id"
-                  :label="item.name"
-                  :value="item.id"
-                />
-              </el-select>
+        <div class="form-grid-2-col">
+          <!-- 外交关系 -->
+          <section class="form-section">
+            <h3 class="form-section-title">
+              <Icon icon="ph:handshake-duotone" class="form-section-icon" />外交关系
+            </h3>
+            <div class="form-section-content">
+              <div>
+                <label class="form-label">盟友</label>
+                <el-select
+                  v-model="force.allies"
+                  multiple
+                  filterable
+                  placeholder="选择盟友势力"
+                  class="form-full-width"
+                >
+                  <el-option
+                    v-for="item in filteredForces"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.id"
+                  />
+                </el-select>
+              </div>
+              <div>
+                <label class="form-label">宿敌</label>
+                <el-select
+                  v-model="force.enemies"
+                  multiple
+                  filterable
+                  placeholder="选择宿敌势力"
+                  class="form-full-width"
+                >
+                  <el-option
+                    v-for="item in filteredForces"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.id"
+                  />
+                </el-select>
+              </div>
             </div>
-            <div>
-              <label class="form-label">宿敌</label>
-              <el-select
-                v-model="force.enemies"
-                multiple
-                filterable
-                placeholder="选择宿敌势力"
-                class="form-full-width"
-              >
-                <el-option
-                  v-for="item in filteredForces"
-                  :key="item.id"
-                  :label="item.name"
-                  :value="item.id"
-                />
-              </el-select>
-            </div>
-          </div>
-        </section>
+          </section>
 
-        <!-- 资源与能力 -->
-        <section class="form-section">
-          <h3 class="form-section-title">
-            <Icon icon="ph:sword-duotone" class="form-section-icon" />资源与能力
-          </h3>
-          <div class="form-section-content">
-            <div>
-              <label class="form-label">特殊能力</label>
-              <el-select v-model="force.capabilities" multiple filterable allow-create default-first-option :reserve-keyword="false" placeholder="例如：符文锻造, 元素抵抗" class="form-full-width">
-              </el-select>
+          <!-- 资源与能力 -->
+          <section class="form-section">
+            <h3 class="form-section-title">
+              <Icon icon="ph:sword-duotone" class="form-section-icon" />资源与能力
+            </h3>
+            <div class="form-section-content">
+              <div>
+                <label class="form-label">特殊能力</label>
+                <el-select v-model="force.capabilities" multiple filterable allow-create default-first-option :reserve-keyword="false" placeholder="例如：符文锻造, 元素抵抗" class="form-full-width">
+                </el-select>
+              </div>
+              <div>
+                <label class="form-label">弱点</label>
+                <el-select v-model="force.weaknesses" multiple filterable allow-create default-first-option :reserve-keyword="false" placeholder="例如：惧怕暗影魔法, 内部纷争" class="form-full-width">
+                </el-select>
+              </div>
             </div>
-            <div>
-              <label class="form-label">弱点</label>
-              <el-select v-model="force.weaknesses" multiple filterable allow-create default-first-option :reserve-keyword="false" placeholder="例如：惧怕暗影魔法, 内部纷争" class="form-full-width">
-              </el-select>
-            </div>
-          </div>
-        </section>
+          </section>
+        </div>
 
         <!-- 时间线 -->
         <section class="form-section">
@@ -309,10 +309,10 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, toRefs, watch, computed } from 'vue';
+import { toRefs, watch, computed } from 'vue';
 import { ElScrollbar, ElForm, ElInput, ElSelect, ElOption, ElInputNumber, ElEmpty, ElButton, ElPopconfirm } from 'element-plus';
 import { Icon } from '@iconify/vue';
-import type { EnhancedForce, EnhancedLandmark, BranchLocation } from '@/types/world-editor';
+import type { EnhancedForce, EnhancedLandmark } from '@/types/world-editor';
 import { ForceType } from '@/types/world-editor';
 import { useValidation, forceValidationRules } from '@/composables/worldeditor/useValidation';
 import { v4 as uuidv4 } from 'uuid';

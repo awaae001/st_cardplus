@@ -1,7 +1,6 @@
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { resetAppDatabase, exportAllDatabases, importAllDatabases } from '@/database/utils';
 import { characterCardService } from '@/database/characterCardService';
-import { removeSessionStorageItem } from '@/utils/localStorageUtils';
 
 export function useLocalData(updateStorageInfo: () => Promise<void>) {
 
@@ -112,8 +111,6 @@ export function useLocalData(updateStorageInfo: () => Promise<void>) {
       try {
         await resetAppDatabase();
         localStorage.clear();
-        removeSessionStorageItem('webdav-snapshot');
-        removeSessionStorageItem('gist-snapshot');
 
         ElMessage.success('所有本地数据已清除并重建数据库，应用将重新加载');
         await updateStorageInfo();
@@ -131,14 +128,15 @@ export function useLocalData(updateStorageInfo: () => Promise<void>) {
 
   const clearInvalidLocalStorage = async () => {
     const whitelist = [
-      'characterCardData',
       'characterManagerData',
       'ejs-editor-projects',
+      'regex-script-collection',
       'settings',
       'vueuse-color-scheme',
       'webdavConfig',
       'gistConfig',
       'world-editor-data',
+      'worldEditorData'
     ];
 
     ElMessageBox.confirm(
@@ -162,7 +160,6 @@ export function useLocalData(updateStorageInfo: () => Promise<void>) {
         }
 
         await characterCardService.clearDatabase();
-
         ElMessage.success(`已成功清理 ${removedCount} 个无效缓存条目和角色卡数据库，应用将重新加载`);
         await updateStorageInfo();
         setTimeout(() => {

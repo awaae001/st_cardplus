@@ -87,28 +87,6 @@ export const getAppSettings = (models: AppSettingsModels, handlers: AppSettingsH
       max: 60,
       step: 1,
       unit: '秒',
-    }, 
-    {
-      id: 'useOldCharCardEditor',
-      label: '使用旧版本角色信息编辑页面（已移除）',
-      icon: 'material-symbols:block',
-      iconColor: 'var(--el-color-danger)',
-      description: '🚫 此功能已被完全移除。新版编辑器提供了更强大的功能和更好的用户体验。',
-      type: 'switch',
-      model: models.useOldSidebar,
-      handler: () => { },
-      disabled: true,
-    },
-    {
-      id: 'useOldSidebar',
-      label: '使用旧版本侧边栏特性（已移除）',
-      icon: 'material-symbols:block',
-      iconColor: 'var(--el-color-danger)',
-      description: '🚫 此功能已被完全移除。旧版侧边栏已被新版侧边栏管理系统替代。新版本支持自定义侧边栏顺序、显示/隐藏项目等高级功能。请前往"个性化"页面体验全新的侧边栏管理功能。',
-      type: 'switch',
-      model: models.useOldSidebar,
-      handler: () => { }, // 空处理器，功能已被移除
-      disabled: true,
     }
   ];
 };

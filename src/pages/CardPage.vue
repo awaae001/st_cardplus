@@ -16,6 +16,8 @@
             @create="handleCreateCharacter"
             @delete="handleDeleteCharacter"
             @import="handleImportCharacter"
+            @reorder="handleReorderCharacters"
+            @toggle-star="handleToggleStar"
           />
         </el-tab-pane>
         <el-tab-pane name="editor" :disabled="!activeCharacter">
@@ -50,6 +52,8 @@
             @create="handleCreateCharacter"
             @delete="handleDeleteCharacter"
             @import="handleImportCharacter"
+            @reorder="handleReorderCharacters"
+            @toggle-star="handleToggleStar"
           />
         </Pane>
         <Pane size="85">
@@ -98,6 +102,8 @@ const {
   handleDeleteCharacter,
   handleImportCharacter,
   updateCharacter,
+  reorderCharacters,
+  setCharacterStar,
 } = useCharacterCollection();
 
 const handleSelectCharacterWithTabSwitch = (characterId: string) => {
@@ -113,7 +119,18 @@ watch(activeCharacterId, (newId) => {
   }
 });
 
-const characters = computed(() => Object.values(characterCollection.value.characters));
+const characters = computed(() => {
+  return Object.values(characterCollection.value.characters).sort((a, b) => {
+    const aStarred = !!a.starred;
+    const bStarred = !!b.starred;
+    if (aStarred !== bStarred) {
+      return aStarred ? -1 : 1;
+    }
+    const aOrder = a.order ?? 0;
+    const bOrder = b.order ?? 0;
+    return aOrder - bOrder;
+  });
+});
 
 const handleUpdateCharacter = (updatedCharacter: any) => {
   if (updatedCharacter && updatedCharacter.id) {
@@ -121,6 +138,15 @@ const handleUpdateCharacter = (updatedCharacter: any) => {
   } else {
     console.warn('角色更新失败：无效的角色数据或缺少ID', updatedCharacter);
   }
+};
+
+const handleReorderCharacters = (orderedIds: string[]) => {
+  if (!orderedIds.length) return;
+  reorderCharacters(orderedIds);
+};
+
+const handleToggleStar = (characterId: string, starred: boolean) => {
+  setCharacterStar(characterId, starred);
 };
 
 // Store the original title

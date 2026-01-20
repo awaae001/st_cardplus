@@ -319,13 +319,22 @@ export const setSetting = <K extends AppSettingsKey>(key: K, value: AppSettings[
   saveSettings({ [key]: normalized } as Partial<AppSettings>);
 };
 
+const SESSION_STORAGE_KEYS = new Set(['characterCardData']);
+
+const shouldUseSessionStorage = (key: string) => SESSION_STORAGE_KEYS.has(key);
+
 /**
  * 保存数据到本地存储
  * @param data - 要保存的数据
- * @param key - 存储键名，默认为'characterCardData'
+ * @param key - 存储键名，默认为'characterCardData'（该键使用会话存储）
  */
 export const saveToLocalStorage = (data: any, key = 'characterCardData') => {
   try {
+    if (shouldUseSessionStorage(key)) {
+      writeSessionStorageJSON(key, data);
+      console.log('数据已保存到会话存储');
+      return;
+    }
     writeLocalStorageJSON(key, data);
     console.log('数据已保存到本地存储');
   } catch (error) {
@@ -335,12 +344,18 @@ export const saveToLocalStorage = (data: any, key = 'characterCardData') => {
 
 /**
  * 从本地存储加载数据
- * @param key - 存储键名，默认为'characterCardData'
+ * @param key - 存储键名，默认为'characterCardData'（该键使用会话存储）
  * @param processFn - 数据处理函数
  * @returns 加载并处理后的数据
  */
 export const loadFromLocalStorage = (key = 'characterCardData', processFn?: (data: any) => any) => {
   try {
+    if (shouldUseSessionStorage(key)) {
+      const sessionData = readSessionStorageJSON<any>(key);
+      if (sessionData !== null) return processFn ? processFn(sessionData) : sessionData;
+      return null;
+    }
+
     const parsedData = readLocalStorageJSON<any>(key);
     if (parsedData !== null) return processFn ? processFn(parsedData) : parsedData;
   } catch (error) {
@@ -351,9 +366,13 @@ export const loadFromLocalStorage = (key = 'characterCardData', processFn?: (dat
 
 /**
  * 清除本地存储的数据
- * @param key - 存储键名，默认为'characterCardData'
+ * @param key - 存储键名，默认为'characterCardData'（该键使用会话存储）
  */
 export const clearLocalStorage = (key = 'characterCardData') => {
+  if (shouldUseSessionStorage(key)) {
+    removeSessionStorageItem(key);
+    return;
+  }
   removeLocalStorageItem(key);
 };
 

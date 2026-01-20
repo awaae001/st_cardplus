@@ -7,11 +7,7 @@ export interface StoredWorldBookEntry extends WorldBookEntry {
   id?: number; // 自增主键
   bookId: string;
 }
-
-// 定义存储在 IndexedDB 中的 WorldBook 结构，移除了 entries 数组
 export interface StoredWorldBook extends Omit<WorldBook, 'entries'> { }
-
-// 定义存储在 IndexedDB 中的角色卡结构
 export interface StoredCharacterCard {
   id: string; // UUID 主键
   name: string; // 角色名称
@@ -58,8 +54,6 @@ export class AppDatabase extends Dexie {
       books: '&id, name, order, updatedAt',
       entries: '++id, bookId, uid',
     });
-
-    // 版本 2: 添加角色卡表
     this.version(2).stores({
       books: '&id, name, order, updatedAt',
       entries: '++id, bookId, uid',

@@ -84,6 +84,8 @@ export interface Note {
 */
 export interface CharacterCard {
   id?: string;             // 唯一标识符，用于本地管理
+  order?: number;          // 列表排序值
+  starred?: boolean;       // 星标置顶
   chineseName: string;     // 中文名
   japaneseName: string;    // 日文名
   gender: string;          // 性别
