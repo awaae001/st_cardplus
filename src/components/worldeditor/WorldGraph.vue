@@ -8,101 +8,33 @@
         <Background :gap="18" :size="1" color="#c9ced6" />
         <Controls position="bottom-right" />
         <template #node-landmark="{ data }">
-          <div class="landmark-node" :class="nodeSizeClass(data.type)">
-            <span class="landmark-region-tail" :style="{ backgroundColor: data.regionColor || 'transparent' }"></span>
-            <div class="landmark-node-header">
-              <Icon :icon="iconForType(data.type)" class="landmark-node-icon" />
-              <div class="landmark-node-title">{{ data.name }}</div>
-            </div>
-            <el-tooltip v-if="data.region" :content="data.region" placement="top">
-              <span class="landmark-region-dot" :style="{ backgroundColor: data.regionColor }"></span>
-            </el-tooltip>
-            <div class="landmark-node-forces" v-if="data.forces.length > 0">
-              <div v-for="force in data.forces.slice(0, 3)" :key="force.id" class="landmark-node-force">
-                <span class="force-name">{{ force.name }}</span>
-                <span class="force-role">{{ force.role }}</span>
-              </div>
-              <div v-if="data.forces.length > 3" class="landmark-node-more">
-                +{{ data.forces.length - 3 }} 更多势力
-              </div>
-            </div>
-            <Handle type="source" :position="Position.Right" id="sr" class="landmark-handle" />
-            <Handle type="target" :position="Position.Right" id="tr" class="landmark-handle" />
-            <Handle type="source" :position="Position.Left" id="sl" class="landmark-handle" />
-            <Handle type="target" :position="Position.Left" id="tl" class="landmark-handle" />
-            <Handle type="source" :position="Position.Top" id="st" class="landmark-handle" />
-            <Handle type="target" :position="Position.Top" id="tt" class="landmark-handle" />
-            <Handle type="source" :position="Position.Bottom" id="sb" class="landmark-handle" />
-            <Handle type="target" :position="Position.Bottom" id="tb" class="landmark-handle" />
-          </div>
+          <LandmarkNode :data="data" />
         </template>
       </VueFlow>
+      <div class="graph-canvas-hint">WroldGraph · 连线表示道路链接</div>
     </div>
 
-    <div v-if="selectedLandmark" class="graph-inspector-popup" :style="inspectorStyle">
-      <div class="graph-inspector-header" @mousedown="startDrag">
-        <div class="graph-inspector-title">节点信息</div>
-        <button @click="clearSelection" class="close-button">
-          <Icon icon="ph:x" />
-        </button>
-      </div>
-      <div class="graph-inspector-body">
-        <div class="inspector-field">
-          <label class="inspector-label">名称</label>
-          <el-input v-model="selectedLandmark.name" placeholder="节点名称" />
-        </div>
-        <div class="inspector-field">
-          <label class="inspector-label">类型</label>
-          <el-select v-model="selectedLandmark.type" filterable allow-create default-first-option placeholder="选择或输入类型">
-            <el-option v-for="type in landmarkTypes" :key="type" :label="localizeLandmarkType(type)" :value="type" />
-          </el-select>
-        </div>
-        <div class="inspector-field">
-          <label class="inspector-label">区域</label>
-          <RegionSelect
-            v-model="selectedLandmark.regionId"
-            :regions="projectRegions"
-            placeholder="所属区域"
-            :show-selected-color="true"
-          />
-        </div>
-        <div class="inspector-field">
-          <label class="inspector-label">道路连接</label>
-          <div class="inspector-list">
-            <div v-if="selectedConnections.length === 0" class="inspector-empty">
-              暂无连接
-            </div>
-            <div v-for="item in selectedConnections" :key="item.id" class="inspector-list-item">
-              <span>{{ item.name }}</span>
-            </div>
-          </div>
-        </div>
-        <div class="inspector-actions">
-          <el-button type="primary" @click="emitEditSelected">打开详细编辑</el-button>
-        </div>
-      </div>
-    </div>
+    <WorldGraphInspector
+      v-if="selectedLandmark"
+      :selected-landmark="selectedLandmark"
+      :selected-forces="selectedForces"
+      :project-regions="projectRegions"
+      :inspector-style="inspectorStyle"
+      :start-drag="startDrag"
+      @close="clearSelection"
+      @edit="emitEditSelected"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, h, onBeforeUnmount, type CSSProperties } from 'vue';
-import {
-  VueFlow, Handle, Position, ConnectionMode, BaseEdge, EdgeLabelRenderer, getBezierPath,
-  type Edge,
-  type Node,
-  type EdgeProps,
-  type Connection,
-  type EdgeChange
-} from '@vue-flow/core';
+import { VueFlow, ConnectionMode } from '@vue-flow/core';
 import { Background } from '@vue-flow/background';
 import { Controls } from '@vue-flow/controls';
-import { Icon } from '@iconify/vue';
-import { ElInput, ElButton, ElSelect, ElOption, ElTooltip } from 'element-plus';
-import type { Project, EnhancedLandmark, EnhancedForce, EnhancedRegion, RoadConnection } from '@/types/world-editor';
-import { LandmarkType } from '@/types/world-editor';
-import { getLandmarkTypeIcon, getLandmarkTypeLabel } from '@/utils/worldeditor/landmarkMeta';
-import RegionSelect from './RegionSelect.vue';
+import type { Project, EnhancedLandmark, EnhancedForce, EnhancedRegion } from '@/types/world-editor';
+import { useWorldGraph } from '@/composables/worldeditor/useWorldGraph';
+import LandmarkNode from './graph/LandmarkNode.vue';
+import WorldGraphInspector from './graph/WorldGraphInspector.vue';
 import '@vue-flow/core/dist/style.css';
 import '@vue-flow/controls/dist/style.css';
 
@@ -119,416 +51,26 @@ const emit = defineEmits<{
   (e: 'edit-item', item: EnhancedLandmark): void;
 }>();
 
-const nodes = ref<Node[]>([]);
-const edges = ref<Edge[]>([]);
-const selectedLandmarkId = ref<string | null>(null);
-const landmarkTypes = Object.values(LandmarkType);
-
-const RemovableEdge = (props: EdgeProps) => {
-  const [edgePath, labelX, labelY] = getBezierPath(props);
-  const onRemove = (event: MouseEvent) => {
-    event.stopPropagation();
-    const remove = props.data?.onRemove as undefined | ((edgeId: string) => void);
-    remove?.(props.id);
-  };
-
-  return h('g', { class: 'removable-edge' }, [
-    h(BaseEdge, { path: edgePath, markerEnd: props.markerEnd }),
-    h(EdgeLabelRenderer, null, {
-      default: () =>
-        h(
-          'div',
-          {
-            class: 'edge-label',
-            style: {
-              position: 'absolute',
-              top: '0',
-              left: '0',
-              transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
-              pointerEvents: 'all'
-            }
-          },
-          [
-            h(
-              'button',
-              {
-                class: 'edge-remove-button',
-                type: 'button',
-                onClick: onRemove,
-                style: {
-                  borderRadius: '999px',
-                  color: '#000',
-                  cursor: 'pointer',
-                  fontSize: '11px',
-                  lineHeight: '1',
-                }
-              },
-              'X'
-            )])
-    })]);
-};
-
-const edgeTypes = { removable: RemovableEdge };
-
-const localizeLandmarkType = (type: string): string => getLandmarkTypeLabel(type);
-
-const activeProjectId = computed(() => {
-  if (props.activeProjectId) return props.activeProjectId;
-  return props.projects[0]?.id || null;
-});
-const projectLandmarks = computed(() => {
-  if (!activeProjectId.value) return [];
-  return props.landmarks.filter(l => l.projectId === activeProjectId.value);
-});
-const projectForces = computed(() => {
-  if (!activeProjectId.value) return [];
-  return props.forces.filter(f => f.projectId === activeProjectId.value);
-});
-const projectRegions = computed(() => {
-  if (!activeProjectId.value) return [];
-  return props.regions.filter(r => r.projectId === activeProjectId.value);
-});
-const regionNameMap = computed(() => new Map(projectRegions.value.map(region => [region.id, region.name])));
-const regionColorMap = computed(() => new Map(projectRegions.value.map(region => [region.id, region.color])));
-const selectedLandmark = computed(() => {
-  if (!selectedLandmarkId.value) return null;
-  return projectLandmarks.value.find(l => l.id === selectedLandmarkId.value) || null;
-});
-const selectedConnections = computed(() => {
-  if (!selectedLandmark.value) return [];
-  const related = selectedLandmark.value.relatedLandmarks || [];
-  return related
-    .map(id => projectLandmarks.value.find(l => l.id === id))
-    .filter((item): item is EnhancedLandmark => Boolean(item));
-});
-
-const createDefaultPosition = (index: number) => {
-  const columns = 4;
-  const spacingX = 220;
-  const spacingY = 160;
-  return {
-    x: (index % columns) * spacingX,
-    y: Math.floor(index / columns) * spacingY,
-  };
-};
-
-const forceRoleAtLandmark = (force: EnhancedForce, landmark: EnhancedLandmark) => {
-  if (force.headquarters === landmark.id || force.headquarters === landmark.name) {
-    return '总部';
-  }
-  if (force.branchLocations?.some(branch => branch.locationId === landmark.id)) {
-    return '分部';
-  }
-  return null;
-};
-
-const buildNodes = () => {
-  const list = projectLandmarks.value;
-  nodes.value = list.map((landmark, index) => {
-    if (!landmark.position) {
-      landmark.position = createDefaultPosition(index);
-    }
-    const forcesAt = projectForces.value
-      .map(force => ({ force, role: forceRoleAtLandmark(force, landmark) }))
-      .filter(item => item.role !== null)
-      .map(item => ({
-        id: item.force.id,
-        name: item.force.name,
-        role: item.role as string,
-      }));
-
-    return {
-      id: landmark.id,
-      type: 'landmark',
-      position: landmark.position,
-      data: {
-        id: landmark.id,
-        name: landmark.name,
-        region: landmark.regionId ? regionNameMap.value.get(landmark.regionId) : '',
-        regionColor: landmark.regionId ? regionColorMap.value.get(landmark.regionId) : '',
-        forces: forcesAt,
-        type: landmark.type,
-      },
-    };
-  });
-};
-
-const iconForType = (type?: string) => getLandmarkTypeIcon(type);
-
-const nodeSizeClass = (type?: string) => {
-  if (type === 'natural') return 'is-large';
-  if (type && (type === 'chasm' || type === 'canyon' || type.includes('天堑'))) {
-    return 'is-large';
-  }
-  return '';
-};
-
-const getRoadConnection = (landmark: EnhancedLandmark, targetId: string): RoadConnection | null => {
-  if (!landmark.roadConnections) return null;
-  return landmark.roadConnections.find(conn => conn.targetId === targetId) || null;
-};
-
-const removeEdgeById = (edgeId: string) => {
-  const edge = edges.value.find(item => item.id === edgeId);
-  if (!edge) return;
-  const source = edge.source;
-  const target = edge.target;
-  const sourceLandmark = projectLandmarks.value.find(item => item.id === source);
-  const targetLandmark = projectLandmarks.value.find(item => item.id === target);
-  if (sourceLandmark) {
-    sourceLandmark.relatedLandmarks = (sourceLandmark.relatedLandmarks || []).filter(id => id !== target);
-    sourceLandmark.roadConnections = (sourceLandmark.roadConnections || []).filter(conn => conn.targetId !== target);
-  }
-  if (targetLandmark) {
-    targetLandmark.relatedLandmarks = (targetLandmark.relatedLandmarks || []).filter(id => id !== source);
-    targetLandmark.roadConnections = (targetLandmark.roadConnections || []).filter(conn => conn.targetId !== source);
-  }
-  buildEdges();
-};
-
-const buildEdges = () => {
-  const list = projectLandmarks.value;
-  const existing = new Set<string>();
-  const edgeList: Edge[] = [];
-
-  const addEdge = (a: string, b: string) => {
-    if (a === b) return;
-    const ids = [a, b].sort();
-    const key = `${ids[0]}--${ids[1]}`;
-    if (existing.has(key)) return;
-    existing.add(key);
-
-    const source = ids[0];
-    const target = ids[1];
-    const sourceLandmark = list.find(item => item.id === source);
-    const targetLandmark = list.find(item => item.id === target);
-    const connection = sourceLandmark ? getRoadConnection(sourceLandmark, target) : null;
-    const fallbackConnection = targetLandmark ? getRoadConnection(targetLandmark, source) : null;
-    const sourceHandle = connection?.handle ?? fallbackConnection?.targetHandle;
-    const targetHandle = connection?.targetHandle ?? fallbackConnection?.handle;
-
-    edgeList.push({
-      id: `edge-${key}`,
-      source,
-      target,
-      sourceHandle,
-      targetHandle,
-      type: 'removable',
-      data: {
-        onRemove: removeEdgeById
-      }
-    });
-  };
-
-  list.forEach(landmark => {
-    (landmark.relatedLandmarks || []).forEach(relatedId => {
-      const exists = list.some(item => item.id === relatedId);
-      if (exists) {
-        addEdge(landmark.id, relatedId);
-      }
-    });
-  });
-
-  edges.value = edgeList;
-};
-
-watch([projectLandmarks, projectForces], () => {
-  buildNodes();
-  buildEdges();
-}, { deep: true, immediate: true });
-
-watch(activeProjectId, () => {
-  selectedLandmarkId.value = null;
-});
-
-const handleNodeDragStop = (event: unknown, node?: Node) => {
-  const resolvedNode = node ?? (event as { node?: Node })?.node;
-  if (!resolvedNode?.id) return;
-  const target = projectLandmarks.value.find(item => item.id === resolvedNode.id);
-  if (target) {
-    target.position = { x: resolvedNode.position.x, y: resolvedNode.position.y };
-    recalcRelativePositions();
-  }
-};
-
-const upsertRoadConnection = (
-  landmark: EnhancedLandmark,
-  targetId: string,
-  handle?: string,
-  targetHandle?: string
-) => {
-  if (!landmark.roadConnections) {
-    landmark.roadConnections = [];
-  }
-  const existing = landmark.roadConnections.find(conn => conn.targetId === targetId);
-  if (existing) {
-    existing.handle = handle;
-    existing.targetHandle = targetHandle;
-  } else {
-    landmark.roadConnections.push({ targetId, handle, targetHandle });
-  }
-};
-
-const handleConnect = (params: Connection) => {
-  const source = params.source;
-  const target = params.target;
-  if (!source || !target || source === target) return;
-
-  const sourceHandle = params.sourceHandle ?? undefined;
-  const targetHandle = params.targetHandle ?? undefined;
-
-  const sourceLandmark = projectLandmarks.value.find(item => item.id === source);
-  const targetLandmark = projectLandmarks.value.find(item => item.id === target);
-  if (!sourceLandmark || !targetLandmark) return;
-
-  if (!sourceLandmark.relatedLandmarks) {
-    sourceLandmark.relatedLandmarks = [];
-  }
-  if (!targetLandmark.relatedLandmarks) {
-    targetLandmark.relatedLandmarks = [];
-  }
-  if (!sourceLandmark.relatedLandmarks.includes(target)) {
-    sourceLandmark.relatedLandmarks.push(target);
-  }
-  if (!targetLandmark.relatedLandmarks.includes(source)) {
-    targetLandmark.relatedLandmarks.push(source);
-  }
-  upsertRoadConnection(sourceLandmark, target, sourceHandle, targetHandle);
-  upsertRoadConnection(targetLandmark, source, targetHandle, sourceHandle);
-  buildEdges();
-};
-
-const handleEdgesChange = (changes: EdgeChange[]) => {
-  const removed = changes.filter(change => change.type === 'remove');
-  if (removed.length === 0) return;
-
-  removed.forEach(change => {
-    if (!('id' in change)) return;
-    const edge = edges.value.find(item => item.id === change.id);
-    if (!edge) return;
-    const source = edge.source;
-    const target = edge.target;
-    const sourceLandmark = projectLandmarks.value.find(item => item.id === source);
-    const targetLandmark = projectLandmarks.value.find(item => item.id === target);
-    if (sourceLandmark) {
-      sourceLandmark.relatedLandmarks = (sourceLandmark.relatedLandmarks || []).filter(id => id !== target);
-      sourceLandmark.roadConnections = (sourceLandmark.roadConnections || []).filter(conn => conn.targetId !== target);
-    }
-    if (targetLandmark) {
-      targetLandmark.relatedLandmarks = (targetLandmark.relatedLandmarks || []).filter(id => id !== source);
-      targetLandmark.roadConnections = (targetLandmark.roadConnections || []).filter(conn => conn.targetId !== source);
-    }
-  });
-  buildEdges();
-};
-
-const inspectorPosition = ref({ x: 50, y: 50 });
-const isDragging = ref(false);
-const dragStart = ref({ x: 0, y: 0 });
-
-const inspectorStyle = computed((): CSSProperties => ({
-  position: 'absolute',
-  left: `${inspectorPosition.value.x}px`,
-  top: `${inspectorPosition.value.y}px`,
-  zIndex: 10,
-}));
-
-const startDrag = (event: MouseEvent) => {
-  isDragging.value = true;
-  dragStart.value = {
-    x: event.clientX - inspectorPosition.value.x,
-    y: event.clientY - inspectorPosition.value.y,
-  };
-  document.addEventListener('mousemove', onDrag);
-  document.addEventListener('mouseup', stopDrag);
-};
-
-const onDrag = (event: MouseEvent) => {
-  if (!isDragging.value) return;
-  inspectorPosition.value = {
-    x: event.clientX - dragStart.value.x,
-    y: event.clientY - dragStart.value.y,
-  };
-};
-
-const stopDrag = () => {
-  isDragging.value = false;
-  document.removeEventListener('mousemove', onDrag);
-  document.removeEventListener('mouseup', stopDrag);
-};
-
-onBeforeUnmount(() => {
-  document.removeEventListener('mousemove', onDrag);
-  document.removeEventListener('mouseup', stopDrag);
-});
-
-const handleNodeClick = (event: unknown, node?: Node) => {
-  const resolvedNode = node ?? (event as { node?: Node })?.node;
-  if (!resolvedNode?.id) return;
-  selectedLandmarkId.value = resolvedNode.id;
-};
-
-const recalcRelativePositions = () => {
-  const list = projectLandmarks.value.filter(item => item.position);
-  list.forEach(landmark => {
-    const connectedIds = new Set<string>();
-    (landmark.relatedLandmarks || []).forEach(id => connectedIds.add(id));
-    (landmark.roadConnections || []).forEach(conn => connectedIds.add(conn.targetId));
-    list.forEach(other => {
-      if (other.id === landmark.id) return;
-      if (other.relatedLandmarks?.includes(landmark.id)) {
-        connectedIds.add(other.id);
-      }
-      if (other.roadConnections?.some(conn => conn.targetId === landmark.id)) {
-        connectedIds.add(other.id);
-      }
-    });
-    const connectedCandidates = list.filter(item => connectedIds.has(item.id));
-    const position = landmark.position;
-    if (!position) return;
-    const closest = {
-      north: { id: undefined as string | undefined, dist: Number.POSITIVE_INFINITY },
-      south: { id: undefined as string | undefined, dist: Number.POSITIVE_INFINITY },
-      east: { id: undefined as string | undefined, dist: Number.POSITIVE_INFINITY },
-      west: { id: undefined as string | undefined, dist: Number.POSITIVE_INFINITY },
-    };
-
-    connectedCandidates.forEach(other => {
-      if (other.id === landmark.id || !other.position) return;
-      const dx = other.position.x - position.x;
-      const dy = other.position.y - position.y;
-      const dist = dx * dx + dy * dy;
-
-      if (dy < 0 && Math.abs(dy) >= Math.abs(dx) && dist < closest.north.dist) {
-        closest.north = { id: other.id, dist };
-      } else if (dy > 0 && Math.abs(dy) >= Math.abs(dx) && dist < closest.south.dist) {
-        closest.south = { id: other.id, dist };
-      } else if (dx > 0 && Math.abs(dx) >= Math.abs(dy) && dist < closest.east.dist) {
-        closest.east = { id: other.id, dist };
-      } else if (dx < 0 && Math.abs(dx) >= Math.abs(dy) && dist < closest.west.dist) {
-        closest.west = { id: other.id, dist };
-      }
-    });
-
-    if (!landmark.relativePosition) {
-      landmark.relativePosition = {};
-    }
-    const singleSelection = (id?: string) => (id ? [id] : []);
-    landmark.relativePosition.north = singleSelection(closest.north.id);
-    landmark.relativePosition.south = singleSelection(closest.south.id);
-    landmark.relativePosition.east = singleSelection(closest.east.id);
-    landmark.relativePosition.west = singleSelection(closest.west.id);
-  });
-};
+const {
+  nodes,
+  edges,
+  edgeTypes,
+  projectRegions,
+  selectedLandmark,
+  selectedForces,
+  inspectorStyle,
+  startDrag,
+  handleNodeDragStop,
+  handleConnect,
+  handleEdgesChange,
+  handleNodeClick,
+  clearSelection,
+} = useWorldGraph(props);
 
 const emitEditSelected = () => {
   if (selectedLandmark.value) {
     emit('edit-item', selectedLandmark.value);
   }
-};
-
-const clearSelection = () => {
-  selectedLandmarkId.value = null;
 };
 </script>
 
@@ -549,29 +91,17 @@ const clearSelection = () => {
   overflow: hidden;
 }
 
-.graph-inspector-popup {
-  width: 300px;
-  background: var(--el-bg-color);
+.graph-canvas-hint {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  background: rgba(255, 255, 255, 0.9);
   border: 1px solid var(--el-border-color-light);
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.graph-inspector-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: move;
-}
-
-.graph-inspector-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  pointer-events: none;
 }
 
 :deep(.vue-flow__edge-labels) {
@@ -581,171 +111,6 @@ const clearSelection = () => {
 :deep(.edge-remove-button:hover) {
   color: var(--el-color-danger);
   border-color: var(--el-color-danger);
-}
-
-.close-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
-  color: var(--el-text-color-secondary);
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.graph-inspector-body {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.graph-inspector-empty {
-  color: var(--el-text-color-secondary);
-  font-size: 13px;
-  padding-top: 16px;
-}
-
-.inspector-field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.inspector-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--el-text-color-regular);
-}
-
-.inspector-list {
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 6px;
-  padding: 8px;
-  max-height: 160px;
-  overflow-y: auto;
-  background: var(--el-fill-color-light);
-}
-
-.inspector-list-item {
-  font-size: 13px;
-  color: var(--el-text-color-regular);
-  padding: 4px 0;
-}
-
-.inspector-empty {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-}
-
-.inspector-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.landmark-node {
-  min-width: 180px;
-  max-width: 220px;
-  background: #ffffff;
-  border: 1px solid #dfe3ea;
-  border-radius: 10px;
-  padding: 10px 12px;
-  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  position: relative;
-}
-
-.landmark-node.is-large {
-  min-width: 240px;
-  max-width: 280px;
-  padding: 14px 16px;
-}
-
-.landmark-node-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  position: relative;
-  z-index: 1;
-}
-
-.landmark-node-icon {
-  font-size: 18px;
-  color: #2563eb;
-}
-
-.landmark-node-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1e293b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.landmark-region-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  border: 1px solid #e2e8f0;
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.7);
-}
-
-.landmark-node-forces {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  position: relative;
-  z-index: 1;
-}
-
-.landmark-node-force {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: #334155;
-  background: #f1f5f9;
-  border-radius: 6px;
-  padding: 3px 6px;
-}
-
-.force-name {
-  font-weight: 600;
-}
-
-.force-role {
-  color: #2563eb;
-}
-
-.landmark-node-more {
-  font-size: 11px;
-  color: #64748b;
-  position: relative;
-  z-index: 1;
-}
-
-.landmark-handle {
-  width: 10px;
-  height: 10px;
-  background: #2563eb;
-  border: 2px solid #ffffff;
-}
-
-.landmark-region-tail {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 32px;
-  height: 100%;
-  border-radius: 0 0 10px 0;
-  opacity: 0.9;
-  pointer-events: none;
 }
 
 @media (max-width: 900px) {
