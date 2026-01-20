@@ -54,23 +54,44 @@
       </div>
     </div>
 
+    <div class="toolbar-marquee" role="status" aria-live="polite">
+      <div class="toolbar-marquee-track">
+        <div class="toolbar-marquee-content">
+          <span>节点图系统仍在测试开发</span>
+          <span class="toolbar-marquee-divider">•</span>
+          <span>有问题或建议您可以</span>
+          <a class="toolbar-marquee-link" href="https://github.com/awaae001/st_cardplus/issues" target="_blank"
+            rel="noopener noreferrer">
+            前往 GitHub 提出
+          </a>
+        </div>
+        <div class="toolbar-marquee-content" aria-hidden="true">
+          <span>节点图系统仍在测试开发</span>
+          <span class="toolbar-marquee-divider">•</span>
+          <span>有问题或建议您可以</span>
+          <a class="toolbar-marquee-link" href="https://github.com/awaae001/st_cardplus/issues" target="_blank"
+            rel="noopener noreferrer">
+            前往 GitHub 提出
+          </a>
+        </div>
+      </div>
+    </div>
+
     <!-- Tree List -->
     <el-scrollbar class="toolbar-list-scrollbar">
       <el-tree ref="treeRef" :data="treeData" :props="treeProps" node-key="id" :key="treeKey"
         :default-expanded-keys="expandedKeys" :current-node-key="currentNodeKey" highlight-current
-        @node-click="handleNodeClick" @node-expand="handleNodeExpand" @node-collapse="handleNodeCollapse" class="world-editor-tree" :expand-on-click-node="true"
-        :filter-node-method="filterNode" draggable :allow-drag="props.dragDropHandlers.allowDrag"
-        :allow-drop="props.dragDropHandlers.allowDrop" @node-drop="handleNodeDrop">
+        @node-click="handleNodeClick" @node-expand="handleNodeExpand" @node-collapse="handleNodeCollapse"
+        class="world-editor-tree" :expand-on-click-node="true" :filter-node-method="filterNode" draggable
+        :allow-drag="props.dragDropHandlers.allowDrag" :allow-drop="props.dragDropHandlers.allowDrop"
+        @node-drop="handleNodeDrop">
         <template #default="{ node, data }">
           <div class="custom-tree-node">
             <div class="node-main">
               <Icon :icon="data.icon" class="node-icon" />
-              <span
-                v-if="data.type === 'region' || data.type === 'landmark'"
-                class="region-color-dot"
+              <span v-if="data.type === 'region' || data.type === 'landmark'" class="region-color-dot"
                 :class="{ 'is-empty': !data.regionColor && data.type === 'landmark' }"
-                :style="{ backgroundColor: data.type === 'region' ? data.color : data.regionColor }"
-              ></span>
+                :style="{ backgroundColor: data.type === 'region' ? data.color : data.regionColor }"></span>
               <span class="node-label">{{ node.label }}</span>
             </div>
             <div class="node-actions"
@@ -358,6 +379,42 @@ const handleAddCommand = (command: 'project' | 'landmark' | 'region' | 'force') 
   border-bottom: 1px solid var(--el-border-color-light);
 }
 
+.toolbar-marquee {
+  border-bottom: 1px solid var(--el-border-color-light);
+  background: var(--el-fill-color-extra-light);
+  overflow: hidden;
+}
+
+.toolbar-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: toolbar-marquee-scroll 18s linear infinite;
+}
+
+.toolbar-marquee-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--el-text-color-regular);
+  white-space: nowrap;
+}
+
+.toolbar-marquee-divider {
+  opacity: 0.6;
+}
+
+.toolbar-marquee-link {
+  color: var(--el-color-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.toolbar-marquee-link:hover {
+  text-decoration: underline;
+}
+
 .history-controls {
   display: flex;
   gap: 8px;
@@ -495,5 +552,15 @@ const handleAddCommand = (command: 'project' | 'landmark' | 'region' | 'force') 
 
 .region-color-dot.is-empty {
   background-color: transparent;
+}
+
+@keyframes toolbar-marquee-scroll {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
 }
 </style>
