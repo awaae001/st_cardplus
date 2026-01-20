@@ -9,8 +9,26 @@
       <Icon :icon="iconForType(data.type)" class="landmark-node-icon" />
       <div class="landmark-node-title">{{ data.name }}</div>
     </div>
-    <el-tooltip v-if="data.region" :content="data.region" placement="top">
-      <span class="landmark-region-dot" :style="{ backgroundColor: data.regionColor }"></span>
+    <el-tooltip placement="top">
+      <template #content>
+        <div class="landmark-tooltip">
+          <div class="landmark-tooltip-title">{{ tooltipTitle }}</div>
+          <div class="landmark-tooltip-row">
+            <Icon class="landmark-tooltip-icon" icon="ph:users-three" />
+            <span>人口</span>
+            <span class="landmark-tooltip-value">{{ formatPopulation(data.population) }}</span>
+          </div>
+          <div class="landmark-tooltip-row">
+            <Icon class="landmark-tooltip-icon" icon="ph:shield-fill" />
+            <span>重要性</span>
+            <span class="landmark-tooltip-value">{{ data.importance }}</span>
+          </div>
+        </div>
+      </template>
+      <span class="landmark-region-badge">
+        <Icon class="landmark-region-shield" icon="ph:shield-fill" :style="{ color: data.regionColor }" />
+        <span class="landmark-importance-value">{{ data.importance }}</span>
+      </span>
     </el-tooltip>
     <Handle type="source" :position="Position.Right" id="sr" class="landmark-handle" />
     <Handle type="target" :position="Position.Right" id="tr" class="landmark-handle" />
@@ -24,6 +42,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { Handle, Position } from '@vue-flow/core';
 import { Icon } from '@iconify/vue';
 import { ElTooltip } from 'element-plus';
@@ -40,11 +59,13 @@ interface LandmarkNodeData {
   name: string;
   region?: string;
   regionColor?: string;
+  importance?: number;
+  population?: number;
   forces: LandmarkNodeForce[];
   type?: string;
 }
 
-defineProps<{
+const props = defineProps<{
   data: LandmarkNodeData;
 }>();
 
@@ -56,6 +77,17 @@ const nodeSizeClass = (type?: string) => {
     return 'is-large';
   }
   return '';
+};
+
+const tooltipTitle = computed(() => {
+  if (props.data.region) return `${props.data.region} · ${props.data.name}`;
+  return props.data.name;
+});
+
+const formatPopulation = (value?: number) => {
+  if (value === null || value === undefined) return '-';
+  if (value >= 1000) return `${Math.round(value / 1000)}K`;
+  return `${value}`;
 };
 </script>
 
@@ -128,15 +160,53 @@ const nodeSizeClass = (type?: string) => {
   text-overflow: ellipsis;
 }
 
-.landmark-region-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  border: 1px solid #e2e8f0;
+.landmark-region-badge {
+  width: 18px;
+  height: 18px;
   position: absolute;
   top: 8px;
   right: 8px;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.7);
+  display: grid;
+  place-items: center;
+}
+
+.landmark-region-shield {
+  font-size: 18px;
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.85));
+}
+
+.landmark-importance-value {
+  position: absolute;
+  font-size: 10px;
+  font-weight: 700;
+  color: #0f172a;
+  text-shadow: 0 0 2px rgba(255, 255, 255, 0.9);
+}
+
+.landmark-tooltip {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 120px;
+}
+
+.landmark-tooltip-title {
+  font-weight: 600;
+}
+
+.landmark-tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.landmark-tooltip-icon {
+  font-size: 14px;
+}
+
+.landmark-tooltip-value {
+  margin-left: auto;
+  font-weight: 600;
 }
 
 .landmark-handle {

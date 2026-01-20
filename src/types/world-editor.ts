@@ -91,6 +91,10 @@ export enum LandmarkType {
   ACADEMY = 'academy',         // 学院
   HARBOR = 'harbor',           // 港口
   MARKET = 'market',           // 市场
+  PLANET = 'planet',           // 星球
+  FACTORY = 'factory',         // 工厂
+  SPACEPORT = 'spaceport',     // 星港
+  DERELICT_SHIP = 'derelict_ship', // 废弃飞船
   NATURAL = 'natural',         // 自然景观
   OCEAN = 'ocean',             // 海洋
   MYSTICAL = 'mystical',       // 神秘地点

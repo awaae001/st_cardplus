@@ -18,6 +18,14 @@
         </el-select>
       </div>
       <div class="inspector-field">
+        <label class="inspector-label">重要性 (1-5)</label>
+        <el-input-number v-model.number="selectedLandmark.importance" :min="1" :max="5" controls-position="right" />
+      </div>
+      <div class="inspector-field">
+        <label class="inspector-label">人口</label>
+        <el-input-number v-model.number="selectedLandmark.population" controls-position="right" />
+      </div>
+      <div class="inspector-field">
         <label class="inspector-label">区域</label>
         <RegionSelect
           v-model="selectedLandmark.regionId"
@@ -26,12 +34,9 @@
           :show-selected-color="true"
         />
       </div>
-      <div class="inspector-field">
+      <div v-if="selectedForces.length > 0" class="inspector-field">
         <label class="inspector-label">势力列表</label>
         <div class="inspector-list">
-          <div v-if="selectedForces.length === 0" class="inspector-empty">
-            暂无势力
-          </div>
           <div v-for="item in selectedForces" :key="item.id" class="inspector-list-item">
             <span>{{ item.name }}</span>
             <span v-if="item.role" class="force-role">{{ item.role }}</span>
@@ -48,7 +53,7 @@
 <script setup lang="ts">
 import type { CSSProperties } from 'vue';
 import { Icon } from '@iconify/vue';
-import { ElInput, ElButton, ElSelect, ElOption } from 'element-plus';
+import { ElInput, ElButton, ElSelect, ElOption, ElInputNumber } from 'element-plus';
 import type { EnhancedLandmark, EnhancedRegion } from '@/types/world-editor';
 import { LandmarkType } from '@/types/world-editor';
 import { getLandmarkTypeLabel } from '@/utils/worldeditor/landmarkMeta';

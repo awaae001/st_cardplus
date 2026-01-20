@@ -163,6 +163,8 @@ export const useWorldGraph = (props: WorldGraphProps): WorldGraphState => {
           name: landmark.name,
           region: regionInfo?.name ?? '',
           regionColor: regionInfo?.color ?? '',
+          importance: landmark.importance,
+          population: landmark.population,
           forces: forcesAt,
           type: landmark.type,
         },

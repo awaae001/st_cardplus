@@ -96,7 +96,6 @@ const emitEditSelected = () => {
   left: 12px;
   bottom: 12px;
   background: rgba(255, 255, 255, 0.9);
-  border: 1px solid var(--el-border-color-light);
   border-radius: 6px;
   padding: 4px 8px;
   font-size: 12px;
