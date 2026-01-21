@@ -47,23 +47,7 @@ import { Handle, Position } from '@vue-flow/core';
 import { Icon } from '@iconify/vue';
 import { ElTooltip } from 'element-plus';
 import { getLandmarkTypeIcon } from '@/utils/worldeditor/landmarkMeta';
-
-interface LandmarkNodeForce {
-  id: string;
-  name: string;
-  role: string;
-}
-
-interface LandmarkNodeData {
-  id: string;
-  name: string;
-  region?: string;
-  regionColor?: string;
-  importance?: number;
-  population?: number;
-  forces: LandmarkNodeForce[];
-  type?: string;
-}
+import type { LandmarkNodeData } from '@/types/worldeditor/worldGraphNodes';
 
 const props = defineProps<{
   data: LandmarkNodeData;

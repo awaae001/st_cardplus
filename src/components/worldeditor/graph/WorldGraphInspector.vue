@@ -55,13 +55,14 @@ import type { CSSProperties } from 'vue';
 import { Icon } from '@iconify/vue';
 import { ElInput, ElButton, ElSelect, ElOption, ElInputNumber } from 'element-plus';
 import type { EnhancedLandmark, EnhancedRegion } from '@/types/world-editor';
+import type { LandmarkNodeForce } from '@/types/worldeditor/worldGraphNodes';
 import { LandmarkType } from '@/types/world-editor';
 import { getLandmarkTypeLabel } from '@/utils/worldeditor/landmarkMeta';
 import RegionSelect from '../RegionSelect.vue';
 
 const props = defineProps<{
   selectedLandmark: EnhancedLandmark;
-  selectedForces: Array<{ id: string; name: string; role?: string | null }>;
+  selectedForces: LandmarkNodeForce[];
   projectRegions: EnhancedRegion[];
   inspectorStyle: CSSProperties;
   startDrag: (event: MouseEvent) => void;

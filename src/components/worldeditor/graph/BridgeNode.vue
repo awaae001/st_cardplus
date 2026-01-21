@@ -10,14 +10,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { Handle, Position } from '@vue-flow/core';
+import type { BridgeNodeData } from '@/types/worldeditor/worldGraphNodes';
 
 const props = defineProps<{
-  data: {
-    label: string;
-    side: 'left' | 'right' | 'top' | 'bottom';
-    handleSide?: 'left' | 'right' | 'top' | 'bottom';
-    handleId: string;
-  };
+  data: BridgeNodeData;
 }>();
 
 const handlePosition = computed(() => {
