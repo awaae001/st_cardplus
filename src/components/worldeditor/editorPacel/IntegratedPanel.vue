@@ -18,7 +18,7 @@
     <div class="selection-section">
       <el-row :gutter="16">
         <!-- 地标选择 -->
-        <el-col :span="12">
+        <el-col :span="8">
           <el-card>
             <template #header>
               <div class="card-header">
@@ -30,14 +30,14 @@
               </div>
             </template>
             <div class="selection-list">
-              <div 
-                v-for="landmark in projectLandmarks" 
+              <div
+                v-for="landmark in projectLandmarks"
                 :key="landmark.id"
                 class="selection-item"
                 :class="{ selected: selectedLandmarks.includes(landmark.id) }"
                 @click="toggleLandmarkSelection(landmark.id)"
               >
-                <el-checkbox 
+                <el-checkbox
                   :model-value="selectedLandmarks.includes(landmark.id)"
                   @change="toggleLandmarkSelection(landmark.id)"
                 />
@@ -64,7 +64,7 @@
         </el-col>
 
         <!-- 势力选择 -->
-        <el-col :span="12">
+        <el-col :span="8">
           <el-card>
             <template #header>
               <div class="card-header">
@@ -76,14 +76,14 @@
               </div>
             </template>
             <div class="selection-list">
-              <div 
-                v-for="force in projectForces" 
+              <div
+                v-for="force in projectForces"
                 :key="force.id"
                 class="selection-item"
                 :class="{ selected: selectedForces.includes(force.id) }"
                 @click="toggleForceSelection(force.id)"
               >
-                <el-checkbox 
+                <el-checkbox
                   :model-value="selectedForces.includes(force.id)"
                   @change="toggleForceSelection(force.id)"
                 />
@@ -100,6 +100,47 @@
               </div>
               <div v-if="projectForces.length === 0" class="empty-message">
                 暂无势力数据
+              </div>
+            </div>
+          </el-card>
+        </el-col>
+
+        <!-- 区域选择 -->
+        <el-col :span="8">
+          <el-card>
+            <template #header>
+              <div class="card-header">
+                <span>选择区域 ({{ selectedRegions.length }}/{{ projectRegions.length }})</span>
+                <div class="header-actions-small">
+                  <el-button size="small" @click="selectAllRegions">全选</el-button>
+                  <el-button size="small" @click="clearRegionSelection">清空</el-button>
+                </div>
+              </div>
+            </template>
+            <div class="selection-list">
+              <div
+                v-for="region in projectRegions"
+                :key="region.id"
+                class="selection-item"
+                :class="{ selected: selectedRegions.includes(region.id) }"
+                @click="toggleRegionSelection(region.id)"
+              >
+                <el-checkbox
+                  :model-value="selectedRegions.includes(region.id)"
+                  @change="toggleRegionSelection(region.id)"
+                />
+                <div class="item-content">
+                  <Icon icon="ph:map-trifold-duotone" class="item-icon region-icon" />
+                  <div class="item-info">
+                    <div class="item-name">{{ region.name }}</div>
+                    <div class="item-description" v-if="region.description">
+                      {{ region.description.slice(0, 50) }}{{ region.description.length > 50 ? '...' : '' }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-if="projectRegions.length === 0" class="empty-message">
+                暂无区域数据
               </div>
             </div>
           </el-card>
@@ -150,6 +191,7 @@ const props = defineProps<Props>();
 // 选择状态
 const selectedLandmarks = ref<string[]>([]);
 const selectedForces = ref<string[]>([]);
+const selectedRegions = ref<string[]>([]);
 
 // 计算当前项目的地标和势力
 const projectLandmarks = computed(() => {
@@ -186,7 +228,8 @@ const getLandmarkChildNames = (landmark: EnhancedLandmark) => {
 const selectedItems = computed(() => {
   const landmarks = projectLandmarks.value.filter(l => selectedLandmarks.value.includes(l.id));
   const forces = projectForces.value.filter(f => selectedForces.value.includes(f.id));
-  return [...landmarks, ...forces];
+  const regions = projectRegions.value.filter(r => selectedRegions.value.includes(r.id));
+  return [...landmarks, ...forces, ...regions];
 });
 
 
@@ -227,6 +270,15 @@ const toggleForceSelection = (forceId: string) => {
   }
 };
 
+const toggleRegionSelection = (regionId: string) => {
+  const index = selectedRegions.value.indexOf(regionId);
+  if (index > -1) {
+    selectedRegions.value.splice(index, 1);
+  } else {
+    selectedRegions.value.push(regionId);
+  }
+};
+
 const selectAllLandmarks = () => {
   selectedLandmarks.value = projectLandmarks.value.map(l => l.id);
 };
@@ -243,8 +295,16 @@ const clearForceSelection = () => {
   selectedForces.value = [];
 };
 
+const selectAllRegions = () => {
+  selectedRegions.value = projectRegions.value.map(r => r.id);
+};
+
+const clearRegionSelection = () => {
+  selectedRegions.value = [];
+};
+
 // 生成增强的、可读性强的JSON数据
-const generateJSON = (items: (EnhancedLandmark | EnhancedForce)[]): string => {
+const generateJSON = (items: (EnhancedLandmark | EnhancedForce | EnhancedRegion)[]): string => {
   if (items.length === 0) return '{}';
 
   // 创建ID到名称的映射，以便将UUID替换为可读的名称
@@ -284,8 +344,8 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce)[]): string => {
         tags: landmark.tags,
         region: landmark.regionId ? idToName(landmark.regionId, regionIdToNameMap) : undefined,
         relativePosition,
-        属于: parentName || undefined,
-        包括: childNames.length > 0 ? childNames : undefined,
+        belongs_to: parentName || undefined,
+        includes: childNames.length > 0 ? childNames : undefined,
         // 将关联ID转换为名称
         controllingForces: landmark.controllingForces?.map(id => idToName(id, forceIdToNameMap)),
         relatedLandmarks: landmark.relatedLandmarks?.map(id => idToName(id, landmarkIdToNameMap)),
@@ -325,14 +385,16 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce)[]): string => {
       return cleanObject(cleanedForce);
     });
 
-  const regions = projectRegions.value.map(region => {
-    const cleanedRegion = {
-      name: region.name,
-      description: region.description,
-      notes: region.notes,
-    };
-    return cleanObject(cleanedRegion);
-  });
+  const regions = items
+    .filter((item): item is EnhancedRegion => !('importance' in item) && !('power' in item))
+    .map(region => {
+      const cleanedRegion = {
+        name: region.name,
+        description: region.description,
+        notes: region.notes,
+      };
+      return cleanObject(cleanedRegion);
+    });
 
   const exportData = {
     project: {
@@ -346,7 +408,7 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce)[]): string => {
       landmarkCount: landmarks.length,
       regionCount: regions.length,
       forceCount: forces.length,
-      totalCount: items.length + regions.length
+      totalCount: items.length
     }
   };
 
@@ -370,7 +432,7 @@ const exportSelectedJSON = async () => {
 };
 
 const exportAllJSON = async () => {
-  const allItems = [...projectLandmarks.value, ...projectForces.value];
+  const allItems = [...projectLandmarks.value, ...projectForces.value, ...projectRegions.value];
   if (allItems.length === 0) {
     ElMessage.warning('当前项目没有可导出的内容');
     return;
@@ -479,6 +541,10 @@ const exportAllJSON = async () => {
 
 .force-icon {
   color: var(--el-color-success);
+}
+
+.region-icon {
+  color: var(--el-color-warning);
 }
 
 .item-info {
