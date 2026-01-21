@@ -91,7 +91,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { ElTabs, ElTabPane } from "element-plus";
+import { ElTabs, ElTabPane, ElMessageBox } from "element-plus";
 import { Icon } from "@iconify/vue";
 import { Splitpanes, Pane } from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
@@ -106,6 +106,7 @@ import { useHistory } from '@/composables/worldeditor/useHistory';
 import { useWorldEditor } from '@/composables/worldeditor/useWorldEditor';
 import { useWorldEditorUI } from '@/composables/worldeditor/useWorldEditorUI';
 import { useDragAndDrop } from '@/composables/worldeditor/useDragAndDrop';
+import { collectDescendantIds, removeLandmarkFromHierarchy } from '@/utils/worldeditor/landmarkHierarchy';
 
 const activeTab = ref('list');
 const graphProjectId = ref<string | null>(null);
@@ -123,7 +124,7 @@ const {
   createRegion,
   handleSelection: coreHandleSelection,
   handleAdd: handleAddEntity,
-  handleDelete,
+  handleDelete: coreHandleDelete,
   handleCopy,
   handleProjectSubmit
 } = useWorldEditor();
@@ -181,6 +182,41 @@ const handleEdit = (item: Project | EnhancedLandmark | EnhancedForce | EnhancedR
     // Selecting is the "edit" action for landmarks, forces, and integration
     handleSelection(item);
   }
+};
+
+const deleteLandmarkTree = (landmarkId: string) => {
+  const ids = collectDescendantIds(landmarks.value, landmarkId);
+  ids.add(landmarkId);
+  ids.forEach(id => removeLandmarkFromHierarchy(landmarks.value, id));
+  landmarks.value = landmarks.value.filter(landmark => !ids.has(landmark.id));
+  if (selectedItem.value && 'importance' in selectedItem.value && ids.has(selectedItem.value.id)) {
+    selectedItem.value = projects.value[0] || landmarks.value[0] || forces.value[0] || regions.value[0] || null;
+  }
+};
+
+const handleDelete = async (item: Project | EnhancedLandmark | EnhancedForce | EnhancedRegion | ProjectIntegration) => {
+  if ('importance' in item) {
+    const childIds = collectDescendantIds(landmarks.value, item.id);
+    if (childIds.size > 0) {
+      try {
+        await ElMessageBox.confirm(
+          '你必须删除或者转移本父级地标下的全部子地标才能删除！不会转移？试试在节点图拖拽或者拖拽条目。',
+          '无法删除父级地标',
+          {
+            confirmButtonText: '一切都毁灭吧',
+            cancelButtonText: '取消',
+            type: 'warning',
+            closeOnClickModal: false,
+          }
+        );
+        deleteLandmarkTree(item.id);
+      } catch (error) {
+        return;
+      }
+      return;
+    }
+  }
+  coreHandleDelete(item);
 };
 
 const handleUndo = () => {

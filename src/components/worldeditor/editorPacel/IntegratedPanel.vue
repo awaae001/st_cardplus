@@ -49,6 +49,10 @@
                     <div class="item-description" v-if="landmark.description">
                       {{ landmark.description.slice(0, 50) }}{{ landmark.description.length > 50 ? '...' : '' }}
                     </div>
+                    <div class="item-relations" v-if="getLandmarkParentName(landmark) || getLandmarkChildNames(landmark).length">
+                      <span v-if="getLandmarkParentName(landmark)">属于: {{ getLandmarkParentName(landmark) }}</span>
+                      <span v-if="getLandmarkChildNames(landmark).length">包括: {{ getLandmarkChildNames(landmark).join('、') }}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -131,6 +135,7 @@ import { Icon } from '@iconify/vue';
 import type { Project, EnhancedLandmark, EnhancedForce, EnhancedRegion, ProjectIntegration } from '@/types/world-editor';
 import { cleanObject } from '@/utils/objectUtils';
 import { getLandmarkTypeLabel } from '@/utils/worldeditor/landmarkMeta';
+import { getParentLandmarkId } from '@/utils/worldeditor/landmarkHierarchy';
 
 interface Props {
   integration: ProjectIntegration;
@@ -161,6 +166,21 @@ const projectRegions = computed(() => {
   if (!props.currentProject) return [];
   return props.regions.filter(r => r.projectId === props.currentProject!.id);
 });
+
+const landmarkIdToName = computed(() => new Map(projectLandmarks.value.map(landmark => [landmark.id, landmark.name])));
+
+const getLandmarkParentName = (landmark: EnhancedLandmark) => {
+  const parentId = getParentLandmarkId(landmark);
+  if (!parentId) return '';
+  return landmarkIdToName.value.get(parentId) || '';
+};
+
+const getLandmarkChildNames = (landmark: EnhancedLandmark) => {
+  const childIds = landmark.childLandmarkIds || [];
+  return childIds
+    .map(id => landmarkIdToName.value.get(id))
+    .filter(Boolean) as string[];
+};
 
 // 计算选中的所有项目
 const selectedItems = computed(() => {
@@ -250,6 +270,12 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce)[]): string => {
             west: toNameList(landmark.relativePosition.west, landmarkIdToNameMap),
           }
         : undefined;
+      const parentName = landmark.parentLandmarkIds?.[0]
+        ? idToName(landmark.parentLandmarkIds[0], landmarkIdToNameMap)
+        : undefined;
+      const childNames = (landmark.childLandmarkIds || [])
+        .map(id => idToName(id, landmarkIdToNameMap))
+        .filter(Boolean);
       const cleanedLandmark = {
         name: landmark.name,
         description: landmark.description,
@@ -258,6 +284,8 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce)[]): string => {
         tags: landmark.tags,
         region: landmark.regionId ? idToName(landmark.regionId, regionIdToNameMap) : undefined,
         relativePosition,
+        属于: parentName || undefined,
+        包括: childNames.length > 0 ? childNames : undefined,
         // 将关联ID转换为名称
         controllingForces: landmark.controllingForces?.map(id => idToName(id, forceIdToNameMap)),
         relatedLandmarks: landmark.relatedLandmarks?.map(id => idToName(id, landmarkIdToNameMap)),
@@ -476,6 +504,15 @@ const exportAllJSON = async () => {
   color: var(--el-text-color-regular);
   line-height: 1.4;
   word-break: break-word;
+}
+
+.item-relations {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .empty-message {

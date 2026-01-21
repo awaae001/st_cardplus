@@ -19,6 +19,10 @@ export interface WorldGraphProps {
   activeProjectId?: string | null;
 }
 
+export interface WorldGraphOptions {
+  landmarkScope?: ComputedRef<EnhancedLandmark[]>;
+}
+
 interface WorldGraphState {
   nodes: Ref<Node[]>;
   edges: Ref<Edge[]>;
@@ -35,7 +39,7 @@ interface WorldGraphState {
   clearSelection: () => void;
 }
 
-export const useWorldGraph = (props: WorldGraphProps): WorldGraphState => {
+export const useWorldGraph = (props: WorldGraphProps, options?: WorldGraphOptions): WorldGraphState => {
   const nodes = ref<Node[]>([]);
   const edges = ref<Edge[]>([]);
   const selectedLandmarkId = ref<string | null>(null);
@@ -90,9 +94,13 @@ export const useWorldGraph = (props: WorldGraphProps): WorldGraphState => {
     if (props.activeProjectId) return props.activeProjectId;
     return props.projects[0]?.id || null;
   });
-  const projectLandmarks = computed(() => {
+  const projectLandmarksAll = computed(() => {
     if (!activeProjectId.value) return [];
     return props.landmarks.filter(l => l.projectId === activeProjectId.value);
+  });
+  const projectLandmarks = computed(() => {
+    if (options?.landmarkScope) return options.landmarkScope.value;
+    return projectLandmarksAll.value;
   });
   const projectForces = computed(() => {
     if (!activeProjectId.value) return [];
@@ -106,9 +114,10 @@ export const useWorldGraph = (props: WorldGraphProps): WorldGraphState => {
     projectRegions.value.map(region => [region.id, { name: region.name, color: region.color }])
   ));
   const projectLandmarkMap = computed(() => new Map(projectLandmarks.value.map(landmark => [landmark.id, landmark])));
+  const projectLandmarkMapAll = computed(() => new Map(projectLandmarksAll.value.map(landmark => [landmark.id, landmark])));
   const selectedLandmark = computed(() => {
     if (!selectedLandmarkId.value) return null;
-    return projectLandmarkMap.value.get(selectedLandmarkId.value) || null;
+    return projectLandmarkMapAll.value.get(selectedLandmarkId.value) || null;
   });
 
   const createDefaultPosition = (index: number) => {
@@ -151,13 +160,17 @@ export const useWorldGraph = (props: WorldGraphProps): WorldGraphState => {
       if (!landmark.position) {
         landmark.position = createDefaultPosition(index);
       }
+      const resolvedPosition = {
+        x: landmark.position.x,
+        y: landmark.position.y,
+      };
       const forcesAt = getForcesAtLandmark(landmark);
       const regionInfo = landmark.regionId ? regionInfoMap.value.get(landmark.regionId) : null;
 
       return {
         id: landmark.id,
         type: 'landmark',
-        position: landmark.position,
+        position: resolvedPosition,
         data: {
           id: landmark.id,
           name: landmark.name,
