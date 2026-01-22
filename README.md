@@ -41,6 +41,10 @@ pnpm install
 ```bash
 pnpm dev
 ```
+如需仅启动前端（不打开 Electron）：
+```bash
+pnpm dev --on
+```
 
 ### 3. 打包应用程序
 ```bash
