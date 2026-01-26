@@ -6,11 +6,10 @@ import { collectDescendantIds, getParentLandmarkId } from '@/utils/worldeditor/l
 import {
   readSessionStorageJSON,
   writeSessionStorageJSON,
-  readLocalStorageJSON,
-  writeLocalStorageJSON
 } from '@/utils/localStorageUtils';
 import { linkLandmarks, unlinkLandmarks } from '@/composables/worldeditor/worldGraphLinks';
 import { useWorldGraph, type WorldGraphProps } from '@/composables/worldeditor/useWorldGraph';
+import { ElMessage } from 'element-plus';
 
 interface WorldGraphViewOptions {
   onEdit?: (item: EnhancedLandmark) => void;
@@ -97,11 +96,7 @@ export const useWorldGraphView = (
   const childDragStart = ref({ x: 0, y: 0 });
   const isChildResizing = ref(false);
   const childResizeStart = ref({ x: 0, y: 0, width: 0, height: 0 });
-  const BRIDGE_POSITIONS_KEY = 'world-editor-bridge-positions';
   const CHILD_GRAPH_SIZE_KEY = 'world-editor-child-graph-size';
-  const bridgePositions = ref<Record<string, { x: number; y: number }>>(
-    readLocalStorageJSON<Record<string, { x: number; y: number }>>(BRIDGE_POSITIONS_KEY) || {}
-  );
   const storedChildSize = readSessionStorageJSON<{ width: number; height: number }>(CHILD_GRAPH_SIZE_KEY);
   if (storedChildSize?.width && storedChildSize?.height) {
     childGraphSize.value = storedChildSize;
@@ -254,12 +249,19 @@ export const useWorldGraphView = (
     return positions;
   };
 
+  const getBridgePositionMap = () => childGraphParent.value?.bridgePositions || {};
+
+  const setBridgePositionMap = (next: Record<string, { x: number; y: number }>) => {
+    if (!childGraphParent.value) return;
+    childGraphParent.value.bridgePositions = next;
+  };
+
   const childGraphBridgeNodes = computed(() => {
     const nodes: Node[] = [];
     const defaults = getBridgeDefaults();
 
     childGraphBridgeMeta.value.forEach(meta => {
-      const stored = bridgePositions.value[meta.nodeId];
+      const stored = getBridgePositionMap()[meta.externalId];
       const fallback = defaults[meta.nodeId] || { x: 0, y: 0 };
       const data: BridgeNodeData = {
         label: meta.label,
@@ -448,37 +450,38 @@ export const useWorldGraphView = (
     const resolvedNode = node ?? (event as { node?: { id?: string; position?: { x: number; y: number } } })?.node;
     if (!resolvedNode?.id) return;
     if (resolvedNode.id.startsWith('bridge:') && resolvedNode.position) {
-      bridgePositions.value = {
-        ...bridgePositions.value,
-        [resolvedNode.id]: { x: resolvedNode.position.x, y: resolvedNode.position.y },
-      };
+      const externalId = resolvedNode.id.split(':').slice(2).join(':');
+      const current = getBridgePositionMap();
+      setBridgePositionMap({
+        ...current,
+        [externalId]: { x: resolvedNode.position.x, y: resolvedNode.position.y },
+      });
       return;
     }
     handleChildNodeDragStop(event, node as Node);
   };
 
-  watch(bridgePositions, (value) => {
-    writeLocalStorageJSON(BRIDGE_POSITIONS_KEY, value);
-  }, { deep: true });
-
   watch(childGraphBridgeMeta, (meta) => {
+    const parentId = childGraphParent.value?.id;
+    if (!parentId) return;
     const validIds = new Set(Array.from(meta.values()).map(item => item.nodeId));
     const nextPositions: Record<string, { x: number; y: number }> = {};
-    Object.entries(bridgePositions.value).forEach(([id, pos]) => {
-      if (validIds.has(id)) {
-        nextPositions[id] = pos;
+    Object.entries(getBridgePositionMap()).forEach(([externalId, pos]) => {
+      const nodeId = `bridge:${parentId}:${externalId}`;
+      if (validIds.has(nodeId)) {
+        nextPositions[externalId] = pos;
       }
     });
     const defaults = getBridgeDefaults();
     let changed = false;
-    validIds.forEach(id => {
-      if (!nextPositions[id] && defaults[id]) {
-        nextPositions[id] = defaults[id];
+    meta.forEach(item => {
+      if (!nextPositions[item.externalId] && defaults[item.nodeId]) {
+        nextPositions[item.externalId] = defaults[item.nodeId];
         changed = true;
       }
     });
-    if (changed || Object.keys(nextPositions).length !== Object.keys(bridgePositions.value).length) {
-      bridgePositions.value = nextPositions;
+    if (changed || Object.keys(nextPositions).length !== Object.keys(getBridgePositionMap()).length) {
+      setBridgePositionMap(nextPositions);
     }
   }, { immediate: true });
 
@@ -491,6 +494,17 @@ export const useWorldGraphView = (
       childGraphParentId.value = resolvedId;
       childGraphVisible.value = true;
     }
+  };
+
+  const handleChildNodeClickProxy = (event: unknown, node?: Node) => {
+    const resolvedNode = node ?? (event as { node?: Node })?.node;
+    if (resolvedNode?.id?.startsWith('bridge:')) {
+      const externalId = resolvedNode.id.split(':').slice(2).join(':');
+      const meta = childGraphBridgeMeta.value.get(externalId);
+      ElMessage.info(meta ? `桥节点：${meta.label}` : '桥节点');
+      return;
+    }
+    handleChildNodeClick(event, node);
   };
 
   onBeforeUnmount(() => {
@@ -537,7 +551,7 @@ export const useWorldGraphView = (
     handleChildNodeDragStopProxy,
     handleChildConnectProxy,
     handleChildEdgesChangeProxy,
-    handleChildNodeClick,
+    handleChildNodeClick: handleChildNodeClickProxy,
     clearChildSelection,
     closeChildGraph,
     emitEditSelected,

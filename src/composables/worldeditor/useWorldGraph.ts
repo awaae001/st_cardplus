@@ -183,6 +183,7 @@ export const useWorldGraph = (props: WorldGraphProps, options?: WorldGraphOption
         importance: landmark.importance,
         population: landmark.population,
         forces: forcesAt,
+        childCount: landmark.childLandmarkIds?.length ?? 0,
         type: landmark.type,
       };
 

@@ -56,3 +56,17 @@ export const unlinkLandmarks = (landmarks: EnhancedLandmark[], sourceId: string,
     targetLandmark.roadConnections = (targetLandmark.roadConnections || []).filter(conn => conn.targetId !== sourceId);
   }
 };
+
+export const removeLandmarkLinksForIds = (landmarks: EnhancedLandmark[], ids: Set<string>) => {
+  if (ids.size === 0) return;
+  landmarks.forEach(landmark => {
+    landmark.relatedLandmarks = (landmark.relatedLandmarks || []).filter(id => !ids.has(id));
+    landmark.roadConnections = (landmark.roadConnections || []).filter(conn => !ids.has(conn.targetId));
+    if (landmark.bridgePositions) {
+      const next = Object.fromEntries(
+        Object.entries(landmark.bridgePositions).filter(([externalId]) => !ids.has(externalId))
+      );
+      landmark.bridgePositions = next;
+    }
+  });
+};

@@ -12,6 +12,7 @@ export interface LandmarkNodeData {
   importance?: number;
   population?: number;
   forces: LandmarkNodeForce[];
+  childCount?: number;
   type?: string;
 }
 

@@ -107,6 +107,7 @@ import { useWorldEditor } from '@/composables/worldeditor/useWorldEditor';
 import { useWorldEditorUI } from '@/composables/worldeditor/useWorldEditorUI';
 import { useDragAndDrop } from '@/composables/worldeditor/useDragAndDrop';
 import { collectDescendantIds, removeLandmarkFromHierarchy } from '@/utils/worldeditor/landmarkHierarchy';
+import { removeLandmarkLinksForIds } from '@/composables/worldeditor/worldGraphLinks';
 
 const activeTab = ref('list');
 const graphProjectId = ref<string | null>(null);
@@ -187,6 +188,7 @@ const handleEdit = (item: Project | EnhancedLandmark | EnhancedForce | EnhancedR
 const deleteLandmarkTree = (landmarkId: string) => {
   const ids = collectDescendantIds(landmarks.value, landmarkId);
   ids.add(landmarkId);
+  removeLandmarkLinksForIds(landmarks.value, ids);
   ids.forEach(id => removeLandmarkFromHierarchy(landmarks.value, id));
   landmarks.value = landmarks.value.filter(landmark => !ids.has(landmark.id));
   if (selectedItem.value && 'importance' in selectedItem.value && ids.has(selectedItem.value.id)) {

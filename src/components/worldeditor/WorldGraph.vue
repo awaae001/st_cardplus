@@ -11,7 +11,32 @@
           <LandmarkNode :data="data" />
         </template>
       </VueFlow>
-      <div class="graph-canvas-hint">WroldGraph · 连线表示道路链接</div>
+      <div class="graph-canvas-hint flex flex-col items-start gap-2">
+        <span class="graph-hint-title">WorldGraph · 图例</span>
+        <span class="graph-hint-item">
+          <span class="graph-hint-pill is-forces">
+            <Icon icon="ph:users-three" />
+          </span>
+          势力数量
+        </span>
+        <span class="graph-hint-item">
+          <span class="graph-hint-pill is-children">
+            <Icon icon="ph:tree-structure" />
+          </span>
+          子地标数量
+        </span>
+        <span class="graph-hint-item">
+          <span class="graph-hint-line"></span>
+          道路连接
+        </span>
+        <span class="graph-hint-item">
+          <span class="graph-hint-shield">
+            <Icon icon="ph:shield-fill" />
+            <span class="graph-hint-shield-text">3</span>
+          </span>
+          区域颜色 + 重要性
+        </span>
+      </div>
     </div>
 
     <WorldGraphInspector
@@ -26,7 +51,7 @@
     />
 
     <div v-if="childGraphVisible" class="child-graph-popup" :style="childGraphStyle">
-      <div class="child-graph-header" @mousedown="startChildGraphDrag">
+      <div class="child-graph-header" @mousedown="startChildGraphDrag" style="margin-top: 16px">
         <div class="child-graph-title">{{ childGraphTitle }}</div>
         <button @click="closeChildGraph" class="close-button">
           <Icon icon="ph:x" />
@@ -157,6 +182,63 @@ const {
   font-size: 12px;
   color: var(--el-text-color-secondary);
   pointer-events: none;
+}
+
+.graph-hint-title {
+  font-weight: 600;
+}
+
+.graph-hint-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.graph-hint-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 16px;
+  border-radius: 999px;
+  border: 1px solid #dfe3ea;
+  background: #ffffff;
+  font-size: 12px;
+}
+
+.graph-hint-pill.is-forces {
+  color: #2563eb;
+}
+
+.graph-hint-pill.is-children {
+  color: #16a34a;
+}
+
+.graph-hint-line {
+  display: inline-block;
+  width: 24px;
+  height: 2px;
+  background: #64748b;
+  border-radius: 999px;
+}
+
+.graph-hint-shield {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  color: #3b82f6;
+  font-size: 16px;
+}
+
+.graph-hint-shield-text {
+  position: absolute;
+  font-size: 9px;
+  font-weight: 700;
+  color: #0f172a;
+  text-shadow: 0 0 2px rgba(255, 255, 255, 0.9);
 }
 
 .child-graph-canvas {

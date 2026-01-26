@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { saveToLocalStorage, loadFromLocalStorage } from '@/utils/localStorageUtils';
 import { pickRandomRegionColor } from '@/utils/worldeditor/regionColors';
 import { normalizeLandmarkHierarchy, removeLandmarkFromHierarchy } from '@/utils/worldeditor/landmarkHierarchy';
+import { removeLandmarkLinksForIds } from '@/composables/worldeditor/worldGraphLinks';
 
 const WORLD_EDITOR_DATA_KEY = 'world-editor-data';
 
@@ -165,6 +166,7 @@ export function useWorldEditor() {
 
     if ('projectId' in item) { // Landmark, Force, or Region
       if ('importance' in item) { // Landmark
+        removeLandmarkLinksForIds(landmarks.value, new Set([item.id]));
         removeLandmarkFromHierarchy(landmarks.value, item.id);
         const index = landmarks.value.findIndex(l => l.id === item.id);
         if (index > -1) landmarks.value.splice(index, 1);
