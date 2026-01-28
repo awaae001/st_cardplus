@@ -234,6 +234,89 @@ export async function downloadFromGist(
   }
 }
 
+async function fetchTextWithProgress(url: string, onProgress?: (progress: number) => void): Promise<string> {
+  return await new Promise<string>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.responseType = 'text';
+
+    xhr.onprogress = (event) => {
+      if (event.lengthComputable && onProgress) {
+        onProgress(event.loaded / event.total);
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(xhr.responseText);
+      } else {
+        reject(new Error(xhr.statusText || `HTTP ${xhr.status}`));
+      }
+    };
+
+    xhr.onerror = () => reject(new Error('网络错误'));
+    xhr.send();
+  });
+}
+
+/**
+ * 从 Gist 下载备份数据（带进度）
+ */
+export async function downloadFromGistWithProgress(
+  token: string,
+  gistId: string,
+  onProgress?: (progress: number) => void
+): Promise<GistResponse> {
+  try {
+    const octokit = createOctokitClient(token);
+
+    const { data } = await octokit.gists.get({ gist_id: gistId });
+    const file = data.files?.[BACKUP_FILENAME];
+    if (!file) {
+      return {
+        success: false,
+        message: `Gist 中未找到备份文件: ${BACKUP_FILENAME}`,
+      };
+    }
+
+    if (!file.raw_url) {
+      return await downloadFromGist(token, gistId);
+    }
+
+    const content = await fetchTextWithProgress(file.raw_url, onProgress);
+
+    let backupData: BackupData;
+    try {
+      backupData = JSON.parse(content);
+    } catch (error) {
+      return {
+        success: false,
+        message: '备份数据格式错误,无法解析 JSON',
+      };
+    }
+
+    return {
+      success: true,
+      message: '成功从 Gist 下载备份数据',
+      data: backupData,
+    };
+  } catch (error: any) {
+    console.error('[Gist API] 下载失败:', error);
+
+    if (error.status === 404) {
+      return {
+        success: false,
+        message: 'Gist 不存在,请检查 Gist ID',
+      };
+    }
+
+    return {
+      success: false,
+      message: `下载失败: ${error.message || '未知错误'}`,
+    };
+  }
+}
+
 /**
  * 列出当前用户的所有 Gists
  */

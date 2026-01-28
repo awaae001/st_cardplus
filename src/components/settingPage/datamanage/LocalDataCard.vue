@@ -29,8 +29,6 @@
 import { Icon } from '@iconify/vue';
 import { useLocalData } from '@/composables/dataManagement/useLocalData';
 
-// 这是一个虚拟的 updateStorageInfo 函数，因为这个组件不需要更新存储信息
-// 但 useLocalData hook 需要它作为参数
 const mockUpdateStorageInfo = async () => {};
 
 const { exportData, importData } = useLocalData(mockUpdateStorageInfo);

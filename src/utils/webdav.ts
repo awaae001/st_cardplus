@@ -29,6 +29,51 @@ export async function uploadToWebDAV(options: WebDAVConnectionOptions, remotePat
   await client.putFileContents(remotePath, data, { overwrite: true });
 }
 
+function buildWebDAVUrl(baseUrl: string, remotePath: string) {
+  const normalizedBase = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+  return new URL(remotePath, normalizedBase).toString();
+}
+
+function buildAuthHeader(options: WebDAVConnectionOptions) {
+  if (!options.username && !options.password) return null;
+  const token = btoa(`${options.username ?? ''}:${options.password ?? ''}`);
+  return `Basic ${token}`;
+}
+
+export async function uploadToWebDAVWithProgress(
+  options: WebDAVConnectionOptions,
+  remotePath: string,
+  data: string,
+  onProgress?: (progress: number) => void
+) {
+  const url = buildWebDAVUrl(options.url, remotePath);
+  const authHeader = buildAuthHeader(options);
+
+  await new Promise<void>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('PUT', url, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    if (authHeader) xhr.setRequestHeader('Authorization', authHeader);
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable && onProgress) {
+        onProgress(event.loaded / event.total);
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve();
+      } else {
+        reject(new Error(xhr.statusText || `HTTP ${xhr.status}`));
+      }
+    };
+
+    xhr.onerror = () => reject(new Error('网络错误'));
+    xhr.send(data);
+  });
+}
+
 /**
  * 从 WebDAV 服务器下载文件
  * @param options - WebDAV 连接选项
@@ -39,6 +84,38 @@ export async function downloadFromWebDAV(options: WebDAVConnectionOptions, remot
   const client = createWebDAVClient(options);
   const content = await client.getFileContents(remotePath, { format: 'text' });
   return content as string;
+}
+
+export async function downloadFromWebDAVWithProgress(
+  options: WebDAVConnectionOptions,
+  remotePath: string,
+  onProgress?: (progress: number) => void
+): Promise<string> {
+  const url = buildWebDAVUrl(options.url, remotePath);
+  const authHeader = buildAuthHeader(options);
+
+  return await new Promise<string>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    if (authHeader) xhr.setRequestHeader('Authorization', authHeader);
+
+    xhr.onprogress = (event) => {
+      if (event.lengthComputable && onProgress) {
+        onProgress(event.loaded / event.total);
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(xhr.responseText);
+      } else {
+        reject(new Error(xhr.statusText || `HTTP ${xhr.status}`));
+      }
+    };
+
+    xhr.onerror = () => reject(new Error('网络错误'));
+    xhr.send();
+  });
 }
 
 /**

@@ -9,11 +9,6 @@
         </div>
       </div>
 
-      <!-- 撤销提示 -->
-      <div v-if="snapshotAvailable || gistSnapshotAvailable" class="snapshot-revert-container">
-        <p>已从云端获取新数据<br/>您可以在这里 <el-button type="primary" link @click="revertCurrentPull">撤销</el-button> 此操作，本次会话有效</p>
-      </div>
-
       <!-- 同步提供商选择 -->
       <div class="sync-provider-selector">
         <span class="provider-label">同步提供商</span>
@@ -26,7 +21,7 @@
         <el-input v-model="webdavConfig.username" placeholder="用户名" />
         <el-input v-model="webdavConfig.password" placeholder="密码" type="password" show-password />
         <p class="provider-description">
-          将数据备份到你的 WebDAV 服务器<br/>
+          将数据备份到你的 WebDAV 服务器<br />
           <span style="color: var(--el-color-warning);">请注意前端该死的跨域问题，尽量使用自建服务</span>
         </p>
       </div>
@@ -52,10 +47,11 @@
           <span>上次同步: {{ formatSyncTime(gistConfig.lastSyncTime) }}</span>
         </div>
         <p class="provider-description">
-          将数据备份到 GitHub Gist (私密 Gist)<br/>
+          将数据备份到 GitHub Gist (私密 Gist)<br />
           需要创建 Personal Access Token 并赋予 <code>gist</code> 权限
-          <a href="https://github.com/settings/tokens/new?scopes=gist&description=ST-CardPlus-Sync" target="_blank" style="color: var(--el-color-primary);">创建 Token</a>
-          <br/>
+          <a href="https://github.com/settings/tokens/new?scopes=gist&description=ST-CardPlus-Sync" target="_blank"
+            style="color: var(--el-color-primary);">创建 Token</a>
+          <br />
           <span style="color: var(--el-color-info); font-size: 12px;">
             💡 单文件最大 100MB, Gist 总计最大 1GB · 首次推送自动创建 Gist, 后续更新同一个 Gist
           </span>
@@ -64,60 +60,81 @@
 
       <!-- 统一操作按钮 -->
       <div class="sync-action-buttons">
-        <el-button @click="handleTestConnection">
+        <el-button @click="handleTestConnection" :disabled="syncProgressActive">
           <Icon icon="material-symbols:add-link-rounded" style="margin-right: 8px;" />
-          测试连接
+          {{ testButtonText }}
         </el-button>
-        <el-button @click="handlePush" type="primary" plain :disabled="!canPush">
+        <el-button @click="handlePush" type="primary" plain :disabled="!canPush || syncProgressActive">
           <Icon icon="material-symbols:cloud-upload" style="margin-right: 8px;" />
-          推送
+          {{ pushButtonText }}
         </el-button>
-        <el-button @click="handlePull" type="success" plain :disabled="!canPull">
+        <el-button @click="handlePull" type="success" plain :disabled="!canPull || syncProgressActive">
           <Icon icon="material-symbols:cloud-download-outline" style="margin-right: 8px;" />
-          拉取
+          {{ pullButtonText }}
         </el-button>
       </div>
+
+      <transition name="sync-progress" appear>
+        <div v-if="syncProgressActive || syncProgressPercent > 0" class="sync-progress">
+          <div class="sync-progress-label">
+            <Icon icon="material-symbols:hourglass-top" width="16" height="16" />
+            <span>{{ syncProgressText || '处理中...' }}</span>
+          </div>
+          <el-progress v-if="syncProgressMode === 'determinate'" :percentage="syncProgressPercent" :text-inside="true"
+            :stroke-width="16" />
+          <el-progress v-else :percentage="100" :indeterminate="true" :stroke-width="12" />
+        </div>
+      </transition>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
-import { onMounted } from 'vue';
-import { useSync } from '@/composables/dataManagement/useSync';
+import { computed, inject } from 'vue';
+import { syncInjectionKey } from '@/composables/dataManagement/useSync';
+
+const sync = inject(syncInjectionKey);
+if (!sync) {
+  throw new Error('Sync provider is missing');
+}
 
 const {
   webdavConfig,
   gistConfig,
-  snapshotAvailable,
-  gistSnapshotAvailable,
   selectedProvider,
   providerOptions,
   canPush,
   canPull,
-  initSync,
   handleTestConnection,
   handlePush,
   handlePull,
-  revertCurrentPull,
+  syncProgressActive,
+  syncProgressPercent,
+  syncProgressText,
+  syncProgressMode,
+  syncCurrentAction,
   formatSyncTime,
   openGistTokenHelp,
   listGists,
-} = useSync();
+} = sync;
 
-onMounted(initSync);
+const testButtonText = computed(() => {
+  return syncProgressActive.value ? '等待中...' : '测试连接';
+});
+
+const pushButtonText = computed(() => {
+  if (!syncProgressActive.value) return '推送';
+  return syncCurrentAction.value === 'push' ? '推送中...' : '等待中...';
+});
+
+const pullButtonText = computed(() => {
+  if (!syncProgressActive.value) return '拉取';
+  return syncCurrentAction.value === 'pull' ? '下载中...' : '等待中...';
+});
 </script>
 
 <style scoped>
-.snapshot-revert-container {
-  padding: 8px 12px;
-  background-color: var(--el-color-success-light-9);
-  border: 1px solid var(--el-color-success-light-5);
-  border-radius: 4px;
-  margin-bottom: 15px;
-  color: var(--el-color-success-dark-2);
-}
-
 .sync-provider-selector {
   display: flex;
   align-items: center;
@@ -160,5 +177,38 @@ onMounted(initSync);
   justify-content: flex-end;
   gap: 10px;
   margin-top: 16px;
+}
+
+.sync-progress {
+  margin-top: 14px;
+}
+
+.sync-progress-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  margin-bottom: 6px;
+}
+
+.sync-progress-enter-active,
+.sync-progress-leave-active {
+  transition: max-height 240ms ease, opacity 240ms ease, margin-top 240ms ease;
+  overflow: hidden;
+}
+
+.sync-progress-enter-from,
+.sync-progress-leave-to {
+  max-height: 0;
+  opacity: 0;
+  margin-top: 0;
+}
+
+.sync-progress-enter-to,
+.sync-progress-leave-from {
+  max-height: 120px;
+  opacity: 1;
+  margin-top: 14px;
 }
 </style>

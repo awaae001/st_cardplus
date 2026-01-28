@@ -1,10 +1,10 @@
-import { ref, computed, watch, type Ref } from 'vue';
+import { ref, computed, watch, type Ref, type InjectionKey } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { uploadToWebDAV, downloadFromWebDAV, testWebDAVConnection } from '@/utils/webdav';
+import { uploadToWebDAVWithProgress, downloadFromWebDAVWithProgress, testWebDAVConnection } from '@/utils/webdav';
 import {
   testGistConnection,
   uploadToGist,
-  downloadFromGist,
+  downloadFromGistWithProgress,
   createBackupGist,
   listUserGists,
   loadGistConfig,
@@ -32,6 +32,11 @@ export function useSync() {
   
   const snapshotAvailable = ref(false);
   const gistSnapshotAvailable = ref(false);
+  const syncProgressActive = ref(false);
+  const syncProgressPercent = ref(0);
+  const syncProgressText = ref('');
+  const syncProgressMode = ref<'determinate' | 'indeterminate'>('determinate');
+  const syncCurrentAction = ref<'push' | 'pull' | 'test' | null>(null);
 
   type SyncProvider = 'webdav' | 'gist';
   const selectedProvider = ref<SyncProvider>('webdav');
@@ -68,17 +73,73 @@ export function useSync() {
   }, { deep: true });
 
   // === Methods ===
+  const collectLocalStorage = (excludeKeys: string[] = []) => {
+    const data: { [key: string]: any } = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key || excludeKeys.includes(key)) continue;
+      data[key] = localStorage.getItem(key);
+    }
+    return data;
+  };
+
+  const formatErrorMessage = (error: unknown, fallback: string) =>
+    error instanceof Error ? error.message : fallback;
+
+  const startDeterminateProgress = (action: 'push' | 'pull' | 'test', text: string) => {
+    syncProgressActive.value = true;
+    syncCurrentAction.value = action;
+    syncProgressMode.value = 'determinate';
+    syncProgressPercent.value = 0;
+    syncProgressText.value = text;
+  };
+
+  const startIndeterminateProgress = (action: 'push' | 'pull' | 'test', text: string) => {
+    syncProgressActive.value = true;
+    syncCurrentAction.value = action;
+    syncProgressMode.value = 'indeterminate';
+    syncProgressPercent.value = 100;
+    syncProgressText.value = text;
+  };
+
+  const setProgress = (percent: number, text?: string) => {
+    if (!syncProgressActive.value && percent > 0) return;
+    if (syncProgressMode.value === 'indeterminate') {
+      if (text) syncProgressText.value = text;
+      return;
+    }
+    syncProgressPercent.value = Math.max(0, Math.min(100, Math.round(percent)));
+    if (text) syncProgressText.value = text;
+  };
+
+  const finishProgress = (text?: string) => {
+    setProgress(100, text);
+    setTimeout(() => {
+      syncProgressActive.value = false;
+      syncProgressPercent.value = 0;
+      syncProgressText.value = '';
+      syncProgressMode.value = 'determinate';
+      syncCurrentAction.value = null;
+    }, 2000);
+  };
+
+  const failProgress = (text?: string) => {
+    if (text) syncProgressText.value = text;
+    setTimeout(() => {
+      syncProgressActive.value = false;
+      syncProgressPercent.value = 0;
+      syncProgressText.value = '';
+      syncProgressMode.value = 'determinate';
+      syncCurrentAction.value = null;
+    }, 2000);
+  };
 
   // --- Data Preparation ---
   const prepareBackupData = async (): Promise<BackupData> => {
-    const localStorageData: { [key: string]: any } = {};
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key !== 'gistConfig' && key !== 'webdavConfig') {
-        localStorageData[key] = localStorage.getItem(key);
-      }
-    }
+    const localStorageData = collectLocalStorage(['gistConfig', 'webdavConfig']);
+    setProgress(6, '正在整理本地数据...');
     const dbData = await exportAllDatabases();
+    setProgress(10, '本地数据准备完成');
     return {
       timestamp: new Date().toISOString(),
       version: '1.0.0',
@@ -90,15 +151,20 @@ export function useSync() {
   // --- Generic Sync Operations ---
   const genericPull = async (
     provider: SyncProvider,
-    downloadFn: () => Promise<any>,
+    downloadFn: (onProgress?: (progress: number) => void) => Promise<any>,
     configKey: string,
     snapshotKey: string,
     snapshotAvailableRef: Ref<boolean>,
     onSuccess?: () => void
   ) => {
     try {
+      startDeterminateProgress('pull', `正在从 ${provider} 拉取数据...`);
+      setProgress(10, '正在准备下载...');
       ElMessage.info(`正在从 ${provider} 拉取数据...`);
-      const result = await downloadFn();
+      const result = await downloadFn((progress) => {
+        setProgress(10 + progress * 90, `正在从 ${provider} 下载...`);
+      });
+      setProgress(92, '正在解析备份数据...');
 
       const backupData: BackupData | null = provider === 'webdav'
         ? JSON.parse(result) as BackupData
@@ -106,6 +172,7 @@ export function useSync() {
 
       if (!backupData) {
         ElMessage.error(provider === 'gist' ? result.message : '拉取失败或数据为空');
+        failProgress('拉取失败');
         return;
       }
 
@@ -124,11 +191,8 @@ export function useSync() {
 
 
       try {
-        const snapshotData: { [key: string]: any } = {};
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key) snapshotData[key] = localStorage.getItem(key);
-        }
+        setProgress(92, '正在应用云端数据...');
+        const snapshotData = collectLocalStorage();
         const dbSnapshot = await exportAllDatabases();
         Object.assign(snapshotData, dbSnapshot);
         writeSessionStorageJSON(snapshotKey, snapshotData);
@@ -146,17 +210,21 @@ export function useSync() {
         onSuccess?.();
 
         ElMessage.success(`数据已成功从 ${provider} 恢复，应用将重新加载`);
+        finishProgress('完成');
         setTimeout(() => window.location.reload(), 2000);
       } catch (restoreError) {
         console.error(`从 ${provider} 恢复数据失败:`, restoreError);
         ElMessage.error('恢复数据时发生错误，操作已终止');
+        failProgress('恢复失败');
       }
     } catch (error) {
       if (error === 'cancel') {
         ElMessage.info('操作已取消');
+        failProgress('已取消');
       } else {
         console.error(`从 ${provider} 拉取失败:`, error);
-        ElMessage.error(`拉取失败: ${error instanceof Error ? error.message : '未知错误'}`);
+        ElMessage.error(`拉取失败: ${formatErrorMessage(error, '未知错误')}`);
+        failProgress('拉取失败');
       }
     }
   };
@@ -204,18 +272,20 @@ export function useSync() {
   };
 
   // --- WebDAV ---
-  const testWebDAV = async () => {
+  const testWebDAV = async (): Promise<boolean> => {
     if (!webdavConfig.value.url) {
       ElMessage.error('请输入 WebDAV URL');
-      return;
+      return false;
     }
     try {
       ElMessage.info('正在测试连接...');
       await testWebDAVConnection(webdavConfig.value);
       ElMessage.success('连接成功！');
+      return true;
     } catch (error) {
       console.error('WebDAV 连接测试失败:', error);
-      ElMessage.error(`连接失败: ${error instanceof Error ? error.message : '未知错误'}`);
+      ElMessage.error(`连接失败: ${formatErrorMessage(error, '未知错误')}`);
+      return false;
     }
   };
 
@@ -225,14 +295,18 @@ export function useSync() {
       return;
     }
     try {
+      startDeterminateProgress('push', '正在准备数据...');
       ElMessage.info('正在准备数据并上传...');
       const backupData = await prepareBackupData();
       const json = JSON.stringify(backupData, null, 2);
-      await uploadToWebDAV(webdavConfig.value, webdavBackupFileName, json);
+      startIndeterminateProgress('push', '推送中...');
+      await uploadToWebDAVWithProgress(webdavConfig.value, webdavBackupFileName, json);
       ElMessage.success('数据已成功推送到 WebDAV 服务器');
+      finishProgress('完成');
     } catch (error) {
       console.error('推送到 WebDAV 失败:', error);
-      ElMessage.error(`推送失败: ${error instanceof Error ? error.message : '未知错误'}`);
+      ElMessage.error(`推送失败: ${formatErrorMessage(error, '未知错误')}`);
+      failProgress('推送失败');
     }
   };
 
@@ -243,7 +317,7 @@ export function useSync() {
     }
     await genericPull(
       'webdav',
-      () => downloadFromWebDAV(webdavConfig.value, webdavBackupFileName),
+      (onProgress) => downloadFromWebDAVWithProgress(webdavConfig.value, webdavBackupFileName, onProgress),
       'webdavConfig',
       'webdav-snapshot',
       snapshotAvailable
@@ -274,22 +348,25 @@ export function useSync() {
     window.open('https://github.com/settings/tokens/new?scopes=gist&description=ST-CardPlus-Sync', '_blank');
   };
 
-  const testGist = async () => {
+  const testGist = async (): Promise<boolean> => {
     if (!gistConfig.value.token) {
       ElMessage.error('请输入 GitHub Personal Access Token');
-      return;
+      return false;
     }
     try {
       ElMessage.info('正在测试连接...');
       const result = await testGistConnection(gistConfig.value.token);
       if (result.success) {
         ElMessage.success(result.message);
+        return true;
       } else {
         ElMessage.error(result.message);
+        return false;
       }
     } catch (error) {
       console.error('测试 Gist 连接失败:', error);
-      ElMessage.error(`连接失败: ${error instanceof Error ? error.message : '未知错误'}`);
+      ElMessage.error(`连接失败: ${formatErrorMessage(error, '未知错误')}`);
+      return false;
     }
   };
 
@@ -326,7 +403,7 @@ export function useSync() {
       }
     } catch (error) {
       console.error('获取 Gist 列表失败:', error);
-      ElMessage.error(`获取失败: ${error instanceof Error ? error.message : '未知错误'}`);
+      ElMessage.error(`获取失败: ${formatErrorMessage(error, '未知错误')}`);
     }
   };
 
@@ -336,6 +413,7 @@ export function useSync() {
       return;
     }
     try {
+      startDeterminateProgress('push', '正在准备数据...');
       ElMessage.info('正在准备数据并上传...');
       const backupData = await prepareBackupData();
       const backupSize = JSON.stringify(backupData).length;
@@ -343,11 +421,13 @@ export function useSync() {
 
       if (backupSize > 100 * 1024 * 1024) {
         ElMessage.warning(`备份文件过大 (${backupSizeMB}MB), 超过 Gist 单文件 100MB 限制，推送可能失败`);
+        failProgress('文件过大');
         return;
       } else if (backupSize > 50 * 1024 * 1024) {
         ElMessage.warning(`备份文件较大 (${backupSizeMB}MB), 建议清理无用数据`);
       }
 
+      startIndeterminateProgress('push', '推送中...');
       let result;
       if (gistConfig.value.gistId) {
         result = await uploadToGist(gistConfig.value.token, gistConfig.value.gistId, backupData);
@@ -361,12 +441,15 @@ export function useSync() {
       if (result.success) {
         gistConfig.value.lastSyncTime = new Date().toISOString();
         ElMessage.success(`${result.message} (大小: ${backupSizeMB}MB)`);
+        finishProgress('完成');
       } else {
         ElMessage.error(result.message);
+        failProgress('推送失败');
       }
     } catch (error) {
       console.error('[Gist Push] 推送失败:', error);
-      ElMessage.error(`推送失败: ${error instanceof Error ? error.message : '未知错误'}`);
+      ElMessage.error(`推送失败: ${formatErrorMessage(error, '未知错误')}`);
+      failProgress('推送失败');
     }
   };
 
@@ -377,7 +460,7 @@ export function useSync() {
     }
     await genericPull(
       'gist',
-      () => downloadFromGist(gistConfig.value.token!, gistConfig.value.gistId!),
+      (onProgress) => downloadFromGistWithProgress(gistConfig.value.token!, gistConfig.value.gistId!, onProgress),
       'gistConfig',
       'gist-snapshot',
       gistSnapshotAvailable,
@@ -394,8 +477,12 @@ export function useSync() {
 
   // --- Unified Handlers ---
   const handleTestConnection = async () => {
-    if (selectedProvider.value === 'webdav') await testWebDAV();
-    else await testGist();
+    startIndeterminateProgress('test', '正在测试连接...');
+    const ok = selectedProvider.value === 'webdav'
+      ? await testWebDAV()
+      : await testGist();
+    if (ok) finishProgress('完成');
+    else failProgress('连接失败');
   };
 
   const handlePush = async () => {
@@ -446,6 +533,11 @@ export function useSync() {
     gistConfig,
     snapshotAvailable,
     gistSnapshotAvailable,
+    syncProgressActive,
+    syncProgressPercent,
+    syncProgressText,
+    syncProgressMode,
+    syncCurrentAction,
     selectedProvider,
     providerOptions,
     canPush,
@@ -460,3 +552,6 @@ export function useSync() {
     listGists,
   };
 }
+
+export type SyncStore = ReturnType<typeof useSync>;
+export const syncInjectionKey: InjectionKey<SyncStore> = Symbol('sync');

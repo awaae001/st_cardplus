@@ -4,19 +4,27 @@ import { characterCardService } from '@/database/characterCardService';
 
 export function useLocalData(updateStorageInfo: () => Promise<void>) {
 
+  const collectLocalStorageData = () => {
+    const data: { [key: string]: any } = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key) data[key] = localStorage.getItem(key);
+    }
+    return data;
+  };
+
+  const readFileAsText = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(reader.error ?? new Error('读取文件失败'));
+      reader.readAsText(file);
+    });
+
   const exportData = async () => {
     try {
-      const data: { [key: string]: any } = {};
+      const data = collectLocalStorageData();
 
-      // 1. 导出所有 localStorage 数据
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key) {
-          data[key] = localStorage.getItem(key);
-        }
-      }
-
-      // 2. 导出所有 IndexedDB 数据库
       try {
         const dbData = await exportAllDatabases();
         Object.assign(data, dbData);
@@ -47,17 +55,16 @@ export function useLocalData(updateStorageInfo: () => Promise<void>) {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'application/json';
-    input.onchange = (event) => {
+    input.onchange = async (event) => {
       const file = (event.target as HTMLInputElement).files?.[0];
       if (!file) return;
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const json = e.target?.result as string;
-          const data = JSON.parse(json);
+      try {
+        const json = await readFileAsText(file);
+        const data = JSON.parse(json);
 
-          ElMessageBox.confirm(
+        try {
+          await ElMessageBox.confirm(
             '这将用导入文件中的数据覆盖所有现有本地数据（包括世界书），此操作无法撤销您确定要继续吗？',
             '警告',
             {
@@ -65,35 +72,35 @@ export function useLocalData(updateStorageInfo: () => Promise<void>) {
               cancelButtonText: '取消',
               type: 'warning',
             }
-          ).then(async () => {
-            try {
-              await importAllDatabases(data);
-
-              localStorage.clear();
-              for (const key in data) {
-                if (Object.prototype.hasOwnProperty.call(data, key)) {
-                  localStorage.setItem(key, data[key]);
-                }
-              }
-
-              ElMessage.success('数据已成功导入，应用将重新加载以应用更改');
-              await updateStorageInfo();
-              setTimeout(() => {
-                window.location.reload();
-              }, 2000);
-            } catch (importError) {
-              console.error('导入处理失败:', importError);
-              ElMessage.error('导入过程中发生错误，操作已终止');
-            }
-          }).catch(() => {
-            ElMessage.info('导入操作已取消');
-          });
+          );
         } catch (error) {
-          console.error('导入数据失败:', error);
-          ElMessage.error('导入数据失败，文件格式可能不正确 ');
+          ElMessage.info('导入操作已取消');
+          return;
         }
-      };
-      reader.readAsText(file);
+
+        try {
+          await importAllDatabases(data);
+
+          localStorage.clear();
+          for (const key in data) {
+            if (Object.prototype.hasOwnProperty.call(data, key)) {
+              localStorage.setItem(key, data[key]);
+            }
+          }
+
+          ElMessage.success('数据已成功导入，应用将重新加载以应用更改');
+          await updateStorageInfo();
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        } catch (importError) {
+          console.error('导入处理失败:', importError);
+          ElMessage.error('导入过程中发生错误，操作已终止');
+        }
+      } catch (error) {
+        console.error('导入数据失败:', error);
+        ElMessage.error('导入数据失败，文件格式可能不正确 ');
+      }
     };
     input.click();
   };
