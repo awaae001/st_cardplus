@@ -37,3 +37,39 @@ export const cleanObject = (obj: any, keysToRemove: string[] = [], removeKeysSta
   }
   return newObj;
 };
+
+/**
+ * Deeply remove empty fields from objects/arrays.
+ * Empty means: null, undefined, empty string (after trim), empty array, empty object.
+ */
+export const removeEmptyFields = (value: any): any => {
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed.length === 0 ? undefined : value;
+  }
+
+  if (Array.isArray(value)) {
+    const cleaned = value
+      .map(item => removeEmptyFields(item))
+      .filter(item => item !== undefined);
+    return cleaned.length > 0 ? cleaned : undefined;
+  }
+
+  if (typeof value === 'object') {
+    const result: Record<string, any> = {};
+    for (const key in value) {
+      if (!Object.prototype.hasOwnProperty.call(value, key)) continue;
+      const cleaned = removeEmptyFields(value[key]);
+      if (cleaned !== undefined) {
+        result[key] = cleaned;
+      }
+    }
+    return Object.keys(result).length > 0 ? result : undefined;
+  }
+
+  return value;
+};

@@ -6,6 +6,7 @@ import { copyToClipboard as copyUtil } from '../../utils/clipboard';
 import { clearLocalStorage } from '../../utils/localStorageUtils';
 import { createDefaultCharacterCard } from './useCharacterCard';
 import type { CharacterCard, Attire, Appearance, Trait, Relationship, Skill, Note } from '../../types/character';
+import { removeEmptyFields } from '../../utils/objectUtils';
 
 /**
  * 将数组转换为多行文本
@@ -15,36 +16,6 @@ import type { CharacterCard, Attire, Appearance, Trait, Relationship, Skill, Not
 const arrayToText = (arr: string[] | undefined): string => {
   if (!arr || !Array.isArray(arr)) return '';
   return arr.join('\n');
-};
-
-/**
- * 递归过滤空值
- * 过滤掉对象或数组中的空值
- * @param obj - 要过滤的对象或数组
- * @returns 过滤后的对象或数组
- */
-const filterEmptyValues = (obj: any): any => {
-  if (Array.isArray(obj)) {
-    const filtered = obj
-      .map(item => filterEmptyValues(item))
-      .filter(item => item !== null && item !== undefined && item !== '');
-    return filtered.length > 0 ? filtered : null;
-  }
-
-  if (typeof obj === 'object' && obj !== null) {
-    const result: any = {};
-    for (const key in obj) {
-      const filtered = filterEmptyValues(obj[key]);
-      if (filtered !== null && filtered !== undefined && filtered !== '') {
-        result[key] = filtered;
-      }
-    }
-    return Object.keys(result).length > 0 ? result : null;
-  }
-
-  if (obj === '') return null;
-  if (typeof obj === 'number' && obj === 0) return null;
-  return obj;
 };
 
 /**
@@ -233,7 +204,7 @@ const saveCharacterCard = async (): Promise<void> => {
     };
 
     // 过滤空值
-    const dataToSave = filterEmptyValues(rawData);
+    const dataToSave = removeEmptyFields(rawData);
 
       // 验证数据
       if (!dataToSave || Object.keys(dataToSave).length === 0) {
@@ -375,7 +346,7 @@ const saveCharacterCard = async (): Promise<void> => {
     };
 
     // 过滤空值
-    const dataToSave = filterEmptyValues(rawData);
+    const dataToSave = removeEmptyFields(rawData);
     
     // 验证数据
     if (!dataToSave || Object.keys(dataToSave).length === 0) {

@@ -154,10 +154,16 @@
         <template #header>
           <div class="card-header">
             <span>JSON预览</span>
-            <el-button type="primary" size="small" @click="exportSelectedJSON">
-              <Icon icon="ph:copy-duotone" />
-              复制JSON
-            </el-button>
+            <div class="preview-actions">
+              <div class="preview-filter">
+                <span class="preview-filter-label">过滤空字段</span>
+                <el-switch v-model="filterEmptyFields" />
+              </div>
+              <el-button type="primary" size="small" @click="exportSelectedJSON">
+                <Icon icon="ph:copy-duotone" />
+                复制JSON
+              </el-button>
+            </div>
           </div>
         </template>
         <div class="preview-content">
@@ -171,10 +177,10 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { ElCard, ElButton, ElRow, ElCol, ElCheckbox, ElMessage } from 'element-plus';
+import { ElCard, ElButton, ElRow, ElCol, ElCheckbox, ElMessage, ElSwitch } from 'element-plus';
 import { Icon } from '@iconify/vue';
 import type { Project, EnhancedLandmark, EnhancedForce, EnhancedRegion, ProjectIntegration } from '@/types/world-editor';
-import { cleanObject } from '@/utils/objectUtils';
+import { cleanObject, removeEmptyFields } from '@/utils/objectUtils';
 import { getLandmarkTypeLabel } from '@/utils/worldeditor/landmarkMeta';
 import { getParentLandmarkId } from '@/utils/worldeditor/landmarkHierarchy';
 
@@ -192,6 +198,7 @@ const props = defineProps<Props>();
 const selectedLandmarks = ref<string[]>([]);
 const selectedForces = ref<string[]>([]);
 const selectedRegions = ref<string[]>([]);
+const filterEmptyFields = ref(true);
 
 // 计算当前项目的地标和势力
 const projectLandmarks = computed(() => {
@@ -412,7 +419,8 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce | EnhancedRegion)
     }
   };
 
-  return JSON.stringify(exportData, null, 2);
+  const outputData = filterEmptyFields.value ? removeEmptyFields(exportData) : exportData;
+  return JSON.stringify(outputData ?? {}, null, 2);
 };
 
 // 导出方法
@@ -487,6 +495,25 @@ const exportAllJSON = async () => {
   justify-content: space-between;
   align-items: center;
   font-weight: 600;
+}
+
+.preview-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.preview-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.preview-filter-label {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
 }
 
 .header-actions-small {
