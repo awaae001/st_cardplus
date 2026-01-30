@@ -89,7 +89,7 @@ export async function downloadFromWebDAV(options: WebDAVConnectionOptions, remot
 export async function downloadFromWebDAVWithProgress(
   options: WebDAVConnectionOptions,
   remotePath: string,
-  onProgress?: (progress: number) => void
+  onProgress?: (progress: { loaded: number; total?: number; lengthComputable?: boolean }) => void
 ): Promise<string> {
   const url = buildWebDAVUrl(options.url, remotePath);
   const authHeader = buildAuthHeader(options);
@@ -100,8 +100,12 @@ export async function downloadFromWebDAVWithProgress(
     if (authHeader) xhr.setRequestHeader('Authorization', authHeader);
 
     xhr.onprogress = (event) => {
-      if (event.lengthComputable && onProgress) {
-        onProgress(event.loaded / event.total);
+      if (onProgress) {
+        onProgress({
+          loaded: event.loaded,
+          total: event.lengthComputable ? event.total : undefined,
+          lengthComputable: event.lengthComputable,
+        });
       }
     };
 

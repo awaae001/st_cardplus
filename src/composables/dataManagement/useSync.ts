@@ -16,7 +16,6 @@ import {
   getSessionStorageItem,
   removeSessionStorageItem,
   readSessionStorageJSON,
-  writeSessionStorageJSON,
 } from '@/utils/localStorageUtils';
 
 interface WebDAVConfig {
@@ -25,17 +24,21 @@ interface WebDAVConfig {
   password: string;
 }
 
+interface TransferProgress {
+  loaded: number;
+  total?: number;
+  lengthComputable?: boolean;
+}
+
+
 export function useSync() {
   // === State ===
   const webdavConfig = ref<WebDAVConfig>({ url: '', username: '', password: '' });
   const gistConfig = ref<GistConfig>({ token: '', gistId: '', lastSyncTime: undefined, autoSync: false });
   
   const snapshotAvailable = ref(false);
-  const gistSnapshotAvailable = ref(false);
   const syncProgressActive = ref(false);
-  const syncProgressPercent = ref(0);
   const syncProgressText = ref('');
-  const syncProgressMode = ref<'determinate' | 'indeterminate'>('determinate');
   const syncCurrentAction = ref<'push' | 'pull' | 'test' | null>(null);
 
   type SyncProvider = 'webdav' | 'gist';
@@ -45,8 +48,8 @@ export function useSync() {
     { label: 'GitHub Gist', value: 'gist', icon: 'mdi:github' }
   ];
   const webdavBackupFileName = 'st-cardplus-webdav-backup.json';
+  const snapshotSessionKey = 'sync-snapshot';
 
-  // === Computed ===
   const canPush = computed(() => {
     if (selectedProvider.value === 'webdav') {
       return !!webdavConfig.value.url;
@@ -72,6 +75,7 @@ export function useSync() {
     saveGistConfig(newConfig);
   }, { deep: true });
 
+
   // === Methods ===
   const collectLocalStorage = (excludeKeys: string[] = []) => {
     const data: { [key: string]: any } = {};
@@ -86,39 +90,38 @@ export function useSync() {
   const formatErrorMessage = (error: unknown, fallback: string) =>
     error instanceof Error ? error.message : fallback;
 
-  const startDeterminateProgress = (action: 'push' | 'pull' | 'test', text: string) => {
+  const startProgress = (action: 'push' | 'pull' | 'test', text: string) => {
     syncProgressActive.value = true;
     syncCurrentAction.value = action;
-    syncProgressMode.value = 'determinate';
-    syncProgressPercent.value = 0;
     syncProgressText.value = text;
   };
 
-  const startIndeterminateProgress = (action: 'push' | 'pull' | 'test', text: string) => {
-    syncProgressActive.value = true;
-    syncCurrentAction.value = action;
-    syncProgressMode.value = 'indeterminate';
-    syncProgressPercent.value = 100;
-    syncProgressText.value = text;
-  };
-
-  const setProgress = (percent: number, text?: string) => {
-    if (!syncProgressActive.value && percent > 0) return;
-    if (syncProgressMode.value === 'indeterminate') {
-      if (text) syncProgressText.value = text;
-      return;
-    }
-    syncProgressPercent.value = Math.max(0, Math.min(100, Math.round(percent)));
+  const setProgress = (text?: string) => {
     if (text) syncProgressText.value = text;
   };
 
+  const trySaveSnapshot = async (snapshotKey: string, snapshotAvailableRef: Ref<boolean>) => {
+    const snapshotData = collectLocalStorage();
+    const dbSnapshot = await exportAllDatabases();
+    Object.assign(snapshotData, dbSnapshot);
+    try {
+      const snapshotJson = JSON.stringify(snapshotData);
+      sessionStorage.setItem(snapshotKey, snapshotJson);
+      snapshotAvailableRef.value = true;
+      return true;
+    } catch (snapshotError) {
+      console.error('保存撤销快照失败:', snapshotError);
+      removeSessionStorageItem(snapshotKey);
+      snapshotAvailableRef.value = false;
+      return false;
+    }
+  };
+
   const finishProgress = (text?: string) => {
-    setProgress(100, text);
+    setProgress(text);
     setTimeout(() => {
       syncProgressActive.value = false;
-      syncProgressPercent.value = 0;
       syncProgressText.value = '';
-      syncProgressMode.value = 'determinate';
       syncCurrentAction.value = null;
     }, 2000);
   };
@@ -127,19 +130,16 @@ export function useSync() {
     if (text) syncProgressText.value = text;
     setTimeout(() => {
       syncProgressActive.value = false;
-      syncProgressPercent.value = 0;
       syncProgressText.value = '';
-      syncProgressMode.value = 'determinate';
       syncCurrentAction.value = null;
     }, 2000);
   };
 
-  // --- Data Preparation ---
   const prepareBackupData = async (): Promise<BackupData> => {
     const localStorageData = collectLocalStorage(['gistConfig', 'webdavConfig']);
-    setProgress(6, '正在整理本地数据...');
+    setProgress('正在整理本地数据...');
     const dbData = await exportAllDatabases();
-    setProgress(10, '本地数据准备完成');
+    setProgress('本地数据准备完成');
     return {
       timestamp: new Date().toISOString(),
       version: '1.0.0',
@@ -148,23 +148,43 @@ export function useSync() {
     };
   };
 
-  // --- Generic Sync Operations ---
   const genericPull = async (
     provider: SyncProvider,
-    downloadFn: (onProgress?: (progress: number) => void) => Promise<any>,
+    downloadFn: (onProgress?: (progress: TransferProgress) => void) => Promise<any>,
     configKey: string,
     snapshotKey: string,
     snapshotAvailableRef: Ref<boolean>,
     onSuccess?: () => void
   ) => {
     try {
-      startDeterminateProgress('pull', `正在从 ${provider} 拉取数据...`);
-      setProgress(10, '正在准备下载...');
+      startProgress('pull', `正在从 ${provider} 拉取数据...`);
+      setProgress('下载中... · -- KB/S : -- KB');
       ElMessage.info(`正在从 ${provider} 拉取数据...`);
+      let lastLoaded = 0;
+      let lastTime = Date.now();
+
+      const formatSpeedValue = (bytesPerSecond: number | null) => {
+        if (!bytesPerSecond || !Number.isFinite(bytesPerSecond) || bytesPerSecond <= 0) return '--';
+        return (bytesPerSecond / 1024).toFixed(1);
+      };
+
+      const formatTotalSizeKB = (total?: number, lengthComputable?: boolean) => {
+        if (!lengthComputable || !total || !Number.isFinite(total) || total <= 0) return '-- KB';
+        return `${(total / 1024).toFixed(1)} KB`;
+      };
+
       const result = await downloadFn((progress) => {
-        setProgress(10 + progress * 90, `正在从 ${provider} 下载...`);
+        const now = Date.now();
+        const deltaBytes = Math.max(0, progress.loaded - lastLoaded);
+        const deltaMs = Math.max(1, now - lastTime);
+        const speed = (deltaBytes * 1000) / deltaMs;
+        lastLoaded = progress.loaded;
+        lastTime = now;
+
+        const speedText = `·  ${formatSpeedValue(speed)} KB/S : ${formatTotalSizeKB(progress.total, progress.lengthComputable)}`;
+        setProgress(`正在从 ${provider} 下载... ${speedText}`);
       });
-      setProgress(92, '正在解析备份数据...');
+      setProgress('正在解析备份数据...');
 
       const backupData: BackupData | null = provider === 'webdav'
         ? JSON.parse(result) as BackupData
@@ -176,10 +196,17 @@ export function useSync() {
         return;
       }
 
+      removeSessionStorageItem(snapshotSessionKey);
+      snapshotAvailable.value = false;
+      const snapshotSaved = await trySaveSnapshot(snapshotKey, snapshotAvailableRef);
+      const snapshotWarning = !snapshotSaved
+        ? '<br/><span style="color: var(--el-color-danger);">缓存区域超限，无法保存撤销快照，本次无法撤销。</span>'
+        : '';
+
       await ElMessageBox.confirm(
         `这将用服务器上的备份覆盖所有现有本地数据<br/>
         <strong>备份时间:</strong> ${new Date(backupData.timestamp).toLocaleString('zh-CN')}<br/>
-        此操作可能会丢失你没有保存的更改 您确定要继续吗？`,
+        此操作可能会丢失你没有保存的更改 您确定要继续吗？${snapshotWarning}`,
         '警告',
         {
           confirmButtonText: '确认覆盖',
@@ -191,12 +218,7 @@ export function useSync() {
 
 
       try {
-        setProgress(92, '正在应用云端数据...');
-        const snapshotData = collectLocalStorage();
-        const dbSnapshot = await exportAllDatabases();
-        Object.assign(snapshotData, dbSnapshot);
-        writeSessionStorageJSON(snapshotKey, snapshotData);
-        snapshotAvailableRef.value = true;
+        setProgress('正在应用云端数据...');
         const flatData = { ...backupData.localStorage, ...backupData.databases };
         await importAllDatabases(flatData);
         const preservedConfig = localStorage.getItem(configKey);
@@ -220,6 +242,8 @@ export function useSync() {
     } catch (error) {
       if (error === 'cancel') {
         ElMessage.info('操作已取消');
+        removeSessionStorageItem(snapshotKey);
+        snapshotAvailableRef.value = false;
         failProgress('已取消');
       } else {
         console.error(`从 ${provider} 拉取失败:`, error);
@@ -233,11 +257,13 @@ export function useSync() {
     provider: SyncProvider,
     snapshotKey: string,
     snapshotAvailableRef: Ref<boolean>
-  ) => {
+  ): Promise<boolean> => {
     const snapshotData = readSessionStorageJSON<{ [key: string]: any }>(snapshotKey);
     if (!snapshotData) {
       ElMessage.error('没有可用的快照 请检查是否已执行拉取操作 ');
-      return;
+      removeSessionStorageItem(snapshotKey);
+      snapshotAvailableRef.value = false;
+      return false;
     }
 
     try {
@@ -261,12 +287,15 @@ export function useSync() {
       snapshotAvailableRef.value = false;
       ElMessage.success('操作已撤销，应用将重新加载');
       setTimeout(() => window.location.reload(), 1500);
+      return true;
     } catch (error) {
       if (error === 'cancel') {
         ElMessage.info('操作已取消');
+        return false;
       } else {
         console.error(`恢复 ${provider} 快照失败:`, error);
         ElMessage.error('恢复快照失败，请检查控制台');
+        return false;
       }
     }
   };
@@ -295,11 +324,11 @@ export function useSync() {
       return;
     }
     try {
-      startDeterminateProgress('push', '正在准备数据...');
+      startProgress('push', '正在准备数据...');
       ElMessage.info('正在准备数据并上传...');
       const backupData = await prepareBackupData();
       const json = JSON.stringify(backupData, null, 2);
-      startIndeterminateProgress('push', '推送中...');
+      setProgress('推送中...');
       await uploadToWebDAVWithProgress(webdavConfig.value, webdavBackupFileName, json);
       ElMessage.success('数据已成功推送到 WebDAV 服务器');
       finishProgress('完成');
@@ -319,13 +348,13 @@ export function useSync() {
       'webdav',
       (onProgress) => downloadFromWebDAVWithProgress(webdavConfig.value, webdavBackupFileName, onProgress),
       'webdavConfig',
-      'webdav-snapshot',
+      snapshotSessionKey,
       snapshotAvailable
     );
   };
 
   const revertPull = async () => {
-    await genericRevert('webdav', 'webdav-snapshot', snapshotAvailable);
+    return await genericRevert('webdav', snapshotSessionKey, snapshotAvailable);
   };
 
   // --- Gist ---
@@ -413,7 +442,7 @@ export function useSync() {
       return;
     }
     try {
-      startDeterminateProgress('push', '正在准备数据...');
+      startProgress('push', '正在准备数据...');
       ElMessage.info('正在准备数据并上传...');
       const backupData = await prepareBackupData();
       const backupSize = JSON.stringify(backupData).length;
@@ -427,7 +456,7 @@ export function useSync() {
         ElMessage.warning(`备份文件较大 (${backupSizeMB}MB), 建议清理无用数据`);
       }
 
-      startIndeterminateProgress('push', '推送中...');
+      setProgress('推送中...');
       let result;
       if (gistConfig.value.gistId) {
         result = await uploadToGist(gistConfig.value.token, gistConfig.value.gistId, backupData);
@@ -462,8 +491,8 @@ export function useSync() {
       'gist',
       (onProgress) => downloadFromGistWithProgress(gistConfig.value.token!, gistConfig.value.gistId!, onProgress),
       'gistConfig',
-      'gist-snapshot',
-      gistSnapshotAvailable,
+      snapshotSessionKey,
+      snapshotAvailable,
       () => {
         gistConfig.value.lastSyncTime = new Date().toISOString();
         saveGistConfig(gistConfig.value);
@@ -471,13 +500,9 @@ export function useSync() {
     );
   };
 
-  const revertGistPull = async () => {
-    await genericRevert('gist', 'gist-snapshot', gistSnapshotAvailable);
-  };
-
   // --- Unified Handlers ---
   const handleTestConnection = async () => {
-    startIndeterminateProgress('test', '正在测试连接...');
+    startProgress('test', '正在测试连接...');
     const ok = selectedProvider.value === 'webdav'
       ? await testWebDAV()
       : await testGist();
@@ -511,32 +536,40 @@ export function useSync() {
   };
 
   const revertCurrentPull = async () => {
-    if (snapshotAvailable.value) await revertPull();
-    else if (gistSnapshotAvailable.value) await revertGistPull();
+    if (!snapshotAvailable.value) return false;
+    const ok = await revertPull();
+    if (ok) clearSnapshotNotice();
+    return ok;
   };
 
-  // --- Initialization ---
+  const clearSnapshotNotice = () => {
+    removeSessionStorageItem(snapshotSessionKey);
+    snapshotAvailable.value = false;
+  };
+
   const initSync = () => {
     const savedWebDAVConfig = localStorage.getItem('webdavConfig');
     if (savedWebDAVConfig) webdavConfig.value = JSON.parse(savedWebDAVConfig);
 
-    if (getSessionStorageItem('webdav-snapshot')) snapshotAvailable.value = true;
+    const snapshotData = getSessionStorageItem(snapshotSessionKey);
+    if (snapshotData) {
+      snapshotAvailable.value = true;
+    } else {
+      removeSessionStorageItem(snapshotSessionKey);
+      snapshotAvailable.value = false;
+    }
 
     const savedGistConfig = loadGistConfig();
     if (savedGistConfig) gistConfig.value = savedGistConfig;
 
-    if (getSessionStorageItem('gist-snapshot')) gistSnapshotAvailable.value = true;
   };
 
   return {
     webdavConfig,
     gistConfig,
     snapshotAvailable,
-    gistSnapshotAvailable,
     syncProgressActive,
-    syncProgressPercent,
     syncProgressText,
-    syncProgressMode,
     syncCurrentAction,
     selectedProvider,
     providerOptions,
@@ -547,6 +580,7 @@ export function useSync() {
     handlePush,
     handlePull,
     revertCurrentPull,
+    clearSnapshotNotice,
     formatSyncTime,
     openGistTokenHelp,
     listGists,

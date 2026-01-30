@@ -1,8 +1,13 @@
 <template>
   <div>
-    <div v-if="sync.snapshotAvailable || sync.gistSnapshotAvailable" class="snapshot-revert-container">
-      <p>已从云端获取新数据<br/>您可以在这里 <el-button type="primary" link @click="sync.revertCurrentPull">撤销</el-button> 此操作，本次会话有效</p>
+    <transition name="snapshot-revert" appear>
+      <div v-if="sync.snapshotAvailable.value" class="snapshot-revert-container">
+        <p class="snapshot-revert-text">
+        已从云端获取新数据<br />您可以在这里 <el-button type="primary" link @click="handleRevert">撤销</el-button> 此操作，本次会话有效
+        ，或者<el-button type="primary" style="color: red;" link @click="handleHideSnapshotNotice">隐藏</el-button> 这条消息。
+      </p>
     </div>
+  </transition>
     <StorageInfoCard />
     <SyncCard />
     <LocalDataCard />
@@ -22,6 +27,14 @@ import { useSync, syncInjectionKey } from '@/composables/dataManagement/useSync'
 
 const sync = useSync();
 provide(syncInjectionKey, sync);
+
+const handleHideSnapshotNotice = () => {
+  sync.clearSnapshotNotice();
+};
+
+const handleRevert = async () => {
+  await sync.revertCurrentPull();
+};
 
 onMounted(sync.initSync);
 </script>
@@ -79,5 +92,25 @@ onMounted(sync.initSync);
   border-radius: 4px;
   margin-bottom: 16px;
   color: var(--el-color-success-dark-2);
+}
+
+.snapshot-revert-enter-active,
+.snapshot-revert-leave-active {
+  transition: max-height 240ms ease, opacity 240ms ease, margin-bottom 240ms ease;
+  overflow: hidden;
+}
+
+.snapshot-revert-enter-from,
+.snapshot-revert-leave-to {
+  max-height: 0;
+  opacity: 0;
+  margin-bottom: 0;
+}
+
+.snapshot-revert-enter-to,
+.snapshot-revert-leave-from {
+  max-height: 120px;
+  opacity: 1;
+  margin-bottom: 16px;
 }
 </style>

@@ -7,10 +7,13 @@
           <Icon icon="material-symbols:database-outline" width="20" height="20"
             style="margin-left: 8px; color: var(--el-color-primary);" />
         </div>
+        <el-button class="storage-refresh" text @click="handleRefresh" :disabled="isRefreshing">
+          <Icon icon="material-symbols:refresh" width="18" height="18" :class="{ 'spin-refresh': isRefreshing }" />
+        </el-button>
       </div>
       <div class="storage-info">
         <div class="storage-bar">
-          <span>全局占用</span>
+          <span>IndexedDB</span>
           <el-progress :percentage="indexedDBUsage.percentage" :text-inside="true" :stroke-width="20"
                        :status="getProgressStatus(indexedDBUsage.percentage)">
             <span>{{ indexedDBUsage.text }}</span>
@@ -29,7 +32,6 @@
         </div>
       </div>
        <p class="setting-description" style="margin-top: 12px;">
-        核心数据库用于存储世界书等大数据，容量大<br/>浏览器缓存用于存储地标、设置等轻量数据，容量较小<br/>
         存储大小由浏览器自动管理
       </p>
     </div>
@@ -38,7 +40,7 @@
 
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useStorageInfo } from '@/composables/dataManagement/useStorageInfo';
 
 const {
@@ -50,6 +52,16 @@ const {
   getProgressStatus,
   updateStorageInfo,
 } = useStorageInfo();
+
+const isRefreshing = ref(false);
+const handleRefresh = async () => {
+  if (isRefreshing.value) return;
+  isRefreshing.value = true;
+  await updateStorageInfo();
+  setTimeout(() => {
+    isRefreshing.value = false;
+  }, 600);
+};
 
 onMounted(updateStorageInfo);
 </script>
@@ -81,5 +93,19 @@ onMounted(updateStorageInfo);
   font-size: 14px;
   color: var(--el-text-color-regular);
   text-align: left;
+}
+
+.storage-refresh {
+  padding: 4px;
+  color: var(--el-text-color-secondary);
+}
+
+.spin-refresh {
+  animation: storage-refresh-spin 0.6s linear;
+}
+
+@keyframes storage-refresh-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 </style>

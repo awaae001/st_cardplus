@@ -234,15 +234,22 @@ export async function downloadFromGist(
   }
 }
 
-async function fetchTextWithProgress(url: string, onProgress?: (progress: number) => void): Promise<string> {
+async function fetchTextWithProgress(
+  url: string,
+  onProgress?: (progress: { loaded: number; total: number; lengthComputable: boolean }) => void
+): Promise<string> {
   return await new Promise<string>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);
     xhr.responseType = 'text';
 
     xhr.onprogress = (event) => {
-      if (event.lengthComputable && onProgress) {
-        onProgress(event.loaded / event.total);
+      if (onProgress) {
+        onProgress({
+          loaded: event.loaded,
+          total: event.total,
+          lengthComputable: event.lengthComputable,
+        });
       }
     };
 
@@ -265,7 +272,7 @@ async function fetchTextWithProgress(url: string, onProgress?: (progress: number
 export async function downloadFromGistWithProgress(
   token: string,
   gistId: string,
-  onProgress?: (progress: number) => void
+  onProgress?: (progress: { loaded: number; total?: number; lengthComputable?: boolean }) => void
 ): Promise<GistResponse> {
   try {
     const octokit = createOctokitClient(token);
@@ -283,7 +290,13 @@ export async function downloadFromGistWithProgress(
       return await downloadFromGist(token, gistId);
     }
 
-    const content = await fetchTextWithProgress(file.raw_url, onProgress);
+    const content = await fetchTextWithProgress(file.raw_url, (progress) => {
+      onProgress?.({
+        loaded: progress.loaded,
+        total: progress.lengthComputable ? progress.total : undefined,
+        lengthComputable: progress.lengthComputable,
+      });
+    });
 
     let backupData: BackupData;
     try {

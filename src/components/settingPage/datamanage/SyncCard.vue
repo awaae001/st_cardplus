@@ -75,14 +75,12 @@
       </div>
 
       <transition name="sync-progress" appear>
-        <div v-if="syncProgressActive || syncProgressPercent > 0" class="sync-progress">
+        <div v-if="syncProgressActive" class="sync-progress">
           <div class="sync-progress-label">
             <Icon icon="material-symbols:hourglass-top" width="16" height="16" />
             <span>{{ syncProgressText || '处理中...' }}</span>
           </div>
-          <el-progress v-if="syncProgressMode === 'determinate'" :percentage="syncProgressPercent" :text-inside="true"
-            :stroke-width="16" />
-          <el-progress v-else :percentage="100" :indeterminate="true" :stroke-width="12" />
+          <el-progress :percentage="100" :indeterminate="true" :stroke-width="12" :show-text="false" />
         </div>
       </transition>
     </div>
@@ -110,9 +108,7 @@ const {
   handlePush,
   handlePull,
   syncProgressActive,
-  syncProgressPercent,
   syncProgressText,
-  syncProgressMode,
   syncCurrentAction,
   formatSyncTime,
   openGistTokenHelp,
