@@ -119,14 +119,14 @@ const updateFormField = (key: string, value: string) => {
 
 const addCustomField = async () => {
   try {
-    const { value: inputText } = await ElMessageBox.prompt(
+    const result = await ElMessageBox.prompt(
       '<b>请输入自定义字段，每行一个字段</b><br>格式为"字段名:字段描述"<br>例如:<br>纹身:淡青色纹身，一条小龙<br>右腿:断掉的右腿，只有裤腿在晃荡',
       '添加自定义字段',
       {
         confirmButtonText: '确认', cancelButtonText: '取消', inputType: 'textarea', inputPlaceholder: '字段名:字段描述',
         inputValidator: (value) => {
           if (!value) return true;
-          const lines = value.split('\n').filter(line => line.trim());
+          const lines = value.split('\n').filter((line: string) => line.trim());
           for (const line of lines) {
             if (!line.includes(':')) {
               return `格式错误: "${line}"每行必须包含冒号(:)分隔字段名和描述`;
@@ -137,8 +137,9 @@ const addCustomField = async () => {
         dangerouslyUseHTMLString: true
       }
     );
+    const { value: inputText } = result as { value: string };
     if (inputText) {
-      const lines = inputText.split('\n').filter(line => line.trim());
+      const lines = inputText.split('\n').filter((line: string) => line.trim());
       let addedCount = 0;
       for (const line of lines) {
         const [fieldName, ...fieldValueParts] = line.split(':');

@@ -62,7 +62,7 @@ const loadInitialData = async () => {
 
   const handleCreateBook = async () => {
     try {
-      const { value: bookName } = await ElMessageBox.prompt(
+      const createBookResult = await ElMessageBox.prompt(
         '请输入新世界书的名称：',
         '创建新世界书',
         {
@@ -72,6 +72,7 @@ const loadInitialData = async () => {
           inputErrorMessage: '名称不能为空',
         }
       );
+      const { value: bookName } = createBookResult as { value: string };
 
       const newBookId = uuidv4();
       const now = new Date().toISOString();
@@ -107,7 +108,7 @@ const loadInitialData = async () => {
     if (!book) return;
 
     try {
-      const { value: newBookName } = await ElMessageBox.prompt(
+      const renameBookResult = await ElMessageBox.prompt(
         '请输入新的名称：',
         '重命名世界书',
         {
@@ -118,6 +119,7 @@ const loadInitialData = async () => {
           inputErrorMessage: '名称不能为空',
         }
       );
+      const { value: newBookName } = renameBookResult as { value: string };
 
       const bookToUpdate: StoredWorldBook = {
         id: book.id,

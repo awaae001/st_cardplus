@@ -154,7 +154,7 @@ export function useCharacterCollection() {
 
   const handleCreateCharacter = async () => {
     try {
-      const { value: characterName } = await ElMessageBox.prompt(
+      const createCharacterResult = await ElMessageBox.prompt(
         '请输入新角色的名称：',
         '创建新角色',
         {
@@ -165,6 +165,7 @@ export function useCharacterCollection() {
           inputValue: '新角色',
         }
       );
+      const { value: characterName } = createCharacterResult as { value: string };
 
       const newId = uuidv4();
       const newCharacter: CharacterCard = {

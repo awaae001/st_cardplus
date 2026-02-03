@@ -24,10 +24,11 @@ export function useWorldBookEntryIO(
 
   const showImportEntryDialog = async (): Promise<void> => {
     try {
-      const { value } = await ElMessageBox.prompt(
+      const importEntryResult = await ElMessageBox.prompt(
         "请粘贴单个世界书条目的JSON数据到下方：", "粘贴为新条目",
         { confirmButtonText: "确认导入", cancelButtonText: "取消", inputType: "textarea" }
       );
+      const { value } = importEntryResult as { value: string };
       if (!activeBook.value) { ElMessage.error("没有活动的世界书，无法导入条目"); return; }
 
       const parsedEntryData = JSON.parse(value);
@@ -110,10 +111,11 @@ export function useWorldBookEntryIO(
 
   const showImportWorldBookDialog = async (): Promise<void> => {
     try {
-      const { value } = await ElMessageBox.prompt(
+      const importBookResult = await ElMessageBox.prompt(
         '请粘贴世界书条目的JSON数据 警告：此操作将替换当前活动世界书的所有条目', '从剪贴板导入条目',
         { confirmButtonText: "确认导入", cancelButtonText: "取消", inputType: "textarea" }
       );
+      const { value } = importBookResult as { value: string };
       if (!activeBook.value) throw new Error("没有活动的世界书");
 
       const jsonData = JSON.parse(value);

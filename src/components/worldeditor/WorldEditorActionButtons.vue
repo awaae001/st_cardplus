@@ -49,7 +49,8 @@ const showImportDialog = () => {
         return '请输入有效的JSON格式 ';
       }
     }
-  }).then(({ value }) => {
+  }).then((result) => {
+    const { value } = result as { value: string };
     emit('importFromClipboard', value);
   }).catch(() => {
     // 用户取消操作，无需处理

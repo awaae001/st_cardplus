@@ -82,7 +82,7 @@ import { SUBSTITUTE_FIND_REGEX, type RegexScript } from './types';
 // From temp/regex/engine.js
 function sanitizeRegexMacro(x: any): any {
     return (x && typeof x === 'string') ?
-        x.replaceAll(/[\n\r\t\v\f\0.^$*+?{}[\]\\/|()]/gs, function (s) {
+        x.replaceAll(/[\n\r\t\v\f\0.^$*+?{}[\]\\/|()]/gs, function (s: string) {
             switch (s) {
                 case '\n':
                     return '\\n';
@@ -156,26 +156,29 @@ function runRegexScript(regexScript: RegexScript, rawString: string): string {
         // Replace {{match}} with $0 for compatibility
         const replaceString = regexScript.replaceString.replace(/{{match}}/gi, '$0');
 
-        const replaceWithGroups = replaceString.replaceAll(/\$(\d+)|\$<([^>]+)>/g, (_, numStr, groupName) => {
-            let matchedValue: string | undefined;
+        const replaceWithGroups = replaceString.replaceAll(
+            /\$(\d+)|\$<([^>]+)>/g,
+            (_match: string, numStr?: string, groupName?: string) => {
+                let matchedValue: string | undefined;
 
-            if (numStr) {
-                // Handle numbered capture groups ($0, $1, $2, etc.)
-                const num = parseInt(numStr, 10);
-                matchedValue = fullArgs[num];
-            } else if (groupName && groups) {
-                // Handle named capture groups ($<name>)
-                matchedValue = groups[groupName];
+                if (numStr) {
+                    // Handle numbered capture groups ($0, $1, $2, etc.)
+                    const num = parseInt(numStr, 10);
+                    matchedValue = fullArgs[num];
+                } else if (groupName && groups) {
+                    // Handle named capture groups ($<name>)
+                    matchedValue = groups[groupName];
+                }
+
+                if (matchedValue === undefined) {
+                    return ''; // Group not found
+                }
+
+                // Trim the matched group content if trimStrings are provided
+                const filteredMatch = filterString(matchedValue, regexScript.trimStrings || []);
+                return filteredMatch;
             }
-
-            if (matchedValue === undefined) {
-                return ''; // Group not found
-            }
-
-            // Trim the matched group content if trimStrings are provided
-            const filteredMatch = filterString(matchedValue, regexScript.trimStrings || []);
-            return filteredMatch;
-        });
+        );
 
         // After handling capture groups, apply lightweight macro substitution to the result
         return lightweightSubstitute(replaceWithGroups, regexScript.macros || {});

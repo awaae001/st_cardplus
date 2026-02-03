@@ -38,7 +38,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue';
+import { ref, watch, nextTick } from 'vue';
 import { Icon } from '@iconify/vue';
 import draggable from 'vuedraggable';
 import type { Tab } from '@/composables/characterCard/useTabManager';

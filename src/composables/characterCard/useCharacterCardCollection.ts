@@ -172,7 +172,7 @@ export function useCharacterCardCollection() {
     if (!card) return;
 
     try {
-      const { value: newCardName } = await ElMessageBox.prompt(
+      const renameCardResult = await ElMessageBox.prompt(
         '请输入新的名称：',
         '重命名角色卡',
         {
@@ -183,6 +183,7 @@ export function useCharacterCardCollection() {
           inputErrorMessage: '名称不能为空',
         }
       );
+      const { value: newCardName } = renameCardResult as { value: string };
 
       // 同时更新 data 和顶层（data 是真实数据源）
       const updatedCardData = {
@@ -377,7 +378,7 @@ export function useCharacterCardCollection() {
 
   const handleCreateNewCard = async () => {
     try {
-      const { value: cardName } = await ElMessageBox.prompt(
+      const createCardResult = await ElMessageBox.prompt(
         '请输入新角色的名称：',
         '创建新角色卡',
         {
@@ -388,6 +389,7 @@ export function useCharacterCardCollection() {
           inputErrorMessage: '名称不能为空',
         }
       );
+      const { value: cardName } = createCardResult as { value: string };
 
       // 创建默认的角色卡数据（确保 data 和顶层一致）
       const defaultData: CharacterCardV3 = {

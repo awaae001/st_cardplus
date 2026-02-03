@@ -255,7 +255,8 @@ const showImportDialog = () => {
         return '请输入有效的JSON格式数据';
       }
     }
-  }).then(({ value }) => {
+  }).then((result) => {
+    const { value } = result as { value: string };
     importFromClipboard(value);
   }).catch(() => {
     // 用户取消操作

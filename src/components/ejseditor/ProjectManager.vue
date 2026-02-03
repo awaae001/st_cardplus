@@ -233,7 +233,7 @@ function handleProjectChange(projectId: string) {
 async function handleCreateProject() {
   try {
     // 询问项目名称
-    const { value: projectName } = await ElMessageBox.prompt(
+    const projectNameResult = await ElMessageBox.prompt(
       '请输入新项目的名称',
       '新建项目',
       {
@@ -249,6 +249,7 @@ async function handleCreateProject() {
         }
       }
     )
+    const { value: projectName } = projectNameResult as { value: string }
 
     if (projectName) {
       let copyFromCurrent = false
@@ -393,7 +394,7 @@ async function handleSchemeChange(schemeId: string) {
 // 保存当前为新方案
 async function handleSaveCurrentAsScheme() {
   try {
-    const { value: schemeName } = await ElMessageBox.prompt(
+    const schemeNameResult = await ElMessageBox.prompt(
       '请输入方案名称',
       '保存方案',
       {
@@ -409,6 +410,7 @@ async function handleSaveCurrentAsScheme() {
         }
       }
     )
+    const { value: schemeName } = schemeNameResult as { value: string }
 
     if (schemeName) {
       const newSchemeId = store.saveCurrentAsNewScheme(schemeName.trim())
@@ -429,7 +431,7 @@ async function handleRenameScheme(schemeId: string) {
   if (!scheme) return
 
   try {
-    const { value: newName } = await ElMessageBox.prompt(
+    const renameSchemeResult = await ElMessageBox.prompt(
       '请输入新的方案名称',
       '重命名方案',
       {
@@ -449,6 +451,7 @@ async function handleRenameScheme(schemeId: string) {
         }
       }
     )
+    const { value: newName } = renameSchemeResult as { value: string }
 
     if (newName && newName.trim() !== scheme.name) {
       store.renameStageScheme(schemeId, newName.trim())
@@ -465,7 +468,7 @@ async function handleCopyScheme(schemeId: string) {
   if (!scheme) return
 
   try {
-    const { value: newName } = await ElMessageBox.prompt(
+    const copySchemeResult = await ElMessageBox.prompt(
       '请输入新方案名称',
       '复制方案',
       {
@@ -482,6 +485,7 @@ async function handleCopyScheme(schemeId: string) {
         }
       }
     )
+    const { value: newName } = copySchemeResult as { value: string }
 
     if (newName) {
       const newSchemeId = store.copyStageScheme(schemeId, newName.trim())

@@ -427,12 +427,13 @@ async function handleRenameScript(scriptId: string) {
   }
 
   try {
-    const { value } = await ElMessageBox.prompt('请输入新的脚本名称', '重命名', {
+    const renameResult = await ElMessageBox.prompt('请输入新的脚本名称', '重命名', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       inputValue: script.scriptName,
       inputValidator: (val) => !!val || '名称不能为空',
     });
+    const { value } = renameResult as { value: string };
 
     updateScript(scriptId, { scriptName: value });
     if (selectedScript.value?.id === scriptId) {

@@ -85,8 +85,6 @@ const selectionType = ref<'anchor' | 'variable' | 'start' | 'end'>('variable')
 // 分词算法
 const tokenize = (text: string): Token[] => {
   const tokens: Token[] = []
-  let currentIndex = 0
-
   // 简单分词：每个字符作为一个token（适合您的例子 ABCDEFGHIJKLMN）
   // 也可以扩展为更复杂的分词算法
   for (let i = 0; i < text.length; i++) {
@@ -98,7 +96,6 @@ const tokenize = (text: string): Token[] => {
         endIndex: i + 1
       })
     }
-    currentIndex = i + 1
   }
 
   return tokens

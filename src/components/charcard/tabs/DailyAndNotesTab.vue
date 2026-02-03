@@ -88,14 +88,14 @@ const updateRoutineFormField = (key: string, value: string) => {
 
 const addCustomRoutineField = async () => {
   try {
-    const { value: inputText } = await ElMessageBox.prompt(
+    const result = await ElMessageBox.prompt(
       '<b>请输入自定义作息，每行一个</b><br>格式为 "时间段:作息内容"<br>例如:<br>午休:在办公室沙发上睡一小时',
       '添加自定义作息',
       {
         confirmButtonText: '确认', cancelButtonText: '取消', inputType: 'textarea', inputPlaceholder: '时间段:作息内容',
         inputValidator: (value) => {
           if (!value) return true;
-          const lines = value.split('\n').filter(line => line.trim());
+          const lines = value.split('\n').filter((line: string) => line.trim());
           for (const line of lines) {
             if (!line.includes(':')) {
               return `格式错误: "${line}" 每行必须包含冒号(:)分隔时间段和内容`;
@@ -106,8 +106,9 @@ const addCustomRoutineField = async () => {
         dangerouslyUseHTMLString: true
       }
     );
+    const { value: inputText } = result as { value: string };
     if (inputText) {
-      const lines = inputText.split('\n').filter(line => line.trim());
+      const lines = inputText.split('\n').filter((line: string) => line.trim());
       let addedCount = 0;
       for (const line of lines) {
         const [fieldName, ...fieldValueParts] = line.split(':');

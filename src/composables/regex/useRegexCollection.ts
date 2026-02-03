@@ -88,7 +88,7 @@ export function useRegexCollection() {
 
   const handleCreateCategory = async () => {
     try {
-      const { value: categoryName } = await ElMessageBox.prompt(
+      const createCategoryResult = await ElMessageBox.prompt(
         '请输入新类别的名称：',
         '创建新类别',
         {
@@ -98,6 +98,7 @@ export function useRegexCollection() {
           inputErrorMessage: '名称不能为空',
         }
       );
+      const { value: categoryName } = createCategoryResult as { value: string };
 
       const newCategoryId = uuidv4();
       const now = new Date().toISOString();
@@ -130,7 +131,7 @@ export function useRegexCollection() {
     if (!category) return;
 
     try {
-      const { value: newCategoryName } = await ElMessageBox.prompt(
+      const renameCategoryResult = await ElMessageBox.prompt(
         '请输入新的名称：',
         '重命名类别',
         {
@@ -141,6 +142,7 @@ export function useRegexCollection() {
           inputErrorMessage: '名称不能为空',
         }
       );
+      const { value: newCategoryName } = renameCategoryResult as { value: string };
 
       category.name = newCategoryName;
       category.updatedAt = new Date().toISOString();

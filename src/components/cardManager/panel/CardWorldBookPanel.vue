@@ -223,7 +223,12 @@ watch(
       return;
     }
     // 使用转换器确保编辑器使用 WorldBookEntry 结构
-    const wb = convertCharacterBookToWorldBook(charBook, 'character-book');
+    const normalizedCharBook: CharacterBook = {
+      ...charBook,
+      extensions: charBook.extensions ?? {},
+      entries: charBook.entries ?? [],
+    };
+    const wb = convertCharacterBookToWorldBook(normalizedCharBook, 'character-book');
     mockActiveBook.value = wb;
   },
   { immediate: true, deep: true }
@@ -318,7 +323,7 @@ const dragDropHandlers = useWorldBookDragDrop(
     return;
   },
   // updateBookEntries
-  (bookId: string, entries: WorldBookEntry[]) => {
+  (_bookId: string, entries: WorldBookEntry[]) => {
     if (mockActiveBook.value) {
       mockActiveBook.value.entries = entries;
       const characterBook = convertWorldBookToCharacterBook(mockActiveBook.value);

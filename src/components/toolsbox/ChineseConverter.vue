@@ -129,7 +129,7 @@ async function startConversion() {
     const results = await convertPngCharacterCardBatch(
       files,
       selectedConfig.value,
-      (current, total, fileName) => {
+      (current, total, _fileName) => {
         // 更新当前文件状态
         const currentItem = fileList.value[current]
         if (currentItem) {

@@ -179,7 +179,7 @@ function toggleCenterPanel() {
 // 工具栏操作
 async function handleImportConfig() {
   try {
-    const { value: file } = await ElMessageBox.prompt(
+    const fileResult = await ElMessageBox.prompt(
       '请粘贴配置文件内容 (JSON格式)',
       '导入配置',
       {
@@ -187,6 +187,7 @@ async function handleImportConfig() {
         inputPlaceholder: '粘贴JSON配置...'
       }
     )
+    const { value: file } = fileResult as { value: string }
 
     if (file) {
       const config = JSON.parse(file)
@@ -206,13 +207,14 @@ async function handleImportConfig() {
           .catch((action: string) => action === 'cancel' ? 'replace' : null)
         
         if (importType === 'new') {
-          const { value: projectName } = await ElMessageBox.prompt(
+          const projectNameResult = await ElMessageBox.prompt(
             '请输入新项目的名称',
             '新建项目',
             {
               inputPlaceholder: '项目名称...'
             }
           )
+          const { value: projectName } = projectNameResult as { value: string }
           store.importConfig(config, false, projectName)
         } else if (importType === 'replace') {
           store.importConfig(config, true)
