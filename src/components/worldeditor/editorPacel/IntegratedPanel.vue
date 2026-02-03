@@ -18,7 +18,7 @@
     <div class="selection-section">
       <el-row :gutter="16">
         <!-- 地标选择 -->
-        <el-col :span="12">
+        <el-col :span="8">
           <el-card>
             <template #header>
               <div class="card-header">
@@ -30,14 +30,14 @@
               </div>
             </template>
             <div class="selection-list">
-              <div 
-                v-for="landmark in projectLandmarks" 
+              <div
+                v-for="landmark in projectLandmarks"
                 :key="landmark.id"
                 class="selection-item"
                 :class="{ selected: selectedLandmarks.includes(landmark.id) }"
                 @click="toggleLandmarkSelection(landmark.id)"
               >
-                <el-checkbox 
+                <el-checkbox
                   :model-value="selectedLandmarks.includes(landmark.id)"
                   @change="toggleLandmarkSelection(landmark.id)"
                 />
@@ -48,6 +48,10 @@
                     <div class="item-meta">{{ getLandmarkTypeLabel(landmark.type) }} | 重要性: {{ landmark.importance }}星</div>
                     <div class="item-description" v-if="landmark.description">
                       {{ landmark.description.slice(0, 50) }}{{ landmark.description.length > 50 ? '...' : '' }}
+                    </div>
+                    <div class="item-relations" v-if="getLandmarkParentName(landmark) || getLandmarkChildNames(landmark).length">
+                      <span v-if="getLandmarkParentName(landmark)">属于: {{ getLandmarkParentName(landmark) }}</span>
+                      <span v-if="getLandmarkChildNames(landmark).length">包括: {{ getLandmarkChildNames(landmark).join('、') }}</span>
                     </div>
                   </div>
                 </div>
@@ -60,7 +64,7 @@
         </el-col>
 
         <!-- 势力选择 -->
-        <el-col :span="12">
+        <el-col :span="8">
           <el-card>
             <template #header>
               <div class="card-header">
@@ -72,14 +76,14 @@
               </div>
             </template>
             <div class="selection-list">
-              <div 
-                v-for="force in projectForces" 
+              <div
+                v-for="force in projectForces"
                 :key="force.id"
                 class="selection-item"
                 :class="{ selected: selectedForces.includes(force.id) }"
                 @click="toggleForceSelection(force.id)"
               >
-                <el-checkbox 
+                <el-checkbox
                   :model-value="selectedForces.includes(force.id)"
                   @change="toggleForceSelection(force.id)"
                 />
@@ -100,6 +104,47 @@
             </div>
           </el-card>
         </el-col>
+
+        <!-- 区域选择 -->
+        <el-col :span="8">
+          <el-card>
+            <template #header>
+              <div class="card-header">
+                <span>选择区域 ({{ selectedRegions.length }}/{{ projectRegions.length }})</span>
+                <div class="header-actions-small">
+                  <el-button size="small" @click="selectAllRegions">全选</el-button>
+                  <el-button size="small" @click="clearRegionSelection">清空</el-button>
+                </div>
+              </div>
+            </template>
+            <div class="selection-list">
+              <div
+                v-for="region in projectRegions"
+                :key="region.id"
+                class="selection-item"
+                :class="{ selected: selectedRegions.includes(region.id) }"
+                @click="toggleRegionSelection(region.id)"
+              >
+                <el-checkbox
+                  :model-value="selectedRegions.includes(region.id)"
+                  @change="toggleRegionSelection(region.id)"
+                />
+                <div class="item-content">
+                  <Icon icon="ph:map-trifold-duotone" class="item-icon region-icon" />
+                  <div class="item-info">
+                    <div class="item-name">{{ region.name }}</div>
+                    <div class="item-description" v-if="region.description">
+                      {{ region.description.slice(0, 50) }}{{ region.description.length > 50 ? '...' : '' }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-if="projectRegions.length === 0" class="empty-message">
+                暂无区域数据
+              </div>
+            </div>
+          </el-card>
+        </el-col>
       </el-row>
     </div>
 
@@ -109,10 +154,16 @@
         <template #header>
           <div class="card-header">
             <span>JSON预览</span>
-            <el-button type="primary" size="small" @click="exportSelectedJSON">
-              <Icon icon="ph:copy-duotone" />
-              复制JSON
-            </el-button>
+            <div class="preview-actions">
+              <div class="preview-filter">
+                <span class="preview-filter-label">过滤空字段</span>
+                <el-switch v-model="filterEmptyFields" />
+              </div>
+              <el-button type="primary" size="small" @click="exportSelectedJSON">
+                <Icon icon="ph:copy-duotone" />
+                复制JSON
+              </el-button>
+            </div>
           </div>
         </template>
         <div class="preview-content">
@@ -126,11 +177,12 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { ElCard, ElButton, ElRow, ElCol, ElCheckbox, ElMessage } from 'element-plus';
+import { ElCard, ElButton, ElRow, ElCol, ElCheckbox, ElMessage, ElSwitch } from 'element-plus';
 import { Icon } from '@iconify/vue';
 import type { Project, EnhancedLandmark, EnhancedForce, EnhancedRegion, ProjectIntegration } from '@/types/world-editor';
-import { cleanObject } from '@/utils/objectUtils';
+import { cleanObject, removeEmptyFields } from '@/utils/objectUtils';
 import { getLandmarkTypeLabel } from '@/utils/worldeditor/landmarkMeta';
+import { getParentLandmarkId } from '@/utils/worldeditor/landmarkHierarchy';
 
 interface Props {
   integration: ProjectIntegration;
@@ -145,6 +197,8 @@ const props = defineProps<Props>();
 // 选择状态
 const selectedLandmarks = ref<string[]>([]);
 const selectedForces = ref<string[]>([]);
+const selectedRegions = ref<string[]>([]);
+const filterEmptyFields = ref(true);
 
 // 计算当前项目的地标和势力
 const projectLandmarks = computed(() => {
@@ -162,11 +216,27 @@ const projectRegions = computed(() => {
   return props.regions.filter(r => r.projectId === props.currentProject!.id);
 });
 
+const landmarkIdToName = computed(() => new Map(projectLandmarks.value.map(landmark => [landmark.id, landmark.name])));
+
+const getLandmarkParentName = (landmark: EnhancedLandmark) => {
+  const parentId = getParentLandmarkId(landmark);
+  if (!parentId) return '';
+  return landmarkIdToName.value.get(parentId) || '';
+};
+
+const getLandmarkChildNames = (landmark: EnhancedLandmark) => {
+  const childIds = landmark.childLandmarkIds || [];
+  return childIds
+    .map(id => landmarkIdToName.value.get(id))
+    .filter(Boolean) as string[];
+};
+
 // 计算选中的所有项目
 const selectedItems = computed(() => {
   const landmarks = projectLandmarks.value.filter(l => selectedLandmarks.value.includes(l.id));
   const forces = projectForces.value.filter(f => selectedForces.value.includes(f.id));
-  return [...landmarks, ...forces];
+  const regions = projectRegions.value.filter(r => selectedRegions.value.includes(r.id));
+  return [...landmarks, ...forces, ...regions];
 });
 
 
@@ -207,6 +277,15 @@ const toggleForceSelection = (forceId: string) => {
   }
 };
 
+const toggleRegionSelection = (regionId: string) => {
+  const index = selectedRegions.value.indexOf(regionId);
+  if (index > -1) {
+    selectedRegions.value.splice(index, 1);
+  } else {
+    selectedRegions.value.push(regionId);
+  }
+};
+
 const selectAllLandmarks = () => {
   selectedLandmarks.value = projectLandmarks.value.map(l => l.id);
 };
@@ -223,8 +302,16 @@ const clearForceSelection = () => {
   selectedForces.value = [];
 };
 
+const selectAllRegions = () => {
+  selectedRegions.value = projectRegions.value.map(r => r.id);
+};
+
+const clearRegionSelection = () => {
+  selectedRegions.value = [];
+};
+
 // 生成增强的、可读性强的JSON数据
-const generateJSON = (items: (EnhancedLandmark | EnhancedForce)[]): string => {
+const generateJSON = (items: (EnhancedLandmark | EnhancedForce | EnhancedRegion)[]): string => {
   if (items.length === 0) return '{}';
 
   // 创建ID到名称的映射，以便将UUID替换为可读的名称
@@ -250,6 +337,12 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce)[]): string => {
             west: toNameList(landmark.relativePosition.west, landmarkIdToNameMap),
           }
         : undefined;
+      const parentName = landmark.parentLandmarkIds?.[0]
+        ? idToName(landmark.parentLandmarkIds[0], landmarkIdToNameMap)
+        : undefined;
+      const childNames = (landmark.childLandmarkIds || [])
+        .map(id => idToName(id, landmarkIdToNameMap))
+        .filter(Boolean);
       const cleanedLandmark = {
         name: landmark.name,
         description: landmark.description,
@@ -258,6 +351,8 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce)[]): string => {
         tags: landmark.tags,
         region: landmark.regionId ? idToName(landmark.regionId, regionIdToNameMap) : undefined,
         relativePosition,
+        belongs_to: parentName || undefined,
+        includes: childNames.length > 0 ? childNames : undefined,
         // 将关联ID转换为名称
         controllingForces: landmark.controllingForces?.map(id => idToName(id, forceIdToNameMap)),
         relatedLandmarks: landmark.relatedLandmarks?.map(id => idToName(id, landmarkIdToNameMap)),
@@ -297,14 +392,16 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce)[]): string => {
       return cleanObject(cleanedForce);
     });
 
-  const regions = projectRegions.value.map(region => {
-    const cleanedRegion = {
-      name: region.name,
-      description: region.description,
-      notes: region.notes,
-    };
-    return cleanObject(cleanedRegion);
-  });
+  const regions = items
+    .filter((item): item is EnhancedRegion => !('importance' in item) && !('power' in item))
+    .map(region => {
+      const cleanedRegion = {
+        name: region.name,
+        description: region.description,
+        notes: region.notes,
+      };
+      return cleanObject(cleanedRegion);
+    });
 
   const exportData = {
     project: {
@@ -318,11 +415,12 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce)[]): string => {
       landmarkCount: landmarks.length,
       regionCount: regions.length,
       forceCount: forces.length,
-      totalCount: items.length + regions.length
+      totalCount: items.length
     }
   };
 
-  return JSON.stringify(exportData, null, 2);
+  const outputData = filterEmptyFields.value ? removeEmptyFields(exportData) : exportData;
+  return JSON.stringify(outputData ?? {}, null, 2);
 };
 
 // 导出方法
@@ -342,7 +440,7 @@ const exportSelectedJSON = async () => {
 };
 
 const exportAllJSON = async () => {
-  const allItems = [...projectLandmarks.value, ...projectForces.value];
+  const allItems = [...projectLandmarks.value, ...projectForces.value, ...projectRegions.value];
   if (allItems.length === 0) {
     ElMessage.warning('当前项目没有可导出的内容');
     return;
@@ -399,6 +497,25 @@ const exportAllJSON = async () => {
   font-weight: 600;
 }
 
+.preview-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.preview-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.preview-filter-label {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+}
+
 .header-actions-small {
   display: flex;
   gap: 8px;
@@ -453,6 +570,10 @@ const exportAllJSON = async () => {
   color: var(--el-color-success);
 }
 
+.region-icon {
+  color: var(--el-color-warning);
+}
+
 .item-info {
   flex: 1;
   min-width: 0;
@@ -476,6 +597,15 @@ const exportAllJSON = async () => {
   color: var(--el-text-color-regular);
   line-height: 1.4;
   word-break: break-word;
+}
+
+.item-relations {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .empty-message {

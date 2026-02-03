@@ -7,11 +7,11 @@
   "type": "module",
   "main": "dist/electron/main.js",
   "scripts": {
-    "dev": "vite",
+    "dev": "node scripts/run-dev.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "electron": "electron .",
-    "start": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+    "start": "node scripts/run-dev.mjs",
     "build:electron": "cross-env NODE_ENV=production vite build && tsc -p electron/tsconfig.json && electron-builder",
     "electron:serve": "cross-env NODE_ENV=development vite build && tsc -p electron/tsconfig.json && electron ."
   },

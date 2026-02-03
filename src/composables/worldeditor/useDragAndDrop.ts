@@ -1,5 +1,6 @@
 import type { Ref } from 'vue';
 import type { EnhancedLandmark, EnhancedForce, EnhancedRegion } from '@/types/world-editor';
+import { collectDescendantIds, setLandmarkParent } from '@/utils/worldeditor/landmarkHierarchy';
 
 export function useDragAndDrop(
     landmarks: Ref<EnhancedLandmark[]>,
@@ -30,8 +31,16 @@ export function useDragAndDrop(
             if (dropParentType === 'project') return true;
         }
 
-        if (draggedType === dropType && (type === 'prev' || type === 'next')) {
+        if (draggedType === dropType && (type === 'prev' || type === 'next' || type === 'before' || type === 'after')) {
             return true;
+        }
+
+        if (draggedType === 'landmark' && dropType === 'landmark' && type === 'inner') {
+            const draggedId = draggingNode.data.id as string;
+            const dropId = dropNode.data.id as string;
+            if (draggedId === dropId) return false;
+            const descendants = collectDescendantIds(landmarks.value, draggedId);
+            return !descendants.has(dropId);
         }
 
         return false;
@@ -46,17 +55,51 @@ export function useDragAndDrop(
             const fromIndex = list.findIndex(item => item.id === draggedItem.id);
             if (fromIndex === -1) return false;
 
+            const normalizedDropType = dropType === 'prev' ? 'before' : dropType === 'next' ? 'after' : dropType;
+            const parentNodeData = dropNode.parent?.data;
+            const dropParentLandmarkId = parentNodeData?.type === 'landmark' ? parentNodeData.id as string : null;
+
             let newProjectId: string | null = null;
-            if (dropNode.data.type === 'project') {
+            let newParentId: string | null = null;
+
+            if (dropNode.data.type === 'landmark') {
+                newProjectId = dropItemRaw.projectId;
+                newParentId = normalizedDropType === 'inner' ? dropItemRaw.id : dropParentLandmarkId;
+            } else if (dropNode.data.type === 'project') {
                 newProjectId = dropNode.data.id;
+                newParentId = null;
             } else if (!dropNode.data.isEntry) {
                 newProjectId = dropNode.parent.data.id;
+                newParentId = null;
             } else if ('projectId' in dropItemRaw && draggedItem.projectId !== dropItemRaw.projectId) {
                 newProjectId = dropItemRaw.projectId;
             }
 
-            if (newProjectId && draggedItem.projectId !== newProjectId) {
-                draggedItem.projectId = newProjectId;
+            const projectChanged = newProjectId !== null && draggedItem.projectId !== newProjectId;
+
+            if (newParentId) {
+                const descendants = collectDescendantIds(list, draggedItem.id);
+                if (descendants.has(newParentId)) return false;
+            }
+
+            if (projectChanged) {
+                const descendantIds = collectDescendantIds(list, draggedItem.id);
+                descendantIds.add(draggedItem.id);
+                descendantIds.forEach(id => {
+                    const item = list.find(landmark => landmark.id === id);
+                    if (item && newProjectId) {
+                        item.projectId = newProjectId;
+                    }
+                });
+            }
+
+            setLandmarkParent(list, draggedItem.id, newParentId);
+
+            if (normalizedDropType === 'inner') {
+                return true;
+            }
+
+            if (projectChanged) {
                 const [item] = list.splice(fromIndex, 1);
                 list.unshift(item);
                 return true;
@@ -68,7 +111,7 @@ export function useDragAndDrop(
             if (toIndex === -1) return false;
 
             const [item] = list.splice(fromIndex, 1);
-            const insertIndex = dropType === 'before' ? toIndex : toIndex + 1;
+            const insertIndex = dropType === 'before' || dropType === 'prev' ? toIndex : toIndex + 1;
             list.splice(insertIndex, 0, item);
             return true;
 
@@ -99,7 +142,7 @@ export function useDragAndDrop(
             if (toIndex === -1) return false;
 
             const [item] = list.splice(fromIndex, 1);
-            const insertIndex = dropType === 'before' ? toIndex : toIndex + 1;
+            const insertIndex = dropType === 'before' || dropType === 'prev' ? toIndex : toIndex + 1;
             list.splice(insertIndex, 0, item);
             return true;
         } else { // Dragged item is a Region
@@ -129,7 +172,7 @@ export function useDragAndDrop(
             if (toIndex === -1) return false;
 
             const [item] = list.splice(fromIndex, 1);
-            const insertIndex = dropType === 'before' ? toIndex : toIndex + 1;
+            const insertIndex = dropType === 'before' || dropType === 'prev' ? toIndex : toIndex + 1;
             list.splice(insertIndex, 0, item);
             return true;
         }

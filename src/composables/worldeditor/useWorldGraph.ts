@@ -10,6 +10,8 @@ import {
   type EdgeChange
 } from '@vue-flow/core';
 import type { Project, EnhancedLandmark, EnhancedForce, EnhancedRegion, RoadConnection } from '@/types/world-editor';
+import type { LandmarkNodeData, LandmarkNodeForce } from '@/types/worldeditor/worldGraphNodes';
+import { linkLandmarks, unlinkLandmarks } from '@/composables/worldeditor/worldGraphLinks';
 
 export interface WorldGraphProps {
   projects: Project[];
@@ -19,13 +21,17 @@ export interface WorldGraphProps {
   activeProjectId?: string | null;
 }
 
+export interface WorldGraphOptions {
+  landmarkScope?: ComputedRef<EnhancedLandmark[]>;
+}
+
 interface WorldGraphState {
   nodes: Ref<Node[]>;
   edges: Ref<Edge[]>;
   edgeTypes: { removable: (edgeProps: EdgeProps) => ReturnType<typeof h> };
   projectRegions: ComputedRef<EnhancedRegion[]>;
   selectedLandmark: ComputedRef<EnhancedLandmark | null>;
-  selectedForces: ComputedRef<Array<{ id: string; name: string; role: string }>>;
+  selectedForces: ComputedRef<LandmarkNodeForce[]>;
   inspectorStyle: ComputedRef<CSSProperties>;
   startDrag: (event: MouseEvent) => void;
   handleNodeDragStop: (event: unknown, node?: Node) => void;
@@ -35,7 +41,8 @@ interface WorldGraphState {
   clearSelection: () => void;
 }
 
-export const useWorldGraph = (props: WorldGraphProps): WorldGraphState => {
+
+export const useWorldGraph = (props: WorldGraphProps, options?: WorldGraphOptions): WorldGraphState => {
   const nodes = ref<Node[]>([]);
   const edges = ref<Edge[]>([]);
   const selectedLandmarkId = ref<string | null>(null);
@@ -61,8 +68,8 @@ export const useWorldGraph = (props: WorldGraphProps): WorldGraphState => {
                 top: '0',
                 left: '0',
                 transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
-                pointerEvents: 'all'
-              }
+                pointerEvents: 'all',
+              },
             },
             [
               h(
@@ -77,11 +84,14 @@ export const useWorldGraph = (props: WorldGraphProps): WorldGraphState => {
                     cursor: 'pointer',
                     fontSize: '11px',
                     lineHeight: '1',
-                  }
+                  },
                 },
                 'X'
-              )])
-      })]);
+              ),
+            ]
+          ),
+      }),
+    ]);
   };
 
   const edgeTypes = { removable: RemovableEdge };
@@ -90,9 +100,13 @@ export const useWorldGraph = (props: WorldGraphProps): WorldGraphState => {
     if (props.activeProjectId) return props.activeProjectId;
     return props.projects[0]?.id || null;
   });
-  const projectLandmarks = computed(() => {
+  const projectLandmarksAll = computed(() => {
     if (!activeProjectId.value) return [];
     return props.landmarks.filter(l => l.projectId === activeProjectId.value);
+  });
+  const projectLandmarks = computed(() => {
+    if (options?.landmarkScope) return options.landmarkScope.value;
+    return projectLandmarksAll.value;
   });
   const projectForces = computed(() => {
     if (!activeProjectId.value) return [];
@@ -102,13 +116,16 @@ export const useWorldGraph = (props: WorldGraphProps): WorldGraphState => {
     if (!activeProjectId.value) return [];
     return props.regions.filter(r => r.projectId === activeProjectId.value);
   });
-  const regionInfoMap = computed(() => new Map(
-    projectRegions.value.map(region => [region.id, { name: region.name, color: region.color }])
-  ));
+  const regionInfoMap = computed(
+    () => new Map(projectRegions.value.map(region => [region.id, { name: region.name, color: region.color }]))
+  );
   const projectLandmarkMap = computed(() => new Map(projectLandmarks.value.map(landmark => [landmark.id, landmark])));
+  const projectLandmarkMapAll = computed(
+    () => new Map(projectLandmarksAll.value.map(landmark => [landmark.id, landmark]))
+  );
   const selectedLandmark = computed(() => {
     if (!selectedLandmarkId.value) return null;
-    return projectLandmarkMap.value.get(selectedLandmarkId.value) || null;
+    return projectLandmarkMapAll.value.get(selectedLandmarkId.value) || null;
   });
 
   const createDefaultPosition = (index: number) => {
@@ -131,13 +148,13 @@ export const useWorldGraph = (props: WorldGraphProps): WorldGraphState => {
     return null;
   };
 
-  const getForcesAtLandmark = (landmark: EnhancedLandmark) => projectForces.value
+  const getForcesAtLandmark = (landmark: EnhancedLandmark): LandmarkNodeForce[] => projectForces.value
     .map(force => ({ force, role: forceRoleAtLandmark(force, landmark) }))
     .filter(item => item.role !== null)
     .map(item => ({
       id: item.force.id,
       name: item.force.name,
-      role: item.role as string,
+      role: item.role ?? undefined,
     }));
 
   const selectedForces = computed(() => {
@@ -151,23 +168,30 @@ export const useWorldGraph = (props: WorldGraphProps): WorldGraphState => {
       if (!landmark.position) {
         landmark.position = createDefaultPosition(index);
       }
+      const resolvedPosition = {
+        x: landmark.position.x,
+        y: landmark.position.y,
+      };
       const forcesAt = getForcesAtLandmark(landmark);
       const regionInfo = landmark.regionId ? regionInfoMap.value.get(landmark.regionId) : null;
+
+      const data: LandmarkNodeData = {
+        id: landmark.id,
+        name: landmark.name,
+        region: regionInfo?.name ?? '',
+        regionColor: regionInfo?.color ?? '',
+        importance: landmark.importance,
+        population: landmark.population,
+        forces: forcesAt,
+        childCount: landmark.childLandmarkIds?.length ?? 0,
+        type: landmark.type,
+      };
 
       return {
         id: landmark.id,
         type: 'landmark',
-        position: landmark.position,
-        data: {
-          id: landmark.id,
-          name: landmark.name,
-          region: regionInfo?.name ?? '',
-          regionColor: regionInfo?.color ?? '',
-          importance: landmark.importance,
-          population: landmark.population,
-          forces: forcesAt,
-          type: landmark.type,
-        },
+        position: resolvedPosition,
+        data,
       };
     });
   };
@@ -177,23 +201,10 @@ export const useWorldGraph = (props: WorldGraphProps): WorldGraphState => {
     return landmark.roadConnections.find(conn => conn.targetId === targetId) || null;
   };
 
-  const unlinkLandmarks = (sourceId: string, targetId: string) => {
-    const sourceLandmark = projectLandmarkMap.value.get(sourceId);
-    const targetLandmark = projectLandmarkMap.value.get(targetId);
-    if (sourceLandmark) {
-      sourceLandmark.relatedLandmarks = (sourceLandmark.relatedLandmarks || []).filter(id => id !== targetId);
-      sourceLandmark.roadConnections = (sourceLandmark.roadConnections || []).filter(conn => conn.targetId !== targetId);
-    }
-    if (targetLandmark) {
-      targetLandmark.relatedLandmarks = (targetLandmark.relatedLandmarks || []).filter(id => id !== sourceId);
-      targetLandmark.roadConnections = (targetLandmark.roadConnections || []).filter(conn => conn.targetId !== sourceId);
-    }
-  };
-
   const removeEdgeById = (edgeId: string) => {
     const edge = edges.value.find(item => item.id === edgeId);
     if (!edge) return;
-    unlinkLandmarks(edge.source, edge.target);
+    unlinkLandmarks(projectLandmarks.value, edge.source, edge.target);
     buildEdges();
   };
 
@@ -319,24 +330,6 @@ export const useWorldGraph = (props: WorldGraphProps): WorldGraphState => {
     }
   };
 
-  const upsertRoadConnection = (
-    landmark: EnhancedLandmark,
-    targetId: string,
-    handle?: string,
-    targetHandle?: string
-  ) => {
-    if (!landmark.roadConnections) {
-      landmark.roadConnections = [];
-    }
-    const existing = landmark.roadConnections.find(conn => conn.targetId === targetId);
-    if (existing) {
-      existing.handle = handle;
-      existing.targetHandle = targetHandle;
-    } else {
-      landmark.roadConnections.push({ targetId, handle, targetHandle });
-    }
-  };
-
   const handleConnect = (params: Connection) => {
     const source = params.source;
     const target = params.target;
@@ -345,24 +338,7 @@ export const useWorldGraph = (props: WorldGraphProps): WorldGraphState => {
     const sourceHandle = params.sourceHandle ?? undefined;
     const targetHandle = params.targetHandle ?? undefined;
 
-    const sourceLandmark = projectLandmarks.value.find(item => item.id === source);
-    const targetLandmark = projectLandmarks.value.find(item => item.id === target);
-    if (!sourceLandmark || !targetLandmark) return;
-
-    if (!sourceLandmark.relatedLandmarks) {
-      sourceLandmark.relatedLandmarks = [];
-    }
-    if (!targetLandmark.relatedLandmarks) {
-      targetLandmark.relatedLandmarks = [];
-    }
-    if (!sourceLandmark.relatedLandmarks.includes(target)) {
-      sourceLandmark.relatedLandmarks.push(target);
-    }
-    if (!targetLandmark.relatedLandmarks.includes(source)) {
-      targetLandmark.relatedLandmarks.push(source);
-    }
-    upsertRoadConnection(sourceLandmark, target, sourceHandle, targetHandle);
-    upsertRoadConnection(targetLandmark, source, targetHandle, sourceHandle);
+    linkLandmarks(projectLandmarks.value, source, target, sourceHandle, targetHandle);
     buildEdges();
   };
 
@@ -374,7 +350,7 @@ export const useWorldGraph = (props: WorldGraphProps): WorldGraphState => {
       if (!('id' in change)) return;
       const edge = edges.value.find(item => item.id === change.id);
       if (!edge) return;
-      unlinkLandmarks(edge.source, edge.target);
+      unlinkLandmarks(projectLandmarks.value, edge.source, edge.target);
     });
     buildEdges();
   };

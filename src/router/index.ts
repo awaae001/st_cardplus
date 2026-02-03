@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 const router = createRouter({
-  //设置URL为history模式
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
@@ -39,6 +38,12 @@ const router = createRouter({
       name: 'about',
       component: () => import('../pages/About.vue'),
       meta: { title: '关于' }
+    },
+    {
+      path: '/presetmanager',
+      name: 'presetManager',
+      component: () => import('../pages/Preset.vue'),
+      meta: { title: '预设管理器' }
     },
     {
       path: '/toolbox',

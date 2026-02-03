@@ -1,8 +1,14 @@
 <template>
   <div class="landmark-node" :class="nodeSizeClass(data.type)">
-    <div v-if="data.forces.length > 0" class="landmark-forces-badge" title="势力">
-      <Icon icon="ph:users-three" class="landmark-forces-icon" />
-      <span class="landmark-forces-count">{{ data.forces.length }}</span>
+    <div class="landmark-badge-stack">
+      <div v-if="data.forces.length > 0" class="landmark-badge" title="势力">
+        <Icon icon="ph:users-three" class="landmark-badge-icon is-forces" />
+        <span class="landmark-badge-count">{{ data.forces.length }}</span>
+      </div>
+      <div v-if="(data.childCount ?? 0) > 0" class="landmark-badge" title="子地标">
+        <Icon icon="ph:tree-structure" class="landmark-badge-icon is-children" />
+        <span class="landmark-badge-count">{{ data.childCount }}</span>
+      </div>
     </div>
     <span class="landmark-region-tail" :style="{ backgroundColor: data.regionColor || 'transparent' }"></span>
     <div class="landmark-node-header">
@@ -47,23 +53,7 @@ import { Handle, Position } from '@vue-flow/core';
 import { Icon } from '@iconify/vue';
 import { ElTooltip } from 'element-plus';
 import { getLandmarkTypeIcon } from '@/utils/worldeditor/landmarkMeta';
-
-interface LandmarkNodeForce {
-  id: string;
-  name: string;
-  role: string;
-}
-
-interface LandmarkNodeData {
-  id: string;
-  name: string;
-  region?: string;
-  regionColor?: string;
-  importance?: number;
-  population?: number;
-  forces: LandmarkNodeForce[];
-  type?: string;
-}
+import type { LandmarkNodeData } from '@/types/worldeditor/worldGraphNodes';
 
 const props = defineProps<{
   data: LandmarkNodeData;
@@ -112,29 +102,53 @@ const formatPopulation = (value?: number) => {
   padding: 14px 16px;
 }
 
-.landmark-forces-badge {
+.landmark-badge-stack {
   position: absolute;
   top: -12px;
   left: -12px;
-  background: #ffffff;
-  border: 1px solid #dfe3ea;
-  border-radius: 999px;
-  padding: 4px 6px;
   display: flex;
   align-items: center;
-  gap: 4px;
-  box-shadow: 0 6px 12px rgba(15, 23, 42, 0.12);
   z-index: 2;
 }
 
-.landmark-forces-icon {
+.landmark-badge {
+  background: #ffffff;
+  border: 1px solid #dfe3ea;
+  border-radius: 999px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 6px 12px rgba(15, 23, 42, 0.12);
+  position: relative;
+}
+
+.landmark-badge + .landmark-badge {
+  margin-left: -10px;
+  box-shadow: 0 6px 12px rgba(15, 23, 42, 0.12), 0 0 0 2px #ffffff;
+}
+
+.landmark-badge-icon {
   font-size: 14px;
+}
+
+.landmark-badge-icon.is-forces {
   color: #2563eb;
 }
 
-.landmark-forces-count {
-  font-size: 12px;
+.landmark-badge-icon.is-children {
+  color: #16a34a;
+}
+
+.landmark-badge-label {
+  font-size: 11px;
   font-weight: 600;
+  color: #1e293b;
+}
+
+.landmark-badge-count {
+  font-size: 11px;
+  font-weight: 700;
   color: #1e293b;
 }
 

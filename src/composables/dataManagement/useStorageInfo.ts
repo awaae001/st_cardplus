@@ -74,20 +74,19 @@ export function useStorageInfo() {
   // 计算 LocalStorage 的大小
   const getLocalStorageUsage = () => {
     let totalBytes = 0;
+    const byteSize = (value: string) => new Blob([value]).size;
+
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key) {
-        const value = localStorage.getItem(key);
-        if (value) {
-          // JavaScript 字符串是 UTF-16 编码，每个字符大约 2 字节
-          totalBytes += value.length * 2;
-        }
-      }
+      if (!key) continue;
+      const value = localStorage.getItem(key);
+      totalBytes += byteSize(key);
+      if (value) totalBytes += byteSize(value);
     }
 
     // localStorage 的总配额，默认显示为 5MB
     const quota = 5 * 1024 * 1024;
-    const percentage = (totalBytes / quota) * 100;
+    const percentage = Math.min((totalBytes / quota) * 100, 100);
     
     localStorageUsage.value = {
       percentage: parseFloat(percentage.toFixed(2)),

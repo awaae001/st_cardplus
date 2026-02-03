@@ -43,9 +43,12 @@ export interface EnhancedLandmark {
   position?: { x: number; y: number }; // 地图节点位置
 
   // 关系管理
+  parentLandmarkIds: string[];  // 父级地标ID列表（严格树结构时只保留一个）
+  childLandmarkIds: string[];   // 子地标ID列表
   controllingForces: string[];  // 控制势力ID列表
   relatedLandmarks: string[];   // 相关地标ID列表
   roadConnections?: RoadConnection[]; // 道路连接与手柄信息
+  bridgePositions?: Record<string, { x: number; y: number }>; // 子地标桥节点位置（外部地标ID -> 坐标）
 
   // 扩展属性
   climate?: string;             // 气候类型

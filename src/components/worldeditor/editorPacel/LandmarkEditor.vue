@@ -71,6 +71,36 @@
                   :create-region="props.createRegion"
                 />
               </div>
+              <div class="form-grid-2-col">
+                <div>
+                  <label class="form-label">父级地标</label>
+                  <el-select v-model="selectedParentId" clearable filterable placeholder="选择父级地标"
+                    class="form-full-width">
+                    <el-option v-for="item in availableParentLandmarks" :key="item.id" :label="item.name"
+                      :value="item.id" />
+                  </el-select>
+                </div>
+                <div>
+                  <label class="form-label">道路链接</label>
+                  <el-select
+                    v-model="selectedRoadLinkIds"
+                    multiple
+                    clearable
+                    filterable
+                    :reserve-keyword="false"
+                    :disabled="roadLinkOptions.length === 0"
+                    placeholder="取消选择即可断开道路链接"
+                    class="form-full-width"
+                  >
+                  <el-option
+                      v-for="item in roadLinkOptions"
+                      :key="item.id"
+                      :label="item.name"
+                      :value="item.id"
+                    />
+                  </el-select>
+                </div>
+              </div>
               <div>
                 <label class="form-label">重要地标</label>
                 <el-select v-model="landmark.keyLandmarkId" clearable filterable placeholder="选择一个重要地标"
@@ -107,6 +137,15 @@
                   :reserve-keyword="false" placeholder="选择西方地标" class="form-full-width">
                   <el-option v-for="item in filteredLandmarks" :key="item.id" :label="item.name" :value="item.id" />
                 </el-select>
+              </div>
+            </div>
+            <div class="form-grid-span-2">
+              <label class="form-label">子地标</label>
+              <div class="child-landmark-list">
+                <span v-if="childLandmarks.length === 0" class="child-landmark-empty">暂无子地标</span>
+                <el-tag v-for="child in childLandmarks" :key="child.id" size="small" effect="plain">
+                  {{ child.name }}
+                </el-tag>
               </div>
             </div>
           </div>
@@ -207,6 +246,8 @@ import type { EnhancedLandmark, EnhancedForce, EnhancedRegion } from '@/types/wo
 import { LandmarkType } from '@/types/world-editor';
 import { getLandmarkTypeLabel } from '@/utils/worldeditor/landmarkMeta';
 import { useValidation } from '@/composables/worldeditor/useValidation';
+import { collectDescendantIds, getParentLandmarkId, setLandmarkParent } from '@/utils/worldeditor/landmarkHierarchy';
+import { unlinkLandmarks } from '@/composables/worldeditor/worldGraphLinks';
 import RegionSelect from '../RegionSelect.vue';
 import '@/css/worldbook.css';
 
@@ -265,6 +306,17 @@ const isConnectedLandmark = (source: EnhancedLandmark, target: EnhancedLandmark)
   return false;
 };
 
+const getRoadLinkedIds = (landmark: EnhancedLandmark, allLandmarks: EnhancedLandmark[]) => {
+  const ids = new Set<string>();
+  (landmark.roadConnections || []).forEach(conn => ids.add(conn.targetId));
+  allLandmarks.forEach(item => {
+    if (item.id !== landmark.id && item.roadConnections?.some(conn => conn.targetId === landmark.id)) {
+      ids.add(item.id);
+    }
+  });
+  return ids;
+};
+
 // 过滤掉当前正在编辑的地标，用于相对位置选择
 // 过滤掉当前正在编辑的地标，并且只显示当前项目下的地标
 const filteredLandmarks = computed(() => {
@@ -283,7 +335,66 @@ const projectRegions = computed(() => {
   return props.allRegions.filter(region => region.projectId === props.landmark!.projectId);
 });
 
+const availableParentLandmarks = computed(() => {
+  if (!props.landmark || !props.allLandmarks) return [];
+  const descendants = collectDescendantIds(props.allLandmarks, props.landmark.id);
+  return props.allLandmarks.filter(item =>
+    item.projectId === props.landmark!.projectId &&
+    item.id !== props.landmark!.id &&
+    !descendants.has(item.id)
+  );
+});
 
+const selectedParentId = computed({
+  get: () => {
+    if (!props.landmark) return '';
+    return getParentLandmarkId(props.landmark) || '';
+  },
+  set: (value: string) => {
+    if (!props.landmark || !props.allLandmarks) return;
+    const nextParentId = value || null;
+    setLandmarkParent(props.allLandmarks, props.landmark.id, nextParentId);
+  }
+});
+
+const childLandmarks = computed(() => {
+  if (!props.landmark || !props.allLandmarks) return [];
+  const childIds = props.landmark.childLandmarkIds?.length
+    ? props.landmark.childLandmarkIds
+    : props.allLandmarks.filter(item => getParentLandmarkId(item) === props.landmark!.id).map(item => item.id);
+  const map = new Map(props.allLandmarks.map(item => [item.id, item]));
+  return childIds.map(id => map.get(id)).filter(Boolean) as EnhancedLandmark[];
+});
+
+const roadLinkOptions = computed(() => {
+  if (!props.landmark || !props.allLandmarks) return [];
+  const ids = getRoadLinkedIds(props.landmark, props.allLandmarks);
+  const landmarkMap = new Map(props.allLandmarks.map(item => [item.id, item]));
+  return Array.from(ids).map(id => {
+    const match = landmarkMap.get(id);
+    if (!match || match.projectId !== props.landmark!.projectId) {
+      return { id, name: `未知地标 (${id})`, missing: true };
+    }
+    return { id: match.id, name: match.name, missing: false };
+  });
+});
+
+const selectedRoadLinkIds = computed({
+  get: () => {
+    if (!props.landmark || !props.allLandmarks) return [];
+    return roadLinkOptions.value.map(item => item.id);
+  },
+  set: (nextIds: string[]) => {
+    if (!props.landmark || !props.allLandmarks) return;
+    const currentIds = new Set(roadLinkOptions.value.map(item => item.id));
+    const nextIdSet = new Set(nextIds || []);
+    currentIds.forEach(id => {
+      if (!nextIdSet.has(id)) {
+        unlinkLandmarks(props.allLandmarks!, props.landmark!.id, id);
+      }
+    });
+  }
+});
 
 const forcesAtLandmark = computed(() => {
   if (!props.allForces || !props.landmark) return [];
@@ -374,6 +485,22 @@ watch([() => props.landmark, filteredLandmarks], ([landmark]) => {
   border: 1px solid var(--el-border-color-light);
   background: var(--el-fill-color-light);
   gap: 12px;
+}
+
+.child-landmark-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px dashed var(--el-border-color);
+  background: var(--el-fill-color-light);
+  min-height: 36px;
+}
+
+.child-landmark-empty {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
 }
 
 .force-summary-main {

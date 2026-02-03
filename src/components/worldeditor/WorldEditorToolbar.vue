@@ -130,6 +130,7 @@ import { Icon } from '@iconify/vue';
 import { Search } from '@element-plus/icons-vue';
 import type { Project, EnhancedLandmark, EnhancedForce, EnhancedRegion, ProjectIntegration } from '../../types/world-editor';
 import { getLandmarkTypeIcon } from '@/utils/worldeditor/landmarkMeta';
+import { getParentLandmarkId } from '@/utils/worldeditor/landmarkHierarchy';
 
 type SelectableItem = Project | EnhancedLandmark | EnhancedForce | EnhancedRegion | ProjectIntegration;
 
@@ -181,6 +182,51 @@ const treeProps = {
   label: 'label',
 };
 
+const buildLandmarkTree = (projectLandmarks: EnhancedLandmark[], regionColorMap: Map<string, string>) => {
+  const nodeMap = new Map<string, any>();
+  const parentMap = new Map<string, string | null>();
+
+  projectLandmarks.forEach(landmark => {
+    parentMap.set(landmark.id, getParentLandmarkId(landmark));
+    nodeMap.set(landmark.id, {
+      id: landmark.id,
+      label: landmark.name,
+      icon: getLandmarkTypeIcon(landmark.type),
+      isEntry: true,
+      type: 'landmark',
+      raw: landmark,
+      regionColor: landmark.regionId ? regionColorMap.get(landmark.regionId) : '',
+      children: [] as any[],
+    });
+  });
+
+  const isCycle = (childId: string, parentId: string | null) => {
+    if (!parentId) return false;
+    const seen = new Set<string>();
+    let current: string | null | undefined = parentId;
+    while (current) {
+      if (current === childId) return true;
+      if (seen.has(current)) return true;
+      seen.add(current);
+      current = parentMap.get(current);
+    }
+    return false;
+  };
+
+  const roots: any[] = [];
+  projectLandmarks.forEach(landmark => {
+    const node = nodeMap.get(landmark.id);
+    const parentId = parentMap.get(landmark.id);
+    if (!parentId || !nodeMap.has(parentId) || isCycle(landmark.id, parentId)) {
+      roots.push(node);
+      return;
+    }
+    nodeMap.get(parentId).children.push(node);
+  });
+
+  return roots;
+};
+
 const treeData = computed(() => {
   return props.projects.map(project => {
     const projectLandmarks = props.landmarks.filter(l => l.projectId === project.id);
@@ -209,15 +255,7 @@ const treeData = computed(() => {
           label: `地标 (${projectLandmarks.length})`,
           icon: 'ph:map-trifold-duotone',
           isEntry: false,
-          children: projectLandmarks.map(landmark => ({
-            id: landmark.id,
-            label: landmark.name,
-            icon: getLandmarkTypeIcon(landmark.type),
-            isEntry: true,
-            type: 'landmark',
-            raw: landmark,
-            regionColor: landmark.regionId ? regionColorMap.get(landmark.regionId) : '',
-          })),
+          children: buildLandmarkTree(projectLandmarks, regionColorMap),
         },
         {
           id: `${project.id}-regions`,

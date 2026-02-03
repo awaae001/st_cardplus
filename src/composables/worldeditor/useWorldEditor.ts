@@ -4,6 +4,8 @@ import { LandmarkType, ImportanceLevel, ForceType, PowerLevel } from '@/types/wo
 import { v4 as uuidv4 } from 'uuid';
 import { saveToLocalStorage, loadFromLocalStorage } from '@/utils/localStorageUtils';
 import { pickRandomRegionColor } from '@/utils/worldeditor/regionColors';
+import { normalizeLandmarkHierarchy, removeLandmarkFromHierarchy } from '@/utils/worldeditor/landmarkHierarchy';
+import { removeLandmarkLinksForIds } from '@/composables/worldeditor/worldGraphLinks';
 
 const WORLD_EDITOR_DATA_KEY = 'world-editor-data';
 
@@ -75,6 +77,8 @@ export function useWorldEditor() {
     tags: [],
     regionId: undefined,
     position: undefined,
+    parentLandmarkIds: [],
+    childLandmarkIds: [],
     controllingForces: [],
     relatedLandmarks: [],
     roadConnections: [],
@@ -162,6 +166,8 @@ export function useWorldEditor() {
 
     if ('projectId' in item) { // Landmark, Force, or Region
       if ('importance' in item) { // Landmark
+        removeLandmarkLinksForIds(landmarks.value, new Set([item.id]));
+        removeLandmarkFromHierarchy(landmarks.value, item.id);
         const index = landmarks.value.findIndex(l => l.id === item.id);
         if (index > -1) landmarks.value.splice(index, 1);
       } else if ('power' in item) { // Force
@@ -203,6 +209,9 @@ export function useWorldEditor() {
         ...landmarkItem,
         id: uuidv4(),
         name: `${landmarkItem.name} (复制)`,
+        parentLandmarkIds: [],
+        childLandmarkIds: [],
+        position: landmarkItem.position ? { ...landmarkItem.position } : undefined,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -262,6 +271,7 @@ export function useWorldEditor() {
       forces.value = savedData.forces || [];
       regions.value = savedData.regions || [];
     }
+    normalizeLandmarkHierarchy(landmarks.value);
 
     if (!selectedItem.value) {
       selectedItem.value = landmarks.value[0] || forces.value[0] || regions.value[0] || null;
