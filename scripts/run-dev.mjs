@@ -7,7 +7,8 @@ const viteArgs = rawArgs.filter((arg) => arg !== '--on' && arg !== '--on_electro
 const spawnWithExit = (cmd, args, extraEnv = {}) => {
   const child = spawn(cmd, args, {
     stdio: 'inherit',
-    shell: true,
+    // Avoid shell concatenation so concurrently receives proper argv.
+    shell: false,
     env: { ...process.env, ...extraEnv },
   });
   child.on('exit', (code) => process.exit(code ?? 0));
@@ -17,6 +18,8 @@ if (disableElectron) {
   spawnWithExit('vite', viteArgs, { DISABLE_ELECTRON: '1' });
 } else {
   const viteCmd = ['vite', ...viteArgs].join(' ');
-  const electronCmd = 'wait-on http://localhost:5173 && electron .';
-  spawnWithExit('concurrently', ['-k', viteCmd, electronCmd]);
+  const electronCmd = 'wait-on http://localhost:3066 && electron .';
+  spawnWithExit('concurrently', ['--kill-others', '--success', 'first', viteCmd, electronCmd], {
+    ELECTRON_EXTERNAL: '1',
+  });
 }

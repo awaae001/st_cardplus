@@ -17,7 +17,8 @@
               :style="{ marginLeft: '8px', color: setting.iconColor }" />
           </div>
           <template v-if="setting.type === 'switch'">
-            <el-switch v-model="setting.model.value" @change="setting.handler" size="large" :disabled="setting.disabled" />
+            <el-switch v-model="setting.model.value" @change="setting.handler" size="large"
+              :disabled="setting.disabled" />
           </template>
           <template v-else-if="setting.type === 'numberInput'">
             <div class="interval-control">

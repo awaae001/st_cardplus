@@ -10,9 +10,9 @@
       开发版本：
       <b v-if="appCommitCount === '1'">在线版_{{ appVersion }}</b>
       <b v-else>dev_{{ appVersion }}({{ appCommitCount }})</b>
-      [0.1.11]
+      [0.1.12]
     </p>
-       <SurveyBanner :dismissible="false" />
+    <SurveyBanner :dismissible="false" />
   </div>
 
   <div class="changelog-section">

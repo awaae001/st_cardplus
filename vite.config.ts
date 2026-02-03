@@ -46,6 +46,12 @@ export default defineConfig({
                 outDir: 'dist/electron',
               },
             },
+            onstart: ({ startup }) => {
+              if (process.env.ELECTRON_EXTERNAL === '1') {
+                return;
+              }
+              startup();
+            },
           },
         ]),
       ]
