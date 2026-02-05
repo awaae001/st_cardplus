@@ -1,4 +1,5 @@
 import { db, type StoredPresetFile } from './db';
+import { sanitizeForIndexedDB } from './utils';
 import { v4 as uuidv4 } from 'uuid';
 import {
   getSessionStorageItem,
@@ -18,7 +19,7 @@ export const presetService = {
   },
 
   async updatePreset(preset: StoredPresetFile): Promise<void> {
-    await db.presets.put(preset);
+    await db.presets.put(sanitizeForIndexedDB(preset));
   },
 
   async deletePreset(presetId: string): Promise<void> {
