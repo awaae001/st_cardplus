@@ -51,5 +51,19 @@ export const presetService = {
 
   createPresetId(): string {
     return uuidv4();
-  }
+  },
+
+  async exportDatabase(): Promise<{ presets: StoredPresetFile[] }> {
+    const presets = await db.presets.toArray();
+    return { presets };
+  },
+
+  async importDatabase(data: { presets: StoredPresetFile[] }): Promise<void> {
+    await db.transaction('rw', db.presets, async () => {
+      await db.presets.clear();
+      if (data?.presets?.length) {
+        await db.presets.bulkAdd(data.presets);
+      }
+    });
+  },
 };

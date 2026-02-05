@@ -34,9 +34,10 @@ interface DatabaseRegistry {
 // 延迟加载数据库服务，避免循环依赖
 async function getRegisteredDatabases(): Promise<DatabaseRegistry[]> {
   // 在函数内部动态导入，避免模块加载时的循环依赖
-  const [{ worldBookService }, { characterCardService }] = await Promise.all([
+  const [{ worldBookService }, { characterCardService }, { presetService }] = await Promise.all([
     import('./worldBookService'),
     import('./characterCardService'),
+    import('./presetService'),
   ]);
 
   return [
@@ -49,6 +50,11 @@ async function getRegisteredDatabases(): Promise<DatabaseRegistry[]> {
       key: 'ST_CARDPLUS_CHARACTERCARD_V1',
       service: characterCardService,
       label: '角色卡',
+    },
+    {
+      key: 'ST_CARDPLUS_PRESET_V1',
+      service: presetService,
+      label: '预设',
     },
   ];
 }
@@ -113,4 +119,3 @@ export function sanitizeForIndexedDB<T>(obj: T): T {
     throw new Error('无法序列化对象以存储到数据库');
   }
 }
-
