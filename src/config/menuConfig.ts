@@ -124,10 +124,20 @@ export const mainMenuItems: MenuItemConfig[] = [
     beta: true
   },
   {
-    id: 'toolbox',
+    id: 'presetmanager',
     type: 'main',
     visible: true,
     order: 7,
+    title: '预设管理器',
+    icon: 'DataLine',
+    route: '/presetmanager',
+    beta: true
+  },
+  {
+    id: 'toolbox',
+    type: 'main',
+    visible: true,
+    order: 8,
     title: '工具箱',
     icon: 'Tools',
     route: '/toolbox',
