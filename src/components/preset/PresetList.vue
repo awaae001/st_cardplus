@@ -312,6 +312,16 @@ const isProtectedPrompt = (prompt: Record<string, any> | undefined) => {
   padding: 8px;
 }
 
+.preset-tree :deep(.el-tree-node__content) {
+  display: flex;
+  align-items: center;
+}
+
+.preset-tree :deep(.el-tree-node__content) > .custom-tree-node {
+  flex: 1;
+  min-width: 0;
+}
+
 .custom-tree-node {
   display: flex;
   align-items: center;
@@ -329,21 +339,28 @@ const isProtectedPrompt = (prompt: Record<string, any> | undefined) => {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1;
+  min-width: 0;
 }
 
 .node-icon {
   font-size: 16px;
   color: var(--el-text-color-regular);
+  flex-shrink: 0;
 }
 
 .node-label {
   font-size: 14px;
   color: var(--el-text-color-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .node-actions {
   display: inline-flex;
   gap: 4px;
+  flex-shrink: 0;
 }
 
 .preset-item-action-button {

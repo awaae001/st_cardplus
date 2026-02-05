@@ -48,6 +48,13 @@ const orderPromptsByIdentifiers = (prompts: PresetPrompt[], identifiers: string[
   return ordered;
 };
 
+const buildPromptOrderList = (prompts: PresetPrompt[]) => {
+  return prompts.map((prompt, index) => ({
+    identifier: prompt.identifier ?? `prompt-${index}`,
+    enabled: typeof prompt.enabled === 'boolean' ? prompt.enabled : true,
+  }));
+};
+
 export function usePresetStore() {
   const presets = ref<StoredPresetFile[]>([]);
   const activePresetId = ref<string | null>(null);
@@ -313,6 +320,15 @@ export function usePresetStore() {
       prompt.order = index;
     });
     preset.data.prompts = reordered as any;
+    const orderList = buildPromptOrderList(reordered);
+    if (Array.isArray(preset.data.prompt_order)) {
+      preset.data.prompt_order = preset.data.prompt_order.map((entry: any) => ({
+        ...entry,
+        order: orderList,
+      }));
+    } else {
+      preset.data.prompt_order = [{ character_id: 100000, order: orderList }];
+    }
     preset.updatedAt = new Date().toISOString();
     await presetService.updatePreset(preset);
   };

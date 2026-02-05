@@ -79,17 +79,19 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { Splitpanes, Pane } from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
 import { useDevice } from '@/composables/useDevice';
 import { usePresetStore, type PresetPrompt } from '@/composables/preset/usePresetStore';
 import { usePresetClipboard } from '@/composables/preset/usePresetClipboard';
 import PresetList from '@/components/preset/PresetList.vue';
-import PresetEditor, { type PresetEditorState } from '@/components/preset/PresetEditor.vue';
+import PresetEditor, { type PresetEditorState, type PresetHeaderForm } from '@/components/preset/PresetEditor.vue';
 import { v4 as uuidv4 } from 'uuid';
 import { saveAs } from 'file-saver';
-import { cleanObject, removeEmptyFields } from '@/utils/objectUtils';
+import { cleanObject } from '@/utils/objectUtils';
+import { getSessionStorageItem, setSessionStorageValue } from '@/utils/localStorageUtils';
+import { defaultOpenAIPreset } from '@/types/openai-preset';
 import {
   Delete,
   ArrowUp,
@@ -131,9 +133,49 @@ const {
 } = usePresetClipboard();
 
 const activeEditorTab = ref<'header' | 'prompt'>('header');
+const BETA_NOTICE_KEY = 'preset-editor-beta-notice-session-v1';
+const normalizeNumber = (value: any, fallback: number) => {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : fallback;
+};
+
+const buildHeaderForm = (data?: Record<string, any>): PresetHeaderForm => {
+  const source = { ...defaultOpenAIPreset, ...(data || {}) } as Record<string, any>;
+  return {
+    openai_max_context: normalizeNumber(source.openai_max_context, defaultOpenAIPreset.openai_max_context),
+    openai_max_tokens: normalizeNumber(source.openai_max_tokens, defaultOpenAIPreset.openai_max_tokens),
+    n: Math.max(1, normalizeNumber(source.n, defaultOpenAIPreset.n)),
+    temperature: normalizeNumber(source.temperature, defaultOpenAIPreset.temperature),
+    frequency_penalty: normalizeNumber(source.frequency_penalty, defaultOpenAIPreset.frequency_penalty),
+    presence_penalty: normalizeNumber(source.presence_penalty, defaultOpenAIPreset.presence_penalty),
+    top_p: normalizeNumber(source.top_p, defaultOpenAIPreset.top_p),
+    impersonation_prompt: source.impersonation_prompt ?? defaultOpenAIPreset.impersonation_prompt ?? '',
+    wi_format: source.wi_format ?? defaultOpenAIPreset.wi_format ?? '{0}',
+    scenario_format: source.scenario_format ?? defaultOpenAIPreset.scenario_format ?? '{{scenario}}',
+    personality_format: source.personality_format ?? defaultOpenAIPreset.personality_format ?? '{{personality}}',
+    group_nudge_prompt: source.group_nudge_prompt ?? defaultOpenAIPreset.group_nudge_prompt ?? '',
+    new_chat_prompt: source.new_chat_prompt ?? defaultOpenAIPreset.new_chat_prompt ?? '',
+    new_group_chat_prompt: source.new_group_chat_prompt ?? defaultOpenAIPreset.new_group_chat_prompt ?? '',
+    new_example_chat_prompt: source.new_example_chat_prompt ?? defaultOpenAIPreset.new_example_chat_prompt ?? '',
+    continue_nudge_prompt: source.continue_nudge_prompt ?? defaultOpenAIPreset.continue_nudge_prompt ?? '',
+    send_if_empty: source.send_if_empty ?? defaultOpenAIPreset.send_if_empty ?? '',
+    seed: normalizeNumber(source.seed, defaultOpenAIPreset.seed),
+    names_behavior: normalizeNumber(source.names_behavior, defaultOpenAIPreset.names_behavior),
+    continue_postfix: source.continue_postfix ?? defaultOpenAIPreset.continue_postfix ?? ' ',
+    continue_prefill: Boolean(source.continue_prefill),
+    squash_system_messages: Boolean(source.squash_system_messages),
+    function_calling: Boolean(source.function_calling),
+    media_inlining: Boolean(source.media_inlining),
+    inline_image_quality: source.inline_image_quality ?? defaultOpenAIPreset.inline_image_quality ?? 'auto',
+    show_thoughts: Boolean(source.show_thoughts),
+    reasoning_effort: source.reasoning_effort ?? defaultOpenAIPreset.reasoning_effort ?? 'auto',
+    verbosity: source.verbosity ?? defaultOpenAIPreset.verbosity ?? 'auto',
+  };
+};
+
 const editorState = ref<PresetEditorState>({
   presetName: '',
-  headerJsonText: '',
+  headerForm: buildHeaderForm(),
   promptName: '',
   promptIdentifier: '',
   promptRole: 'system',
@@ -254,14 +296,6 @@ const handleImportPreset = async (file: File) => {
   }
 };
 
-const buildHeaderJson = () => {
-  if (!activePreset.value) return '';
-  const keysToRemove = ['prompts'];
-  const header = cleanObject(activePreset.value.data as Record<string, any>, keysToRemove);
-  const cleaned = removeEmptyFields(header) ?? {};
-  return JSON.stringify(cleaned, null, 2);
-};
-
 const buildSidebarOrder = (prompts: Record<string, any>[]) => {
   const items = prompts
     .map((prompt, index) => ({
@@ -307,14 +341,14 @@ watch(activePreset, (preset) => {
     editorState.value = {
       ...editorState.value,
       presetName: '',
-      headerJsonText: '',
+      headerForm: buildHeaderForm(),
     };
     return;
   }
   editorState.value = {
     ...editorState.value,
     presetName: preset.name,
-    headerJsonText: buildHeaderJson(),
+    headerForm: buildHeaderForm(preset.data as Record<string, any>),
   };
 }, { immediate: true });
 
@@ -369,11 +403,15 @@ const addEditorToClipboard = () => {
 const saveCurrent = async () => {
   if (!activePreset.value) return;
   try {
-    const parsedHeader = editorState.value.headerJsonText ? JSON.parse(editorState.value.headerJsonText) : {};
     activePreset.value.name = editorState.value.presetName.trim() || activePreset.value.name;
-    await updateHeader(parsedHeader);
+    const headerBase = cleanObject(activePreset.value.data as Record<string, any>, ['prompts']);
+    const nextHeader = { ...headerBase, ...editorState.value.headerForm };
+    await updateHeader(nextHeader);
     if (selectedPrompt.value && selectedPromptIndex.value !== null) {
-      const extra = editorState.value.promptExtraJson ? JSON.parse(editorState.value.promptExtraJson) : {};
+      let extra: Record<string, any> = {};
+      if (editorState.value.promptExtraJson) {
+        extra = JSON.parse(editorState.value.promptExtraJson);
+      }
       const updatedPrompt: PresetPrompt = {
         ...extra,
         name: editorState.value.promptName || undefined,
@@ -389,7 +427,7 @@ const saveCurrent = async () => {
     }
     ElMessage.success('已保存');
   } catch {
-    ElMessage.error('JSON 格式无效');
+    ElMessage.error('条目扩展 JSON 格式无效');
   }
 };
 
@@ -409,10 +447,25 @@ const replaceEditor = (content: string) => {
 
 const removeClipboard = (id: string) => removeClipboardItem(id);
 
+const showBetaNotice = async () => {
+  if (getSessionStorageItem(BETA_NOTICE_KEY)) return;
+  try {
+    await ElMessageBox.alert(
+      '预设编辑器目前为测试版，功能仍在完善中。建议先备份重要预设再编辑，如遇问题请反馈。',
+      '测试版提示',
+      { confirmButtonText: '我知道了', type: 'warning' }
+    );
+  } finally {
+    setSessionStorageValue(BETA_NOTICE_KEY, true);
+  }
+};
+
 onMounted(() => {
   if (isMobileOrTablet.value) {
     ElMessage.warning('不支持移动端');
+    return;
   }
+  showBetaNotice();
 });
 </script>
 
