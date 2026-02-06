@@ -25,10 +25,7 @@ export function useWorldBookEntry(
 
   const actions = useWorldBookEntryActions(fullState, callbacks);
 
-  const io = useWorldBookEntryIO(fullState, {
-    updateEntries: callbacks.updateEntries,
-    addEntry: callbacks.addEntry,
-  });
+  const io = useWorldBookEntryIO(fullState);
 
   const autoSave = useWorldBookEntryAutoSave(state, {
     updateEntry: callbacks.updateEntry,

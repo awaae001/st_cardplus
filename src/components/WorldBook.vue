@@ -27,8 +27,7 @@
             @delete-book="handleDeleteBook" @select-entry="handleSelectEntry" @add-entry="addNewEntry"
             @duplicate-entry="handleDuplicateEntry" @delete-entry="handleDeleteEntryFromList"
             :selected-entry="selectedEntry" @copy-book="copyWorldBookToClipboard"
-            @import-book="showImportWorldBookDialog" @export-json="exportToJson" @import-json="handleLoadFromJsonFile"
-            @import-book-file="handleImportBookFile" @clear-all="clearAllEntries"
+            @export-json="exportToJson" @import-book-file="handleImportBookFile" @clear-all="clearAllEntries"
             :drag-drop-handlers="dragDropHandlers" />
         </el-tab-pane>
 
@@ -53,8 +52,7 @@
             </h2>
             <WorldBookActions context="editor" :has-selection="!!selectedEntry" :save-status="saveStatus"
               :auto-save-mode="autoSaveMode" @toggle-mode="toggleAutoSaveMode"
-              @copy-entry="copySelectedEntry" @import-entry="showImportEntryDialog" @save-entry="saveCurrentEntry"
-              @delete-entry="deleteSelectedEntry" />
+              @copy-entry="copySelectedEntry" @save-entry="saveCurrentEntry" @delete-entry="deleteSelectedEntry" />
           </div>
           <WorldBookEditor :entry="selectedEntry" v-model="editableEntry" :all-keywords="allKeywords"
             :current-entry-index="currentEntryIndex" :total-entries="totalEntries" @go-to-previous="goToPreviousEntry"
@@ -72,8 +70,7 @@
             @delete-book="handleDeleteBook" @select-entry="handleSelectEntry" @add-entry="addNewEntry"
             @duplicate-entry="handleDuplicateEntry" @delete-entry="handleDeleteEntryFromList"
             :selected-entry="selectedEntry" @copy-book="copyWorldBookToClipboard"
-            @import-book="showImportWorldBookDialog" @export-json="exportToJson" @import-json="handleLoadFromJsonFile"
-            @import-book-file="handleImportBookFile" @clear-all="clearAllEntries"
+            @export-json="exportToJson" @import-book-file="handleImportBookFile" @clear-all="clearAllEntries"
             :drag-drop-handlers="dragDropHandlers" :sidebar-width="sidebarWidth" />
         </Pane>
         <Pane size="85" min-size="40">
@@ -88,8 +85,7 @@
               </h2>
               <WorldBookActions context="editor" :has-selection="!!selectedEntry" :save-status="saveStatus"
                 :auto-save-mode="autoSaveMode" @toggle-mode="toggleAutoSaveMode"
-                @copy-entry="copySelectedEntry" @import-entry="showImportEntryDialog" @save-entry="saveCurrentEntry"
-                @delete-entry="deleteSelectedEntry" />
+                @copy-entry="copySelectedEntry" @save-entry="saveCurrentEntry" @delete-entry="deleteSelectedEntry" />
             </div>
             <WorldBookEditor :entry="selectedEntry" v-model="editableEntry" :all-keywords="allKeywords"
               :current-entry-index="currentEntryIndex" :total-entries="totalEntries" @go-to-previous="goToPreviousEntry"
@@ -172,11 +168,8 @@ const {
   deleteSelectedEntry,
   duplicateEntry,
   copySelectedEntry,
-  showImportEntryDialog,
   exportToJson,
-  handleLoadFromJsonFile,
   copyWorldBookToClipboard,
-  showImportWorldBookDialog,
   clearAllEntries,
   saveStatus,
   autoSaveMode,

@@ -13,7 +13,7 @@
             </el-menu-item>
           </template>
           <div class="grow"></div>
-          <div class="custom-menu-item theme-toggle-item" @click="smoothToggleDark">
+          <div class="custom-menu-item theme-toggle-item" @click="toggleDark()">
             <el-icon class="theme-icon">
               <Moon v-if="!isDark" />
               <Sunny v-else />
@@ -43,7 +43,7 @@
           </template>
           <div class="grow"></div>
           <el-divider />
-          <div class="custom-menu-item theme-toggle-item" @click="smoothToggleDark">
+          <div class="custom-menu-item theme-toggle-item" @click="toggleDark()">
             <el-icon class="theme-icon">
               <Moon v-if="!isDark" />
               <Sunny v-else />
@@ -161,15 +161,6 @@ watch([() => route.path, isMobile], ([newPath, mobile]) => {
     setOverflowHidden(false);
   }
 }, { immediate: true });
-
-// 平滑主题切换函数
-const smoothToggleDark = () => {
-  document.documentElement.classList.add('theme-transitioning')
-  toggleDark()
-  setTimeout(() => {
-    document.documentElement.classList.remove('theme-transitioning')
-  }, 500)
-}
 
 // 监听侧边栏配置变化的自定义事件
 const handleSidebarConfigChange = () => {

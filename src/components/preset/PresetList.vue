@@ -1,75 +1,97 @@
 <template>
-  <div class="preset-list-container">
-    <div class="preset-list-header">
-      <h3 class="preset-list-title">预设列表</h3>
-      <div class="preset-header-actions">
-        <el-tooltip content="创建新预设" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
-          <button @click="$emit('create-preset')" class="btn-primary-adv preset-list-add-button" aria-label="创建新预设">
-            <Icon icon="ph:plus-bold" class="preset-list-add-icon" />
-          </button>
-        </el-tooltip>
-        <el-tooltip content="新建空白模板" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
-          <button @click="$emit('create-blank')" class="btn-secondary-adv preset-list-add-button" aria-label="新建空白模板">
-            <Icon icon="ph:file-dashed-duotone" class="preset-list-add-icon" />
-          </button>
-        </el-tooltip>
+  <SidebarTreePanel
+    title="预设列表"
+    :tree-data="treeData"
+    :tree-props="treeProps"
+    :current-node-key="currentNodeKey"
+    :draggable="true"
+    :allow-drag="props.dragDropHandlers.allowDrag"
+    :allow-drop="props.dragDropHandlers.allowDrop"
+    :handle-node-drop="props.dragDropHandlers.handleNodeDrop"
+    @node-click="handleNodeClick"
+  >
+    <template #header-actions>
+      <el-tooltip content="创建新预设" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+        <button
+          @click="$emit('create-preset')"
+          class="btn-primary-adv sidebar-header-button"
+          aria-label="创建新预设"
+        >
+          <Icon icon="ph:plus-bold" />
+        </button>
+      </el-tooltip>
+      <el-tooltip content="新建空白模板" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+        <button
+          @click="$emit('create-blank')"
+          class="btn-secondary-adv sidebar-header-button"
+          aria-label="新建空白模板"
+        >
+          <Icon icon="ph:file-dashed-duotone" />
+        </button>
+      </el-tooltip>
+    </template>
+
+    <template #node="{ node, data }">
+      <div class="sidebar-tree-node" :class="{ 'is-header': data.isHeader }">
+        <div class="sidebar-tree-node-main">
+          <Icon :icon="data.icon" class="sidebar-tree-node-icon" />
+          <span class="sidebar-tree-node-label">{{ node.label }}</span>
+        </div>
+        <div class="sidebar-tree-node-actions" v-if="data.isPreset">
+          <el-tooltip content="新增条目" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+            <button
+              @click.stop="$emit('add-prompt', data.id)"
+              class="sidebar-tree-node-action-button"
+            >
+              <Icon icon="ph:plus-circle-duotone" />
+            </button>
+          </el-tooltip>
+          <el-tooltip content="重命名" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+            <button
+              @click.stop="$emit('rename-preset', data.id)"
+              class="sidebar-tree-node-action-button"
+            >
+              <Icon icon="ph:pencil-simple-duotone" />
+            </button>
+          </el-tooltip>
+          <el-tooltip content="删除" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+            <button
+              @click.stop="$emit('delete-preset', data.id)"
+              class="sidebar-tree-node-action-button is-danger"
+            >
+              <Icon icon="ph:trash-duotone" />
+            </button>
+          </el-tooltip>
+        </div>
+        <div class="sidebar-tree-node-actions" v-if="data.isPrompt">
+          <el-tooltip content="复制条目" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+            <button
+              @click.stop="$emit('duplicate-prompt', data.presetId, data.promptIndex)"
+              class="sidebar-tree-node-action-button"
+            >
+              <Icon icon="ph:copy-duotone" />
+            </button>
+          </el-tooltip>
+          <el-tooltip
+            v-if="!isProtectedPrompt(data.raw)"
+            content="删除条目"
+            placement="top"
+            :show-arrow="false"
+            :offset="8"
+            :hide-after="0"
+          >
+            <button
+              @click.stop="$emit('delete-prompt', data.presetId, data.promptIndex)"
+              class="sidebar-tree-node-action-button is-danger"
+            >
+              <Icon icon="ph:trash-duotone" />
+            </button>
+          </el-tooltip>
+        </div>
       </div>
-    </div>
-    <el-scrollbar class="preset-list-scrollbar">
-      <el-tree
-        :data="treeData"
-        :props="treeProps"
-        node-key="id"
-        :current-node-key="currentNodeKey"
-        highlight-current
-        class="preset-tree"
-        :expand-on-click-node="false"
-        draggable
-        :allow-drag="props.dragDropHandlers.allowDrag"
-        :allow-drop="props.dragDropHandlers.allowDrop"
-        @node-drop="onNodeDrop"
-        @node-click="handleNodeClick"
-      >
-        <template #default="{ node, data }">
-          <div class="custom-tree-node" :class="{ 'is-header': data.isHeader }">
-            <div class="node-main">
-              <Icon :icon="data.icon" class="node-icon" />
-              <span class="node-label">{{ node.label }}</span>
-            </div>
-            <div class="node-actions" v-if="data.isPreset">
-              <el-tooltip content="新增条目" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
-                <button @click.stop="$emit('add-prompt', data.id)" class="preset-item-action-button">
-                  <Icon icon="ph:plus-circle-duotone" />
-                </button>
-              </el-tooltip>
-              <el-tooltip content="重命名" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
-                <button @click.stop="$emit('rename-preset', data.id)" class="preset-item-action-button">
-                  <Icon icon="ph:pencil-simple-duotone" />
-                </button>
-              </el-tooltip>
-              <el-tooltip content="删除" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
-                <button @click.stop="$emit('delete-preset', data.id)" class="preset-item-action-button is-danger">
-                  <Icon icon="ph:trash-duotone" />
-                </button>
-              </el-tooltip>
-            </div>
-            <div class="node-actions" v-if="data.isPrompt">
-              <el-tooltip content="复制条目" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
-                <button @click.stop="$emit('duplicate-prompt', data.presetId, data.promptIndex)" class="preset-item-action-button">
-                  <Icon icon="ph:copy-duotone" />
-                </button>
-              </el-tooltip>
-              <el-tooltip v-if="!isProtectedPrompt(data.raw)" content="删除条目" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
-                <button @click.stop="$emit('delete-prompt', data.presetId, data.promptIndex)" class="preset-item-action-button is-danger">
-                  <Icon icon="ph:trash-duotone" />
-                </button>
-              </el-tooltip>
-            </div>
-          </div>
-        </template>
-      </el-tree>
-    </el-scrollbar>
-    <div class="preset-list-footer">
+    </template>
+
+    <template #footer>
       <div class="preset-footer-actions">
         <el-tooltip content="导出当前预设" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
           <button class="btn-success-adv preset-bottom-button-text" @click="$emit('export-preset')">
@@ -88,14 +110,15 @@
           </el-upload>
         </el-tooltip>
       </div>
-    </div>
-  </div>
+    </template>
+  </SidebarTreePanel>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { ElScrollbar, ElTooltip, ElTree } from 'element-plus';
+import { ElTooltip, ElUpload } from 'element-plus';
 import { Icon } from '@iconify/vue';
+import SidebarTreePanel from '../common/SidebarTreePanel.vue';
 import type { StoredPresetFile } from '@/database/db';
 
 interface Props {
@@ -200,10 +223,6 @@ const handleNodeClick = (data: any) => {
   }
 };
 
-const onNodeDrop = (draggingNode: any, dropNode: any, dropType: any) => {
-  props.dragDropHandlers.handleNodeDrop(draggingNode, dropNode, dropType);
-};
-
 const handleImportPreset = (file: File): boolean => {
   emit('import-preset', file);
   return false;
@@ -216,67 +235,6 @@ const isProtectedPrompt = (prompt: Record<string, any> | undefined) => {
 </script>
 
 <style scoped>
-.preset-list-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  background-color: var(--el-bg-color-page);
-  border-right: 1px solid var(--el-border-color-light);
-}
-
-.preset-list-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 10px 12px 16px;
-  border-bottom: 1px solid var(--el-border-color-light);
-  flex-shrink: 0;
-}
-
-.preset-list-title {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
-}
-
-.preset-header-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.preset-list-add-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  border: none;
-  background: var(--el-color-primary);
-  color: white;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.preset-list-add-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
-}
-
-.preset-list-add-icon {
-  font-size: 16px;
-}
-
-.preset-list-scrollbar {
-  flex: 1;
-}
-
-.preset-list-footer {
-  padding: 10px 12px 12px;
-  border-top: 1px solid var(--el-border-color-light);
-}
-
 .preset-footer-actions {
   display: flex;
   gap: 8px;
@@ -308,74 +266,8 @@ const isProtectedPrompt = (prompt: Record<string, any> | undefined) => {
   display: inline;
 }
 
-.preset-tree {
-  padding: 8px;
-}
-
-.preset-tree :deep(.el-tree-node__content) {
-  display: flex;
-  align-items: center;
-}
-
-.preset-tree :deep(.el-tree-node__content) > .custom-tree-node {
-  flex: 1;
-  min-width: 0;
-}
-
-.custom-tree-node {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 6px 4px;
-}
-
-.custom-tree-node.is-header .node-label {
+.sidebar-tree-node.is-header .sidebar-tree-node-label {
   font-weight: 500;
   color: var(--el-color-primary);
-}
-
-.node-main {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  min-width: 0;
-}
-
-.node-icon {
-  font-size: 16px;
-  color: var(--el-text-color-regular);
-  flex-shrink: 0;
-}
-
-.node-label {
-  font-size: 14px;
-  color: var(--el-text-color-primary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.node-actions {
-  display: inline-flex;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.preset-item-action-button {
-  border: none;
-  background: transparent;
-  color: var(--el-text-color-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  padding: 2px;
-}
-
-.preset-item-action-button.is-danger {
-  color: var(--el-color-danger);
 }
 </style>
