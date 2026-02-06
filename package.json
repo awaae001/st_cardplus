@@ -8,6 +8,7 @@
   "main": "dist/electron/main.js",
   "scripts": {
     "dev": "node scripts/run-dev.mjs",
+    "dev:web": "node scripts/run-dev.mjs --web",
     "build": "vite build",
     "preview": "vite preview",
     "electron": "electron .",

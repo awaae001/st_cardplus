@@ -5,6 +5,7 @@
 ## 下载最新版本
 
 **获取最新构建版本请前往 [Actions](../../actions) 页面下载：**
+
 - 🌐 **Web版本** - 下载 `web-build` 构建产物，解压后可直接部署
 - 💻 **Windows应用** - 下载 `windows-app` 构建产物，获取可执行安装包
 
@@ -18,7 +19,6 @@
 
 ![alt text](image.png)
 
-
 ## 主要功能
 
 - 角色卡管理器：无须打开 sillytavern，app 全功能解析编辑
@@ -29,24 +29,30 @@
 - 正则修正：提供智能文本选择器，无须了解正则，立刻生成
 - 工具箱：提供小工具
 
-
 ## 开发指南
 
 ### 1. 安装依赖
+
 ```bash
 pnpm install
 ```
 
 ### 2. 启动开发模式
+
+**Electron 桌面应用模式**：
+
 ```bash
 pnpm dev
 ```
-如需仅启动前端（不打开 Electron）：
+
+**Web-only 模式**：
+
 ```bash
-pnpm dev --on
+pnpm dev:web
 ```
 
 ### 3. 打包应用程序
+
 ```bash
 pnpm build:electron
 ```
