@@ -38,40 +38,67 @@
       </pane>
 
       <pane min-size="20" size="28">
-        <div class="clipboard-panel">
-          <div class="panel-header">
-            <h3>剪贴板</h3>
-            <div class="header-actions">
-              <el-button size="small" @click="clearAll" :disabled="!hasItems">清空</el-button>
-            </div>
-          </div>
-          <el-scrollbar class="panel-scroll">
-            <div v-if="!hasItems" class="empty-state">
-              <el-empty description="暂无内容" :image-size="120" />
-            </div>
-            <div v-else class="clipboard-list">
-              <div v-for="(clip, index) in clipboardItems" :key="clip.id" class="clipboard-item">
-                <div class="clipboard-header">
-                  <span class="clipboard-title">{{ clip.title }}</span>
-                  <span class="clipboard-actions">
-                    <el-button :icon="ArrowUp" size="small" text @click="moveUp(index)" />
-                    <el-button :icon="ArrowDown" size="small" text @click="moveDown(index)" />
-                    <el-button :icon="Delete" size="small" text @click="removeClipboard(clip.id)" />
-                  </span>
-                </div>
-                <div class="clipboard-content">{{ clip.content }}</div>
-                <div class="clipboard-buttons">
-                  <el-button size="small" @click="insertToEditor(clip.content)" :disabled="!selectedPrompt">
-                    插入编辑器
-                  </el-button>
-                  <el-button size="small" @click="replaceEditor(clip.content)" :disabled="!selectedPrompt">
-                    替换编辑器
-                  </el-button>
+        <el-tabs v-model="rightPanelTab" class="right-panel-tabs">
+          <el-tab-pane label="剪贴板" name="clipboard">
+            <div class="clipboard-panel">
+              <div class="panel-header">
+                <h3>剪贴板</h3>
+                <div class="header-actions">
+                  <el-button size="small" @click="clearAll" :disabled="!hasItems">清空</el-button>
                 </div>
               </div>
+              <el-scrollbar class="panel-scroll">
+                <div v-if="!hasItems" class="empty-state">
+                  <el-empty description="暂无内容" :image-size="120" />
+                </div>
+                <div v-else class="clipboard-list">
+                  <div v-for="(clip, index) in clipboardItems" :key="clip.id" class="clipboard-item">
+                    <div class="clipboard-header">
+                      <span class="clipboard-title">{{ clip.title }}</span>
+                      <span class="clipboard-actions">
+                        <el-button :icon="ArrowUp" size="small" text @click="moveUp(index)" />
+                        <el-button :icon="ArrowDown" size="small" text @click="moveDown(index)" />
+                        <el-button :icon="Delete" size="small" text @click="removeClipboard(clip.id)" />
+                      </span>
+                    </div>
+                    <div class="clipboard-content">{{ clip.content }}</div>
+                    <div class="clipboard-buttons">
+                      <el-button size="small" @click="insertToEditor(clip.content)" :disabled="!selectedPrompt">
+                        插入编辑器
+                      </el-button>
+                      <el-button size="small" @click="replaceEditor(clip.content)" :disabled="!selectedPrompt">
+                        替换编辑器
+                      </el-button>
+                    </div>
+                  </div>
+                </div>
+              </el-scrollbar>
             </div>
-          </el-scrollbar>
-        </div>
+          </el-tab-pane>
+          <el-tab-pane label="预设预览" name="preview">
+            <div class="preview-panel">
+              <div class="panel-header">
+                <h3>预设预览</h3>
+                <div class="header-actions">
+                  <el-tag v-if="activePreset" type="info" effect="plain">
+                    {{ activePreset.name || '未命名预设' }} · {{ previewPrompts.length }} 条目
+                  </el-tag>
+                </div>
+              </div>
+              <el-scrollbar class="panel-scroll">
+                <div v-if="!activePreset" class="empty-state">
+                  <el-empty description="请先选择一个预设" :image-size="120" />
+                </div>
+                <div v-else-if="previewPrompts.length === 0" class="empty-state">
+                  <el-empty description="暂无条目" :image-size="120" />
+                </div>
+                <div v-else class="preview-list">
+                  <pre v-for="item in previewPrompts" :key="item.key" class="preview-content">{{ item.text }}</pre>
+                </div>
+              </el-scrollbar>
+            </div>
+          </el-tab-pane>
+        </el-tabs>
       </pane>
     </splitpanes>
   </div>
@@ -133,6 +160,7 @@ const {
 } = usePresetClipboard();
 
 const activeEditorTab = ref<'header' | 'prompt'>('header');
+const rightPanelTab = ref<'clipboard' | 'preview'>('clipboard');
 const BETA_NOTICE_KEY = 'preset-editor-beta-notice-session-v1';
 const normalizeNumber = (value: any, fallback: number) => {
   const num = Number(value);
@@ -296,8 +324,8 @@ const handleImportPreset = async (file: File) => {
   }
 };
 
-const buildSidebarOrder = (prompts: Record<string, any>[]) => {
-  const items = prompts
+const sortPrompts = (prompts: Record<string, any>[]) => {
+  return prompts
     .map((prompt, index) => ({
       prompt,
       index,
@@ -312,11 +340,32 @@ const buildSidebarOrder = (prompts: Record<string, any>[]) => {
       const bId = b.identifier ?? String(b.index);
       return aId.localeCompare(bId);
     });
+};
+
+const buildSidebarOrder = (prompts: Record<string, any>[]) => {
+  const items = sortPrompts(prompts);
   return items.map(({ prompt, index }) => ({
     identifier: prompt.identifier ?? `prompt-${index}`,
     enabled: typeof prompt.enabled === 'boolean' ? prompt.enabled : true,
   }));
 };
+
+const previewPrompts = computed(() => {
+  if (!activePreset.value) return [];
+  const prompts = (activePreset.value.data.prompts as Record<string, any>[]) || [];
+  return sortPrompts(prompts)
+    .map(({ prompt, index }) => {
+      const enabled = typeof prompt.enabled === 'boolean' ? prompt.enabled : true;
+      if (!enabled) return null;
+      const title = prompt.name || prompt.identifier || `条目 ${index + 1}`;
+      const content = prompt.content || '';
+      return {
+        key: prompt.identifier ?? `prompt-${index}`,
+        text: `---： ${title}\n${content}`,
+      };
+    })
+    .filter((item): item is { key: string; text: string } => Boolean(item));
+});
 
 const extractExtras = (prompt: PresetPrompt) => {
   const baseKeys = [
@@ -493,6 +542,27 @@ onMounted(() => {
   flex-direction: column;
 }
 
+.preview-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.right-panel-tabs {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.right-panel-tabs :deep(.el-tabs__content) {
+  flex: 1;
+  overflow: hidden;
+}
+
+.right-panel-tabs :deep(.el-tab-pane) {
+  height: 100%;
+}
+
 .panel-scroll {
   padding: 0 12px 12px;
 }
@@ -538,6 +608,20 @@ onMounted(() => {
 .clipboard-buttons {
   display: flex;
   gap: 6px;
+}
+
+.preview-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.preview-content {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 12px;
+  color: var(--el-text-color-regular);
+  font-family: var(--el-font-family);
 }
 
 </style>

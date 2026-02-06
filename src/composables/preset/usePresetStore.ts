@@ -236,9 +236,9 @@ export function usePresetStore() {
     const newPrompt: PresetPrompt = {
       identifier: presetService.createPresetId(),
       name: '新条目',
-      role: 'system',
+      role: 'user',
       content: '',
-      system_prompt: true,
+      system_prompt: false,
       marker: false,
       enabled: true,
       order: prompts.length,

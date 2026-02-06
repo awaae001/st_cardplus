@@ -32,7 +32,7 @@
     </template>
 
     <template #node="{ node, data }">
-      <div class="sidebar-tree-node" :class="{ 'is-header': data.isHeader }">
+      <div class="sidebar-tree-node" :class="{ 'is-header': data.isHeader, 'is-disabled': data.isPrompt && data.enabled === false }">
         <div class="sidebar-tree-node-main">
           <Icon :icon="data.icon" class="sidebar-tree-node-icon" />
           <span class="sidebar-tree-node-label">{{ node.label }}</span>
@@ -195,6 +195,7 @@ const treeData = computed(() => {
             presetId: preset.id,
             promptIndex: index,
             raw: prompt,
+            enabled: typeof prompt.enabled === 'boolean' ? prompt.enabled : true,
           })),
       ],
     }));
@@ -269,5 +270,11 @@ const isProtectedPrompt = (prompt: Record<string, any> | undefined) => {
 .sidebar-tree-node.is-header .sidebar-tree-node-label {
   font-weight: 500;
   color: var(--el-color-primary);
+}
+
+.sidebar-tree-node.is-disabled .sidebar-tree-node-label,
+.sidebar-tree-node.is-disabled .sidebar-tree-node-icon {
+  color: var(--el-text-color-disabled);
+  opacity: 0.65;
 }
 </style>

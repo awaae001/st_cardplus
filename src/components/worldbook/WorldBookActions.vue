@@ -1,37 +1,37 @@
 <template>
   <div class="worldbook-bottom-panel-buttons" v-if="context === 'list'" :class="{ 'is-compact': sidebarWidth < 270 }">
-      <el-tooltip content="从文件导入为新世界书" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
-        <el-upload action="#" :before-upload="handleBookUpload" :show-file-list="false" accept=".json">
-          <button class="btn-primary-adv worldbook-bottom-button-text worldbook-primary-import">
-            <Icon icon="ph:book-open-duotone" width="16" height="16" class="worldbook-button-text-icon" />
-            <span class="worldbook-button-text-short">导入</span>
-            <span class="worldbook-button-text-long">导入世界书</span>
+      <div class="worldbook-action-split">
+        <el-tooltip content="从文件导入为新世界书" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+          <el-upload action="#" :before-upload="handleBookUpload" :show-file-list="false" accept=".json">
+            <button class="btn-primary-adv worldbook-bottom-button-text worldbook-primary-import">
+              <Icon icon="ph:book-open-duotone" width="16" height="16" class="worldbook-button-text-icon" />
+              <span class="worldbook-button-text-short">导入</span>
+              <span class="worldbook-button-text-long">导入世界书</span>
+            </button>
+          </el-upload>
+        </el-tooltip>
+        <el-dropdown trigger="click" placement="bottom-end" @command="handleListCommand">
+          <button class="btn-primary-adv worldbook-bottom-button-text worldbook-action-dropdown" aria-label="更多操作">
+            <Icon icon="ph:caret-down-duotone" width="16" height="16" class="worldbook-button-text-icon" />
           </button>
-        </el-upload>
-      </el-tooltip>
-      <el-dropdown trigger="click" placement="bottom-end" @command="handleListCommand">
-        <button class="btn-primary-adv worldbook-bottom-button-text worldbook-action-dropdown">
-          <Icon icon="ph:caret-down-duotone" width="16" height="16" class="worldbook-button-text-icon" />
-          <span class="worldbook-button-text-short">更多</span>
-          <span class="worldbook-button-text-long">更多操作</span>
-        </button>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item command="copy">
-              <Icon icon="ph:books-duotone" class="dropdown-item-icon" />
-              复制整个世界书
-            </el-dropdown-item>
-            <el-dropdown-item command="export">
-              <Icon icon="ph:export-duotone" class="dropdown-item-icon" />
-              导出当前世界书
-            </el-dropdown-item>
-            <el-dropdown-item command="clear" divided>
-              <Icon icon="ph:trash-simple-duotone" class="dropdown-item-icon" />
-              清空所有条目
-            </el-dropdown-item>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="copy">
+                <Icon icon="ph:books-duotone" class="dropdown-item-icon" />
+                复制整个世界书
+              </el-dropdown-item>
+              <el-dropdown-item command="export">
+                <Icon icon="ph:export-duotone" class="dropdown-item-icon" />
+                导出当前世界书
+              </el-dropdown-item>
+              <el-dropdown-item command="clear" divided>
+                <Icon icon="ph:trash-simple-duotone" class="dropdown-item-icon" />
+                清空所有条目
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </div>
     </div>
 
     <!-- Editor Actions -->
@@ -176,12 +176,23 @@ const handleListCommand = (command: string) => {
   justify-content: center;
 }
 
+.worldbook-action-split {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 0;
+}
+
 .worldbook-primary-import {
   min-width: 120px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 .worldbook-action-dropdown {
-  min-width: 110px;
+  min-width: 40px;
+  padding: 8px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
 }
 
 .dropdown-item-icon {
