@@ -1,14 +1,27 @@
 <template>
   <div class="image-panel-container">
-    <el-image :src="previewUrl" fit="contain" class="character-image">
+    <el-image
+      :src="previewUrl"
+      fit="contain"
+      class="character-image"
+    >
       <template #error>
         <div class="image-placeholder">
           <span>暂无图片</span>
         </div>
       </template>
     </el-image>
-    <el-upload ref="uploadRef" action="#" :show-file-list="false" :auto-upload="false" @change="handleImageChange"
-      @error="handleError" accept="image/png, image/jpeg, image/webp" class="upload-button" :limit="1">
+    <el-upload
+      ref="uploadRef"
+      action="#"
+      :show-file-list="false"
+      :auto-upload="false"
+      @change="handleImageChange"
+      @error="handleError"
+      accept="image/png, image/jpeg, image/webp"
+      class="upload-button"
+      :limit="1"
+    >
       <el-button type="primary">🖼️ 选择角色头像</el-button>
     </el-upload>
   </div>

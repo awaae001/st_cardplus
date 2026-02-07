@@ -1,10 +1,23 @@
 <template>
   <div class="preset-page">
-    <div v-if="isMobileOrTablet" class="mobile-block">
-      <el-empty description="不支持移动端" :image-size="200" />
+    <div
+      v-if="isMobileOrTablet"
+      class="mobile-block"
+    >
+      <el-empty
+        description="不支持移动端"
+        :image-size="200"
+      />
     </div>
-    <splitpanes v-else class="default-theme preset-split" :horizontal="false">
-      <pane min-size="18" size="22">
+    <splitpanes
+      v-else
+      class="default-theme preset-split"
+      :horizontal="false"
+    >
+      <pane
+        min-size="18"
+        size="22"
+      >
         <PresetList
           :presets="presets"
           :active-preset-id="activePresetId"
@@ -26,7 +39,10 @@
         />
       </pane>
 
-      <pane min-size="35" size="50">
+      <pane
+        min-size="35"
+        size="50"
+      >
         <PresetEditor
           v-model:active-tab="activeEditorTab"
           v-model:editor-state="editorState"
@@ -40,36 +56,87 @@
         />
       </pane>
 
-      <pane min-size="20" size="28">
-        <el-tabs v-model="rightPanelTab" class="right-panel-tabs">
-          <el-tab-pane label="剪贴板" name="clipboard">
+      <pane
+        min-size="20"
+        size="28"
+      >
+        <el-tabs
+          v-model="rightPanelTab"
+          class="right-panel-tabs"
+        >
+          <el-tab-pane
+            label="剪贴板"
+            name="clipboard"
+          >
             <div class="clipboard-panel">
               <div class="panel-header">
                 <h3>剪贴板</h3>
                 <div class="header-actions">
-                  <el-button size="small" @click="clearAll" :disabled="!hasItems">清空</el-button>
+                  <el-button
+                    size="small"
+                    @click="clearAll"
+                    :disabled="!hasItems"
+                  >
+                    清空
+                  </el-button>
                 </div>
               </div>
               <el-scrollbar class="panel-scroll">
-                <div v-if="!hasItems" class="empty-state">
-                  <el-empty description="暂无内容" :image-size="120" />
+                <div
+                  v-if="!hasItems"
+                  class="empty-state"
+                >
+                  <el-empty
+                    description="暂无内容"
+                    :image-size="120"
+                  />
                 </div>
-                <div v-else class="clipboard-list">
-                  <div v-for="(clip, index) in clipboardItems" :key="clip.id" class="clipboard-item">
+                <div
+                  v-else
+                  class="clipboard-list"
+                >
+                  <div
+                    v-for="(clip, index) in clipboardItems"
+                    :key="clip.id"
+                    class="clipboard-item"
+                  >
                     <div class="clipboard-header">
                       <span class="clipboard-title">{{ clip.title }}</span>
                       <span class="clipboard-actions">
-                        <el-button :icon="ArrowUp" size="small" text @click="moveUp(index)" />
-                        <el-button :icon="ArrowDown" size="small" text @click="moveDown(index)" />
-                        <el-button :icon="Delete" size="small" text @click="removeClipboard(clip.id)" />
+                        <el-button
+                          :icon="ArrowUp"
+                          size="small"
+                          text
+                          @click="moveUp(index)"
+                        />
+                        <el-button
+                          :icon="ArrowDown"
+                          size="small"
+                          text
+                          @click="moveDown(index)"
+                        />
+                        <el-button
+                          :icon="Delete"
+                          size="small"
+                          text
+                          @click="removeClipboard(clip.id)"
+                        />
                       </span>
                     </div>
                     <div class="clipboard-content">{{ clip.content }}</div>
                     <div class="clipboard-buttons">
-                      <el-button size="small" @click="insertToEditor(clip.content)" :disabled="!selectedPrompt">
+                      <el-button
+                        size="small"
+                        @click="insertToEditor(clip.content)"
+                        :disabled="!selectedPrompt"
+                      >
                         插入编辑器
                       </el-button>
-                      <el-button size="small" @click="replaceEditor(clip.content)" :disabled="!selectedPrompt">
+                      <el-button
+                        size="small"
+                        @click="replaceEditor(clip.content)"
+                        :disabled="!selectedPrompt"
+                      >
                         替换编辑器
                       </el-button>
                     </div>
@@ -78,25 +145,52 @@
               </el-scrollbar>
             </div>
           </el-tab-pane>
-          <el-tab-pane label="预设预览" name="preview">
+          <el-tab-pane
+            label="预设预览"
+            name="preview"
+          >
             <div class="preview-panel">
               <div class="panel-header">
                 <h3>预设预览</h3>
                 <div class="header-actions">
-                  <el-tag v-if="activePreset" type="info" effect="plain">
+                  <el-tag
+                    v-if="activePreset"
+                    type="info"
+                    effect="plain"
+                  >
                     {{ activePreset.name || '未命名预设' }} · {{ previewPrompts.length }} 条目
                   </el-tag>
                 </div>
               </div>
               <el-scrollbar class="panel-scroll">
-                <div v-if="!activePreset" class="empty-state">
-                  <el-empty description="请先选择一个预设" :image-size="120" />
+                <div
+                  v-if="!activePreset"
+                  class="empty-state"
+                >
+                  <el-empty
+                    description="请先选择一个预设"
+                    :image-size="120"
+                  />
                 </div>
-                <div v-else-if="previewPrompts.length === 0" class="empty-state">
-                  <el-empty description="暂无条目" :image-size="120" />
+                <div
+                  v-else-if="previewPrompts.length === 0"
+                  class="empty-state"
+                >
+                  <el-empty
+                    description="暂无条目"
+                    :image-size="120"
+                  />
                 </div>
-                <div v-else class="preview-list">
-                  <pre v-for="item in previewPrompts" :key="item.key" class="preview-content">{{ item.text }}</pre>
+                <div
+                  v-else
+                  class="preview-list"
+                >
+                  <pre
+                    v-for="item in previewPrompts"
+                    :key="item.key"
+                    class="preview-content"
+                    >{{ item.text }}</pre
+                  >
                 </div>
               </el-scrollbar>
             </div>
@@ -123,11 +217,7 @@ import { saveAs } from 'file-saver';
 import { cleanObject } from '@/utils/objectUtils';
 import { getSessionStorageItem, setSessionStorageValue } from '@/utils/localStorageUtils';
 import { defaultOpenAIPreset } from '@/types/openai-preset';
-import {
-  Delete,
-  ArrowUp,
-  ArrowDown,
-} from '@element-plus/icons-vue';
+import { Delete, ArrowUp, ArrowDown } from '@element-plus/icons-vue';
 
 const { isMobileOrTablet } = useDevice();
 const {
@@ -221,7 +311,9 @@ const editorState = ref<PresetEditorState>({
 });
 
 const selectedIsHeader = computed(() => selected.value?.type === 'header');
-const selectedPromptIndex = computed(() => selected.value?.type === 'prompt' ? (selected.value.promptIndex ?? null) : null);
+const selectedPromptIndex = computed(() =>
+  selected.value?.type === 'prompt' ? (selected.value.promptIndex ?? null) : null
+);
 
 const dragDropHandlers = {
   allowDrag: (draggingNode: any) => {
@@ -233,9 +325,11 @@ const dragDropHandlers = {
       return dropNode.data.isPreset && (type === 'prev' || type === 'next');
     }
     if (draggingNode.data.isPrompt) {
-      return dropNode.data.isPrompt
-        && draggingNode.data.presetId === dropNode.data.presetId
-        && (type === 'prev' || type === 'next');
+      return (
+        dropNode.data.isPrompt &&
+        draggingNode.data.presetId === dropNode.data.presetId &&
+        (type === 'prev' || type === 'next')
+      );
     }
     return false;
   },
@@ -245,7 +339,7 @@ const dragDropHandlers = {
       const currentOrder = presets.value
         .slice()
         .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-        .map(p => p.id);
+        .map((p) => p.id);
       const fromIndex = currentOrder.indexOf(draggingNode.data.id);
       const toIndex = currentOrder.indexOf(dropNode.data.id);
       if (fromIndex === -1 || toIndex === -1) return false;
@@ -257,7 +351,7 @@ const dragDropHandlers = {
     }
     if (draggingNode.data.isPrompt) {
       const presetId = draggingNode.data.presetId;
-      const preset = presets.value.find(p => p.id === presetId);
+      const preset = presets.value.find((p) => p.id === presetId);
       if (!preset) return false;
       const prompts = (preset.data.prompts as Record<string, any>[]) || [];
       const indices = prompts.map((_, index) => index);
@@ -281,12 +375,12 @@ const dragDropHandlers = {
 };
 
 const handleRenamePreset = (id: string) => {
-  const preset = presets.value.find(p => p.id === id);
+  const preset = presets.value.find((p) => p.id === id);
   if (preset) renamePreset(preset);
 };
 
 const handleDeletePreset = (id: string) => {
-  const preset = presets.value.find(p => p.id === id);
+  const preset = presets.value.find((p) => p.id === id);
   if (preset) removePreset(preset);
 };
 
@@ -319,9 +413,8 @@ const handleImportPreset = async (file: File) => {
     const text = await file.text();
     const parsed = JSON.parse(text);
     const nameFromFile = file.name.replace(/\.json$/i, '');
-    const presetName = (parsed && typeof parsed.name === 'string' && parsed.name.trim())
-      ? parsed.name.trim()
-      : nameFromFile || '导入预设';
+    const presetName =
+      parsed && typeof parsed.name === 'string' && parsed.name.trim() ? parsed.name.trim() : nameFromFile || '导入预设';
     await importPreset(presetName, parsed);
     ElMessage.success('预设导入成功');
   } catch (error) {
@@ -373,16 +466,7 @@ const previewPrompts = computed(() => {
 });
 
 const extractExtras = (prompt: PresetPrompt) => {
-  const baseKeys = [
-    'identifier',
-    'name',
-    'role',
-    'content',
-    'system_prompt',
-    'marker',
-    'enabled',
-    'order',
-  ];
+  const baseKeys = ['identifier', 'name', 'role', 'content', 'system_prompt', 'marker', 'enabled', 'order'];
   const extra: Record<string, any> = {};
   Object.entries(prompt || {}).forEach(([key, value]) => {
     if (!baseKeys.includes(key)) extra[key] = value;
@@ -446,69 +530,77 @@ const handleManualSave = async () => {
   }
 };
 
-watch(activePreset, (preset) => {
-  if (!preset) {
+watch(
+  activePreset,
+  (preset) => {
+    if (!preset) {
+      editorState.value = {
+        ...editorState.value,
+        presetName: '',
+        headerForm: buildHeaderForm(),
+      };
+      nextTick(() => {
+        presetAutoSave.updateSavedSnapshot();
+        isLoadingData.value = false;
+      });
+      return;
+    }
+    isLoadingData.value = true;
     editorState.value = {
       ...editorState.value,
-      presetName: '',
-      headerForm: buildHeaderForm(),
+      presetName: preset.name,
+      headerForm: buildHeaderForm(preset.data as Record<string, any>),
     };
     nextTick(() => {
       presetAutoSave.updateSavedSnapshot();
       isLoadingData.value = false;
     });
-    return;
-  }
-  isLoadingData.value = true;
-  editorState.value = {
-    ...editorState.value,
-    presetName: preset.name,
-    headerForm: buildHeaderForm(preset.data as Record<string, any>),
-  };
-  nextTick(() => {
-    presetAutoSave.updateSavedSnapshot();
-    isLoadingData.value = false;
-  });
-}, { immediate: true });
+  },
+  { immediate: true }
+);
 
-watch(selectedPrompt, (prompt) => {
-  if (!prompt) {
+watch(
+  selectedPrompt,
+  (prompt) => {
+    if (!prompt) {
+      editorState.value = {
+        ...editorState.value,
+        promptName: '',
+        promptIdentifier: '',
+        promptRole: 'system',
+        promptContent: '',
+        promptSystem: false,
+        promptMarker: false,
+        promptEnabled: false,
+        promptOrder: null,
+        promptExtraJson: '{}',
+      };
+      nextTick(() => {
+        presetAutoSave.updateSavedSnapshot();
+        isLoadingData.value = false;
+      });
+      return;
+    }
+    isLoadingData.value = true;
     editorState.value = {
       ...editorState.value,
-      promptName: '',
-      promptIdentifier: '',
-      promptRole: 'system',
-      promptContent: '',
-      promptSystem: false,
-      promptMarker: false,
-      promptEnabled: false,
-      promptOrder: null,
-      promptExtraJson: '{}',
+      promptName: prompt.name || '',
+      promptIdentifier: prompt.identifier || '',
+      promptRole: (prompt.role as any) || 'system',
+      promptContent: prompt.content || '',
+      promptSystem: Boolean(prompt.system_prompt),
+      promptMarker: Boolean(prompt.marker),
+      promptEnabled: Boolean(prompt.enabled),
+      promptOrder: typeof prompt.order === 'number' ? prompt.order : null,
+      promptExtraJson: extractExtras(prompt),
     };
     nextTick(() => {
       presetAutoSave.updateSavedSnapshot();
       isLoadingData.value = false;
     });
-    return;
-  }
-  isLoadingData.value = true;
-  editorState.value = {
-    ...editorState.value,
-    promptName: prompt.name || '',
-    promptIdentifier: prompt.identifier || '',
-    promptRole: (prompt.role as any) || 'system',
-    promptContent: prompt.content || '',
-    promptSystem: Boolean(prompt.system_prompt),
-    promptMarker: Boolean(prompt.marker),
-    promptEnabled: Boolean(prompt.enabled),
-    promptOrder: typeof prompt.order === 'number' ? prompt.order : null,
-    promptExtraJson: extractExtras(prompt),
-  };
-  nextTick(() => {
-    presetAutoSave.updateSavedSnapshot();
-    isLoadingData.value = false;
-  });
-}, { immediate: true });
+  },
+  { immediate: true }
+);
 
 watch(selected, (val) => {
   if (val?.type === 'prompt') {
@@ -675,5 +767,4 @@ onBeforeUnmount(() => {
   color: var(--el-text-color-regular);
   font-family: var(--el-font-family);
 }
-
 </style>

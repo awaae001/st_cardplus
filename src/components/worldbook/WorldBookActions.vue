@@ -1,68 +1,185 @@
 <template>
-  <div class="worldbook-bottom-panel-buttons" v-if="context === 'list'" :class="{ 'is-compact': sidebarWidth < 270 }">
-      <div class="worldbook-action-split">
-        <el-tooltip content="从文件导入为新世界书" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
-          <el-upload action="#" :before-upload="handleBookUpload" :show-file-list="false" accept=".json">
-            <button class="btn-primary-adv worldbook-bottom-button-text worldbook-primary-import">
-              <Icon icon="ph:book-open-duotone" width="16" height="16" class="worldbook-button-text-icon" />
-              <span class="worldbook-button-text-short">导入</span>
-              <span class="worldbook-button-text-long">导入世界书</span>
-            </button>
-          </el-upload>
-        </el-tooltip>
-        <el-dropdown trigger="click" placement="bottom-end" @command="handleListCommand">
-          <button class="btn-primary-adv worldbook-bottom-button-text worldbook-action-dropdown" aria-label="更多操作">
-            <Icon icon="ph:caret-down-duotone" width="16" height="16" class="worldbook-button-text-icon" />
+  <div
+    class="worldbook-bottom-panel-buttons"
+    v-if="context === 'list'"
+    :class="{ 'is-compact': sidebarWidth < 270 }"
+  >
+    <div class="worldbook-action-split">
+      <el-tooltip
+        content="从文件导入为新世界书"
+        placement="top"
+        :show-arrow="false"
+        :offset="8"
+        :hide-after="0"
+      >
+        <el-upload
+          action="#"
+          :before-upload="handleBookUpload"
+          :show-file-list="false"
+          accept=".json"
+        >
+          <button class="btn-primary-adv worldbook-bottom-button-text worldbook-primary-import">
+            <Icon
+              icon="ph:book-open-duotone"
+              width="16"
+              height="16"
+              class="worldbook-button-text-icon"
+            />
+            <span class="worldbook-button-text-short">导入</span>
+            <span class="worldbook-button-text-long">导入世界书</span>
           </button>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item command="copy">
-                <Icon icon="ph:books-duotone" class="dropdown-item-icon" />
-                复制整个世界书
-              </el-dropdown-item>
-              <el-dropdown-item command="export">
-                <Icon icon="ph:export-duotone" class="dropdown-item-icon" />
-                导出当前世界书
-              </el-dropdown-item>
-              <el-dropdown-item command="clear" divided>
-                <Icon icon="ph:trash-simple-duotone" class="dropdown-item-icon" />
-                清空所有条目
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-      </div>
+        </el-upload>
+      </el-tooltip>
+      <el-dropdown
+        trigger="click"
+        placement="bottom-end"
+        @command="handleListCommand"
+      >
+        <button
+          class="btn-primary-adv worldbook-bottom-button-text worldbook-action-dropdown"
+          aria-label="更多操作"
+        >
+          <Icon
+            icon="ph:caret-down-duotone"
+            width="16"
+            height="16"
+            class="worldbook-button-text-icon"
+          />
+        </button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="copy">
+              <Icon
+                icon="ph:books-duotone"
+                class="dropdown-item-icon"
+              />
+              复制整个世界书
+            </el-dropdown-item>
+            <el-dropdown-item command="export">
+              <Icon
+                icon="ph:export-duotone"
+                class="dropdown-item-icon"
+              />
+              导出当前世界书
+            </el-dropdown-item>
+            <el-dropdown-item
+              command="clear"
+              divided
+            >
+              <Icon
+                icon="ph:trash-simple-duotone"
+                class="dropdown-item-icon"
+              />
+              清空所有条目
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
     </div>
+  </div>
 
-    <!-- Editor Actions -->
-    <div v-if="context === 'editor'" class="worldbook-editor-buttons">
-      <el-tooltip content="复制当前条目 (到剪贴板)" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
-        <button @click="$emit('copy-entry')" :disabled="!hasSelection" class="btn-secondary-adv worldbook-editor-button" aria-label="复制当前条目">
-          <Icon icon="ph:copy-simple-duotone" class="worldbook-editor-button-icon" />
+  <!-- Editor Actions -->
+  <div
+    v-if="context === 'editor'"
+    class="worldbook-editor-buttons"
+  >
+    <el-tooltip
+      content="复制当前条目 (到剪贴板)"
+      placement="bottom"
+      :show-arrow="false"
+      :offset="8"
+      :hide-after="0"
+    >
+      <button
+        @click="$emit('copy-entry')"
+        :disabled="!hasSelection"
+        class="btn-secondary-adv worldbook-editor-button"
+        aria-label="复制当前条目"
+      >
+        <Icon
+          icon="ph:copy-simple-duotone"
+          class="worldbook-editor-button-icon"
+        />
+      </button>
+    </el-tooltip>
+    <div
+      v-if="hasSelection"
+      class="save-button-group"
+    >
+      <el-tooltip
+        content="手动立即保存"
+        placement="bottom"
+        :show-arrow="false"
+        :offset="8"
+        :hide-after="0"
+      >
+        <button
+          @click="$emit('save-entry')"
+          class="btn-primary-adv worldbook-editor-button"
+          aria-label="保存当前条目"
+        >
+          <Icon
+            icon="ph:floppy-disk-duotone"
+            class="worldbook-editor-button-icon"
+          />
         </button>
       </el-tooltip>
-      <div v-if="hasSelection" class="save-button-group">
-        <el-tooltip content="手动立即保存" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
-          <button @click="$emit('save-entry')" class="btn-primary-adv worldbook-editor-button" aria-label="保存当前条目">
-            <Icon icon="ph:floppy-disk-duotone" class="worldbook-editor-button-icon" />
-          </button>
-        </el-tooltip>
-        <el-tooltip :content="getTooltipText()" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
-          <div class="save-status-badge" :class="getBadgeClass()" @click="$emit('toggle-mode')">
-            <Icon v-if="saveStatus === 'saving'" icon="eos-icons:loading" class="badge-icon spinning" />
-            <Icon v-else-if="saveStatus === 'saved'" icon="ph:check-circle-fill" class="badge-icon" />
-            <Icon v-else-if="saveStatus === 'error'" icon="ph:warning-circle-fill" class="badge-icon" />
-            <Icon v-else :icon="getModeIcon()" class="badge-icon" />
-            <span class="badge-text">{{ getBadgeText() }}</span>
-          </div>
-        </el-tooltip>
-      </div>
-      <el-tooltip v-if="hasSelection" content="删除当前条目" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
-        <button @click="$emit('delete-entry')" class="btn-danger-adv worldbook-editor-button" aria-label="删除当前条目">
-          <Icon icon="ph:trash-duotone" class="worldbook-editor-button-icon-delete" />
-        </button>
+      <el-tooltip
+        :content="getTooltipText()"
+        placement="bottom"
+        :show-arrow="false"
+        :offset="8"
+        :hide-after="0"
+      >
+        <div
+          class="save-status-badge"
+          :class="getBadgeClass()"
+          @click="$emit('toggle-mode')"
+        >
+          <Icon
+            v-if="saveStatus === 'saving'"
+            icon="eos-icons:loading"
+            class="badge-icon spinning"
+          />
+          <Icon
+            v-else-if="saveStatus === 'saved'"
+            icon="ph:check-circle-fill"
+            class="badge-icon"
+          />
+          <Icon
+            v-else-if="saveStatus === 'error'"
+            icon="ph:warning-circle-fill"
+            class="badge-icon"
+          />
+          <Icon
+            v-else
+            :icon="getModeIcon()"
+            class="badge-icon"
+          />
+          <span class="badge-text">{{ getBadgeText() }}</span>
+        </div>
       </el-tooltip>
     </div>
+    <el-tooltip
+      v-if="hasSelection"
+      content="删除当前条目"
+      placement="bottom"
+      :show-arrow="false"
+      :offset="8"
+      :hide-after="0"
+    >
+      <button
+        @click="$emit('delete-entry')"
+        class="btn-danger-adv worldbook-editor-button"
+        aria-label="删除当前条目"
+      >
+        <Icon
+          icon="ph:trash-duotone"
+          class="worldbook-editor-button-icon-delete"
+        />
+      </button>
+    </el-tooltip>
+  </div>
 </template>
 
 <script setup lang="ts">

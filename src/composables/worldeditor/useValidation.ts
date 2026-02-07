@@ -7,7 +7,7 @@ export function useValidation() {
 
   const validate = (item: any, rules: ValidationRule[]): boolean => {
     // Clear previous errors
-    Object.keys(errors).forEach(key => delete errors[key]);
+    Object.keys(errors).forEach((key) => delete errors[key]);
 
     let isValid = true;
     for (const rule of rules) {

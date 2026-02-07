@@ -1,19 +1,36 @@
 <template>
   <el-scrollbar class="character-card-editor-scrollbar">
     <div class="content-panel-body">
-      <CharacterCardButtons :characterName="form.chineseName" @saveCharacterCard="saveCharacterCard"
-        @loadCharacterCard="loadCharacterCard" @resetForm="resetForm" @copyToClipboard="copyToClipboard"
-        @importFromClipboard="(data) => importFromClipboard(data)" />
-      <el-form :model="form" label-position="top" ref="characterFormRef" class="character-card-editor-form">
+      <CharacterCardButtons
+        :characterName="form.chineseName"
+        @saveCharacterCard="saveCharacterCard"
+        @loadCharacterCard="loadCharacterCard"
+        @resetForm="resetForm"
+        @copyToClipboard="copyToClipboard"
+        @importFromClipboard="(data) => importFromClipboard(data)"
+      />
+      <el-form
+        :model="form"
+        label-position="top"
+        ref="characterFormRef"
+        class="character-card-editor-form"
+      >
         <section class="form-section">
           <h3 class="form-section-title">
-            <Icon icon="ph:info-duotone" class="form-section-icon" />基本信息
+            <Icon
+              icon="ph:info-duotone"
+              class="form-section-icon"
+            />
+            基本信息
           </h3>
           <div class="form-section-content">
             <div class="form-row-responsive">
               <div class="form-group-responsive">
                 <label class="form-label">中文名</label>
-                <el-input v-model="form.chineseName" placeholder="请输入中文名" />
+                <el-input
+                  v-model="form.chineseName"
+                  placeholder="请输入中文名"
+                />
               </div>
             </div>
             <!-- <div class="form-group-responsive">
@@ -24,70 +41,172 @@
             <div class="form-row-responsive">
               <div class="form-group-responsive">
                 <label class="form-label">性别</label>
-                <el-select v-model="form.gender" placeholder="请选择性别" class="form-full-width">
-                  <el-option label="女性" value="female" />
-                  <el-option label="男性" value="male" />
-                  <el-option label="秀吉（伪娘、正太）" value="秀吉（伪娘、正太）" />
-                  <el-option label="武装直升机" value="helicopter" />
-                  <el-option label="牢大" value="Prison_big" />
-                  <el-option label="永雏塔菲" value="tiffany" />
-                  <el-option label="赛马娘" value="horse" />
-                  <el-option label="沃尔玛购物袋" value="walmartShopingBag" />
-                  <el-option label="其他(自定义)" value="other" />
+                <el-select
+                  v-model="form.gender"
+                  placeholder="请选择性别"
+                  class="form-full-width"
+                >
+                  <el-option
+                    label="女性"
+                    value="female"
+                  />
+                  <el-option
+                    label="男性"
+                    value="male"
+                  />
+                  <el-option
+                    label="秀吉（伪娘、正太）"
+                    value="秀吉（伪娘、正太）"
+                  />
+                  <el-option
+                    label="武装直升机"
+                    value="helicopter"
+                  />
+                  <el-option
+                    label="牢大"
+                    value="Prison_big"
+                  />
+                  <el-option
+                    label="永雏塔菲"
+                    value="tiffany"
+                  />
+                  <el-option
+                    label="赛马娘"
+                    value="horse"
+                  />
+                  <el-option
+                    label="沃尔玛购物袋"
+                    value="walmartShopingBag"
+                  />
+                  <el-option
+                    label="其他(自定义)"
+                    value="other"
+                  />
                 </el-select>
-                <el-input v-if="form.gender === 'other'" v-model="form.customGender" placeholder="请输入角色的性别（other）"
-                  style="margin-top: 10px;" />
+                <el-input
+                  v-if="form.gender === 'other'"
+                  v-model="form.customGender"
+                  placeholder="请输入角色的性别（other）"
+                  style="margin-top: 10px"
+                />
               </div>
               <div class="form-group-responsive">
                 <label class="form-label">年龄</label>
-                <el-input-number v-model="form.age" controls-position="right" :min="-Infinity" :max="Infinity"
-                  :precision="0" class="form-full-width" />
+                <el-input-number
+                  v-model="form.age"
+                  controls-position="right"
+                  :min="-Infinity"
+                  :max="Infinity"
+                  :precision="0"
+                  class="form-full-width"
+                />
                 <p class="form-help-text">限制为数字，请勿输入其他字段</p>
               </div>
             </div>
             <div>
               <label class="form-label">身份</label>
-              <el-input v-model="form.identity" type="textarea" :rows="5" placeholder="请输入身份 · 一行一条" />
+              <el-input
+                v-model="form.identity"
+                type="textarea"
+                :rows="5"
+                placeholder="请输入身份 · 一行一条"
+              />
             </div>
           </div>
         </section>
 
         <section class="form-section">
           <h3 class="form-section-title">
-            <Icon icon="ph:book-open-duotone" class="form-section-icon" />背景故事
+            <Icon
+              icon="ph:book-open-duotone"
+              class="form-section-icon"
+            />
+            背景故事
           </h3>
           <div class="form-section-content">
             <div>
               <label class="form-label">背景故事</label>
-              <el-input v-model="form.background" type="textarea" :rows="6" placeholder="请输入背景故事（每行一条）" />
+              <el-input
+                v-model="form.background"
+                type="textarea"
+                :rows="6"
+                placeholder="请输入背景故事（每行一条）"
+              />
             </div>
-            <div style="margin-top: 1rem;">
-              <div class="title-Btn" style="display: flex;align-items: center;justify-content: space-between;">
+            <div style="margin-top: 1rem">
+              <div
+                class="title-Btn"
+                style="display: flex; align-items: center; justify-content: space-between"
+              >
                 <label class="form-label">MBTI性格</label>
-                <el-button type="primary" @click="validateMBTI">
-                  <Icon icon="material-symbols:question-exchange" width="18" height="18" style="margin-right: 4px;" />验证
+                <el-button
+                  type="primary"
+                  @click="validateMBTI"
+                >
+                  <Icon
+                    icon="material-symbols:question-exchange"
+                    width="18"
+                    height="18"
+                    style="margin-right: 4px"
+                  />
+                  验证
                 </el-button>
               </div>
-              <p class="form-help-text">必须是有效的MBTI数值或者是 none </p>
-              <el-input v-model="form.mbti" placeholder="请输入MBTI性格" />
+              <p class="form-help-text">必须是有效的MBTI数值或者是 none</p>
+              <el-input
+                v-model="form.mbti"
+                placeholder="请输入MBTI性格"
+              />
             </div>
           </div>
         </section>
 
-        <el-tabs v-model="activeTab" class="settings-tabs">
-          <el-tab-pane label="外观与服装" name="appearance">
-            <AppearanceAndAttireTab :form="form" @addAttire="addAttire" @removeAttire="removeAttire"
-              @exportAttires="exportAttires" v-model:attires="form.attires" />
+        <el-tabs
+          v-model="activeTab"
+          class="settings-tabs"
+        >
+          <el-tab-pane
+            label="外观与服装"
+            name="appearance"
+          >
+            <AppearanceAndAttireTab
+              :form="form"
+              @addAttire="addAttire"
+              @removeAttire="removeAttire"
+              @exportAttires="exportAttires"
+              v-model:attires="form.attires"
+            />
           </el-tab-pane>
-          <el-tab-pane label="角色特质" name="traits">
-            <TraitsTab :form="form" @addTrait="addTrait" @removeTrait="removeTrait" @exportTraits="exportTraits"
-              v-model:traits="form.traits" @addRelationship="addRelationship" @removeRelationship="removeRelationship"
-              @exportRelationships="exportRelationships" v-model:relationships="form.relationships" @addSkill="addSkill"
-              @removeSkill="removeSkill" @exportSkills="exportSkills" v-model:skills="form.skills" />
+          <el-tab-pane
+            label="角色特质"
+            name="traits"
+          >
+            <TraitsTab
+              :form="form"
+              @addTrait="addTrait"
+              @removeTrait="removeTrait"
+              @exportTraits="exportTraits"
+              v-model:traits="form.traits"
+              @addRelationship="addRelationship"
+              @removeRelationship="removeRelationship"
+              @exportRelationships="exportRelationships"
+              v-model:relationships="form.relationships"
+              @addSkill="addSkill"
+              @removeSkill="removeSkill"
+              @exportSkills="exportSkills"
+              v-model:skills="form.skills"
+            />
           </el-tab-pane>
-          <el-tab-pane label="日常与笔记" name="notes">
-            <DailyAndNotesTab :form="form" @update:form-likes="form.likes = $event"
-              @update:form-dislikes="form.dislikes = $event" @update:notes="form.notes = $event" />
+          <el-tab-pane
+            label="日常与笔记"
+            name="notes"
+          >
+            <DailyAndNotesTab
+              :form="form"
+              @update:form-likes="form.likes = $event"
+              @update:form-dislikes="form.dislikes = $event"
+              @update:notes="form.notes = $event"
+            />
           </el-tab-pane>
         </el-tabs>
       </el-form>
@@ -97,7 +216,18 @@
 
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue';
-import { ElScrollbar, ElForm, ElInput, ElSelect, ElOption, ElInputNumber, ElTabs, ElTabPane, ElButton, ElMessageBox } from 'element-plus';
+import {
+  ElScrollbar,
+  ElForm,
+  ElInput,
+  ElSelect,
+  ElOption,
+  ElInputNumber,
+  ElTabs,
+  ElTabPane,
+  ElButton,
+  ElMessageBox,
+} from 'element-plus';
 import { Icon } from '@iconify/vue';
 import CharacterCardButtons from './charcard/CharacterCardButtons.vue';
 import AppearanceAndAttireTab from './charcard/tabs/AppearanceAndAttireTab.vue';
@@ -125,56 +255,58 @@ const form = ref(JSON.parse(JSON.stringify(props.character)));
 let isUpdatingFromProps = false;
 
 // 监听props变化，同步到本地form
-watch(() => props.character, (newCharacter) => {
-  if (newCharacter && newCharacter.id !== form.value.id) {
-    // 只在角色ID不同时才更新，避免循环更新
-    isUpdatingFromProps = true;
-    form.value = JSON.parse(JSON.stringify(newCharacter)); // 深度克隆
-    nextTick(() => {
-      isUpdatingFromProps = false;
-    });
-  } else if (newCharacter && newCharacter.id === form.value.id) {
-    // 相同角色但数据不同，可能是外部更新，需要同步（但要避免覆盖用户正在编辑的内容）
-    const currentFormJson = JSON.stringify(form.value);
-    const newCharacterJson = JSON.stringify(newCharacter);
-    if (currentFormJson !== newCharacterJson) {
-      // 检查是否有实质性差异，如果有则更新
+watch(
+  () => props.character,
+  (newCharacter) => {
+    if (newCharacter && newCharacter.id !== form.value.id) {
+      // 只在角色ID不同时才更新，避免循环更新
       isUpdatingFromProps = true;
-      form.value = JSON.parse(JSON.stringify(newCharacter));
+      form.value = JSON.parse(JSON.stringify(newCharacter)); // 深度克隆
       nextTick(() => {
         isUpdatingFromProps = false;
       });
+    } else if (newCharacter && newCharacter.id === form.value.id) {
+      // 相同角色但数据不同，可能是外部更新，需要同步（但要避免覆盖用户正在编辑的内容）
+      const currentFormJson = JSON.stringify(form.value);
+      const newCharacterJson = JSON.stringify(newCharacter);
+      if (currentFormJson !== newCharacterJson) {
+        // 检查是否有实质性差异，如果有则更新
+        isUpdatingFromProps = true;
+        form.value = JSON.parse(JSON.stringify(newCharacter));
+        nextTick(() => {
+          isUpdatingFromProps = false;
+        });
+      }
     }
-  }
-}, { deep: true, immediate: true });
+  },
+  { deep: true, immediate: true }
+);
 
 // 监听本地form变化，同步到父组件
-watch(form, (updatedCharacter) => {
-  if (!isUpdatingFromProps) {
-    // 检查 ID 是否存在，如果不存在则从 props 恢复
-    if (!updatedCharacter.id && props.character?.id) {
-      console.warn('CharacterInfoEditor: form 缺少 ID，从 props 恢复');
-      updatedCharacter.id = props.character.id;
-    }
+watch(
+  form,
+  (updatedCharacter) => {
+    if (!isUpdatingFromProps) {
+      // 检查 ID 是否存在，如果不存在则从 props 恢复
+      if (!updatedCharacter.id && props.character?.id) {
+        console.warn('CharacterInfoEditor: form 缺少 ID，从 props 恢复');
+        updatedCharacter.id = props.character.id;
+      }
 
-    // 验证 ID 存在后再发送更新
-    if (updatedCharacter.id) {
-      // 立即同步到父组件，避免时序问题
-      emit('update:character', JSON.parse(JSON.stringify(updatedCharacter))); // 深度克隆
-    } else {
-      console.error('CharacterInfoEditor: 无法更新角色，缺少 ID');
+      // 验证 ID 存在后再发送更新
+      if (updatedCharacter.id) {
+        // 立即同步到父组件，避免时序问题
+        emit('update:character', JSON.parse(JSON.stringify(updatedCharacter))); // 深度克隆
+      } else {
+        console.error('CharacterInfoEditor: 无法更新角色，缺少 ID');
+      }
     }
-  }
-}, { deep: true });
+  },
+  { deep: true }
+);
 
-const {
-  saveCharacterCard,
-  loadCharacterCard,
-  resetForm,
-  copyToClipboard,
-  importFromClipboard,
-  processLoadedData,
-} = useCardDataHandler(form);
+const { saveCharacterCard, loadCharacterCard, resetForm, copyToClipboard, importFromClipboard, processLoadedData } =
+  useCardDataHandler(form);
 
 const {
   addTrait,
@@ -219,7 +351,7 @@ const mbtiDescriptions: MBTIDescriptions = {
   ISFP: '探险家',
   ESTP: '企业家',
   ESFP: '表演者',
-  none: '未指定'
+  none: '未指定',
 };
 
 const validateMBTI = () => {
@@ -247,7 +379,7 @@ defineExpose({
   importFromClipboard,
   exportSkills,
   exportTraits,
-  exportRelationships
+  exportRelationships,
 });
 </script>
 

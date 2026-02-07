@@ -7,13 +7,25 @@
     :close-on-press-escape="false"
   >
     <div class="confirm-content">
-      <div v-if="type === 'warning'" class="warning-icon">
-        <el-icon :size="48" color="#e6a23c">
+      <div
+        v-if="type === 'warning'"
+        class="warning-icon"
+      >
+        <el-icon
+          :size="48"
+          color="#e6a23c"
+        >
           <WarningFilled />
         </el-icon>
       </div>
-      <div v-else-if="type === 'danger'" class="danger-icon">
-        <el-icon :size="48" color="#f56c6c">
+      <div
+        v-else-if="type === 'danger'"
+        class="danger-icon"
+      >
+        <el-icon
+          :size="48"
+          color="#f56c6c"
+        >
           <WarningFilled />
         </el-icon>
       </div>
@@ -35,60 +47,60 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { WarningFilled } from '@element-plus/icons-vue'
+import { ref } from 'vue';
+import { WarningFilled } from '@element-plus/icons-vue';
 
 interface Props {
-  title?: string
-  message: string
-  confirmText?: string
-  cancelText?: string
-  type?: 'info' | 'warning' | 'danger'
+  title?: string;
+  message: string;
+  confirmText?: string;
+  cancelText?: string;
+  type?: 'info' | 'warning' | 'danger';
 }
 
 withDefaults(defineProps<Props>(), {
   title: '确认操作',
   confirmText: '确认',
   cancelText: '取消',
-  type: 'info'
-})
+  type: 'info',
+});
 
 const emit = defineEmits<{
-  confirm: []
-  cancel: []
-}>()
+  confirm: [];
+  cancel: [];
+}>();
 
-const dialogVisible = ref(false)
-const loading = ref(false)
+const dialogVisible = ref(false);
+const loading = ref(false);
 
 const open = () => {
-  dialogVisible.value = true
-  loading.value = false
-}
+  dialogVisible.value = true;
+  loading.value = false;
+};
 
 const close = () => {
-  dialogVisible.value = false
-  loading.value = false
-}
+  dialogVisible.value = false;
+  loading.value = false;
+};
 
 const setLoading = (value: boolean) => {
-  loading.value = value
-}
+  loading.value = value;
+};
 
 const handleConfirm = () => {
-  emit('confirm')
-}
+  emit('confirm');
+};
 
 const handleCancel = () => {
-  close()
-  emit('cancel')
-}
+  close();
+  emit('cancel');
+};
 
 defineExpose({
   open,
   close,
-  setLoading
-})
+  setLoading,
+});
 </script>
 
 <style scoped>

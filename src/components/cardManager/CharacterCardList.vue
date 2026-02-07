@@ -3,26 +3,62 @@
     <div class="character-card-list-header">
       <h3 class="character-card-list-title">我的角色卡</h3>
       <div class="character-card-list-actions">
-        <el-tooltip content="创建新角色卡" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
-          <button @click="emit('create-new')" class="btn-success-adv character-card-list-add-button" aria-label="创建新角色卡">
-            <Icon icon="ph:plus-circle-duotone" class="character-card-list-add-icon" />
+        <el-tooltip
+          content="创建新角色卡"
+          placement="top"
+          :show-arrow="false"
+          :offset="8"
+          :hide-after="0"
+        >
+          <button
+            @click="emit('create-new')"
+            class="btn-success-adv character-card-list-add-button"
+            aria-label="创建新角色卡"
+          >
+            <Icon
+              icon="ph:plus-circle-duotone"
+              class="character-card-list-add-icon"
+            />
           </button>
         </el-tooltip>
-        <el-tooltip content="保存当前角色卡" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
-          <button @click="emit('save-current')" class="btn-primary-adv character-card-list-add-button" aria-label="保存当前角色卡" :disabled="!hasCurrentCard">
-            <Icon icon="ph:floppy-disk-duotone" class="character-card-list-add-icon" />
+        <el-tooltip
+          content="保存当前角色卡"
+          placement="top"
+          :show-arrow="false"
+          :offset="8"
+          :hide-after="0"
+        >
+          <button
+            @click="emit('save-current')"
+            class="btn-primary-adv character-card-list-add-button"
+            aria-label="保存当前角色卡"
+            :disabled="!hasCurrentCard"
+          >
+            <Icon
+              icon="ph:floppy-disk-duotone"
+              class="character-card-list-add-icon"
+            />
           </button>
         </el-tooltip>
       </div>
     </div>
     <el-scrollbar class="character-card-list-scrollbar">
       <div class="character-card-list-content">
-        <div v-if="Object.keys(collection.cards).length === 0" class="character-card-list-empty">
-          <Icon icon="ph:cards-duotone" class="character-card-list-empty-icon" />
+        <div
+          v-if="Object.keys(collection.cards).length === 0"
+          class="character-card-list-empty"
+        >
+          <Icon
+            icon="ph:cards-duotone"
+            class="character-card-list-empty-icon"
+          />
           <p class="character-card-list-empty-text">还没有保存的角色卡</p>
           <p class="character-card-list-empty-hint">点击上方按钮保存当前角色卡</p>
         </div>
-        <div v-else class="character-card-list-items">
+        <div
+          v-else
+          class="character-card-list-items"
+        >
           <div
             v-for="card in sortedCards"
             :key="card.id"
@@ -32,15 +68,27 @@
           >
             <div class="card-item-main">
               <div class="card-item-avatar">
-                <img v-if="card.avatar && card.avatar !== 'none'" :src="card.avatar" :alt="card.name" class="card-item-avatar-img" />
-                <Icon v-else icon="ph:user-circle-duotone" class="card-item-avatar-icon" />
+                <img
+                  v-if="card.avatar && card.avatar !== 'none'"
+                  :src="card.avatar"
+                  :alt="card.name"
+                  class="card-item-avatar-img"
+                />
+                <Icon
+                  v-else
+                  icon="ph:user-circle-duotone"
+                  class="card-item-avatar-icon"
+                />
               </div>
               <div class="card-item-info">
                 <div class="card-item-name">{{ card.name || '未命名角色' }}</div>
                 <div class="card-item-description">{{ card.description || '暂无描述' }}</div>
                 <div class="card-item-meta">
                   <span class="card-item-time">{{ formatTime(card.updatedAt) }}</span>
-                  <div v-if="card.tags && card.tags.length > 0" class="card-item-tags">
+                  <div
+                    v-if="card.tags && card.tags.length > 0"
+                    class="card-item-tags"
+                  >
                     <el-tag
                       v-for="tag in card.tags.slice(0, 2)"
                       :key="tag"
@@ -51,24 +99,56 @@
                     >
                       {{ tag }}
                     </el-tag>
-                    <span v-if="card.tags.length > 2" class="card-item-tag-more">+{{ card.tags.length - 2 }}</span>
+                    <span
+                      v-if="card.tags.length > 2"
+                      class="card-item-tag-more"
+                    >
+                      +{{ card.tags.length - 2 }}
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
             <div class="card-item-actions">
-              <el-tooltip content="重命名" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
-                <button @click.stop="emit('rename-card', card.id)" class="character-card-action-button">
+              <el-tooltip
+                content="重命名"
+                placement="top"
+                :show-arrow="false"
+                :offset="8"
+                :hide-after="0"
+              >
+                <button
+                  @click.stop="emit('rename-card', card.id)"
+                  class="character-card-action-button"
+                >
                   <Icon icon="ph:pencil-simple-duotone" />
                 </button>
               </el-tooltip>
-              <el-tooltip content="导出" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
-                <button @click.stop="emit('export-card', card.id)" class="character-card-action-button">
+              <el-tooltip
+                content="导出"
+                placement="top"
+                :show-arrow="false"
+                :offset="8"
+                :hide-after="0"
+              >
+                <button
+                  @click.stop="emit('export-card', card.id)"
+                  class="character-card-action-button"
+                >
                   <Icon icon="ph:export-duotone" />
                 </button>
               </el-tooltip>
-              <el-tooltip content="删除" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
-                <button @click.stop="emit('delete-card', card.id)" class="character-card-action-button is-danger">
+              <el-tooltip
+                content="删除"
+                placement="top"
+                :show-arrow="false"
+                :offset="8"
+                :hide-after="0"
+              >
+                <button
+                  @click.stop="emit('delete-card', card.id)"
+                  class="character-card-action-button is-danger"
+                >
                   <Icon icon="ph:trash-duotone" />
                 </button>
               </el-tooltip>
@@ -116,8 +196,7 @@ const emit = defineEmits<{
 }>();
 
 const sortedCards = computed(() => {
-  return Object.values(props.collection.cards)
-    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  return Object.values(props.collection.cards).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 });
 
 const handleCardClick = (cardId: string) => {

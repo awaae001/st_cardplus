@@ -43,14 +43,10 @@ export function useCharacterCardAutoSave(options: AutoSaveOptions) {
   } = options;
 
   const intervalMs = ref<number>(
-    typeof autoSaveIntervalMs === 'number'
-      ? autoSaveIntervalMs
-      : getSetting('autoSaveInterval') * 1000
+    typeof autoSaveIntervalMs === 'number' ? autoSaveIntervalMs : getSetting('autoSaveInterval') * 1000
   );
   const debounceMs = ref<number>(
-    typeof watchDebounceMs === 'number'
-      ? watchDebounceMs
-      : getSetting('autoSaveDebounce') * 1000
+    typeof watchDebounceMs === 'number' ? watchDebounceMs : getSetting('autoSaveDebounce') * 1000
   );
 
   // 保存状态
@@ -99,7 +95,12 @@ export function useCharacterCardAutoSave(options: AutoSaveOptions) {
 
     // 5. 执行保存
     console.log('[AutoSave] 开始保存角色卡:', cardId);
-    console.log('[AutoSave] 数据详情 - data.name:', characterData.value.data?.name, '顶层name:', characterData.value.name);
+    console.log(
+      '[AutoSave] 数据详情 - data.name:',
+      characterData.value.data?.name,
+      '顶层name:',
+      characterData.value.name
+    );
     isSaving.value = true;
     saveStatus.value = 'saving';
 

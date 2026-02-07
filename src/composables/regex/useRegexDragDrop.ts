@@ -46,11 +46,11 @@ export function useRegexDragDrop(
       const draggingCategoryId = draggingNode.data.id;
       const dropCategoryId = dropNode.data.id;
 
-      const oldIndex = allCategories.findIndex(c => c.id === draggingCategoryId);
-      let newIndex = allCategories.findIndex(c => c.id === dropCategoryId);
+      const oldIndex = allCategories.findIndex((c) => c.id === draggingCategoryId);
+      let newIndex = allCategories.findIndex((c) => c.id === dropCategoryId);
 
       if (oldIndex === -1 || newIndex === -1) {
-        ElMessage.error("排序失败：找不到类别");
+        ElMessage.error('排序失败：找不到类别');
         return false;
       }
 
@@ -69,7 +69,7 @@ export function useRegexDragDrop(
         category.updatedAt = new Date().toISOString();
       });
 
-      ElMessage.success("类别顺序已更新");
+      ElMessage.success('类别顺序已更新');
       return true;
     }
 
@@ -78,7 +78,7 @@ export function useRegexDragDrop(
     const fromCategoryId: string = draggingNode.parent?.data?.id || draggingNode.data.categoryId;
 
     if (!fromCategoryId) {
-      ElMessage.error("拖拽失败：无法确定源类别");
+      ElMessage.error('拖拽失败：无法确定源类别');
       return false;
     }
 
@@ -89,9 +89,9 @@ export function useRegexDragDrop(
     if (dropNode.data.isScript) {
       toCategoryId = dropNode.parent?.data?.id || dropNode.data.categoryId;
       toCategory = regexCollection.value.categories[toCategoryId];
-      const dropScriptIndex = toCategory.scripts.findIndex(s => s.id === dropNode.data.scriptId);
+      const dropScriptIndex = toCategory.scripts.findIndex((s) => s.id === dropNode.data.scriptId);
       if (dropScriptIndex === -1) {
-        ElMessage.error("拖拽失败：在目标类别中找不到定位脚本");
+        ElMessage.error('拖拽失败：在目标类别中找不到定位脚本');
         return false;
       }
       if (dropType === 'before') {
@@ -107,7 +107,7 @@ export function useRegexDragDrop(
     }
 
     if (!toCategory) {
-      ElMessage.error("拖拽失败：找不到目标类别");
+      ElMessage.error('拖拽失败：找不到目标类别');
       return false;
     }
 
@@ -115,7 +115,7 @@ export function useRegexDragDrop(
       // 同类别内排序
       const category = regexCollection.value.categories[fromCategoryId];
       const newScripts = [...category.scripts];
-      const oldIndex = newScripts.findIndex(s => s.id === scriptId);
+      const oldIndex = newScripts.findIndex((s) => s.id === scriptId);
       if (oldIndex > -1) {
         const [movedScript] = newScripts.splice(oldIndex, 1);
         const adjustedInsertIndex = oldIndex < insertIndex ? insertIndex - 1 : insertIndex;
@@ -124,7 +124,7 @@ export function useRegexDragDrop(
         updateCategoryScripts(fromCategoryId, newScripts);
         ElMessage.success(`脚本顺序已更新`);
       } else {
-        ElMessage.error("排序失败：找不到原始脚本");
+        ElMessage.error('排序失败：找不到原始脚本');
         return false;
       }
     } else {

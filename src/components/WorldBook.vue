@@ -1,96 +1,201 @@
 <template>
   <div class="worldbook-container">
     <div class="worldbook-mobile-layout">
-      <el-tabs v-model="activeTab" type="border-card" class="worldbook-tabs-mobile">
-        <el-tab-pane name="list" class="worldbook-tab-pane">
+      <el-tabs
+        v-model="activeTab"
+        type="border-card"
+        class="worldbook-tabs-mobile"
+      >
+        <el-tab-pane
+          name="list"
+          class="worldbook-tab-pane"
+        >
           <template #label>
             <span class="worldbook-tab-label">
-              <Icon icon="ph:list-bullets-duotone" class="worldbook-tab-icon" />
+              <Icon
+                icon="ph:list-bullets-duotone"
+                class="worldbook-tab-icon"
+              />
               <span class="worldbook-tab-text">条目列表</span>
             </span>
           </template>
 
           <div class="content-panel-header">
             <h2 class="content-panel-title">
-              <Icon icon="ph:list-bullets-duotone" class="content-panel-icon" />
+              <Icon
+                icon="ph:list-bullets-duotone"
+                class="content-panel-icon"
+              />
               <span class="content-panel-text">世界书条目</span>
             </h2>
-            <el-tooltip content="新增条目" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
-              <button @click="() => addNewEntry()" class="btn-primary-adv worldbook-add-button" aria-label="新增条目"
-                :disabled="!activeBook">
-                <Icon icon="ph:plus-circle-duotone" class="worldbook-add-icon" />
+            <el-tooltip
+              content="新增条目"
+              placement="top"
+              :show-arrow="false"
+              :offset="8"
+              :hide-after="0"
+            >
+              <button
+                @click="() => addNewEntry()"
+                class="btn-primary-adv worldbook-add-button"
+                aria-label="新增条目"
+                :disabled="!activeBook"
+              >
+                <Icon
+                  icon="ph:plus-circle-duotone"
+                  class="worldbook-add-icon"
+                />
               </button>
             </el-tooltip>
           </div>
-          <WorldBookList :collection="worldBookCollection" :active-book-id="activeBookId"
-            @select-book="handleSelectBook" @create-book="handleCreateBook" @rename-book="handleRenameBook"
-            @delete-book="handleDeleteBook" @select-entry="handleSelectEntry" @add-entry="addNewEntry"
-            @duplicate-entry="handleDuplicateEntry" @delete-entry="handleDeleteEntryFromList"
-            :selected-entry="selectedEntry" @copy-book="copyWorldBookToClipboard"
-            @export-json="exportToJson" @import-book-file="handleImportBookFile" @clear-all="clearAllEntries"
-            :drag-drop-handlers="dragDropHandlers" />
+          <WorldBookList
+            :collection="worldBookCollection"
+            :active-book-id="activeBookId"
+            @select-book="handleSelectBook"
+            @create-book="handleCreateBook"
+            @rename-book="handleRenameBook"
+            @delete-book="handleDeleteBook"
+            @select-entry="handleSelectEntry"
+            @add-entry="addNewEntry"
+            @duplicate-entry="handleDuplicateEntry"
+            @delete-entry="handleDeleteEntryFromList"
+            :selected-entry="selectedEntry"
+            @copy-book="copyWorldBookToClipboard"
+            @export-json="exportToJson"
+            @import-book-file="handleImportBookFile"
+            @clear-all="clearAllEntries"
+            :drag-drop-handlers="dragDropHandlers"
+          />
         </el-tab-pane>
 
-        <el-tab-pane name="editor" class="worldbook-tab-pane" :disabled="!selectedEntry">
+        <el-tab-pane
+          name="editor"
+          class="worldbook-tab-pane"
+          :disabled="!selectedEntry"
+        >
           <template #label>
             <span class="worldbook-tab-label">
-              <Icon icon="ph:note-pencil-duotone" class="worldbook-tab-icon" />
+              <Icon
+                icon="ph:note-pencil-duotone"
+                class="worldbook-tab-icon"
+              />
               <span class="worldbook-tab-text-truncated">
-                {{ selectedEntry ? selectedEntry.comment || "编辑中" : "编辑条目" }}
+                {{ selectedEntry ? selectedEntry.comment || '编辑中' : '编辑条目' }}
               </span>
             </span>
           </template>
 
           <div class="content-panel-header">
             <h2 class="content-panel-title">
-              <Icon icon="ph:note-pencil-duotone" class="content-panel-icon" />
-              <span class="content-panel-text-truncated">编辑:
+              <Icon
+                icon="ph:note-pencil-duotone"
+                class="content-panel-icon"
+              />
+              <span class="content-panel-text-truncated">
+                编辑:
                 <span class="content-panel-text-highlight">
-                  {{ selectedEntry ? selectedEntry.comment || "新条目" : "未选择" }}
+                  {{ selectedEntry ? selectedEntry.comment || '新条目' : '未选择' }}
                 </span>
               </span>
             </h2>
-            <WorldBookActions context="editor" :has-selection="!!selectedEntry" :save-status="saveStatus"
-              :auto-save-mode="autoSaveMode" @toggle-mode="toggleAutoSaveMode"
-              @copy-entry="copySelectedEntry" @save-entry="saveCurrentEntry" @delete-entry="deleteSelectedEntry" />
+            <WorldBookActions
+              context="editor"
+              :has-selection="!!selectedEntry"
+              :save-status="saveStatus"
+              :auto-save-mode="autoSaveMode"
+              @toggle-mode="toggleAutoSaveMode"
+              @copy-entry="copySelectedEntry"
+              @save-entry="saveCurrentEntry"
+              @delete-entry="deleteSelectedEntry"
+            />
           </div>
-          <WorldBookEditor :entry="selectedEntry" v-model="editableEntry" :all-keywords="allKeywords"
-            :current-entry-index="currentEntryIndex" :total-entries="totalEntries" @go-to-previous="goToPreviousEntry"
-            @go-to-next="goToNextEntry" :is-next-entry-in-different-book="isNextEntryInDifferentBook"
-            :is-previous-entry-in-different-book="isPreviousEntryInDifferentBook" :save-status="saveStatus" />
+          <WorldBookEditor
+            :entry="selectedEntry"
+            v-model="editableEntry"
+            :all-keywords="allKeywords"
+            :current-entry-index="currentEntryIndex"
+            :total-entries="totalEntries"
+            @go-to-previous="goToPreviousEntry"
+            @go-to-next="goToNextEntry"
+            :is-next-entry-in-different-book="isNextEntryInDifferentBook"
+            :is-previous-entry-in-different-book="isPreviousEntryInDifferentBook"
+            :save-status="saveStatus"
+          />
         </el-tab-pane>
       </el-tabs>
     </div>
 
     <div class="worldbook-desktop-layout">
-      <Splitpanes class="default-theme" push-other-panes style="height: 100%">
-        <Pane size="15" min-size="15" max-size="35" ref="sidebarPaneRef">
-          <WorldBookList :collection="worldBookCollection" :active-book-id="activeBookId"
-            @select-book="handleSelectBook" @create-book="handleCreateBook" @rename-book="handleRenameBook"
-            @delete-book="handleDeleteBook" @select-entry="handleSelectEntry" @add-entry="addNewEntry"
-            @duplicate-entry="handleDuplicateEntry" @delete-entry="handleDeleteEntryFromList"
-            :selected-entry="selectedEntry" @copy-book="copyWorldBookToClipboard"
-            @export-json="exportToJson" @import-book-file="handleImportBookFile" @clear-all="clearAllEntries"
-            :drag-drop-handlers="dragDropHandlers" :sidebar-width="sidebarWidth" />
+      <Splitpanes
+        class="default-theme"
+        push-other-panes
+        style="height: 100%"
+      >
+        <Pane
+          size="15"
+          min-size="15"
+          max-size="35"
+          ref="sidebarPaneRef"
+        >
+          <WorldBookList
+            :collection="worldBookCollection"
+            :active-book-id="activeBookId"
+            @select-book="handleSelectBook"
+            @create-book="handleCreateBook"
+            @rename-book="handleRenameBook"
+            @delete-book="handleDeleteBook"
+            @select-entry="handleSelectEntry"
+            @add-entry="addNewEntry"
+            @duplicate-entry="handleDuplicateEntry"
+            @delete-entry="handleDeleteEntryFromList"
+            :selected-entry="selectedEntry"
+            @copy-book="copyWorldBookToClipboard"
+            @export-json="exportToJson"
+            @import-book-file="handleImportBookFile"
+            @clear-all="clearAllEntries"
+            :drag-drop-handlers="dragDropHandlers"
+            :sidebar-width="sidebarWidth"
+          />
         </Pane>
-        <Pane size="85" min-size="40">
+        <Pane
+          size="85"
+          min-size="40"
+        >
           <div class="worldbook-desktop-panel-right">
             <div class="content-panel-header">
               <h2 class="content-panel-title">
-                <Icon icon="ph:note-pencil-duotone" class="content-panel-icon" />
+                <Icon
+                  icon="ph:note-pencil-duotone"
+                  class="content-panel-icon"
+                />
                 编辑:
-                <span class="content-panel-text-highlight">{{
-                  selectedEntry ? selectedEntry.comment || "新条目" : "未选择条目"
-                }}</span>
+                <span class="content-panel-text-highlight">
+                  {{ selectedEntry ? selectedEntry.comment || '新条目' : '未选择条目' }}
+                </span>
               </h2>
-              <WorldBookActions context="editor" :has-selection="!!selectedEntry" :save-status="saveStatus"
-                :auto-save-mode="autoSaveMode" @toggle-mode="toggleAutoSaveMode"
-                @copy-entry="copySelectedEntry" @save-entry="saveCurrentEntry" @delete-entry="deleteSelectedEntry" />
+              <WorldBookActions
+                context="editor"
+                :has-selection="!!selectedEntry"
+                :save-status="saveStatus"
+                :auto-save-mode="autoSaveMode"
+                @toggle-mode="toggleAutoSaveMode"
+                @copy-entry="copySelectedEntry"
+                @save-entry="saveCurrentEntry"
+                @delete-entry="deleteSelectedEntry"
+              />
             </div>
-            <WorldBookEditor :entry="selectedEntry" v-model="editableEntry" :all-keywords="allKeywords"
-              :current-entry-index="currentEntryIndex" :total-entries="totalEntries" @go-to-previous="goToPreviousEntry"
-              @go-to-next="goToNextEntry" :is-next-entry-in-different-book="isNextEntryInDifferentBook"
-              :is-previous-entry-in-different-book="isPreviousEntryInDifferentBook" :save-status="saveStatus" />
+            <WorldBookEditor
+              :entry="selectedEntry"
+              v-model="editableEntry"
+              :all-keywords="allKeywords"
+              :current-entry-index="currentEntryIndex"
+              :total-entries="totalEntries"
+              @go-to-previous="goToPreviousEntry"
+              @go-to-next="goToNextEntry"
+              :is-next-entry-in-different-book="isNextEntryInDifferentBook"
+              :is-previous-entry-in-different-book="isPreviousEntryInDifferentBook"
+              :save-status="saveStatus"
+            />
           </div>
         </Pane>
       </Splitpanes>
@@ -99,19 +204,19 @@
 </template>
 
 <script setup lang="ts">
-import { ElTabs, ElTabPane, ElTooltip, ElMessage } from "element-plus";
-import { Icon } from "@iconify/vue";
-import '../css/worldbook.css'
+import { ElTabs, ElTabPane, ElTooltip, ElMessage } from 'element-plus';
+import { Icon } from '@iconify/vue';
+import '../css/worldbook.css';
 import { Splitpanes, Pane } from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
 
-import WorldBookActions from "./worldbook/WorldBookActions.vue";
-import WorldBookEditor from "./worldbook/WorldBookEditor.vue";
-import WorldBookList from "./worldbook/WorldBookList.vue";
-import { useWorldBookCollection } from "../composables/worldbook/useWorldBookCollection";
-import { useWorldBookEntry } from "../composables/worldbook/useWorldBookEntry";
-import { useWorldBookDragDrop } from "../composables/worldbook/useWorldBookDragDrop";
-import type { WorldBookEntry } from "../types/types";
+import WorldBookActions from './worldbook/WorldBookActions.vue';
+import WorldBookEditor from './worldbook/WorldBookEditor.vue';
+import WorldBookList from './worldbook/WorldBookList.vue';
+import { useWorldBookCollection } from '../composables/worldbook/useWorldBookCollection';
+import { useWorldBookEntry } from '../composables/worldbook/useWorldBookEntry';
+import { useWorldBookDragDrop } from '../composables/worldbook/useWorldBookDragDrop';
+import type { WorldBookEntry } from '../types/types';
 
 import { computed, nextTick, ref, onMounted, onUnmounted } from 'vue';
 
@@ -122,7 +227,7 @@ let resizeObserver: ResizeObserver | null = null;
 onMounted(() => {
   const paneElement = (sidebarPaneRef.value as any)?.$el;
   if (paneElement) {
-    resizeObserver = new ResizeObserver(entries => {
+    resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
         sidebarWidth.value = entry.contentRect.width;
       }
@@ -176,7 +281,7 @@ const {
   toggleAutoSaveMode,
 } = useWorldBookEntry(activeBook, {
   updateEntries: (entries) => {
-    if (!activeBook.value) return Promise.reject("No active book selected");
+    if (!activeBook.value) return Promise.reject('No active book selected');
     return updateBookEntries(activeBook.value.id, entries);
   },
   updateEntry: handleUpdateEntry,
@@ -303,7 +408,7 @@ const handleSelectEntry = (bookId: string, entryIndex: number) => {
 const addNewEntry = (bookId?: string) => {
   const targetBookId = bookId || activeBookId.value;
   if (!targetBookId) {
-    ElMessage.error("请先选择一个世界书 ");
+    ElMessage.error('请先选择一个世界书 ');
     return;
   }
   if (activeBookId.value !== targetBookId) {

@@ -1,7 +1,5 @@
 import { markRaw } from 'vue';
-import {
-  House, EditPen, Location, Postcard, Tools, DataLine, Collection, Tickets
-} from '@element-plus/icons-vue';
+import { House, EditPen, Location, Postcard, Tools, DataLine, Collection, Tickets } from '@element-plus/icons-vue';
 
 // 菜单项类型
 export type MenuItemType = 'main' | 'tool';
@@ -44,14 +42,14 @@ export const iconMap = {
 
 // Iconify 图标映射
 export const iconifyIconMap: Record<string, string> = {
-  'House': 'ep:house',
-  'EditPen': 'ep:edit-pen',
-  'Location': 'ep:location',
-  'Postcard': 'ep:postcard',
-  'Tools': 'ep:tools',
-  'DataLine': 'ep:data-line',
-  'Collection': 'ep:collection',
-  'Tickets': 'ep:tickets'
+  House: 'ep:house',
+  EditPen: 'ep:edit-pen',
+  Location: 'ep:location',
+  Postcard: 'ep:postcard',
+  Tools: 'ep:tools',
+  DataLine: 'ep:data-line',
+  Collection: 'ep:collection',
+  Tickets: 'ep:tickets',
 };
 
 // 主菜单项配置
@@ -64,7 +62,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     title: '首页',
     icon: 'House',
     route: '/',
-    fixed: true
+    fixed: true,
   },
   {
     id: 'cardmanager',
@@ -73,7 +71,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     order: 1,
     title: '角色卡管理器',
     icon: 'Postcard',
-    route: '/cardmanager'
+    route: '/cardmanager',
   },
   {
     id: 'cardinfo',
@@ -82,7 +80,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     order: 2,
     title: '角色信息',
     icon: 'EditPen',
-    route: '/cardinfo'
+    route: '/cardinfo',
   },
   {
     id: 'world',
@@ -91,7 +89,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     order: 3,
     title: '世界地标',
     icon: 'Location',
-    route: '/world'
+    route: '/world',
   },
   {
     id: 'ejs-editor',
@@ -101,7 +99,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     title: 'EJS模板',
     icon: 'DataLine',
     route: '/ejs-editor',
-    beta: true
+    beta: true,
   },
   {
     id: 'worldbook',
@@ -111,7 +109,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     title: '世界书',
     icon: 'Collection',
     route: '/worldbook',
-    beta: true
+    beta: true,
   },
   {
     id: 'regex-editor',
@@ -121,7 +119,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     title: '正则编辑器',
     icon: 'Tickets',
     route: '/regex-editor',
-    beta: true
+    beta: true,
   },
   {
     id: 'presetmanager',
@@ -131,7 +129,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     title: '预设管理器',
     icon: 'DataLine',
     route: '/presetmanager',
-    beta: true
+    beta: true,
   },
   {
     id: 'toolbox',
@@ -141,8 +139,8 @@ export const mainMenuItems: MenuItemConfig[] = [
     title: '工具箱',
     icon: 'Tools',
     route: '/toolbox',
-    fixed: true
-  }
+    fixed: true,
+  },
 ];
 
 // 工具箱小工具配置
@@ -155,7 +153,7 @@ export const toolboxToolItems: MenuItemConfig[] = [
     title: 'JSON格式化',
     icon: 'material-symbols:code',
     route: '/toolbox/json-formatter',
-    description: '去除JSON中的换行和多余空格'
+    description: '去除JSON中的换行和多余空格',
   },
   {
     id: 'separator',
@@ -165,7 +163,7 @@ export const toolboxToolItems: MenuItemConfig[] = [
     title: '元数据分离器',
     icon: 'material-symbols:image-outline',
     route: '/toolbox/separator',
-    description: '分离角色卡的 json 和图片'
+    description: '分离角色卡的 json 和图片',
   },
   {
     id: 'worldbook-converter',
@@ -175,7 +173,7 @@ export const toolboxToolItems: MenuItemConfig[] = [
     title: '世界书转换器',
     icon: 'ph:books-bold',
     route: '/toolbox/worldbook-converter',
-    description: '在 CharacterBook 和 WorldBook 格式之间进行双向转换'
+    description: '在 CharacterBook 和 WorldBook 格式之间进行双向转换',
   },
   {
     id: 'chinese-converter',
@@ -185,8 +183,8 @@ export const toolboxToolItems: MenuItemConfig[] = [
     title: '简繁转换器',
     icon: 'material-symbols:translate',
     route: '/toolbox/chinese-converter',
-    description: '批量转换角色卡简繁体，支持多种方言'
-  }
+    description: '批量转换角色卡简繁体，支持多种方言',
+  },
 ];
 
 // 工具箱固定工具配置（不会出现在侧边栏中的固定工具）
@@ -197,7 +195,7 @@ export const toolboxFixedTools: ToolboxToolConfig[] = [
     icon: 'material-symbols:code',
     description: '去除JSON中的换行和多余空格',
     route: '/toolbox/json-formatter',
-    category: 'utility'
+    category: 'utility',
   },
   {
     id: 'separator',
@@ -205,7 +203,7 @@ export const toolboxFixedTools: ToolboxToolConfig[] = [
     icon: 'material-symbols:image-outline',
     description: '分离角色卡的 json 和图片',
     route: '/toolbox/separator',
-    category: 'metadata'
+    category: 'metadata',
   },
   {
     id: 'worldbook-converter',
@@ -213,7 +211,7 @@ export const toolboxFixedTools: ToolboxToolConfig[] = [
     icon: 'ph:books-bold',
     description: '在 CharacterBook 和 WorldBook 格式之间进行双向转换',
     route: '/toolbox/worldbook-converter',
-    category: 'converter'
+    category: 'converter',
   },
   {
     id: 'chinese-converter',
@@ -221,8 +219,8 @@ export const toolboxFixedTools: ToolboxToolConfig[] = [
     icon: 'material-symbols:translate',
     description: '批量转换角色卡简繁体，支持多种方言',
     route: '/toolbox/chinese-converter',
-    category: 'converter'
-  }
+    category: 'converter',
+  },
 ];
 
 // 获取所有默认菜单项配置
@@ -249,7 +247,7 @@ export interface SidebarConfig {
 // 创建默认侧边栏配置
 export const createDefaultSidebarConfig = (): SidebarConfig => ({
   items: getAllDefaultMenuItems(),
-  lastUpdated: Date.now()
+  lastUpdated: Date.now(),
 });
 
 // 配置验证
@@ -260,9 +258,7 @@ export const validateMenuConfig = (config: SidebarConfig): boolean => {
 
   // 检查必要的固定项目是否存在
   const requiredFixedItems = ['home', 'toolbox'];
-  const hasRequiredItems = requiredFixedItems.every(id =>
-    config.items.some(item => item.id === id && item.fixed)
-  );
+  const hasRequiredItems = requiredFixedItems.every((id) => config.items.some((item) => item.id === id && item.fixed));
 
   return hasRequiredItems;
 };
@@ -276,13 +272,13 @@ export const migrateMenuConfig = (oldConfig: any): SidebarConfig => {
   }
 
   // 合并旧配置和新配置
-  const mergedItems = defaultConfig.items.map(defaultItem => {
+  const mergedItems = defaultConfig.items.map((defaultItem) => {
     const oldItem = oldConfig.items.find((item: any) => item.id === defaultItem.id);
     if (oldItem) {
       return {
         ...defaultItem,
         visible: oldItem.visible ?? defaultItem.visible,
-        order: oldItem.order ?? defaultItem.order
+        order: oldItem.order ?? defaultItem.order,
       };
     }
     return defaultItem;
@@ -290,6 +286,6 @@ export const migrateMenuConfig = (oldConfig: any): SidebarConfig => {
 
   return {
     items: mergedItems,
-    lastUpdated: Date.now()
+    lastUpdated: Date.now(),
   };
 };

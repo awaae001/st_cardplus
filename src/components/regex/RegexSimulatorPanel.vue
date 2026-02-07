@@ -1,7 +1,12 @@
 <template>
   <el-divider><h3>模拟器</h3></el-divider>
   <el-form-item label="测试字符串 (Test String)">
-    <el-input :model-value="testString" @update:model-value="$emit('update:testString', $event)" type="textarea" :rows="5" />
+    <el-input
+      :model-value="testString"
+      @update:model-value="$emit('update:testString', $event)"
+      type="textarea"
+      :rows="5"
+    />
   </el-form-item>
   <el-form-item label="结果 (Result)">
     <div class="result-controls">
@@ -13,13 +18,31 @@
         size="small"
       />
     </div>
-    <div v-if="renderHtml" class="result-box html-rendered" v-html="simulatedResult"></div>
-    <pre v-else class="result-box">{{ simulatedResult }}</pre>
+    <div
+      v-if="renderHtml"
+      class="result-box html-rendered"
+      v-html="simulatedResult"
+    ></div>
+    <pre
+      v-else
+      class="result-box"
+      >{{ simulatedResult }}</pre
+    >
   </el-form-item>
   <el-form-item label="宏测试 (Macros)">
     <div class="macro-grid">
-        <el-input :model-value="userMacroValue" @update:model-value="$emit('update:userMacroValue', $event)"><template #prepend>{{user}}</template></el-input>
-        <el-input :model-value="charMacroValue" @update:model-value="$emit('update:charMacroValue', $event)"><template #prepend>{{char}}</template></el-input>
+      <el-input
+        :model-value="userMacroValue"
+        @update:model-value="$emit('update:userMacroValue', $event)"
+      >
+        <template #prepend>{{ user }}</template>
+      </el-input>
+      <el-input
+        :model-value="charMacroValue"
+        @update:model-value="$emit('update:charMacroValue', $event)"
+      >
+        <template #prepend>{{ char }}</template>
+      </el-input>
     </div>
   </el-form-item>
 </template>
@@ -33,12 +56,7 @@ defineProps<{
   charMacroValue: string;
 }>();
 
-defineEmits([
-  'update:testString',
-  'update:renderHtml',
-  'update:userMacroValue',
-  'update:charMacroValue',
-]);
+defineEmits(['update:testString', 'update:renderHtml', 'update:userMacroValue', 'update:charMacroValue']);
 
 const user = '{{user}}';
 const char = '{{char}}';
@@ -46,9 +64,9 @@ const char = '{{char}}';
 
 <style scoped>
 .macro-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 .result-controls {
   display: flex;

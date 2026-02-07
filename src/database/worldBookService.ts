@@ -4,11 +4,7 @@ import type { CharacterBook } from '../types/character-book';
 import { convertCharacterBookToWorldBook } from '../utils/worldBookConverter';
 import { estimateEncodedSize } from './utils';
 import { v4 as uuidv4 } from 'uuid';
-import {
-  getSessionStorageItem,
-  setSessionStorageItem,
-  removeSessionStorageItem,
-} from '@/utils/localStorageUtils';
+import { getSessionStorageItem, setSessionStorageItem, removeSessionStorageItem } from '@/utils/localStorageUtils';
 
 export interface WorldBookExport {
   books: StoredWorldBook[];
@@ -37,7 +33,7 @@ export const worldBookService = {
     const booksMap = new Map<string, WorldBook>();
 
     // 1. 初始化所有书籍，此时 entries 数组为空
-    allBooksStored.forEach(storedBook => {
+    allBooksStored.forEach((storedBook) => {
       booksMap.set(storedBook.id, {
         ...storedBook,
         entries: [],
@@ -45,7 +41,7 @@ export const worldBookService = {
     });
 
     // 2. 将所有条目填充到对应书籍的 entries 数组中
-    allEntriesStored.forEach(storedEntry => {
+    allEntriesStored.forEach((storedEntry) => {
       const book = booksMap.get(storedEntry.bookId);
       if (book) {
         // 从存储对象中移除 bookId，但保留数据库主键 id
@@ -62,9 +58,7 @@ export const worldBookService = {
 
     // 4. 从 sessionStorage 获取并验证 activeBookId
     const activeBookId = getSessionStorageItem(ACTIVE_BOOK_ID_KEY);
-    const finalActiveBookId = activeBookId && books[activeBookId]
-      ? activeBookId
-      : (allBooksStored[0]?.id || null);
+    const finalActiveBookId = activeBookId && books[activeBookId] ? activeBookId : allBooksStored[0]?.id || null;
 
     return {
       books,
@@ -177,7 +171,7 @@ export const worldBookService = {
       const existed = await db.entries
         .where('bookId')
         .equals(plainEntry.bookId)
-        .and(e => e.uid === plainEntry.uid)
+        .and((e) => e.uid === plainEntry.uid)
         .first();
 
       if (existed && existed.id !== undefined) {
@@ -209,10 +203,7 @@ export const worldBookService = {
   },
 
   async getStats(): Promise<WorldBookStats> {
-    const [books, entries] = await Promise.all([
-      db.books.toArray(),
-      db.entries.toArray(),
-    ]);
+    const [books, entries] = await Promise.all([db.books.toArray(), db.entries.toArray()]);
 
     const approxBytes = estimateEncodedSize(books) + estimateEncodedSize(entries);
 
@@ -264,7 +255,7 @@ export const worldBookService = {
    */
   async findBookByCharacterId(characterId: string): Promise<string | null> {
     const allBooks = await db.books.toArray();
-    const book = allBooks.find(b => b.sourceCharacterId === characterId);
+    const book = allBooks.find((b) => b.sourceCharacterId === characterId);
     return book?.id || null;
   },
 
@@ -359,7 +350,7 @@ export const worldBookService = {
 
     // 获取当前所有书籍的最大 order 值
     const allBooks = await db.books.toArray();
-    const maxOrder = allBooks.length > 0 ? Math.max(...allBooks.map(b => b.order)) : -1;
+    const maxOrder = allBooks.length > 0 ? Math.max(...allBooks.map((b) => b.order)) : -1;
 
     // 创建带有来源信息的新世界书
     const newBook: StoredWorldBook = {

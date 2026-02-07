@@ -2,39 +2,88 @@
   <div class="form-row-responsive">
     <section class="form-section form-group-responsive">
       <h3 class="form-section-title">
-        <Icon icon="ph:heart-duotone" class="form-section-icon" />喜好系统
+        <Icon
+          icon="ph:heart-duotone"
+          class="form-section-icon"
+        />
+        喜好系统
       </h3>
       <div class="form-section-content">
-        <el-input :model-value="form.likes" @update:model-value="$emit('update:form-likes', $event)" type="textarea" :rows="5" placeholder="请输入喜好（每行一条）" />
-        <el-input :model-value="form.dislikes" @update:model-value="$emit('update:form-dislikes', $event)" type="textarea" :rows="5" placeholder="请输入厌恶（每行一条）"
-          style="margin-top: 1rem;" />
+        <el-input
+          :model-value="form.likes"
+          @update:model-value="$emit('update:form-likes', $event)"
+          type="textarea"
+          :rows="5"
+          placeholder="请输入喜好（每行一条）"
+        />
+        <el-input
+          :model-value="form.dislikes"
+          @update:model-value="$emit('update:form-dislikes', $event)"
+          type="textarea"
+          :rows="5"
+          placeholder="请输入厌恶（每行一条）"
+          style="margin-top: 1rem"
+        />
       </div>
     </section>
     <section class="form-section form-group-responsive">
       <h3 class="form-section-title">
-        <Icon icon="ph:clock-duotone" class="form-section-icon" />日常作息
+        <Icon
+          icon="ph:clock-duotone"
+          class="form-section-icon"
+        />
+        日常作息
       </h3>
       <div class="form-section-content">
         <div id="routine-form">
-          <div v-for="(field, index) in displayRoutineFields" :key="field.key">
+          <div
+            v-for="(field, index) in displayRoutineFields"
+            :key="field.key"
+          >
             <label class="form-label">{{ field.label }}</label>
             <div class="custom-field-container">
-              <el-input type="textarea" :rows="1" v-model="field.value" :placeholder="`请输入 ${field.label} 内容`"
-                @input="updateRoutineFormField(field.key, field.value)" />
-              <el-button type="danger" size="small" @click="removeRoutineField(index)" class="remove-btn">
-                <Icon icon="material-symbols:delete-outline" width="20" height="20" />
+              <el-input
+                type="textarea"
+                :rows="1"
+                v-model="field.value"
+                :placeholder="`请输入 ${field.label} 内容`"
+                @input="updateRoutineFormField(field.key, field.value)"
+              />
+              <el-button
+                type="danger"
+                size="small"
+                @click="removeRoutineField(index)"
+                class="remove-btn"
+              >
+                <Icon
+                  icon="material-symbols:delete-outline"
+                  width="20"
+                  height="20"
+                />
               </el-button>
             </div>
           </div>
         </div>
-        <el-button type="primary" size="small" @click="addCustomRoutineField" style="margin-top: 1rem;">
-          <Icon icon="material-symbols:add" width="20" height="20" />
+        <el-button
+          type="primary"
+          size="small"
+          @click="addCustomRoutineField"
+          style="margin-top: 1rem"
+        >
+          <Icon
+            icon="material-symbols:add"
+            width="20"
+            height="20"
+          />
           添加自定义字段
         </el-button>
       </div>
     </section>
   </div>
-  <CharacterNotes :notes="form.notes" @update:notes="$emit('update:notes', $event)" />
+  <CharacterNotes
+    :notes="form.notes"
+    @update:notes="$emit('update:notes', $event)"
+  />
 </template>
 
 <script setup lang="ts">
@@ -46,15 +95,11 @@ import CharacterNotes from '../CharacterNotes.vue';
 const props = defineProps({
   form: {
     type: Object,
-    required: true
-  }
+    required: true,
+  },
 });
 
-defineEmits([
-  'update:form-likes',
-  'update:form-dislikes',
-  'update:notes'
-]);
+defineEmits(['update:form-likes', 'update:form-dislikes', 'update:notes']);
 
 const { form } = toRefs(props);
 
@@ -66,7 +111,12 @@ interface RoutineField {
 }
 const displayRoutineFields = ref<RoutineField[]>([]);
 const standardRoutineFieldsMap: { [key: string]: string } = {
-  'earlyMorning': '清晨', 'morning': '上午', 'afternoon': '下午', 'evening': '傍晚', 'night': '夜间', 'lateNight': '深夜'
+  earlyMorning: '清晨',
+  morning: '上午',
+  afternoon: '下午',
+  evening: '傍晚',
+  night: '夜间',
+  lateNight: '深夜',
 };
 
 const syncRoutineFields = () => {
@@ -92,7 +142,10 @@ const addCustomRoutineField = async () => {
       '<b>请输入自定义作息，每行一个</b><br>格式为 "时间段:作息内容"<br>例如:<br>午休:在办公室沙发上睡一小时',
       '添加自定义作息',
       {
-        confirmButtonText: '确认', cancelButtonText: '取消', inputType: 'textarea', inputPlaceholder: '时间段:作息内容',
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        inputType: 'textarea',
+        inputPlaceholder: '时间段:作息内容',
         inputValidator: (value) => {
           if (!value) return true;
           const lines = value.split('\n').filter((line: string) => line.trim());
@@ -103,7 +156,7 @@ const addCustomRoutineField = async () => {
           }
           return true;
         },
-        dangerouslyUseHTMLString: true
+        dangerouslyUseHTMLString: true,
       }
     );
     const { value: inputText } = result as { value: string };
@@ -118,7 +171,9 @@ const addCustomRoutineField = async () => {
         const keyExists = Object.keys(form.value.dailyRoutine).includes(trimmedName);
         const labelExists = Object.values(standardRoutineFieldsMap).includes(trimmedName);
         if (keyExists || labelExists) {
-          ElMessageBox.alert(`字段 "${trimmedName}" 已存在或为预设字段，请使用其他名称 `, '提示', { confirmButtonText: '确定' });
+          ElMessageBox.alert(`字段 "${trimmedName}" 已存在或为预设字段，请使用其他名称 `, '提示', {
+            confirmButtonText: '确定',
+          });
           continue;
         }
         form.value.dailyRoutine[trimmedName] = fieldValue;
@@ -142,15 +197,17 @@ const removeRoutineField = (index: number) => {
   }
 };
 
-
-
 onMounted(() => {
   syncRoutineFields();
 });
 
-watch(() => form.value.dailyRoutine, () => {
-  syncRoutineFields();
-}, { deep: true, immediate: true });
+watch(
+  () => form.value.dailyRoutine,
+  () => {
+    syncRoutineFields();
+  },
+  { deep: true, immediate: true }
+);
 </script>
 
 <style scoped>
@@ -216,7 +273,6 @@ watch(() => form.value.dailyRoutine, () => {
   justify-content: center;
 }
 
-
 #routine-form {
   display: grid;
   grid-template-columns: 1fr;
@@ -232,7 +288,7 @@ watch(() => form.value.dailyRoutine, () => {
 @media (min-width: 1200px) {
   #routine-form {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    align-items: flex-start
+    align-items: flex-start;
   }
 }
 </style>

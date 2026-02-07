@@ -5,11 +5,24 @@
         <div class="setting-header">
           <div class="setting-info">
             <span class="setting-label">侧边栏管理</span>
-            <Icon icon="fluent:sidebar-search-20-regular" width="20" height="20"
-              :style="{ marginLeft: '8px', color: 'var(--el-color-primary)' }" />
+            <Icon
+              icon="fluent:sidebar-search-20-regular"
+              width="20"
+              height="20"
+              :style="{ marginLeft: '8px', color: 'var(--el-color-primary)' }"
+            />
           </div>
-          <el-button @click="resetToDefault" size="small" type="info" plain>
-            <Icon icon="material-symbols:refresh" width="16" height="16" />
+          <el-button
+            @click="resetToDefault"
+            size="small"
+            type="info"
+            plain
+          >
+            <Icon
+              icon="material-symbols:refresh"
+              width="16"
+              height="16"
+            />
             重置默认
           </el-button>
         </div>
@@ -22,14 +35,24 @@
       <div class="section-card">
         <div class="section-header">
           <h3>
-            <Icon icon="heroicons:eye" width="18" height="18" />
+            <Icon
+              icon="heroicons:eye"
+              width="18"
+              height="18"
+            />
             显示在侧边栏 ({{ visibleItems.length }})
           </h3>
           <span class="section-description">这些项目会显示在侧边栏中</span>
         </div>
 
-        <div class="menu-list" ref="visibleListRef">
-          <TransitionGroup name="list" tag="div">
+        <div
+          class="menu-list"
+          ref="visibleListRef"
+        >
+          <TransitionGroup
+            name="list"
+            tag="div"
+          >
             <div
               v-for="item in visibleItems"
               :key="item.id"
@@ -39,7 +62,7 @@
                 'is-fixed': item.fixed,
                 'is-dragging': draggedItem?.id === item.id,
                 'drag-over-before': dragOverItem === item.id && insertPosition === 'before',
-                'drag-over-after': dragOverItem === item.id && insertPosition === 'after'
+                'drag-over-after': dragOverItem === item.id && insertPosition === 'after',
               }"
               draggable="true"
               @dragstart="handleDragStart($event, item)"
@@ -48,16 +71,36 @@
               @dragend="handleDragEnd"
             >
               <div class="item-content">
-                <Icon :icon="getIconName(item.icon)" width="20" height="20" class="item-icon" />
+                <Icon
+                  :icon="getIconName(item.icon)"
+                  width="20"
+                  height="20"
+                  class="item-icon"
+                />
                 <div class="item-info">
                   <div class="item-main-line">
                     <span class="item-title">{{ item.title }}</span>
                     <div class="item-tags">
-                      <span v-if="item.type === 'tool'" class="item-type">工具</span>
-                      <span v-if="item.beta" class="item-type beta">测试版</span>
+                      <span
+                        v-if="item.type === 'tool'"
+                        class="item-type"
+                      >
+                        工具
+                      </span>
+                      <span
+                        v-if="item.beta"
+                        class="item-type beta"
+                      >
+                        测试版
+                      </span>
                     </div>
                   </div>
-                  <span v-if="item.description" class="item-description">{{ item.description }}</span>
+                  <span
+                    v-if="item.description"
+                    class="item-description"
+                  >
+                    {{ item.description }}
+                  </span>
                 </div>
               </div>
               <div class="item-actions">
@@ -72,14 +115,21 @@
                   width="16"
                   height="16"
                   class="drag-handle"
-                  :class="{ 'disabled': item.fixed }"
+                  :class="{ disabled: item.fixed }"
                 />
               </div>
             </div>
           </TransitionGroup>
 
-          <div v-if="visibleItems.length === 0" class="empty-state">
-            <Icon icon="heroicons:inbox" width="32" height="32" />
+          <div
+            v-if="visibleItems.length === 0"
+            class="empty-state"
+          >
+            <Icon
+              icon="heroicons:inbox"
+              width="32"
+              height="32"
+            />
             <p>暂无显示项目</p>
           </div>
         </div>
@@ -89,30 +139,60 @@
       <div class="section-card">
         <div class="section-header">
           <h3>
-            <Icon icon="heroicons:eye-slash" width="18" height="18" />
+            <Icon
+              icon="heroicons:eye-slash"
+              width="18"
+              height="18"
+            />
             隐藏项目 ({{ hiddenItems.length }})
           </h3>
           <span class="section-description">这些项目将显示在工具箱中</span>
         </div>
 
-        <div class="menu-list" ref="hiddenListRef">
-          <TransitionGroup name="list" tag="div">
+        <div
+          class="menu-list"
+          ref="hiddenListRef"
+        >
+          <TransitionGroup
+            name="list"
+            tag="div"
+          >
             <div
               v-for="item in hiddenItems"
               :key="item.id"
               class="menu-item hidden-item"
             >
               <div class="item-content">
-                <Icon :icon="getIconName(item.icon)" width="20" height="20" class="item-icon" />
+                <Icon
+                  :icon="getIconName(item.icon)"
+                  width="20"
+                  height="20"
+                  class="item-icon"
+                />
                 <div class="item-info">
                   <div class="item-main-line">
                     <span class="item-title">{{ item.title }}</span>
                     <div class="item-tags">
-                      <span v-if="item.type === 'tool'" class="item-type">工具</span>
-                      <span v-if="item.beta" class="item-type beta">测试版</span>
+                      <span
+                        v-if="item.type === 'tool'"
+                        class="item-type"
+                      >
+                        工具
+                      </span>
+                      <span
+                        v-if="item.beta"
+                        class="item-type beta"
+                      >
+                        测试版
+                      </span>
                     </div>
                   </div>
-                  <span v-if="item.description" class="item-description">{{ item.description }}</span>
+                  <span
+                    v-if="item.description"
+                    class="item-description"
+                  >
+                    {{ item.description }}
+                  </span>
                 </div>
               </div>
               <div class="item-actions">
@@ -125,8 +205,15 @@
             </div>
           </TransitionGroup>
 
-          <div v-if="hiddenItems.length === 0" class="empty-state">
-            <Icon icon="heroicons:inbox" width="32" height="32" />
+          <div
+            v-if="hiddenItems.length === 0"
+            class="empty-state"
+          >
+            <Icon
+              icon="heroicons:inbox"
+              width="32"
+              height="32"
+            />
             <p>暂无隐藏项目</p>
           </div>
         </div>
@@ -145,7 +232,7 @@ import {
   setSidebarConfig,
   updateMenuItemVisibility,
   updateMenuItemsOrder,
-  resetSidebarConfig
+  resetSidebarConfig,
 } from '@/utils/localStorageUtils';
 import { getIconifyIconName } from '@/config/menuConfig';
 
@@ -157,15 +244,11 @@ const insertPosition = ref<'before' | 'after' | null>(null);
 
 // 计算属性
 const visibleItems = computed(() =>
-  sidebarConfig.value.items
-    .filter(item => item.visible)
-    .sort((a, b) => a.order - b.order)
+  sidebarConfig.value.items.filter((item) => item.visible).sort((a, b) => a.order - b.order)
 );
 
 const hiddenItems = computed(() =>
-  sidebarConfig.value.items
-    .filter(item => !item.visible)
-    .sort((a, b) => a.order - b.order)
+  sidebarConfig.value.items.filter((item) => !item.visible).sort((a, b) => a.order - b.order)
 );
 
 // 图标名称转换
@@ -175,7 +258,7 @@ const getIconName = (iconName: string): string => {
 
 // 切换项目可见性
 const toggleItemVisibility = (itemId: string, visible: boolean) => {
-  const item = sidebarConfig.value.items.find(i => i.id === itemId);
+  const item = sidebarConfig.value.items.find((i) => i.id === itemId);
 
   // 检查是否为固定项目
   if (item?.fixed && !visible) {
@@ -190,24 +273,24 @@ const toggleItemVisibility = (itemId: string, visible: boolean) => {
 
   // 如果是显示项目，需要重新排序
   if (visible) {
-    const updatedItem = sidebarConfig.value.items.find(i => i.id === itemId);
+    const updatedItem = sidebarConfig.value.items.find((i) => i.id === itemId);
     if (updatedItem) {
       // 找到所有可见项目（包括固定和非固定），按 order 排序
       const sortedVisibleItems = visibleItems.value
-        .filter(i => i.id !== itemId) // 排除当前项目
+        .filter((i) => i.id !== itemId) // 排除当前项目
         .sort((a, b) => a.order - b.order);
-      
+
       // 找到第一个固定项目的索引
-      const firstFixedIndex = sortedVisibleItems.findIndex(i => i.fixed);
-      
+      const firstFixedIndex = sortedVisibleItems.findIndex((i) => i.fixed);
+
       if (firstFixedIndex !== -1) {
         // 找到第一个固定项目后面的位置（数组索引 + 1）
         const insertIndex = firstFixedIndex + 1;
-        
+
         // 获取插入位置前后的项目
         const prevItem = sortedVisibleItems[firstFixedIndex];
         const nextItem = sortedVisibleItems[insertIndex];
-        
+
         if (nextItem) {
           // 如果后面有项目，插入到两者之间
           updatedItem.order = (prevItem.order + nextItem.order) / 2;
@@ -217,10 +300,10 @@ const toggleItemVisibility = (itemId: string, visible: boolean) => {
         }
       } else {
         // 如果没有固定项目，放到最后
-        const maxVisibleOrder = Math.max(...sortedVisibleItems.map(i => i.order), -1);
+        const maxVisibleOrder = Math.max(...sortedVisibleItems.map((i) => i.order), -1);
         updatedItem.order = maxVisibleOrder + 1;
       }
-      
+
       setSidebarConfig(sidebarConfig.value);
       sidebarConfig.value = getSidebarConfig();
     }
@@ -289,8 +372,8 @@ const handleDrop = (event: DragEvent, listType: 'visible' | 'hidden') => {
 
   // 重新排序逻辑
   const currentList = listType === 'visible' ? visibleItems.value : hiddenItems.value;
-  const draggedIndex = currentList.findIndex(item => item.id === draggedItem.value!.id);
-  const dropIndex = currentList.findIndex(item => item.id === dropItemId);
+  const draggedIndex = currentList.findIndex((item) => item.id === draggedItem.value!.id);
+  const dropIndex = currentList.findIndex((item) => item.id === dropItemId);
 
   if (draggedIndex === -1 || dropIndex === -1) return;
 
@@ -511,7 +594,6 @@ onUnmounted(() => {
   z-index: 10;
 }
 
-
 .item-content {
   display: flex;
   align-items: center;
@@ -565,10 +647,9 @@ onUnmounted(() => {
   width: fit-content;
 }
 
-
 .item-type.beta {
- color: var(--el-color-warning);
- background-color: var(--el-color-warning-light-9);
+  color: var(--el-color-warning);
+  background-color: var(--el-color-warning-light-9);
 }
 
 .item-actions {
@@ -606,11 +687,11 @@ onUnmounted(() => {
     align-items: center;
     justify-content: center;
   }
-  
+
   .drag-handle:not(.disabled) {
     color: var(--el-color-primary);
   }
-  
+
   .item-actions {
     gap: 12px;
   }

@@ -3,17 +3,27 @@
     <!-- 基础信息与图片 -->
     <section class="form-section">
       <h3 class="form-section-title">
-        <Icon icon="ph:user-circle-gear-duotone" class="form-section-icon" />核心设定
+        <Icon
+          icon="ph:user-circle-gear-duotone"
+          class="form-section-icon"
+        />
+        核心设定
       </h3>
       <div class="form-section-content two-column">
         <div class="image-panel-container">
           <h4 class="sub-section-title">角色图片</h4>
           <p class="image-persistence-notice">注意：图片仅用于本次导出，不会随角色卡保存。</p>
-          <ImagePanel :preview-url="imagePreviewUrl" @image-change="emit('imageChange', $event)" />
+          <ImagePanel
+            :preview-url="imagePreviewUrl"
+            @image-change="emit('imageChange', $event)"
+          />
         </div>
         <div class="basic-info-container">
           <h4 class="sub-section-title">基础信息</h4>
-          <BasicInfoPanel :character="character" :all-tags="props.allTags" />
+          <BasicInfoPanel
+            :character="character"
+            :all-tags="props.allTags"
+          />
         </div>
       </div>
     </section>
@@ -21,7 +31,11 @@
     <!-- 开场白 -->
     <section class="form-section">
       <h3 class="form-section-title">
-        <Icon icon="ph:chat-teardrop-dots-duotone" class="form-section-icon" />多开场白
+        <Icon
+          icon="ph:chat-teardrop-dots-duotone"
+          class="form-section-icon"
+        />
+        多开场白
       </h3>
       <div class="form-section-content">
         <GreetingsPanel v-model="character.data.alternate_greetings" />
@@ -31,14 +45,27 @@
     <!-- 其他与正则 -->
     <section class="form-section">
       <h3 class="form-section-title">
-        <Icon icon="ph:puzzle-piece-duotone" class="form-section-icon" />其他与正则
+        <Icon
+          icon="ph:puzzle-piece-duotone"
+          class="form-section-icon"
+        />
+        其他与正则
       </h3>
-      <InfoDisplayPanel type="regex" :character="character" />
+      <InfoDisplayPanel
+        type="regex"
+        :character="character"
+      />
     </section>
 
     <!-- 高级选项 -->
-    <div class="form-section-title advanced-options-toggle" @click="toggleAdvancedOptions">
-      <Icon :icon="advancedOptionsVisible ? 'ph:caret-down-duotone' : 'ph:caret-right-duotone'" class="form-section-icon" />
+    <div
+      class="form-section-title advanced-options-toggle"
+      @click="toggleAdvancedOptions"
+    >
+      <Icon
+        :icon="advancedOptionsVisible ? 'ph:caret-down-duotone' : 'ph:caret-right-duotone'"
+        class="form-section-icon"
+      />
       <span>高级设定</span>
       <span class="advanced-options-hint">{{ advancedOptionsVisible ? '点击折叠' : '点击展开' }}</span>
     </div>

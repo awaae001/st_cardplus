@@ -1,11 +1,7 @@
 import { db, type StoredPresetFile } from './db';
 import { sanitizeForIndexedDB } from './utils';
 import { v4 as uuidv4 } from 'uuid';
-import {
-  getSessionStorageItem,
-  setSessionStorageItem,
-  removeSessionStorageItem,
-} from '@/utils/localStorageUtils';
+import { getSessionStorageItem, setSessionStorageItem, removeSessionStorageItem } from '@/utils/localStorageUtils';
 
 const ACTIVE_PRESET_ID_KEY = 'presetActiveId';
 

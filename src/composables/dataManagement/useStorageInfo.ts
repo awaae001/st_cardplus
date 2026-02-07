@@ -5,12 +5,12 @@ import { characterCardService, type CharacterCardStats } from '@/database/charac
 export function useStorageInfo() {
   const indexedDBUsage = ref({
     percentage: 0,
-    text: '加载中...'
+    text: '加载中...',
   });
 
   const localStorageUsage = ref({
     percentage: 0,
-    text: '加载中...'
+    text: '加载中...',
   });
 
   const worldBookStats = ref<WorldBookStats | null>(null);
@@ -28,9 +28,10 @@ export function useStorageInfo() {
 
   // 获取存储信息
   const getStorageEstimate = async () => {
-    const storageEstimatePromise = ('storage' in navigator && 'estimate' in navigator.storage)
-      ? navigator.storage.estimate()
-      : Promise.resolve<StorageEstimate | null>(null);
+    const storageEstimatePromise =
+      'storage' in navigator && 'estimate' in navigator.storage
+        ? navigator.storage.estimate()
+        : Promise.resolve<StorageEstimate | null>(null);
 
     const [worldStats, cardStats, estimate] = await Promise.all([
       worldBookService.getStats(),
@@ -87,10 +88,10 @@ export function useStorageInfo() {
     // localStorage 的总配额，默认显示为 5MB
     const quota = 5 * 1024 * 1024;
     const percentage = Math.min((totalBytes / quota) * 100, 100);
-    
+
     localStorageUsage.value = {
       percentage: parseFloat(percentage.toFixed(2)),
-      text: `${formatBytes(totalBytes)} / 5 MB`
+      text: `${formatBytes(totalBytes)} / 5 MB`,
     };
   };
 

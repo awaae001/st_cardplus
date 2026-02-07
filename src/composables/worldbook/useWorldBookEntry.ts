@@ -1,9 +1,9 @@
-import { type Ref } from "vue";
-import type { WorldBookEntry, WorldBook } from "../../types/types";
-import { useWorldBookEntryState } from "./entry/useWorldBookEntryState";
-import { useWorldBookEntryActions } from "./entry/useWorldBookEntryActions";
-import { useWorldBookEntryIO } from "./entry/useWorldBookEntryIO";
-import { useWorldBookEntryAutoSave } from "./entry/useWorldBookEntryAutoSave";
+import { type Ref } from 'vue';
+import type { WorldBookEntry, WorldBook } from '../../types/types';
+import { useWorldBookEntryState } from './entry/useWorldBookEntryState';
+import { useWorldBookEntryActions } from './entry/useWorldBookEntryActions';
+import { useWorldBookEntryIO } from './entry/useWorldBookEntryIO';
+import { useWorldBookEntryAutoSave } from './entry/useWorldBookEntryAutoSave';
 
 type EntryCallbacks = {
   updateEntries: (entries: WorldBookEntry[]) => Promise<void>;
@@ -12,10 +12,7 @@ type EntryCallbacks = {
   deleteEntry: (entryId: number) => Promise<boolean>;
 };
 
-export function useWorldBookEntry(
-  activeBook: Ref<WorldBook | null>,
-  callbacks: EntryCallbacks
-) {
+export function useWorldBookEntry(activeBook: Ref<WorldBook | null>, callbacks: EntryCallbacks) {
   const state = useWorldBookEntryState(activeBook);
 
   const fullState = {

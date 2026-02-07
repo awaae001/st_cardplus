@@ -1,9 +1,7 @@
 import { ref } from 'vue';
 import type { Project, EnhancedLandmark, EnhancedForce } from '@/types/world-editor';
 
-export function useWorldEditorUI(
-    handleProjectSubmit: (projectData: Project, editingProject: Project | null) => void
-) {
+export function useWorldEditorUI(handleProjectSubmit: (projectData: Project, editingProject: Project | null) => void) {
   const isModalVisible = ref(false);
   const editingProject = ref<Project | null>(null);
 
@@ -13,13 +11,14 @@ export function useWorldEditorUI(
   };
 
   const handleEdit = (item: Project | EnhancedLandmark | EnhancedForce) => {
-    if ('createdAt' in item && !('projectId' in item)) { // Is a Project
+    if ('createdAt' in item && !('projectId' in item)) {
+      // Is a Project
       editingProject.value = item;
       isModalVisible.value = true;
     }
     // Selection of landmarks/forces will be handled by useWorldEditor
   };
-  
+
   const handleModalSubmit = (projectData: Project) => {
     handleProjectSubmit(projectData, editingProject.value);
     editingProject.value = null; // Reset after submit
@@ -30,6 +29,6 @@ export function useWorldEditorUI(
     editingProject,
     handleAddProject,
     handleEdit,
-    handleModalSubmit
+    handleModalSubmit,
   };
 }

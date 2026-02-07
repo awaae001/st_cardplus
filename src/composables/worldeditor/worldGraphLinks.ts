@@ -9,16 +9,11 @@ const ensureRelatedLandmark = (landmark: EnhancedLandmark, targetId: string) => 
   }
 };
 
-const upsertRoadConnection = (
-  landmark: EnhancedLandmark,
-  targetId: string,
-  handle?: string,
-  targetHandle?: string
-) => {
+const upsertRoadConnection = (landmark: EnhancedLandmark, targetId: string, handle?: string, targetHandle?: string) => {
   if (!landmark.roadConnections) {
     landmark.roadConnections = [];
   }
-  const existing = landmark.roadConnections.find(conn => conn.targetId === targetId);
+  const existing = landmark.roadConnections.find((conn) => conn.targetId === targetId);
   if (existing) {
     existing.handle = handle;
     existing.targetHandle = targetHandle;
@@ -34,8 +29,8 @@ export const linkLandmarks = (
   sourceHandle?: string,
   targetHandle?: string
 ) => {
-  const sourceLandmark = landmarks.find(item => item.id === sourceId);
-  const targetLandmark = landmarks.find(item => item.id === targetId);
+  const sourceLandmark = landmarks.find((item) => item.id === sourceId);
+  const targetLandmark = landmarks.find((item) => item.id === targetId);
   if (!sourceLandmark || !targetLandmark) return;
 
   ensureRelatedLandmark(sourceLandmark, targetId);
@@ -45,23 +40,27 @@ export const linkLandmarks = (
 };
 
 export const unlinkLandmarks = (landmarks: EnhancedLandmark[], sourceId: string, targetId: string) => {
-  const sourceLandmark = landmarks.find(item => item.id === sourceId);
-  const targetLandmark = landmarks.find(item => item.id === targetId);
+  const sourceLandmark = landmarks.find((item) => item.id === sourceId);
+  const targetLandmark = landmarks.find((item) => item.id === targetId);
   if (sourceLandmark) {
-    sourceLandmark.relatedLandmarks = (sourceLandmark.relatedLandmarks || []).filter(id => id !== targetId);
-    sourceLandmark.roadConnections = (sourceLandmark.roadConnections || []).filter(conn => conn.targetId !== targetId);
+    sourceLandmark.relatedLandmarks = (sourceLandmark.relatedLandmarks || []).filter((id) => id !== targetId);
+    sourceLandmark.roadConnections = (sourceLandmark.roadConnections || []).filter(
+      (conn) => conn.targetId !== targetId
+    );
   }
   if (targetLandmark) {
-    targetLandmark.relatedLandmarks = (targetLandmark.relatedLandmarks || []).filter(id => id !== sourceId);
-    targetLandmark.roadConnections = (targetLandmark.roadConnections || []).filter(conn => conn.targetId !== sourceId);
+    targetLandmark.relatedLandmarks = (targetLandmark.relatedLandmarks || []).filter((id) => id !== sourceId);
+    targetLandmark.roadConnections = (targetLandmark.roadConnections || []).filter(
+      (conn) => conn.targetId !== sourceId
+    );
   }
 };
 
 export const removeLandmarkLinksForIds = (landmarks: EnhancedLandmark[], ids: Set<string>) => {
   if (ids.size === 0) return;
-  landmarks.forEach(landmark => {
-    landmark.relatedLandmarks = (landmark.relatedLandmarks || []).filter(id => !ids.has(id));
-    landmark.roadConnections = (landmark.roadConnections || []).filter(conn => !ids.has(conn.targetId));
+  landmarks.forEach((landmark) => {
+    landmark.relatedLandmarks = (landmark.relatedLandmarks || []).filter((id) => !ids.has(id));
+    landmark.roadConnections = (landmark.roadConnections || []).filter((conn) => !ids.has(conn.targetId));
     if (landmark.bridgePositions) {
       const next = Object.fromEntries(
         Object.entries(landmark.bridgePositions).filter(([externalId]) => !ids.has(externalId))

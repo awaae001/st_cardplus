@@ -3,9 +3,15 @@
     <div class="panel-content">
       <!-- 变量定义 -->
       <div class="section">
-        <div class="section-header" :class="{ 'mobile-header': isMobile }">
+        <div
+          class="section-header"
+          :class="{ 'mobile-header': isMobile }"
+        >
           <h4 class="section-title">变量定义</h4>
-          <el-radio-group v-model="store.variableEditMode" :size="isMobile ? 'small' : 'small'">
+          <el-radio-group
+            v-model="store.variableEditMode"
+            :size="isMobile ? 'small' : 'small'"
+          >
             <el-radio-button value="yaml">YAML</el-radio-button>
             <el-radio-button value="tree">节点树</el-radio-button>
           </el-radio-group>
@@ -21,9 +27,12 @@
               placeholder="粘贴YAML格式的变量定义...&#10;例如:&#10;世界:&#10;  日期: [0, '记录故事天数']&#10;角色:&#10;  狼蛛:&#10;    好感度: [0, '角色好感度']"
               class="yaml-textarea"
             />
-            <div class="yaml-actions" :class="{ 'mobile-actions': isMobile }">
-              <el-button 
-                type="primary" 
+            <div
+              class="yaml-actions"
+              :class="{ 'mobile-actions': isMobile }"
+            >
+              <el-button
+                type="primary"
                 @click="store.importYamlVariables"
                 :disabled="!store.yamlInput.trim()"
                 :size="isMobile ? 'small' : 'small'"
@@ -31,12 +40,28 @@
               >
                 解析变量
               </el-button>
-              <el-button @click="clearYaml" :size="isMobile ? 'small' : 'small'" class="action-button">清空</el-button>
-              <el-button @click="showExample" :size="isMobile ? 'small' : 'small'" type="info" class="action-button">示例</el-button>
+              <el-button
+                @click="clearYaml"
+                :size="isMobile ? 'small' : 'small'"
+                class="action-button"
+              >
+                清空
+              </el-button>
+              <el-button
+                @click="showExample"
+                :size="isMobile ? 'small' : 'small'"
+                type="info"
+                class="action-button"
+              >
+                示例
+              </el-button>
             </div>
           </div>
           <!-- 只读预览 -->
-          <div v-if="store.variableTree.length > 0" class="variable-tree-readonly">
+          <div
+            v-if="store.variableTree.length > 0"
+            class="variable-tree-readonly"
+          >
             <h5 class="subsection-title">解析结果预览</h5>
             <VariableTreeNode
               v-for="node in store.variableTree"
@@ -50,11 +75,19 @@
         <!-- 节点树编辑模式 -->
         <div v-if="store.variableEditMode === 'tree'">
           <div class="tree-actions">
-            <el-button @click="store.addNode(null)" :size="isMobile ? 'small' : 'small'">添加根节点</el-button>
+            <el-button
+              @click="store.addNode(null)"
+              :size="isMobile ? 'small' : 'small'"
+            >
+              添加根节点
+            </el-button>
           </div>
           <div class="variable-tree-editable">
-            <div v-if="store.variableTree.length === 0" class="empty-tree">
-              <el-text type="info">没有变量，请点击上方按钮添加根节点 </el-text>
+            <div
+              v-if="store.variableTree.length === 0"
+              class="empty-tree"
+            >
+              <el-text type="info">没有变量，请点击上方按钮添加根节点</el-text>
             </div>
             <EditableVariableTreeNode
               v-for="node in store.variableTree"
@@ -64,33 +97,35 @@
           </div>
         </div>
       </div>
-
-   </div>
- </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus';
 // import { QuestionFilled } from '@element-plus/icons-vue'
-import { useEjsEditorStore } from '@/composables/ejs/ejsEditor'
-import { useDevice } from '@/composables/useDevice'
-import VariableTreeNode from './VariableTreeNode.vue'
-import EditableVariableTreeNode from './EditableVariableTreeNode.vue'
-import { watch } from 'vue'
-import type { VariableNode } from '@/types/ejs-editor'
+import { useEjsEditorStore } from '@/composables/ejs/ejsEditor';
+import { useDevice } from '@/composables/useDevice';
+import VariableTreeNode from './VariableTreeNode.vue';
+import EditableVariableTreeNode from './EditableVariableTreeNode.vue';
+import { watch } from 'vue';
+import type { VariableNode } from '@/types/ejs-editor';
 
-const store = useEjsEditorStore()
-const { isMobile } = useDevice()
+const store = useEjsEditorStore();
+const { isMobile } = useDevice();
 
-watch(() => store.variableEditMode, (newMode) => {
-  if (newMode === 'tree' && store.yamlInput.trim() && store.variableTree.length === 0) {
-    store.importYamlVariables()
+watch(
+  () => store.variableEditMode,
+  (newMode) => {
+    if (newMode === 'tree' && store.yamlInput.trim() && store.variableTree.length === 0) {
+      store.importYamlVariables();
+    }
   }
-})
+);
 
 function clearYaml() {
-  store.yamlInput = ''
-  store.variableTree = []
+  store.yamlInput = '';
+  store.variableTree = [];
 }
 
 function showExample() {
@@ -105,8 +140,8 @@ function showExample() {
   日常事件计数: [0]
   任务次数计数: [0]
   被摸耳朵计数: [0]
-  被摸尾巴计数: [0]`
-  store.importYamlVariables()
+  被摸尾巴计数: [0]`;
+  store.importYamlVariables();
 }
 
 function selectVariable(node: VariableNode) {

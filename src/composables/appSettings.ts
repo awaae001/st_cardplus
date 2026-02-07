@@ -27,7 +27,6 @@ interface NumberInputSetting extends BaseSetting {
 
 export type SettingOption = SwitchSetting | NumberInputSetting;
 
-
 interface AppSettingsModels {
   betaFeaturesEnabled: Ref<boolean>;
   useOldSidebar: Ref<boolean>;
@@ -103,6 +102,6 @@ export const getAppSettings = (models: AppSettingsModels, handlers: AppSettingsH
       max: 10,
       step: 0.1,
       unit: '秒',
-    }
+    },
   ];
 };

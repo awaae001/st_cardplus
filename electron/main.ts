@@ -14,13 +14,13 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
-      allowRunningInsecureContent: false
+      allowRunningInsecureContent: false,
     },
     show: false,
     backgroundColor: '#ffffff',
     // titleBarStyle: 'hidden',
     trafficLightPosition: { x: 12, y: 12 },
-    icon: path.join(__dirname, '../../src/image/logo.png')
+    icon: path.join(__dirname, '../../src/image/logo.png'),
   });
 
   mainWindow.once('ready-to-show', () => {

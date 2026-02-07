@@ -11,7 +11,13 @@
     @node-click="handleNodeClick"
   >
     <template #header-actions>
-      <el-tooltip content="创建新世界书" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+      <el-tooltip
+        content="创建新世界书"
+        placement="top"
+        :show-arrow="false"
+        :offset="8"
+        :hide-after="0"
+      >
         <button
           @click="emit('create-book')"
           class="btn-primary-adv sidebar-header-button"
@@ -28,7 +34,10 @@
         :class="{ 'is-disabled': data.isEntry && data.raw.disable, 'is-constant': data.isEntry && data.raw.constant }"
       >
         <div class="sidebar-tree-node-main">
-          <Icon :icon="data.icon" class="sidebar-tree-node-icon" />
+          <Icon
+            :icon="data.icon"
+            class="sidebar-tree-node-icon"
+          />
           <span class="sidebar-tree-node-label">{{ node.label }}</span>
           <el-tooltip
             v-if="!data.isEntry && data.raw.sourceCharacterName"
@@ -38,11 +47,23 @@
             :offset="8"
             :hide-after="0"
           >
-            <Icon icon="ph:user-circle-duotone" class="sidebar-tree-node-source-icon" />
+            <Icon
+              icon="ph:user-circle-duotone"
+              class="sidebar-tree-node-source-icon"
+            />
           </el-tooltip>
         </div>
-        <div class="sidebar-tree-node-actions" v-if="!data.isEntry">
-          <el-tooltip content="新增条目" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+        <div
+          class="sidebar-tree-node-actions"
+          v-if="!data.isEntry"
+        >
+          <el-tooltip
+            content="新增条目"
+            placement="top"
+            :show-arrow="false"
+            :offset="8"
+            :hide-after="0"
+          >
             <button
               @click.stop="emit('add-entry', data.id)"
               class="sidebar-tree-node-action-button"
@@ -50,7 +71,13 @@
               <Icon icon="ph:plus-circle-duotone" />
             </button>
           </el-tooltip>
-          <el-tooltip content="重命名" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+          <el-tooltip
+            content="重命名"
+            placement="top"
+            :show-arrow="false"
+            :offset="8"
+            :hide-after="0"
+          >
             <button
               @click.stop="emit('rename-book', data.id)"
               class="sidebar-tree-node-action-button"
@@ -58,7 +85,13 @@
               <Icon icon="ph:pencil-simple-duotone" />
             </button>
           </el-tooltip>
-          <el-tooltip content="删除" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+          <el-tooltip
+            content="删除"
+            placement="top"
+            :show-arrow="false"
+            :offset="8"
+            :hide-after="0"
+          >
             <button
               @click.stop="emit('delete-book', data.id)"
               class="sidebar-tree-node-action-button is-danger"
@@ -67,8 +100,17 @@
             </button>
           </el-tooltip>
         </div>
-        <div class="sidebar-tree-node-actions" v-if="data.isEntry">
-          <el-tooltip content="复制条目" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+        <div
+          class="sidebar-tree-node-actions"
+          v-if="data.isEntry"
+        >
+          <el-tooltip
+            content="复制条目"
+            placement="top"
+            :show-arrow="false"
+            :offset="8"
+            :hide-after="0"
+          >
             <button
               @click.stop="emit('duplicate-entry', data.bookId, data.entryIndex)"
               class="sidebar-tree-node-action-button"
@@ -76,7 +118,13 @@
               <Icon icon="ph:copy-duotone" />
             </button>
           </el-tooltip>
-          <el-tooltip content="删除条目" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+          <el-tooltip
+            content="删除条目"
+            placement="top"
+            :show-arrow="false"
+            :offset="8"
+            :hide-after="0"
+          >
             <button
               @click.stop="emit('delete-entry', data.bookId, data.entryIndex)"
               class="sidebar-tree-node-action-button is-danger"
@@ -148,7 +196,7 @@ const treeProps = {
 const treeData = computed(() => {
   return Object.values(props.collection.books)
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-    .map(book => ({
+    .map((book) => ({
       id: book.id,
       label: book.name,
       icon: 'ph:book-duotone',

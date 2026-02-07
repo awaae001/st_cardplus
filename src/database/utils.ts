@@ -26,9 +26,9 @@ interface DatabaseService {
 
 // 数据库注册表条目
 interface DatabaseRegistry {
-  key: string;           // 存储键名，如 'ST_CARDPLUS_WORLDBOOK_V1'
+  key: string; // 存储键名，如 'ST_CARDPLUS_WORLDBOOK_V1'
   service: DatabaseService;
-  label: string;         // 用户可读名称，如 '世界书'
+  label: string; // 用户可读名称，如 '世界书'
 }
 
 // 延迟加载数据库服务，避免循环依赖

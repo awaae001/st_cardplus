@@ -27,24 +27,21 @@ export function usePresetAutoSave(options: PresetAutoSaveOptions) {
   } = options;
 
   const intervalMs = ref<number>(
-    typeof autoSaveIntervalMs === 'number'
-      ? autoSaveIntervalMs
-      : getSetting('autoSaveInterval') * 1000
+    typeof autoSaveIntervalMs === 'number' ? autoSaveIntervalMs : getSetting('autoSaveInterval') * 1000
   );
   const debounceMs = ref<number>(
-    typeof watchDebounceMs === 'number'
-      ? watchDebounceMs
-      : getSetting('autoSaveDebounce') * 1000
+    typeof watchDebounceMs === 'number' ? watchDebounceMs : getSetting('autoSaveDebounce') * 1000
   );
 
   const saveStatus = ref<SaveStatus>('idle');
   const lastSavedSnapshot = ref<string>('');
   const isSaving = ref(false);
 
-  const getSnapshot = () => JSON.stringify({
-    presetId: activePresetId.value,
-    editorState: editorState.value,
-  });
+  const getSnapshot = () =>
+    JSON.stringify({
+      presetId: activePresetId.value,
+      editorState: editorState.value,
+    });
 
   const shouldSave = (): boolean => {
     if (autoSaveMode.value === 'manual') return false;
@@ -172,14 +169,11 @@ export function usePresetAutoSave(options: PresetAutoSaveOptions) {
     { immediate: true }
   );
 
-  watch(
-    intervalMs,
-    () => {
-      if (autoSaveMode.value === 'auto') {
-        restartAutoSaveTimer();
-      }
+  watch(intervalMs, () => {
+    if (autoSaveMode.value === 'auto') {
+      restartAutoSaveTimer();
     }
-  );
+  });
 
   const handleDebounceChange = (event: Event) => {
     const detail = (event as CustomEvent<number>).detail;

@@ -28,12 +28,19 @@
         @node-collapse="handleNodeCollapse"
       >
         <template #default="{ node, data }">
-          <slot name="node" :node="node" :data="data" />
+          <slot
+            name="node"
+            :node="node"
+            :data="data"
+          />
         </template>
       </el-tree>
     </el-scrollbar>
 
-    <div v-if="$slots.footer" class="sidebar-panel-footer">
+    <div
+      v-if="$slots.footer"
+      class="sidebar-panel-footer"
+    >
       <slot name="footer" />
     </div>
   </div>
@@ -103,9 +110,7 @@ const handleNodeDrop = async (draggingNode: any, dropNode: any, dropType: any) =
 
   if (treeRef.value) {
     const nodes = Object.values(treeRef.value.store.nodesMap);
-    expandedKeys.value = nodes
-      .filter((node: any) => node.expanded)
-      .map((node: any) => node.key);
+    expandedKeys.value = nodes.filter((node: any) => node.expanded).map((node: any) => node.key);
   }
 
   const success = props.handleNodeDrop(draggingNode, dropNode, dropType);

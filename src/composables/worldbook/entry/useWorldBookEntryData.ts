@@ -1,10 +1,10 @@
-import type { WorldBookEntry } from "../../../types/types";
+import type { WorldBookEntry } from '../../../types/types';
 
 export const createDefaultEntryData = (uid: number): WorldBookEntry => ({
   uid: uid,
-  comment: "",
+  comment: '',
   key: [],
-  content: "",
+  content: '',
   addMemo: true,
   order: 100,
   constant: false,
@@ -23,15 +23,15 @@ export const createDefaultEntryData = (uid: number): WorldBookEntry => ({
   caseSensitive: null,
   matchWholeWords: null,
   vectorized: false,
-  group: "",
+  group: '',
   groupPriority: 0,
   groupOverride: false,
   useGroupScoring: null,
   sticky: 0,
   cooldown: 0,
   delay: 0,
-  automationId: "",
-  outletName: "",
+  automationId: '',
+  outletName: '',
   // 扫描匹配选项默认值
   scanDepth: null,
   matchPersonaDescription: false,
@@ -42,15 +42,13 @@ export const createDefaultEntryData = (uid: number): WorldBookEntry => ({
   matchCreatorNotes: false,
 });
 
-export const processImportedWorldBookData = (
-  jsonData: unknown
-): WorldBookEntry[] | null => {
+export const processImportedWorldBookData = (jsonData: unknown): WorldBookEntry[] | null => {
   if (
     jsonData &&
-    typeof jsonData === "object" &&
+    typeof jsonData === 'object' &&
     jsonData !== null &&
-    "entries" in jsonData &&
-    typeof (jsonData as { entries: unknown }).entries === "object" &&
+    'entries' in jsonData &&
+    typeof (jsonData as { entries: unknown }).entries === 'object' &&
     (jsonData as { entries: unknown }).entries !== null
   ) {
     const data = jsonData as { entries: Record<string, any> };
@@ -65,9 +63,7 @@ export const processImportedWorldBookData = (
         ...baseEntry,
         ...entryFromFile,
         uid: newUid,
-        key: Array.isArray(entryFromFile.key)
-          ? entryFromFile.key.map(String)
-          : baseEntry.key,
+        key: Array.isArray(entryFromFile.key) ? entryFromFile.key.map(String) : baseEntry.key,
         keysecondary: Array.isArray(entryFromFile.keysecondary)
           ? entryFromFile.keysecondary.map(String)
           : baseEntry.keysecondary,

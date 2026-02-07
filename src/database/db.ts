@@ -8,7 +8,7 @@ export interface StoredWorldBookEntry extends WorldBookEntry {
   id?: number; // 自增主键
   bookId: string;
 }
-export interface StoredWorldBook extends Omit<WorldBook, 'entries'> { }
+export interface StoredWorldBook extends Omit<WorldBook, 'entries'> {}
 export interface StoredCharacterCard {
   id: string; // UUID 主键
   name: string; // 角色名称

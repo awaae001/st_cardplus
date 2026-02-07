@@ -32,7 +32,7 @@ function extractAndNormalizeBookData(data: any): object | null {
     outputFileName.value = `${bookData.name || 'worldbook'}.json`;
     return bookData;
   }
-  
+
   ElMessage.error('转换失败：无法在文件中找到有效的 "entries" 结构');
   outputJson.value = '';
   return null;
@@ -83,13 +83,13 @@ function handleConvertToCharacterBook() {
     const rawInput = JSON.parse(inputJson.value);
     const bookData = extractAndNormalizeBookData(rawInput);
     if (!bookData) return;
-    
+
     const characterBook = convertWorldBookToCharacterBook(bookData as any);
     outputFileName.value = `${characterBook.name || 'characterbook'}.json`;
-    
+
     // 使用 cleanObject 来移除最终导出 JSON 中的 name 和 id 字段
     const cleanedBook = cleanObject(characterBook, ['name', 'id']);
-    
+
     outputJson.value = JSON.stringify(cleanedBook, null, 2);
     ElMessage.success('成功转换为角色卡世界书 (CharacterBook) 格式!');
   } catch (error: any) {
@@ -119,15 +119,34 @@ function downloadJson() {
   <div class="converter-container">
     <h1>世界书双向转换器</h1>
     <p>打开一个角色卡 (`.json`) 或独立的 `WorldBook` / `CharacterBook` (`.json`) 文件，然后选择要转换的目标格式</p>
-    
+
     <div class="io-grid">
       <div class="file-upload-area">
-        <el-button type="primary" @click="($refs.fileInput as HTMLInputElement).click()">
+        <el-button
+          type="primary"
+          @click="($refs.fileInput as HTMLInputElement).click()"
+        >
           打开 JSON 文件
         </el-button>
-        <input ref="fileInput" type="file" accept=".json" @change="handleFileChange" style="display: none;" />
-        <p v-if="fileName" class="file-name">当前文件: {{ fileName }}</p>
-        <p v-else class="placeholder">未选择文件</p>
+        <input
+          ref="fileInput"
+          type="file"
+          accept=".json"
+          @change="handleFileChange"
+          style="display: none"
+        />
+        <p
+          v-if="fileName"
+          class="file-name"
+        >
+          当前文件: {{ fileName }}
+        </p>
+        <p
+          v-else
+          class="placeholder"
+        >
+          未选择文件
+        </p>
       </div>
       <div class="output-area">
         <el-input
@@ -138,17 +157,29 @@ function downloadJson() {
           placeholder="转换结果将显示在这里..."
           class="json-textarea"
         />
-        <el-button v-if="outputJson" @click="downloadJson" class="download-btn">
+        <el-button
+          v-if="outputJson"
+          @click="downloadJson"
+          class="download-btn"
+        >
           下载结果
         </el-button>
       </div>
     </div>
 
     <div class="button-group">
-      <el-button type="primary" @click="handleConvertToWorldBook" :disabled="!inputJson">
+      <el-button
+        type="primary"
+        @click="handleConvertToWorldBook"
+        :disabled="!inputJson"
+      >
         转换为世界书 (WorldBook)
       </el-button>
-      <el-button type="success" @click="handleConvertToCharacterBook" :disabled="!inputJson">
+      <el-button
+        type="success"
+        @click="handleConvertToCharacterBook"
+        :disabled="!inputJson"
+      >
         转换为角色卡世界书 (CharacterBook)
       </el-button>
     </div>

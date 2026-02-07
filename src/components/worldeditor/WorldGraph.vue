@@ -1,11 +1,25 @@
 <template>
   <div class="world-graph">
     <div class="graph-canvas">
-      <VueFlow :nodes="nodes" :edges="edges" :fit-view-on-init="true" :delete-key-code="['Backspace', 'Delete']"
-        :connection-mode="ConnectionMode.Strict" :min-zoom="0.2" :max-zoom="2" :edge-types="edgeTypes"
-        @node-drag-stop="handleNodeDragStop" @connect="handleConnect" @edges-change="handleEdgesChange"
-        @node-click="handleNodeClick">
-        <Background :gap="18" :size="1" color="#c9ced6" />
+      <VueFlow
+        :nodes="nodes"
+        :edges="edges"
+        :fit-view-on-init="true"
+        :delete-key-code="['Backspace', 'Delete']"
+        :connection-mode="ConnectionMode.Strict"
+        :min-zoom="0.2"
+        :max-zoom="2"
+        :edge-types="edgeTypes"
+        @node-drag-stop="handleNodeDragStop"
+        @connect="handleConnect"
+        @edges-change="handleEdgesChange"
+        @node-click="handleNodeClick"
+      >
+        <Background
+          :gap="18"
+          :size="1"
+          color="#c9ced6"
+        />
         <Controls position="bottom-right" />
         <template #node-landmark="{ data }">
           <LandmarkNode :data="data" />
@@ -50,21 +64,48 @@
       @edit="emitEditSelected"
     />
 
-    <div v-if="childGraphVisible" class="child-graph-popup" :style="childGraphStyle">
-      <div class="child-graph-header" @mousedown="startChildGraphDrag" style="margin-top: 16px">
+    <div
+      v-if="childGraphVisible"
+      class="child-graph-popup"
+      :style="childGraphStyle"
+    >
+      <div
+        class="child-graph-header"
+        @mousedown="startChildGraphDrag"
+        style="margin-top: 16px"
+      >
         <div class="child-graph-title">{{ childGraphTitle }}</div>
-        <button @click="closeChildGraph" class="close-button">
+        <button
+          @click="closeChildGraph"
+          class="close-button"
+        >
           <Icon icon="ph:x" />
         </button>
       </div>
       <div class="child-graph-body">
-        <div class="child-graph-canvas" :style="{ height: `${childGraphSize.height - 84}px` }">
-          <VueFlow :nodes="childGraphNodesWithBridges" :edges="childGraphEdgesWithBridges" :fit-view-on-init="true"
-            :delete-key-code="['Backspace', 'Delete']" :connection-mode="ConnectionMode.Strict" :min-zoom="0.2"
-            :max-zoom="2" :edge-types="childEdgeTypes" @node-drag-stop="handleChildNodeDragStopProxy"
-            @connect="handleChildConnectProxy" @edges-change="handleChildEdgesChangeProxy"
-            @node-click="handleChildNodeClick">
-            <Background :gap="18" :size="1" color="#c9ced6" />
+        <div
+          class="child-graph-canvas"
+          :style="{ height: `${childGraphSize.height - 84}px` }"
+        >
+          <VueFlow
+            :nodes="childGraphNodesWithBridges"
+            :edges="childGraphEdgesWithBridges"
+            :fit-view-on-init="true"
+            :delete-key-code="['Backspace', 'Delete']"
+            :connection-mode="ConnectionMode.Strict"
+            :min-zoom="0.2"
+            :max-zoom="2"
+            :edge-types="childEdgeTypes"
+            @node-drag-stop="handleChildNodeDragStopProxy"
+            @connect="handleChildConnectProxy"
+            @edges-change="handleChildEdgesChangeProxy"
+            @node-click="handleChildNodeClick"
+          >
+            <Background
+              :gap="18"
+              :size="1"
+              color="#c9ced6"
+            />
             <Controls position="bottom-right" />
             <template #node-landmark="{ data }">
               <LandmarkNode :data="data" />
@@ -85,7 +126,11 @@
         @close="clearChildSelection"
         @edit="emitEditSelected"
       />
-      <button class="child-graph-resizer" @mousedown.stop.prevent="startChildGraphResize" aria-label="调整窗口大小"></button>
+      <button
+        class="child-graph-resizer"
+        @mousedown.stop.prevent="startChildGraphResize"
+        aria-label="调整窗口大小"
+      ></button>
     </div>
   </div>
 </template>
@@ -151,7 +196,7 @@ const {
   closeChildGraph,
   emitEditSelected,
 } = useWorldGraphView(props, {
-  onEdit: item => emit('edit-item', item),
+  onEdit: (item) => emit('edit-item', item),
 });
 </script>
 
@@ -292,7 +337,13 @@ const {
   width: 16px;
   height: 16px;
   border: none;
-  background: linear-gradient(135deg, transparent 45%, var(--el-border-color) 45%, var(--el-border-color) 55%, transparent 55%);
+  background: linear-gradient(
+    135deg,
+    transparent 45%,
+    var(--el-border-color) 45%,
+    var(--el-border-color) 55%,
+    transparent 55%
+  );
   cursor: se-resize;
   padding: 0;
 }

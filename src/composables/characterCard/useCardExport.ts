@@ -3,10 +3,7 @@ import { write as writePngCard } from '@/utils/pngCardMetadata';
 import type { CharacterCardV3 } from '@/types/character-card-v3';
 import type { Ref } from 'vue';
 
-export function useCardExport(
-  characterData: Ref<CharacterCardV3>,
-  characterImageFile: Ref<File | null>
-) {
+export function useCardExport(characterData: Ref<CharacterCardV3>, characterImageFile: Ref<File | null>) {
   const handleSave = async () => {
     if (!characterImageFile.value) {
       console.warn('useCardExport: No image file available for saving');

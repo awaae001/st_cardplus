@@ -1,7 +1,13 @@
 <template>
   <div class="character-card-tabs">
-    <div class="tabs-container" @wheel="handleWheel">
-      <div class="tabs-scroll-wrapper" ref="scrollWrapper">
+    <div
+      class="tabs-container"
+      @wheel="handleWheel"
+    >
+      <div
+        class="tabs-scroll-wrapper"
+        ref="scrollWrapper"
+      >
         <draggable
           v-model="localTabs"
           class="tabs-list"
@@ -13,10 +19,7 @@
         >
           <template #item="{ element: tab }">
             <div
-              :class="[
-                'tab-item',
-                { active: tab.id === activeTabId, 'is-home': tab.type === 'home' },
-              ]"
+              :class="['tab-item', { active: tab.id === activeTabId, 'is-home': tab.type === 'home' }]"
               @click="handleTabClick(tab.id)"
               :title="tab.label"
             >

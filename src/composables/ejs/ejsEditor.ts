@@ -1,21 +1,21 @@
-import { defineStore } from 'pinia'
-import { ref, watch, computed } from 'vue'
-import { useEjsVariables } from '@/composables/ejs/useEjsVariables'
-import { useEjsLogic } from '@/composables/ejs/useEjsLogic'
-import { useEjsTemplate } from '@/composables/ejs/useEjsTemplate'
-import { useEjsSimulation } from '@/composables/ejs/useEjsSimulation'
-import { useEjsProject } from '@/composables/ejs/useEjsProject'
-import { useEjsScheme } from '@/composables/ejs/useEjsScheme'
-import type { Project, LogicBlock } from '@/types/ejs-editor'
+import { defineStore } from 'pinia';
+import { ref, watch, computed } from 'vue';
+import { useEjsVariables } from '@/composables/ejs/useEjsVariables';
+import { useEjsLogic } from '@/composables/ejs/useEjsLogic';
+import { useEjsTemplate } from '@/composables/ejs/useEjsTemplate';
+import { useEjsSimulation } from '@/composables/ejs/useEjsSimulation';
+import { useEjsProject } from '@/composables/ejs/useEjsProject';
+import { useEjsScheme } from '@/composables/ejs/useEjsScheme';
+import type { Project, LogicBlock } from '@/types/ejs-editor';
 
 export const useEjsEditorStore = defineStore('ejsEditor', () => {
-  //  Core State 
-  const projects = ref<Project[]>([])
-  const currentProjectId = ref('')
-  const logicBlocks = ref<LogicBlock[]>([])
-  const isGenerating = ref(false)
+  //  Core State
+  const projects = ref<Project[]>([]);
+  const currentProjectId = ref('');
+  const logicBlocks = ref<LogicBlock[]>([]);
+  const isGenerating = ref(false);
 
-  //  Composables Integration 
+  //  Composables Integration
   const {
     yamlInput,
     variableTree,
@@ -29,13 +29,9 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     updateNodeValue,
     findFirstLeafVariable,
     getReadablePath,
-  } = useEjsVariables()
+  } = useEjsVariables();
 
-  const {
-    ejsTemplate,
-    previewCode,
-    generateEjsTemplate,
-  } = useEjsTemplate(logicBlocks, errors)
+  const { ejsTemplate, previewCode, generateEjsTemplate } = useEjsTemplate(logicBlocks, errors);
 
   const {
     selectedStageId,
@@ -50,20 +46,16 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     removeStage,
     updateStage,
     updateStagesOrder,
-  } = useEjsLogic(logicBlocks, generateEjsTemplate)
+  } = useEjsLogic(logicBlocks, generateEjsTemplate);
 
-  const {
-    simulationValues,
-    testResult,
-    testSimulation,
-  } = useEjsSimulation(ejsTemplate, logicBlocks)
+  const { simulationValues, testResult, testSimulation } = useEjsSimulation(ejsTemplate, logicBlocks);
 
   const scheme = useEjsScheme(
-    computed(() => projects.value.find(p => p.id === currentProjectId.value)),
+    computed(() => projects.value.find((p) => p.id === currentProjectId.value)),
     logicBlocks,
     selectedStageId,
     generateEjsTemplate
-  )
+  );
 
   const project = useEjsProject(
     projects,
@@ -79,7 +71,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     scheme.createStageScheme,
     scheme.switchStageScheme,
     errors
-  )
+  );
 
   const {
     currentSchemeId,
@@ -93,7 +85,7 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     renameStageScheme,
     deleteStageScheme,
     copyStageScheme,
-  } = scheme
+  } = scheme;
 
   const {
     currentProject,
@@ -110,35 +102,39 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     exportCurrentProject,
     exportWorkspace,
     importProjectsFromFile,
-  } = project
-  
-  const hasErrors = computed(() => errors.value.length > 0)
-  
+  } = project;
+
+  const hasErrors = computed(() => errors.value.length > 0);
+
   function clearAll() {
-    yamlInput.value = ''
-    variableTree.value = []
-    logicBlocks.value = []
-    selectedStageId.value = ''
-    ejsTemplate.value = ''
-    previewCode.value = ''
-    simulationValues.value = {}
-    testResult.value = ''
-    errors.value = []
+    yamlInput.value = '';
+    variableTree.value = [];
+    logicBlocks.value = [];
+    selectedStageId.value = '';
+    ejsTemplate.value = '';
+    previewCode.value = '';
+    simulationValues.value = {};
+    testResult.value = '';
+    errors.value = [];
   }
 
-  //  Watchers 
-  let saveProjectTimer: NodeJS.Timeout | null = null
-  watch([yamlInput, logicBlocks, currentSchemeId], () => {
-    if (currentProjectId.value) {
-      if (saveProjectTimer) clearTimeout(saveProjectTimer)
-      saveProjectTimer = setTimeout(() => {
-        saveCurrentProjectState()
-        saveProjectTimer = null
-      }, 500)
-    }
-  }, { deep: true })
+  //  Watchers
+  let saveProjectTimer: NodeJS.Timeout | null = null;
+  watch(
+    [yamlInput, logicBlocks, currentSchemeId],
+    () => {
+      if (currentProjectId.value) {
+        if (saveProjectTimer) clearTimeout(saveProjectTimer);
+        saveProjectTimer = setTimeout(() => {
+          saveCurrentProjectState();
+          saveProjectTimer = null;
+        }, 500);
+      }
+    },
+    { deep: true }
+  );
 
-  watch(simulationValues, testSimulation, { deep: true })
+  watch(simulationValues, testSimulation, { deep: true });
 
   return {
     // State
@@ -205,5 +201,5 @@ export const useEjsEditorStore = defineStore('ejsEditor', () => {
     exportCurrentProject,
     exportWorkspace,
     importProjectsFromFile,
-  }
-})
+  };
+});

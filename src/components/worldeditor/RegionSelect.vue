@@ -17,9 +17,17 @@
       :placeholder="props.placeholder"
       @change="handleChange"
     >
-      <el-option v-for="region in props.regions" :key="region.id" :label="region.name" :value="region.id">
+      <el-option
+        v-for="region in props.regions"
+        :key="region.id"
+        :label="region.name"
+        :value="region.id"
+      >
         <div class="region-option">
-          <span class="region-option-dot" :style="{ backgroundColor: region.color }"></span>
+          <span
+            class="region-option-dot"
+            :style="{ backgroundColor: region.color }"
+          ></span>
           <span>{{ region.name }}</span>
         </div>
       </el-option>
@@ -57,7 +65,7 @@ const emit = defineEmits<{
 }>();
 
 const selectedColor = computed(() => {
-  const match = props.regions.find(region => region.id === props.modelValue);
+  const match = props.regions.find((region) => region.id === props.modelValue);
   return match?.color || '';
 });
 
@@ -66,7 +74,7 @@ const handleChange = (value?: string) => {
     emit('update:modelValue', undefined);
     return;
   }
-  const existing = props.regions.find(region => region.id === value);
+  const existing = props.regions.find((region) => region.id === value);
   if (existing) {
     emit('update:modelValue', value);
     return;

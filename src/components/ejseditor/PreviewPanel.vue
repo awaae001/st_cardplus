@@ -2,9 +2,15 @@
   <div class="preview-panel">
     <div class="panel-content">
       <!-- 预览头部 -->
-      <div class="preview-header" :class="{ 'mobile-header': isMobile }">
+      <div
+        class="preview-header"
+        :class="{ 'mobile-header': isMobile }"
+      >
         <h4 class="section-title">代码预览</h4>
-        <div class="header-actions" :class="{ 'mobile-actions': isMobile }">
+        <div
+          class="header-actions"
+          :class="{ 'mobile-actions': isMobile }"
+        >
           <el-button
             :icon="CopyDocument"
             :size="isMobile ? 'small' : 'small'"
@@ -24,20 +30,35 @@
       </div>
 
       <!-- 生成统计 -->
-      <div v-if="store.previewCode" class="stats-bar">
-        <el-tag size="small" type="info">
+      <div
+        v-if="store.previewCode"
+        class="stats-bar"
+      >
+        <el-tag
+          size="small"
+          type="info"
+        >
           {{ lineCount }} 行
         </el-tag>
-        <el-tag size="small" type="success">
+        <el-tag
+          size="small"
+          type="success"
+        >
           {{ characterCount }} 字符
         </el-tag>
-        <el-tag size="small" type="warning">
+        <el-tag
+          size="small"
+          type="warning"
+        >
           {{ totalStagesCount }} 个阶段
         </el-tag>
       </div>
 
       <!-- 错误提示 -->
-      <div v-if="ejsErrors.length > 0" class="error-section">
+      <div
+        v-if="ejsErrors.length > 0"
+        class="error-section"
+      >
         <el-alert
           v-for="error in ejsErrors"
           :key="error.message"
@@ -50,21 +71,32 @@
 
       <!-- 代码预览区 -->
       <div class="code-preview">
-        <div v-if="!store.previewCode" class="empty-preview">
-          <el-empty description="暂无生成的代码" :image-size="60">
-            <el-text type="info">
-              请先配置变量和阶段，然后系统会自动生成 EJS 模板代码
-            </el-text>
+        <div
+          v-if="!store.previewCode"
+          class="empty-preview"
+        >
+          <el-empty
+            description="暂无生成的代码"
+            :image-size="60"
+          >
+            <el-text type="info">请先配置变量和阶段，然后系统会自动生成 EJS 模板代码</el-text>
           </el-empty>
         </div>
-        
-        <div v-else class="code-container">
+
+        <div
+          v-else
+          class="code-container"
+        >
           <pre class="code-content"><code>{{ store.previewCode }}</code></pre>
         </div>
       </div>
 
       <!-- 快速操作 -->
-      <div v-if="store.previewCode" class="quick-actions" :class="{ 'mobile-quick-actions': isMobile }">
+      <div
+        v-if="store.previewCode"
+        class="quick-actions"
+        :class="{ 'mobile-quick-actions': isMobile }"
+      >
         <template v-if="isMobile">
           <el-button
             size="small"
@@ -119,7 +151,10 @@
       </div>
 
       <!-- 模板信息 -->
-      <div v-if="store.previewCode" class="template-info">
+      <div
+        v-if="store.previewCode"
+        class="template-info"
+      >
         <h5>模板信息</h5>
         <div class="info-grid">
           <div class="info-item">
@@ -146,130 +181,129 @@
       </div>
       <template #footer>
         <el-button @click="previewDialogVisible = false">关闭</el-button>
-        <el-button type="primary" @click="copyCode">复制代码</el-button>
+        <el-button
+          type="primary"
+          @click="copyCode"
+        >
+          复制代码
+        </el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { ElMessage } from 'element-plus'
-import {
-  CopyDocument,
-  RefreshRight,
-  DocumentChecked,
-  CircleCheck,
-  View
-} from '@element-plus/icons-vue'
-import { useEjsEditorStore } from '@/composables/ejs/ejsEditor'
-import { useDevice } from '@/composables/useDevice'
+import { ref, computed, watch } from 'vue';
+import { ElMessage } from 'element-plus';
+import { CopyDocument, RefreshRight, DocumentChecked, CircleCheck, View } from '@element-plus/icons-vue';
+import { useEjsEditorStore } from '@/composables/ejs/ejsEditor';
+import { useDevice } from '@/composables/useDevice';
 
-const store = useEjsEditorStore()
-const { isMobile } = useDevice()
-const previewDialogVisible = ref(false)
-const lastGeneratedTime = ref(Date.now())
+const store = useEjsEditorStore();
+const { isMobile } = useDevice();
+const previewDialogVisible = ref(false);
+const lastGeneratedTime = ref(Date.now());
 
 // 计算属性
 const lineCount = computed(() => {
-  return store.previewCode ? store.previewCode.split('\n').length : 0
-})
+  return store.previewCode ? store.previewCode.split('\n').length : 0;
+});
 
 const characterCount = computed(() => {
-  return store.previewCode ? store.previewCode.length : 0
-})
+  return store.previewCode ? store.previewCode.length : 0;
+});
 
 const ejsErrors = computed(() => {
-  return store.errors.filter(error => error.type === 'ejs')
-})
+  return store.errors.filter((error) => error.type === 'ejs');
+});
 
 const totalStagesCount = computed(() => {
-  if (!store.logicBlocks) return 0
-  return store.logicBlocks.reduce((total, block) => total + block.stages.length, 0)
-})
+  if (!store.logicBlocks) return 0;
+  return store.logicBlocks.reduce((total, block) => total + block.stages.length, 0);
+});
 
 // 监听预览代码变化，更新生成时间
 watch(
   () => store.previewCode,
   () => {
     if (store.previewCode) {
-      lastGeneratedTime.value = Date.now()
+      lastGeneratedTime.value = Date.now();
     }
   }
-)
+);
 
 // 方法
 async function copyCode() {
   if (!store.previewCode) {
-    ElMessage.warning('没有可复制的代码')
-    return
+    ElMessage.warning('没有可复制的代码');
+    return;
   }
 
   try {
-    await navigator.clipboard.writeText(store.previewCode)
-    ElMessage.success('代码已复制到剪贴板')
+    await navigator.clipboard.writeText(store.previewCode);
+    ElMessage.success('代码已复制到剪贴板');
   } catch (error) {
-    ElMessage.error('复制失败')
+    ElMessage.error('复制失败');
   }
 }
 
 function formatCode() {
-  if (!store.previewCode) return
-  
+  if (!store.previewCode) return;
+
   try {
     // 简单的格式化处理
     let formatted = store.previewCode
       .replace(/<%_\s*/g, '<%_ ')
       .replace(/\s*_%>/g, ' _%>')
-      .replace(/\n\n+/g, '\n\n') // 移除多余空行
-    
-    store.previewCode = formatted
-    store.ejsTemplate = formatted
-    ElMessage.success('代码格式化完成')
+      .replace(/\n\n+/g, '\n\n'); // 移除多余空行
+
+    store.previewCode = formatted;
+    store.ejsTemplate = formatted;
+    ElMessage.success('代码格式化完成');
   } catch (error) {
-    ElMessage.error('格式化失败')
+    ElMessage.error('格式化失败');
   }
 }
 
 function validateSyntax() {
-  if (!store.previewCode) return
-  
+  if (!store.previewCode) return;
+
   try {
     // 基本的语法检查
-    const errors = []
-    const lines = store.previewCode.split('\n')
-    
-    let ejsBlockCount = 0
+    const errors = [];
+    const lines = store.previewCode.split('\n');
+
+    let ejsBlockCount = 0;
     lines.forEach((line, index) => {
       // 检查 EJS 标签匹配
-      const openTags = (line.match(/<%/g) || []).length
-      const closeTags = (line.match(/%>/g) || []).length
-      ejsBlockCount += openTags - closeTags
-      
+      const openTags = (line.match(/<%/g) || []).length;
+      const closeTags = (line.match(/%>/g) || []).length;
+      ejsBlockCount += openTags - closeTags;
+
       // 检查基本语法错误
       if (line.includes('<%') && !line.includes('%>') && !lines[index + 1]?.includes('%>')) {
-        errors.push(`第 ${index + 1} 行: EJS 标签可能未正确闭合`)
+        errors.push(`第 ${index + 1} 行: EJS 标签可能未正确闭合`);
       }
-    })
-    
+    });
+
     if (ejsBlockCount !== 0) {
-      errors.push('EJS 标签未正确匹配')
+      errors.push('EJS 标签未正确匹配');
     }
-    
+
     if (errors.length === 0) {
-      ElMessage.success('语法检查通过')
+      ElMessage.success('语法检查通过');
     } else {
-      errors.forEach(error => {
-        ElMessage.error(error)
-      })
+      errors.forEach((error) => {
+        ElMessage.error(error);
+      });
     }
   } catch (error) {
-    ElMessage.error('语法检查失败')
+    ElMessage.error('语法检查失败');
   }
 }
 
 function showPreviewDialog() {
-  previewDialogVisible.value = true
+  previewDialogVisible.value = true;
 }
 
 function formatTimestamp(timestamp: number): string {
@@ -279,8 +313,8 @@ function formatTimestamp(timestamp: number): string {
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
-    second: '2-digit'
-  })
+    second: '2-digit',
+  });
 }
 </script>
 
@@ -436,7 +470,7 @@ function formatTimestamp(timestamp: number): string {
     padding: 0;
     gap: 12px;
   }
-  
+
   .mobile-header {
     flex-direction: column;
     align-items: stretch;
@@ -447,22 +481,22 @@ function formatTimestamp(timestamp: number): string {
     text-align: center;
     margin-bottom: 4px;
   }
-  
+
   .mobile-actions {
     justify-content: center;
     gap: 6px;
   }
-  
+
   .stats-bar {
     justify-content: center;
     flex-wrap: wrap;
   }
-  
+
   .info-grid {
     grid-template-columns: 1fr;
     gap: 6px;
   }
-  
+
   .mobile-quick-actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -509,7 +543,7 @@ function formatTimestamp(timestamp: number): string {
     background-color: #1e1e1e;
     color: #d4d4d4;
   }
-  
+
   .fullscreen-preview .code-content {
     background-color: #1e1e1e;
     color: #d4d4d4;

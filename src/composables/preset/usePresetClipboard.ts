@@ -36,7 +36,7 @@ export function usePresetClipboard() {
   };
 
   const removeItem = (id: string) => {
-    clipboardItems.value = clipboardItems.value.filter(i => i.id !== id);
+    clipboardItems.value = clipboardItems.value.filter((i) => i.id !== id);
   };
 
   const moveUp = (index: number) => {
