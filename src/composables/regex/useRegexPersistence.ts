@@ -1,7 +1,7 @@
-import { watch } from 'vue';
+import { onBeforeUnmount, ref, watch } from 'vue';
 import type { SillyTavernRegexScript } from './types';
 import type { Ref } from 'vue';
-import { readSessionStorageJSON, writeSessionStorageJSON } from '@/utils/localStorageUtils';
+import { getSetting, readSessionStorageJSON, writeSessionStorageJSON } from '@/utils/localStorageUtils';
 
 const REGEX_SIMULATOR_STATE_KEY = 'regexSimulatorState';
 
@@ -34,6 +34,15 @@ export function useRegexPersistence(
   createDefaultScript: () => SillyTavernRegexScript
 ) {
   let saveStateTimer: number | null = null;
+  const debounceMs = ref<number>(getSetting('autoSaveInterval') * 1000);
+
+  const handleIntervalChange = (event: Event) => {
+    const detail = (event as CustomEvent<number>).detail;
+    if (typeof detail !== 'number' || !Number.isFinite(detail)) return;
+    debounceMs.value = detail * 1000;
+  };
+
+  window.addEventListener('autoSaveIntervalChange', handleIntervalChange);
 
   /**
    * 从本地存储加载状态并应用到组件的 Ref 中
@@ -82,7 +91,7 @@ export function useRegexPersistence(
     }
     saveStateTimer = window.setTimeout(() => {
       saveState();
-    }, 50); // 50ms 延迟
+    }, debounceMs.value);
   };
 
   // 监听所有相关状态的变化，并在变化时触发防抖保存
@@ -99,6 +108,10 @@ export function useRegexPersistence(
     debouncedSave,
     { deep: true }
   );
+
+  onBeforeUnmount(() => {
+    window.removeEventListener('autoSaveIntervalChange', handleIntervalChange);
+  });
 
   // 返回加载函数，以便在组件挂载时调用
   return {

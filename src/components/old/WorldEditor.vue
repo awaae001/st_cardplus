@@ -134,7 +134,8 @@ import {
   loadFromLocalStorage,
   clearLocalStorage,
   initAutoSave,
-  clearAutoSave
+  clearAutoSave,
+  getSetting
 } from '../../utils/localStorageUtils';
 import { copyToClipboard as copyUtil } from '../../utils/clipboard';
 
@@ -167,6 +168,20 @@ const form = ref<WorldForm>({
   forces: []
 })
 let autoSaveTimer: number | null = null
+let autoSaveIntervalMs = getSetting('autoSaveInterval') * 1000
+const handleIntervalChange = (event: Event) => {
+  const detail = (event as CustomEvent<number>).detail
+  if (typeof detail !== 'number' || !Number.isFinite(detail)) return
+  autoSaveIntervalMs = detail * 1000
+  if (autoSaveTimer) {
+    clearAutoSave(autoSaveTimer)
+  }
+  autoSaveTimer = initAutoSave(
+    () => saveToLocalStorage(form.value, 'worldEditorData'),
+    () => !!form.value.name,
+    autoSaveIntervalMs
+  )
+}
 
 // 组件挂载时加载保存的数据
 onMounted(() => {
@@ -176,8 +191,10 @@ onMounted(() => {
   }
   autoSaveTimer = initAutoSave(
     () => saveToLocalStorage(form.value, 'worldEditorData'),
-    () => !!form.value.name
+    () => !!form.value.name,
+    autoSaveIntervalMs
   );
+  window.addEventListener('autoSaveIntervalChange', handleIntervalChange)
 })
 
 // 组件卸载前清除定时器
@@ -185,6 +202,7 @@ onBeforeUnmount(() => {
   if (autoSaveTimer) {
     clearAutoSave(autoSaveTimer);
   }
+  window.removeEventListener('autoSaveIntervalChange', handleIntervalChange)
 })
 
 const addLandmark = () => {

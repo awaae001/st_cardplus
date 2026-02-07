@@ -16,6 +16,7 @@ interface AppSettings {
   betaFeaturesEnabled: boolean;
   umamiEnabled: boolean;
   autoSaveInterval: number;
+  autoSaveDebounce: number;
   useOldWorldEditor: boolean;
   autoExpandSidebar: boolean;
   allowBodyScroll: boolean;
@@ -238,6 +239,7 @@ const defaultSettings: AppSettings = {
   betaFeaturesEnabled: false,
   umamiEnabled: true,
   autoSaveInterval: 5,
+  autoSaveDebounce: 1.5,
   useOldWorldEditor: false,
   autoExpandSidebar: false,
   allowBodyScroll: false,
@@ -250,6 +252,12 @@ const normalizeSettingValue = <K extends AppSettingsKey>(key: K, value: AppSetti
     const fallback = defaultSettings.autoSaveInterval;
     const safeInterval = Number.isFinite(interval) ? interval : fallback;
     return Math.max(1, Math.min(60, safeInterval)) as AppSettings[K];
+  }
+  if (key === 'autoSaveDebounce') {
+    const debounce = Number(value);
+    const fallback = defaultSettings.autoSaveDebounce;
+    const safeDebounce = Number.isFinite(debounce) ? debounce : fallback;
+    return Math.max(0.1, Math.min(10, safeDebounce)) as AppSettings[K];
   }
   return value;
 };

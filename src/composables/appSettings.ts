@@ -34,12 +34,14 @@ interface AppSettingsModels {
   useOldWorldEditor: Ref<boolean>;
   umamiEnabled: Ref<boolean>;
   autoSaveInterval: Ref<number>;
+  autoSaveDebounce: Ref<number>;
 }
 interface AppSettingsHandlers {
   onBetaFeaturesToggle: (value: boolean) => void;
   onUseOldWorldEditorToggle: (value: boolean) => void;
   onUmamiToggle: (value: boolean) => void;
   onAutoSaveIntervalChange: (value: number | undefined) => void;
+  onAutoSaveDebounceChange: (value: number | undefined) => void;
 }
 
 export const getAppSettings = (models: AppSettingsModels, handlers: AppSettingsHandlers): SettingOption[] => {
@@ -86,6 +88,20 @@ export const getAppSettings = (models: AppSettingsModels, handlers: AppSettingsH
       min: 1,
       max: 60,
       step: 1,
+      unit: '秒',
+    },
+    {
+      id: 'autoSaveDebounce',
+      label: '自动保存防抖',
+      icon: 'material-symbols:hourglass-top-outline',
+      iconColor: 'var(--el-color-warning)',
+      description: '监听模式下的防抖时间，范围：0.1-10秒 ',
+      type: 'numberInput',
+      model: models.autoSaveDebounce,
+      handler: handlers.onAutoSaveDebounceChange,
+      min: 0.1,
+      max: 10,
+      step: 0.1,
       unit: '秒',
     }
   ];

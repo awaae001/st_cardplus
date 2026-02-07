@@ -32,7 +32,10 @@
           v-model:editor-state="editorState"
           :active-preset="activePreset"
           :selected-prompt="selectedPrompt"
-          @save="saveCurrent"
+          :save-status="presetAutoSave.saveStatus"
+          :auto-save-mode="presetAutoSave.autoSaveMode"
+          @save="handleManualSave"
+          @toggle-mode="presetAutoSave.toggleAutoSaveMode"
           @add-clipboard="addEditorToClipboard"
         />
       </pane>
@@ -105,13 +108,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Splitpanes, Pane } from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
 import { useDevice } from '@/composables/useDevice';
 import { usePresetStore, type PresetPrompt } from '@/composables/preset/usePresetStore';
 import { usePresetClipboard } from '@/composables/preset/usePresetClipboard';
+import { usePresetAutoSave } from '@/composables/preset/usePresetAutoSave';
 import PresetList from '@/components/preset/PresetList.vue';
 import PresetEditor, { type PresetEditorState, type PresetHeaderForm } from '@/components/preset/PresetEditor.vue';
 import { v4 as uuidv4 } from 'uuid';
@@ -162,6 +166,7 @@ const {
 const activeEditorTab = ref<'header' | 'prompt'>('header');
 const rightPanelTab = ref<'clipboard' | 'preview'>('clipboard');
 const BETA_NOTICE_KEY = 'preset-editor-beta-notice-session-v1';
+const isLoadingData = ref(false);
 const normalizeNumber = (value: any, fallback: number) => {
   const num = Number(value);
   return Number.isFinite(num) ? num : fallback;
@@ -385,71 +390,7 @@ const extractExtras = (prompt: PresetPrompt) => {
   return JSON.stringify(extra, null, 2);
 };
 
-watch(activePreset, (preset) => {
-  if (!preset) {
-    editorState.value = {
-      ...editorState.value,
-      presetName: '',
-      headerForm: buildHeaderForm(),
-    };
-    return;
-  }
-  editorState.value = {
-    ...editorState.value,
-    presetName: preset.name,
-    headerForm: buildHeaderForm(preset.data as Record<string, any>),
-  };
-}, { immediate: true });
-
-watch(selectedPrompt, (prompt) => {
-  if (!prompt) {
-    editorState.value = {
-      ...editorState.value,
-      promptName: '',
-      promptIdentifier: '',
-      promptRole: 'system',
-      promptContent: '',
-      promptSystem: false,
-      promptMarker: false,
-      promptEnabled: false,
-      promptOrder: null,
-      promptExtraJson: '{}',
-    };
-    return;
-  }
-  editorState.value = {
-    ...editorState.value,
-    promptName: prompt.name || '',
-    promptIdentifier: prompt.identifier || '',
-    promptRole: (prompt.role as any) || 'system',
-    promptContent: prompt.content || '',
-    promptSystem: Boolean(prompt.system_prompt),
-    promptMarker: Boolean(prompt.marker),
-    promptEnabled: Boolean(prompt.enabled),
-    promptOrder: typeof prompt.order === 'number' ? prompt.order : null,
-    promptExtraJson: extractExtras(prompt),
-  };
-}, { immediate: true });
-
-watch(selected, (val) => {
-  if (val?.type === 'prompt') {
-    activeEditorTab.value = 'prompt';
-  } else {
-    activeEditorTab.value = 'header';
-  }
-});
-
-const addEditorToClipboard = () => {
-  if (!selectedPrompt.value) return;
-  addItem({
-    id: uuidv4(),
-    title: editorState.value.promptName || editorState.value.promptIdentifier || '未命名条目',
-    content: editorState.value.promptContent || '',
-  });
-  ElMessage.success('已加入剪贴板');
-};
-
-const saveCurrent = async () => {
+const saveCurrent = async (showToast = true) => {
   if (!activePreset.value) return;
   try {
     activePreset.value.name = editorState.value.presetName.trim() || activePreset.value.name;
@@ -474,10 +415,117 @@ const saveCurrent = async () => {
       };
       await updatePrompt(selectedPromptIndex.value, updatedPrompt);
     }
-    ElMessage.success('已保存');
+    if (showToast) {
+      ElMessage.success('已保存');
+    }
   } catch {
-    ElMessage.error('条目扩展 JSON 格式无效');
+    if (showToast) {
+      ElMessage.error('条目扩展 JSON 格式无效');
+    }
+    throw new Error('invalid-prompt-extra-json');
   }
+};
+
+const presetAutoSave = usePresetAutoSave({
+  editorState,
+  activePresetId,
+  isLoadingData,
+  onSave: () => saveCurrent(false),
+});
+
+const handleManualSave = async () => {
+  try {
+    await presetAutoSave.manualSave();
+    ElMessage.success('已保存');
+  } catch (error) {
+    if (error instanceof Error && error.message === 'invalid-prompt-extra-json') {
+      ElMessage.error('条目扩展 JSON 格式无效');
+      return;
+    }
+    ElMessage.error('保存失败');
+  }
+};
+
+watch(activePreset, (preset) => {
+  if (!preset) {
+    editorState.value = {
+      ...editorState.value,
+      presetName: '',
+      headerForm: buildHeaderForm(),
+    };
+    nextTick(() => {
+      presetAutoSave.updateSavedSnapshot();
+      isLoadingData.value = false;
+    });
+    return;
+  }
+  isLoadingData.value = true;
+  editorState.value = {
+    ...editorState.value,
+    presetName: preset.name,
+    headerForm: buildHeaderForm(preset.data as Record<string, any>),
+  };
+  nextTick(() => {
+    presetAutoSave.updateSavedSnapshot();
+    isLoadingData.value = false;
+  });
+}, { immediate: true });
+
+watch(selectedPrompt, (prompt) => {
+  if (!prompt) {
+    editorState.value = {
+      ...editorState.value,
+      promptName: '',
+      promptIdentifier: '',
+      promptRole: 'system',
+      promptContent: '',
+      promptSystem: false,
+      promptMarker: false,
+      promptEnabled: false,
+      promptOrder: null,
+      promptExtraJson: '{}',
+    };
+    nextTick(() => {
+      presetAutoSave.updateSavedSnapshot();
+      isLoadingData.value = false;
+    });
+    return;
+  }
+  isLoadingData.value = true;
+  editorState.value = {
+    ...editorState.value,
+    promptName: prompt.name || '',
+    promptIdentifier: prompt.identifier || '',
+    promptRole: (prompt.role as any) || 'system',
+    promptContent: prompt.content || '',
+    promptSystem: Boolean(prompt.system_prompt),
+    promptMarker: Boolean(prompt.marker),
+    promptEnabled: Boolean(prompt.enabled),
+    promptOrder: typeof prompt.order === 'number' ? prompt.order : null,
+    promptExtraJson: extractExtras(prompt),
+  };
+  nextTick(() => {
+    presetAutoSave.updateSavedSnapshot();
+    isLoadingData.value = false;
+  });
+}, { immediate: true });
+
+watch(selected, (val) => {
+  if (val?.type === 'prompt') {
+    activeEditorTab.value = 'prompt';
+  } else {
+    activeEditorTab.value = 'header';
+  }
+});
+
+const addEditorToClipboard = () => {
+  if (!selectedPrompt.value) return;
+  addItem({
+    id: uuidv4(),
+    title: editorState.value.promptName || editorState.value.promptIdentifier || '未命名条目',
+    content: editorState.value.promptContent || '',
+  });
+  ElMessage.success('已加入剪贴板');
 };
 
 const insertToEditor = (content: string) => {
@@ -515,6 +563,10 @@ onMounted(() => {
     return;
   }
   showBetaNotice();
+});
+
+onBeforeUnmount(() => {
+  presetAutoSave.cleanup();
 });
 </script>
 

@@ -6,9 +6,20 @@
         <el-button :icon="CopyDocument" size="small" @click="$emit('add-clipboard')" :disabled="!selectedPrompt">
           加入剪贴板
         </el-button>
-        <el-button type="primary" size="small" @click="$emit('save')" :disabled="!activePreset">
-          保存
-        </el-button>
+        <div v-if="activePreset" class="save-button-group">
+          <el-button type="primary" size="small" @click="$emit('save')">
+            保存
+          </el-button>
+          <el-tooltip :content="getTooltipText()" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
+            <div class="save-status-badge" :class="getBadgeClass()" @click="$emit('toggle-mode')">
+              <Icon v-if="saveStatus === 'saving'" icon="eos-icons:loading" class="badge-icon spinning" />
+              <Icon v-else-if="saveStatus === 'saved'" icon="ph:check-circle-fill" class="badge-icon" />
+              <Icon v-else-if="saveStatus === 'error'" icon="ph:warning-circle-fill" class="badge-icon" />
+              <Icon v-else :icon="getModeIcon()" class="badge-icon" />
+              <span class="badge-text">{{ getBadgeText() }}</span>
+            </div>
+          </el-tooltip>
+        </div>
       </div>
     </div>
     <div v-if="!activePreset" class="empty-state">
@@ -24,10 +35,12 @@
             <el-divider content-position="left">生成参数</el-divider>
             <div class="grid grid-cols-1 gap-x-4 md:grid-cols-2 xl:grid-cols-3">
               <el-form-item label="上下文长度（以词符数计）">
-                <el-input-number v-model="localEditorState.headerForm.openai_max_context" :min="1" controls-position="right" />
+                <el-input-number v-model="localEditorState.headerForm.openai_max_context" :min="1"
+                  controls-position="right" />
               </el-form-item>
               <el-form-item label="最大回复长度（以词符数计）">
-                <el-input-number v-model="localEditorState.headerForm.openai_max_tokens" :min="1" controls-position="right" />
+                <el-input-number v-model="localEditorState.headerForm.openai_max_tokens" :min="1"
+                  controls-position="right" />
               </el-form-item>
               <el-form-item label="每次生成多个备选回复">
                 <el-input-number v-model="localEditorState.headerForm.n" :min="1" controls-position="right" />
@@ -40,40 +53,20 @@
             <el-divider content-position="left">高级（别动，不懂的话）</el-divider>
             <div class="advanced-single">
               <el-form-item label="温度（0 ~ 2）">
-                <el-slider
-                  v-model="localEditorState.headerForm.temperature"
-                  :min="0"
-                  :max="2"
-                  :step="0.01"
-                  :show-input="true"
-                />
+                <el-slider v-model="localEditorState.headerForm.temperature" :min="0" :max="2" :step="0.01"
+                  :show-input="true" />
               </el-form-item>
               <el-form-item label="频率惩罚（-2 ~ 2）">
-                <el-slider
-                  v-model="localEditorState.headerForm.frequency_penalty"
-                  :min="-2"
-                  :max="2"
-                  :step="0.01"
-                  :show-input="true"
-                />
+                <el-slider v-model="localEditorState.headerForm.frequency_penalty" :min="-2" :max="2" :step="0.01"
+                  :show-input="true" />
               </el-form-item>
               <el-form-item label="存在惩罚（-2 ~ 2）">
-                <el-slider
-                  v-model="localEditorState.headerForm.presence_penalty"
-                  :min="-2"
-                  :max="2"
-                  :step="0.01"
-                  :show-input="true"
-                />
+                <el-slider v-model="localEditorState.headerForm.presence_penalty" :min="-2" :max="2" :step="0.01"
+                  :show-input="true" />
               </el-form-item>
               <el-form-item label="Top P（0 ~ 1）">
-                <el-slider
-                  v-model="localEditorState.headerForm.top_p"
-                  :min="0"
-                  :max="1"
-                  :step="0.01"
-                  :show-input="true"
-                />
+                <el-slider v-model="localEditorState.headerForm.top_p" :min="0" :max="1" :step="0.01"
+                  :show-input="true" />
               </el-form-item>
             </div>
 
@@ -180,24 +173,13 @@
         </el-tab-pane>
         <el-tab-pane label="条目编辑" name="prompt" :disabled="!selectedPrompt">
           <el-form label-position="top">
-            <el-alert
-              v-if="lockedTip"
-              :title="lockedTip"
-              type="info"
-              :closable="false"
-              class="mb-2"
-            />
+            <el-alert v-if="lockedTip" :title="lockedTip" type="info" :closable="false" class="mb-2" />
             <el-form-item label="条目名称">
               <el-input v-model="localEditorState.promptName" placeholder="请输入条目名称" :disabled="isFullyLocked" />
             </el-form-item>
             <el-form-item label="提示词内容">
-              <el-input
-                v-model="localEditorState.promptContent"
-                type="textarea"
-                :rows="10"
-                :readonly="isContentLocked"
-                :placeholder="contentPlaceholder"
-              />
+              <el-input v-model="localEditorState.promptContent" type="textarea" :rows="10" :readonly="isContentLocked"
+                :placeholder="contentPlaceholder" />
             </el-form-item>
             <el-form-item label="开关">
               <div class="switch-row">
@@ -216,12 +198,13 @@
               </el-form-item>
               <el-form-item>
                 <template #label>
-                <span class="inline-flex items-center gap-1.5">
-                  注入位置
-                  <el-tooltip content="injection_position" placement="top" :show-arrow="false">
-                    <span class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[var(--el-fill-color-light)] text-[var(--el-text-color-secondary)] text-xs leading-none">?</span>
-                  </el-tooltip>
-                </span>
+                  <span class="inline-flex items-center gap-1.5">
+                    注入位置
+                    <el-tooltip content="injection_position" placement="top" :show-arrow="false">
+                      <span
+                        class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[var(--el-fill-color-light)] text-[var(--el-text-color-secondary)] text-xs leading-none">?</span>
+                    </el-tooltip>
+                  </span>
                 </template>
                 <el-select v-model="extraFields.injection_position" :disabled="isFullyLocked" placeholder="请选择">
                   <el-option :label="'0（相对）'" :value="0" />
@@ -230,46 +213,41 @@
               </el-form-item>
               <el-form-item>
                 <template #label>
-                <span class="inline-flex items-center gap-1.5">
-                  注入深度
-                  <el-tooltip content="injection_depth" placement="top" :show-arrow="false">
-                    <span class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[var(--el-fill-color-light)] text-[var(--el-text-color-secondary)] text-xs leading-none">?</span>
-                  </el-tooltip>
-                </span>
+                  <span class="inline-flex items-center gap-1.5">
+                    注入深度
+                    <el-tooltip content="injection_depth" placement="top" :show-arrow="false">
+                      <span
+                        class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[var(--el-fill-color-light)] text-[var(--el-text-color-secondary)] text-xs leading-none">?</span>
+                    </el-tooltip>
+                  </span>
                 </template>
-                <el-input-number
-                  v-model="extraFields.injection_depth"
-                  :min="0"
-                  :disabled="isFullyLocked || extraFields.injection_position !== 1"
-                  controls-position="right"
-                  placeholder="仅在位置为 1 时生效"
-                />
+                <el-input-number v-model="extraFields.injection_depth" :min="0"
+                  :disabled="isFullyLocked || extraFields.injection_position !== 1" controls-position="right"
+                  placeholder="仅在位置为 1 时生效" />
               </el-form-item>
               <el-form-item>
                 <template #label>
-                <span class="inline-flex items-center gap-1.5">
-                  注入顺序
-                  <el-tooltip content="injection_order" placement="top" :show-arrow="false">
-                    <span class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[var(--el-fill-color-light)] text-[var(--el-text-color-secondary)] text-xs leading-none">?</span>
-                  </el-tooltip>
-                </span>
+                  <span class="inline-flex items-center gap-1.5">
+                    注入顺序
+                    <el-tooltip content="injection_order" placement="top" :show-arrow="false">
+                      <span
+                        class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[var(--el-fill-color-light)] text-[var(--el-text-color-secondary)] text-xs leading-none">?</span>
+                    </el-tooltip>
+                  </span>
                 </template>
-                <el-input-number
-                  v-model="extraFields.injection_order"
-                  :min="0"
-                  :disabled="isFullyLocked || extraFields.injection_position !== 1"
-                  controls-position="right"
-                  placeholder="仅在位置为 1 时生效"
-                />
+                <el-input-number v-model="extraFields.injection_order" :min="0"
+                  :disabled="isFullyLocked || extraFields.injection_position !== 1" controls-position="right"
+                  placeholder="仅在位置为 1 时生效" />
               </el-form-item>
               <el-form-item>
                 <template #label>
-                <span class="inline-flex items-center gap-1.5">
-                  禁止覆盖
-                  <el-tooltip content="forbid_overrides" placement="top" :show-arrow="false">
-                    <span class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[var(--el-fill-color-light)] text-[var(--el-text-color-secondary)] text-xs leading-none">?</span>
-                  </el-tooltip>
-                </span>
+                  <span class="inline-flex items-center gap-1.5">
+                    禁止覆盖
+                    <el-tooltip content="forbid_overrides" placement="top" :show-arrow="false">
+                      <span
+                        class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[var(--el-fill-color-light)] text-[var(--el-text-color-secondary)] text-xs leading-none">?</span>
+                    </el-tooltip>
+                  </span>
                 </template>
                 <el-switch v-model="extraFields.forbid_overrides" :disabled="isFullyLocked" />
               </el-form-item>
@@ -278,17 +256,13 @@
                   <span class="inline-flex items-center gap-1.5">
                     触发器列表
                     <el-tooltip content="injection_trigger" placement="top" :show-arrow="false">
-                      <span class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[var(--el-fill-color-light)] text-[var(--el-text-color-secondary)] text-xs leading-none">?</span>
+                      <span
+                        class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[var(--el-fill-color-light)] text-[var(--el-text-color-secondary)] text-xs leading-none">?</span>
                     </el-tooltip>
                   </span>
                 </template>
-                <el-input
-                  v-model="injectionTriggerText"
-                  type="textarea"
-                  :rows="4"
-                  placeholder="每行一个触发词"
-                  :readonly="isFullyLocked"
-                />
+                <el-input v-model="injectionTriggerText" type="textarea" :rows="4" placeholder="每行一个触发词"
+                  :readonly="isFullyLocked" />
               </el-form-item>
             </div>
             <div class="grid grid-cols-1 gap-x-4 md:grid-cols-2">
@@ -309,7 +283,8 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue';
 import { CopyDocument } from '@element-plus/icons-vue';
-import { ElScrollbar } from 'element-plus';
+import { ElScrollbar, ElTooltip } from 'element-plus';
+import { Icon } from '@iconify/vue';
 import type { StoredPresetFile } from '@/database/db';
 import type { PresetPrompt } from '@/composables/preset/usePresetStore';
 
@@ -363,6 +338,8 @@ interface Props {
   selectedPrompt: PresetPrompt | null;
   activeTab: 'header' | 'prompt';
   editorState: PresetEditorState;
+  saveStatus?: 'idle' | 'saving' | 'saved' | 'error';
+  autoSaveMode?: 'auto' | 'watch' | 'manual';
 }
 
 const props = defineProps<Props>();
@@ -371,8 +348,69 @@ const emit = defineEmits<{
   (e: 'update:activeTab', value: 'header' | 'prompt'): void;
   (e: 'update:editorState', value: PresetEditorState): void;
   (e: 'save'): void;
+  (e: 'toggle-mode'): void;
   (e: 'add-clipboard'): void;
 }>();
+
+const getModeIcon = () => {
+  switch (props.autoSaveMode) {
+    case 'auto':
+      return 'ph:clock-countdown-duotone';
+    case 'watch':
+      return 'ph:eye-duotone';
+    case 'manual':
+      return 'ph:hand-duotone';
+    default:
+      return 'ph:eye-duotone';
+  }
+};
+
+const getBadgeText = () => {
+  if (props.saveStatus === 'saving') return '保存中';
+  if (props.saveStatus === 'saved') return '已保存';
+  if (props.saveStatus === 'error') return '失败';
+
+  switch (props.autoSaveMode) {
+    case 'auto':
+      return '自动保存';
+    case 'watch':
+      return '监听中';
+    case 'manual':
+      return '已禁用';
+    default:
+      return '监听中';
+  }
+};
+
+const getBadgeClass = () => {
+  if (props.saveStatus && props.saveStatus !== 'idle') {
+    return `status-${props.saveStatus}`;
+  }
+
+  switch (props.autoSaveMode) {
+    case 'auto':
+      return 'status-auto';
+    case 'watch':
+      return 'status-watch';
+    case 'manual':
+      return 'status-manual';
+    default:
+      return 'status-watch';
+  }
+};
+
+const getTooltipText = () => {
+  switch (props.autoSaveMode) {
+    case 'auto':
+      return '点击切换到监听模式';
+    case 'watch':
+      return '点击切换到手动模式';
+    case 'manual':
+      return '点击切换到自动保存模式';
+    default:
+      return '点击切换保存模式';
+  }
+};
 
 const localActiveTab = computed({
   get: () => props.activeTab,
@@ -517,6 +555,98 @@ watch(
   { deep: true }
 );
 </script>
+
+<style scoped>
+.save-button-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.save-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  user-select: none;
+}
+
+.save-status-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.save-status-badge:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.save-status-badge.status-auto {
+  background-color: var(--el-color-primary-light-9);
+  color: var(--el-color-primary);
+  border: 1px solid var(--el-color-primary-light-5);
+}
+
+.save-status-badge.status-watch {
+  background-color: var(--el-fill-color);
+  color: var(--el-text-color-secondary);
+  border: 1px solid var(--el-border-color);
+}
+
+.save-status-badge.status-manual {
+  background-color: var(--el-color-warning-light-9);
+  color: var(--el-color-warning-dark-2);
+  border: 1px solid var(--el-color-warning-light-5);
+}
+
+.save-status-badge.status-saving {
+  background-color: var(--el-color-info-light-9);
+  color: var(--el-color-info);
+  border: 1px solid var(--el-color-info-light-5);
+}
+
+.save-status-badge.status-saved {
+  background-color: var(--el-color-success-light-9);
+  color: var(--el-color-success-dark-2);
+  border: 1px solid var(--el-color-success-light-5);
+}
+
+.save-status-badge.status-error {
+  background-color: var(--el-color-danger-light-9);
+  color: var(--el-color-danger);
+  border: 1px solid var(--el-color-danger-light-5);
+}
+
+.badge-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.badge-icon.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.badge-text {
+  line-height: 1;
+}
+</style>
 
 <style scoped>
 .editor-panel {

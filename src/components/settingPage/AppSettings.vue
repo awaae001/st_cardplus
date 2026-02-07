@@ -46,6 +46,7 @@ import { getAppSettings } from '@/composables/appSettings';
 const betaFeaturesEnabled = ref(false);
 const umamiEnabled = ref(true);
 const autoSaveInterval = ref(5);
+const autoSaveDebounce = ref(1.5);
 const useOldSidebar = ref(false);
 const useOldWorldEditor = ref(false);
 
@@ -137,6 +138,12 @@ const onAutoSaveIntervalChange = (value: number | undefined) => {
   window.dispatchEvent(new CustomEvent('autoSaveIntervalChange', { detail: value }));
 };
 
+const onAutoSaveDebounceChange = (value: number | undefined) => {
+  if (value === undefined) return;
+  setSetting('autoSaveDebounce', value);
+  window.dispatchEvent(new CustomEvent('autoSaveDebounceChange', { detail: value }));
+};
+
 
 const onUseOldWorldEditorToggle = (value: boolean) => {
   setSetting('useOldWorldEditor', value);
@@ -159,13 +166,15 @@ const settings = computed(() => getAppSettings(
     useOldSidebar,
     useOldWorldEditor,
     umamiEnabled,
-    autoSaveInterval
+    autoSaveInterval,
+    autoSaveDebounce
   },
   {
     onBetaFeaturesToggle,
     onUseOldWorldEditorToggle,
     onUmamiToggle,
-    onAutoSaveIntervalChange
+    onAutoSaveIntervalChange,
+    onAutoSaveDebounceChange
   }
 ));
 
@@ -187,6 +196,7 @@ onMounted(() => {
   betaFeaturesEnabled.value = getSetting('betaFeaturesEnabled');
   umamiEnabled.value = getSetting('umamiEnabled');
   autoSaveInterval.value = getSetting('autoSaveInterval');
+  autoSaveDebounce.value = getSetting('autoSaveDebounce');
   useOldWorldEditor.value = getSetting('useOldWorldEditor');
   toggleUmamiScript(umamiEnabled.value);
 });

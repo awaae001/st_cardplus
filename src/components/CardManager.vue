@@ -159,6 +159,7 @@ import { useCardImport } from '@/composables/characterCard/useCardImport';
 import { useCardExport } from '@/composables/characterCard/useCardExport';
 import { useTabManager } from '@/composables/characterCard/useTabManager';
 import { useCharacterCardAutoSave, type AutoSaveMode } from '@/composables/characterCard/useCharacterCardAutoSave';
+import { getSetting } from '@/utils/localStorageUtils';
 
 const { characterData, isLoadingData, loadCharacter, resetCharacter } = useV3CharacterCard();
 
@@ -222,9 +223,11 @@ const toggleAutoSaveMode = () => {
   const nextIndex = (currentIndex + 1) % modes.length;
   autoSaveMode.value = modes[nextIndex];
 
+  const intervalSeconds = Math.max(1, Math.round(getSetting('autoSaveInterval')));
+  const debounceSeconds = Math.max(0.1, Math.round(getSetting('autoSaveDebounce') * 10) / 10);
   const messages = {
-    auto: '已切换到自动保存模式：每 5 秒自动保存',
-    watch: '已切换到监听模式：检测到修改后 1.5 秒自动保存',
+    auto: `已切换到自动保存模式：每 ${intervalSeconds} 秒自动保存`,
+    watch: `已切换到监听模式：检测到修改后 ${debounceSeconds} 秒自动保存`,
     manual: '已切换到手动模式：自动保存已禁用'
   };
 
