@@ -1,29 +1,49 @@
 <template>
-  <el-alert type="warning" show-icon :closable="false" style="margin-bottom: 20px;">
-    <template #title>
-      所有兼容性项目将在 0.2.0 新版本到来前被逐步移除
-    </template>
-    <template #default>
-      0.2.0 将在所有页面完成重构后到来
-    </template>
+  <el-alert
+    type="warning"
+    show-icon
+    :closable="false"
+    style="margin-bottom: 20px"
+  >
+    <template #title>所有兼容性项目将在 0.2.0 新版本到来前被逐步移除</template>
+    <template #default>0.2.0 将在所有页面完成重构后到来</template>
   </el-alert>
   <div class="app-settings">
-    <div v-for="setting in settings" :key="setting.id" class="setting-card">
+    <div
+      v-for="setting in settings"
+      :key="setting.id"
+      class="setting-card"
+    >
       <div class="setting-content">
         <div class="setting-header">
           <div class="setting-info">
             <span class="setting-label">{{ setting.label }}</span>
-            <Icon :icon="setting.icon" width="20" height="20"
-              :style="{ marginLeft: '8px', color: setting.iconColor }" />
+            <Icon
+              :icon="setting.icon"
+              width="20"
+              height="20"
+              :style="{ marginLeft: '8px', color: setting.iconColor }"
+            />
           </div>
           <template v-if="setting.type === 'switch'">
-            <el-switch v-model="setting.model.value" @change="setting.handler" size="large"
-              :disabled="setting.disabled" />
+            <el-switch
+              v-model="setting.model.value"
+              @change="setting.handler"
+              size="large"
+              :disabled="setting.disabled"
+            />
           </template>
           <template v-else-if="setting.type === 'numberInput'">
             <div class="interval-control">
-              <el-input-number v-model="setting.model.value" @change="setting.handler" :min="setting.min"
-                :max="setting.max" :step="setting.step" size="small" style="width: 100px;" />
+              <el-input-number
+                v-model="setting.model.value"
+                @change="setting.handler"
+                :min="setting.min"
+                :max="setting.max"
+                :step="setting.step"
+                size="small"
+                style="width: 100px"
+              />
               <span class="interval-unit">{{ setting.unit }}</span>
             </div>
           </template>
@@ -38,9 +58,7 @@
 import { Icon } from '@iconify/vue';
 import { ref, onMounted, computed } from 'vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
-import {
-  getSetting, setSetting
-} from '@/utils/localStorageUtils';
+import { getSetting, setSetting } from '@/utils/localStorageUtils';
 import { getAppSettings } from '@/composables/appSettings';
 
 const betaFeaturesEnabled = ref(false);
@@ -144,39 +162,36 @@ const onAutoSaveDebounceChange = (value: number | undefined) => {
   window.dispatchEvent(new CustomEvent('autoSaveDebounceChange', { detail: value }));
 };
 
-
 const onUseOldWorldEditorToggle = (value: boolean) => {
   setSetting('useOldWorldEditor', value);
-  ElMessageBox.confirm(
-    '此设置将在您下次刷新页面 (Ctrl+R) 后生效 ',
-    '提示',
-    {
-      confirmButtonText: '立即刷新',
-      cancelButtonText: '稍后',
-      type: 'info',
-    }
-  ).then(() => {
+  ElMessageBox.confirm('此设置将在您下次刷新页面 (Ctrl+R) 后生效 ', '提示', {
+    confirmButtonText: '立即刷新',
+    cancelButtonText: '稍后',
+    type: 'info',
+  }).then(() => {
     window.location.reload();
   });
 };
 
-const settings = computed(() => getAppSettings(
-  {
-    betaFeaturesEnabled,
-    useOldSidebar,
-    useOldWorldEditor,
-    umamiEnabled,
-    autoSaveInterval,
-    autoSaveDebounce
-  },
-  {
-    onBetaFeaturesToggle,
-    onUseOldWorldEditorToggle,
-    onUmamiToggle,
-    onAutoSaveIntervalChange,
-    onAutoSaveDebounceChange
-  }
-));
+const settings = computed(() =>
+  getAppSettings(
+    {
+      betaFeaturesEnabled,
+      useOldSidebar,
+      useOldWorldEditor,
+      umamiEnabled,
+      autoSaveInterval,
+      autoSaveDebounce,
+    },
+    {
+      onBetaFeaturesToggle,
+      onUseOldWorldEditorToggle,
+      onUmamiToggle,
+      onAutoSaveIntervalChange,
+      onAutoSaveDebounceChange,
+    }
+  )
+);
 
 const toggleUmamiScript = (enabled: boolean) => {
   const existingScript = document.querySelector('script[data-website-id="6685fde6-dad1-49c1-b952-3a487d6991da"]');

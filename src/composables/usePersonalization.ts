@@ -1,9 +1,11 @@
 import { ref, onMounted } from 'vue';
 import { ElMessageBox } from 'element-plus';
 import {
-  getSetting, setSetting,
-  getSidebarConfig, setSidebarConfig,
-  type SidebarConfig
+  getSetting,
+  setSetting,
+  getSidebarConfig,
+  setSidebarConfig,
+  type SidebarConfig,
 } from '@/utils/localStorageUtils';
 
 export function usePersonalization() {
@@ -15,30 +17,22 @@ export function usePersonalization() {
 
   const createReloadConfirm = (setter: (value: boolean) => void) => (value: boolean) => {
     setter(value);
-    ElMessageBox.confirm(
-      '此设置将在您下次刷新页面 (Ctrl+R) 后生效 ',
-      '提示',
-      {
-        confirmButtonText: '立即刷新',
-        cancelButtonText: '稍后',
-        type: 'info',
-      }
-    ).then(() => {
+    ElMessageBox.confirm('此设置将在您下次刷新页面 (Ctrl+R) 后生效 ', '提示', {
+      confirmButtonText: '立即刷新',
+      cancelButtonText: '稍后',
+      type: 'info',
+    }).then(() => {
       window.location.reload();
     });
   };
 
   const onAutoExpandSidebarToggle = (value: boolean) => {
     setSetting('autoExpandSidebar', value);
-    ElMessageBox.confirm(
-      '此设置将在您下次刷新页面 (Ctrl+R) 后生效 ',
-      '提示',
-      {
-        confirmButtonText: '立即刷新',
-        cancelButtonText: '稍后',
-        type: 'info',
-      }
-    ).then(() => {
+    ElMessageBox.confirm('此设置将在您下次刷新页面 (Ctrl+R) 后生效 ', '提示', {
+      confirmButtonText: '立即刷新',
+      cancelButtonText: '稍后',
+      type: 'info',
+    }).then(() => {
       window.location.reload();
     });
   };
@@ -62,7 +56,6 @@ export function usePersonalization() {
     useOldWorldEditor.value = getSetting('useOldWorldEditor');
     refreshSidebarConfig();
   });
-
 
   return {
     autoExpandSidebar,

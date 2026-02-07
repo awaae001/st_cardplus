@@ -2,30 +2,75 @@
   <div id="tiltleMain">
     <h2>
       角色信息
-      <span v-if="props.characterName" class="title-character-name">: {{ props.characterName }}</span>
+      <span
+        v-if="props.characterName"
+        class="title-character-name"
+      >
+        : {{ props.characterName }}
+      </span>
     </h2>
     <div class="btnSL">
       <div class="btnSL2">
-        <el-button type="success" @click="loadCharacterCard">
-          <Icon icon="material-symbols:folder-open-outline-sharp" width="18" height="18" style="margin-right: 4px;" />
+        <el-button
+          type="success"
+          @click="loadCharacterCard"
+        >
+          <Icon
+            icon="material-symbols:folder-open-outline-sharp"
+            width="18"
+            height="18"
+            style="margin-right: 4px"
+          />
           加载 json
         </el-button>
-        <el-button type="primary" @click="saveCharacterCard">
-          <Icon icon="material-symbols:file-save-outline" width="18" height="18" style="margin-right: 4px;" />
+        <el-button
+          type="primary"
+          @click="saveCharacterCard"
+        >
+          <Icon
+            icon="material-symbols:file-save-outline"
+            width="18"
+            height="18"
+            style="margin-right: 4px"
+          />
           保存 json
         </el-button>
-        <el-button plain @click="resetForm">
-          <Icon icon="material-symbols:refresh" width="18" height="18" style="margin-right: 4px;" />
+        <el-button
+          plain
+          @click="resetForm"
+        >
+          <Icon
+            icon="material-symbols:refresh"
+            width="18"
+            height="18"
+            style="margin-right: 4px"
+          />
           重置数据
         </el-button>
       </div>
       <!-- <el-divider direction="vertical" border-style="dashed" /> -->
       <div class="btnSL2">
-        <el-button type="info" @click="copyToClipboard" title="复制到剪贴板">
-          <Icon icon="material-symbols:content-copy-outline" width="18" height="18" />
+        <el-button
+          type="info"
+          @click="copyToClipboard"
+          title="复制到剪贴板"
+        >
+          <Icon
+            icon="material-symbols:content-copy-outline"
+            width="18"
+            height="18"
+          />
         </el-button>
-        <el-button type="warning" @click="showImportDialog" title="导入数据">
-          <Icon icon="material-symbols:content-paste-go-rounded" width="18" height="18" />
+        <el-button
+          type="warning"
+          @click="showImportDialog"
+          title="导入数据"
+        >
+          <Icon
+            icon="material-symbols:content-paste-go-rounded"
+            width="18"
+            height="18"
+          />
         </el-button>
       </div>
     </div>
@@ -34,7 +79,7 @@
 
 <script setup lang="ts">
 import { defineEmits, defineProps } from 'vue';
-import { Icon } from "@iconify/vue";
+import { Icon } from '@iconify/vue';
 import { ElMessageBox } from 'element-plus';
 
 const props = defineProps<{
@@ -82,13 +127,15 @@ const showImportDialog = () => {
       } catch (e) {
         return '请输入有效的JSON格式数据';
       }
-    }
-  }).then((result) => {
-    const { value } = result as { value: string };
-    emit('importFromClipboard', value);
-  }).catch(() => {
-    // 用户取消操作
-  });
+    },
+  })
+    .then((result) => {
+      const { value } = result as { value: string };
+      emit('importFromClipboard', value);
+    })
+    .catch(() => {
+      // 用户取消操作
+    });
 };
 </script>
 
@@ -99,7 +146,7 @@ const showImportDialog = () => {
   margin-bottom: 0.5rem;
 }
 
-.section-container>* {
+.section-container > * {
   flex: 1;
   min-width: 100%;
 }
@@ -149,8 +196,6 @@ const showImportDialog = () => {
   display: flex;
 }
 
-
-
 @media (min-width: 768px) {
   #tiltleMain {
     display: flex;
@@ -166,6 +211,5 @@ const showImportDialog = () => {
   .btnSL2 {
     display: flex;
   }
-
 }
 </style>

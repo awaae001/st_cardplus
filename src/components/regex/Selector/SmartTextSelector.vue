@@ -3,29 +3,56 @@
     <div class="selector-header">
       <h4>智能文本选择器</h4>
       <div class="mode-controls">
-        <el-radio-group v-model="inputMode" size="small">
+        <el-radio-group
+          v-model="inputMode"
+          size="small"
+        >
           <el-radio-button label="manual">手动选择</el-radio-button>
           <el-radio-button label="token">分词选择</el-radio-button>
         </el-radio-group>
-        <el-radio-group v-if="inputMode === 'manual'" v-model="selectionMode" size="small">
+        <el-radio-group
+          v-if="inputMode === 'manual'"
+          v-model="selectionMode"
+          size="small"
+        >
           <el-radio-button label="anchor">锚点模式</el-radio-button>
           <el-radio-button label="variable">变量模式</el-radio-button>
           <el-radio-button label="start">起始符</el-radio-button>
           <el-radio-button label="end">终止符</el-radio-button>
         </el-radio-group>
-        <el-button size="small" type="danger" @click="handleClearAll" :disabled="selections.length === 0">
-          <Icon icon="material-symbols:clear-all" width="16" height="16" />
+        <el-button
+          size="small"
+          type="danger"
+          @click="handleClearAll"
+          :disabled="selections.length === 0"
+        >
+          <Icon
+            icon="material-symbols:clear-all"
+            width="16"
+            height="16"
+          />
           清除所有选择
         </el-button>
       </div>
     </div>
 
-    <div class="tool-description" v-if="inputMode === 'manual'">
-      <Icon icon="material-symbols:info-outline" width="16" height="16" class="info-icon" />
+    <div
+      class="tool-description"
+      v-if="inputMode === 'manual'"
+    >
+      <Icon
+        icon="material-symbols:info-outline"
+        width="16"
+        height="16"
+        class="info-icon"
+      />
       <span>{{ getToolDescription(selectionMode) }}</span>
     </div>
 
-    <div class="text-area-wrapper" v-if="inputMode === 'manual'">
+    <div
+      class="text-area-wrapper"
+      v-if="inputMode === 'manual'"
+    >
       <div
         ref="textAreaRef"
         class="selectable-text"
@@ -41,7 +68,10 @@
       @selection-created="handleTokenSelection"
     />
 
-    <div class="selection-summary" v-if="selections.length > 0">
+    <div
+      class="selection-summary"
+      v-if="selections.length > 0"
+    >
       <h5>已选择的区域:</h5>
       <div class="selection-items">
         <div
@@ -70,30 +100,52 @@
       </div>
     </div>
 
-    <div class="regex-output" v-if="generatedRegex">
+    <div
+      class="regex-output"
+      v-if="generatedRegex"
+    >
       <h5>生成的正则表达式:</h5>
       <div class="regex-display">
         <code>{{ generatedRegex }}</code>
-        <el-button size="small" @click="copyRegex" :icon="CopyIcon">复制</el-button>
+        <el-button
+          size="small"
+          @click="copyRegex"
+          :icon="CopyIcon"
+        >
+          复制
+        </el-button>
       </div>
 
-      <div class="replace-preview" v-if="generateRegex.replaceString">
+      <div
+        class="replace-preview"
+        v-if="generateRegex.replaceString"
+      >
         <h5>替换字符串:</h5>
         <div class="replace-display">
           <code>{{ generateRegex.replaceString }}</code>
         </div>
       </div>
 
-      <div class="validation-info" v-if="validateSelections.issues.length > 0">
+      <div
+        class="validation-info"
+        v-if="validateSelections.issues.length > 0"
+      >
         <h5>建议:</h5>
         <ul class="validation-issues">
-          <li v-for="issue in validateSelections.issues" :key="issue" class="validation-issue">
+          <li
+            v-for="issue in validateSelections.issues"
+            :key="issue"
+            class="validation-issue"
+          >
             {{ issue }}
           </li>
         </ul>
       </div>
 
-      <div class="selection-stats" v-if="selections.length > 0">
+      <div
+        class="selection-stats"
+        v-if="selections.length > 0"
+      >
         <div class="stats-item">
           <span class="stats-label">锚点:</span>
           <span class="stats-value">{{ selectionStats.anchors }}</span>
@@ -102,11 +154,17 @@
           <span class="stats-label">变量:</span>
           <span class="stats-value">{{ selectionStats.variables }}</span>
         </div>
-        <div class="stats-item" v-if="selectionStats.starts > 0">
+        <div
+          class="stats-item"
+          v-if="selectionStats.starts > 0"
+        >
           <span class="stats-label">起始:</span>
           <span class="stats-value">{{ selectionStats.starts }}</span>
         </div>
-        <div class="stats-item" v-if="selectionStats.ends > 0">
+        <div
+          class="stats-item"
+          v-if="selectionStats.ends > 0"
+        >
           <span class="stats-label">终止:</span>
           <span class="stats-value">{{ selectionStats.ends }}</span>
         </div>
@@ -120,24 +178,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue'
-import { ElMessage } from 'element-plus'
-import { Delete, CopyDocument as CopyIcon } from '@element-plus/icons-vue'
-import { Icon } from '@iconify/vue'
-import { useSmartRegexGenerator, type TextSelection } from '@/composables/regex/useSmartRegexGenerator'
-import TokenSelector from './TokenSelector.vue'
+import { ref, computed, nextTick } from 'vue';
+import { ElMessage } from 'element-plus';
+import { Delete, CopyDocument as CopyIcon } from '@element-plus/icons-vue';
+import { Icon } from '@iconify/vue';
+import { useSmartRegexGenerator, type TextSelection } from '@/composables/regex/useSmartRegexGenerator';
+import TokenSelector from './TokenSelector.vue';
 
 const props = defineProps<{
-  inputText: string
-}>()
+  inputText: string;
+}>();
 
 const emit = defineEmits<{
-  regexGenerated: [regex: string, replaceString: string]
-}>()
+  regexGenerated: [regex: string, replaceString: string];
+}>();
 
-const selectionMode = ref<'anchor' | 'variable' | 'start' | 'end'>('anchor')
-const inputMode = ref<'manual' | 'token'>('manual')
-const isSelecting = ref(false)
+const selectionMode = ref<'anchor' | 'variable' | 'start' | 'end'>('anchor');
+const inputMode = ref<'manual' | 'token'>('manual');
+const isSelecting = ref(false);
 
 // 使用智能正则生成器
 const {
@@ -147,8 +205,8 @@ const {
   removeSelection,
   clearSelections,
   selectionStats,
-  validateSelections
-} = useSmartRegexGenerator(computed(() => props.inputText))
+  validateSelections,
+} = useSmartRegexGenerator(computed(() => props.inputText));
 
 // HTML转义函数
 const escapeHtml = (text: string): string => {
@@ -157,214 +215,218 @@ const escapeHtml = (text: string): string => {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;')
-}
+    .replace(/'/g, '&#x27;');
+};
 
 const renderedText = computed(() => {
   // 使用更简单的方法：基于原始文本构建带标记的版本
-  const originalText = props.inputText
-  const sortedSelections = [...selections.value].sort((a: TextSelection, b: TextSelection) => a.startIndex - b.startIndex)
+  const originalText = props.inputText;
+  const sortedSelections = [...selections.value].sort(
+    (a: TextSelection, b: TextSelection) => a.startIndex - b.startIndex
+  );
 
-  let result = ''
-  let lastIndex = 0
+  let result = '';
+  let lastIndex = 0;
 
   sortedSelections.forEach((selection) => {
     // 添加选择前的文本
-    const beforeText = originalText.substring(lastIndex, selection.startIndex)
-    result += escapeHtml(beforeText)
+    const beforeText = originalText.substring(lastIndex, selection.startIndex);
+    result += escapeHtml(beforeText);
 
     // 添加被选择的文本（带标记）
-    let className = 'anchor-selection'
-    if (selection.type === 'variable') className = 'variable-selection'
-    else if (selection.type === 'start') className = 'start-selection'
-    else if (selection.type === 'end') className = 'end-selection'
+    let className = 'anchor-selection';
+    if (selection.type === 'variable') className = 'variable-selection';
+    else if (selection.type === 'start') className = 'start-selection';
+    else if (selection.type === 'end') className = 'end-selection';
 
-    const escapedSelection = escapeHtml(selection.text)
-    result += `<span class="${className}">${escapedSelection}</span>`
+    const escapedSelection = escapeHtml(selection.text);
+    result += `<span class="${className}">${escapedSelection}</span>`;
 
-    lastIndex = selection.endIndex
-  })
+    lastIndex = selection.endIndex;
+  });
 
   // 添加剩余文本
-  const remainingText = originalText.substring(lastIndex)
-  result += escapeHtml(remainingText)
+  const remainingText = originalText.substring(lastIndex);
+  result += escapeHtml(remainingText);
 
-  return result.replace(/\n/g, '<br>')
-})
+  return result.replace(/\n/g, '<br>');
+});
 
-const generatedRegex = computed(() => generateRegex.value.regex)
+const generatedRegex = computed(() => generateRegex.value.regex);
 
 const startSelection = () => {
-  isSelecting.value = true
-}
+  isSelecting.value = true;
+};
 
 const handleTextSelection = async () => {
-  if (!isSelecting.value) return
-  isSelecting.value = false
+  if (!isSelecting.value) return;
+  isSelecting.value = false;
 
-  await nextTick()
+  await nextTick();
 
-  const selection = window.getSelection()
-  if (!selection || selection.rangeCount === 0) return
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0) return;
 
-  const selectedText = selection.toString().trim()
-  if (!selectedText) return
+  const selectedText = selection.toString().trim();
+  if (!selectedText) return;
 
   // 使用更简单的方法：基于选中文本在原始文本中的位置
-  const originalText = props.inputText
+  const originalText = props.inputText;
 
   // 找到选中文本在原始文本中的位置
-  const firstOccurrence = originalText.indexOf(selectedText)
+  const firstOccurrence = originalText.indexOf(selectedText);
   if (firstOccurrence === -1) {
-    ElMessage.warning('无法在原始文本中找到选中的文本')
-    selection.removeAllRanges()
-    return
+    ElMessage.warning('无法在原始文本中找到选中的文本');
+    selection.removeAllRanges();
+    return;
   }
 
   // 检查是否有多个相同的文本，如果有，需要更精确的定位
-  const allOccurrences: number[] = []
-  let index = originalText.indexOf(selectedText, 0)
+  const allOccurrences: number[] = [];
+  let index = originalText.indexOf(selectedText, 0);
   while (index !== -1) {
-    allOccurrences.push(index)
-    index = originalText.indexOf(selectedText, index + 1)
+    allOccurrences.push(index);
+    index = originalText.indexOf(selectedText, index + 1);
   }
 
-  let startIndex: number
-  let endIndex: number
+  let startIndex: number;
+  let endIndex: number;
 
   if (allOccurrences.length === 1) {
     // 只有一个匹配，直接使用
-    startIndex = firstOccurrence
-    endIndex = firstOccurrence + selectedText.length
+    startIndex = firstOccurrence;
+    endIndex = firstOccurrence + selectedText.length;
   } else {
     // 多个匹配，自动选择第一个不重叠的位置
-    const existingSelections = selections.value.sort((a: TextSelection, b: TextSelection) => a.startIndex - b.startIndex)
-    let bestMatch = firstOccurrence
+    const existingSelections = selections.value.sort(
+      (a: TextSelection, b: TextSelection) => a.startIndex - b.startIndex
+    );
+    let bestMatch = firstOccurrence;
 
     // 选择第一个不重叠的位置
     for (const occurrence of allOccurrences) {
-      const wouldOverlap = existingSelections.some((sel: TextSelection) =>
-        (occurrence >= sel.startIndex && occurrence < sel.endIndex) ||
-        (occurrence + selectedText.length > sel.startIndex && occurrence + selectedText.length <= sel.endIndex) ||
-        (occurrence <= sel.startIndex && occurrence + selectedText.length >= sel.endIndex)
-      )
+      const wouldOverlap = existingSelections.some(
+        (sel: TextSelection) =>
+          (occurrence >= sel.startIndex && occurrence < sel.endIndex) ||
+          (occurrence + selectedText.length > sel.startIndex && occurrence + selectedText.length <= sel.endIndex) ||
+          (occurrence <= sel.startIndex && occurrence + selectedText.length >= sel.endIndex)
+      );
 
       if (!wouldOverlap) {
-        bestMatch = occurrence
-        break
+        bestMatch = occurrence;
+        break;
       }
     }
 
     if (bestMatch === firstOccurrence && allOccurrences.length > 1) {
       // 如果使用的是第一个匹配但有多个选择，显示提示信息
-      ElMessage.info(`找到 ${allOccurrences.length} 个相同文本，已选择第一个可用位置`)
+      ElMessage.info(`找到 ${allOccurrences.length} 个相同文本，已选择第一个可用位置`);
     }
 
-    startIndex = bestMatch
-    endIndex = bestMatch + selectedText.length
+    startIndex = bestMatch;
+    endIndex = bestMatch + selectedText.length;
   }
 
   const newSelection: TextSelection = {
     type: selectionMode.value,
     text: selectedText,
     startIndex,
-    endIndex
-  }
+    endIndex,
+  };
 
   try {
-    addSelection(newSelection)
+    addSelection(newSelection);
   } catch (error) {
-    ElMessage.warning(error instanceof Error ? error.message : '选择区域有冲突')
-    selection.removeAllRanges()
-    return
+    ElMessage.warning(error instanceof Error ? error.message : '选择区域有冲突');
+    selection.removeAllRanges();
+    return;
   }
 
-  selection.removeAllRanges()
+  selection.removeAllRanges();
 
   // Emit the generated regex
   if (generateRegex.value.isValid) {
-    emit('regexGenerated', generateRegex.value.regex, generateRegex.value.replaceString)
+    emit('regexGenerated', generateRegex.value.regex, generateRegex.value.replaceString);
   }
-}
-
+};
 
 const handleRemoveSelection = (index: number) => {
-  removeSelection(index)
+  removeSelection(index);
   if (generateRegex.value.isValid) {
-    emit('regexGenerated', generateRegex.value.regex, generateRegex.value.replaceString)
+    emit('regexGenerated', generateRegex.value.regex, generateRegex.value.replaceString);
   }
-}
+};
 
 const handleClearAll = () => {
-  clearSelections()
-  emit('regexGenerated', '', '')
-}
+  clearSelections();
+  emit('regexGenerated', '', '');
+};
 
 const getSelectionIcon = (type: string) => {
   switch (type) {
     case 'anchor':
-      return 'material-symbols:anchor'
+      return 'material-symbols:anchor';
     case 'variable':
-      return 'material-symbols:data-object'
+      return 'material-symbols:data-object';
     case 'start':
-      return 'material-symbols:play-arrow'
+      return 'material-symbols:play-arrow';
     case 'end':
-      return 'material-symbols:stop'
+      return 'material-symbols:stop';
     default:
-      return 'material-symbols:help'
+      return 'material-symbols:help';
   }
-}
+};
 
 const getSelectionLabel = (type: string) => {
   switch (type) {
     case 'anchor':
-      return '锚点'
+      return '锚点';
     case 'variable':
-      return '变量'
+      return '变量';
     case 'start':
-      return '起始'
+      return '起始';
     case 'end':
-      return '终止'
+      return '终止';
     default:
-      return '未知'
+      return '未知';
   }
-}
+};
 
 const copyRegex = () => {
   if (generatedRegex.value) {
-    navigator.clipboard.writeText(generatedRegex.value)
-    ElMessage.success('正则表达式已复制到剪贴板')
+    navigator.clipboard.writeText(generatedRegex.value);
+    ElMessage.success('正则表达式已复制到剪贴板');
   }
-}
+};
 
 const handleTokenSelection = (selection: TextSelection) => {
   try {
-    addSelection(selection)
-    ElMessage.success(`已添加${getSelectionLabel(selection.type)}选择: ${selection.text}`)
+    addSelection(selection);
+    ElMessage.success(`已添加${getSelectionLabel(selection.type)}选择: ${selection.text}`);
 
     // Emit the generated regex
     if (generateRegex.value.isValid) {
-      emit('regexGenerated', generateRegex.value.regex, generateRegex.value.replaceString)
+      emit('regexGenerated', generateRegex.value.regex, generateRegex.value.replaceString);
     }
   } catch (error) {
-    ElMessage.warning(error instanceof Error ? error.message : '添加选择失败')
+    ElMessage.warning(error instanceof Error ? error.message : '添加选择失败');
   }
-}
+};
 
 const getToolDescription = (mode: string) => {
   switch (mode) {
     case 'anchor':
-      return '锚点模式：选择固定不变的文本作为定位参照，生成的正则将精确匹配这些内容。'
+      return '锚点模式：选择固定不变的文本作为定位参照，生成的正则将精确匹配这些内容。';
     case 'variable':
-      return '变量模式：选择变化的内容（如名字、数值），生成的正则将使用通配符捕获这部分。'
+      return '变量模式：选择变化的内容（如名字、数值），生成的正则将使用通配符捕获这部分。';
     case 'start':
-      return '起始符：标记匹配区域的开始边界（前瞻断言），不包含在匹配结果中。'
+      return '起始符：标记匹配区域的开始边界（前瞻断言），不包含在匹配结果中。';
     case 'end':
-      return '终止符：标记匹配区域的结束边界（后瞻断言），不包含在匹配结果中。'
+      return '终止符：标记匹配区域的结束边界（后瞻断言），不包含在匹配结果中。';
     default:
-      return ''
+      return '';
   }
-}
+};
 </script>
 
 <style scoped>

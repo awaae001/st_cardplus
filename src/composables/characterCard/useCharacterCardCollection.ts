@@ -22,9 +22,7 @@ export function useCharacterCardCollection() {
   });
 
   const allTags = computed(() => {
-    const tags = Object.values(characterCardCollection.value.cards).flatMap(
-      (card) => card.data?.tags || []
-    );
+    const tags = Object.values(characterCardCollection.value.cards).flatMap((card) => card.data?.tags || []);
     return [...new Set(tags)];
   });
 
@@ -67,7 +65,7 @@ export function useCharacterCardCollection() {
     try {
       const cardId = uuidv4();
       const now = new Date().toISOString();
-      const existingOrders = Object.values(characterCardCollection.value.cards).map(c => c.order);
+      const existingOrders = Object.values(characterCardCollection.value.cards).map((c) => c.order);
       const maxOrder = existingOrders.length > 0 ? Math.max(...existingOrders) : -1;
 
       const storedCard = characterCardService.createStoredCard(cardId, cardData, {
@@ -98,14 +96,26 @@ export function useCharacterCardCollection() {
     }
   };
 
-  const handleUpdateCard = async (cardId: string, cardData: CharacterCardV3, silent = false, skipLocalUpdate = false) => {
+  const handleUpdateCard = async (
+    cardId: string,
+    cardData: CharacterCardV3,
+    silent = false,
+    skipLocalUpdate = false
+  ) => {
     const existingCard = characterCardCollection.value.cards[cardId];
     if (!existingCard) {
       ElMessage.error('角色卡不存在');
       return;
     }
 
-    console.log('[handleUpdateCard] 开始更新角色卡:', cardId, '名称:', cardData.name, 'skipLocalUpdate:', skipLocalUpdate);
+    console.log(
+      '[handleUpdateCard] 开始更新角色卡:',
+      cardId,
+      '名称:',
+      cardData.name,
+      'skipLocalUpdate:',
+      skipLocalUpdate
+    );
 
     try {
       const now = new Date().toISOString();
@@ -172,17 +182,13 @@ export function useCharacterCardCollection() {
     if (!card) return;
 
     try {
-      const renameCardResult = await ElMessageBox.prompt(
-        '请输入新的名称：',
-        '重命名角色卡',
-        {
-          confirmButtonText: '确认',
-          cancelButtonText: '取消',
-          inputValue: card.name,
-          inputPattern: /.+/,
-          inputErrorMessage: '名称不能为空',
-        }
-      );
+      const renameCardResult = await ElMessageBox.prompt('请输入新的名称：', '重命名角色卡', {
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        inputValue: card.name,
+        inputPattern: /.+/,
+        inputErrorMessage: '名称不能为空',
+      });
       const { value: newCardName } = renameCardResult as { value: string };
 
       // 同时更新 data 和顶层（data 是真实数据源）
@@ -190,9 +196,9 @@ export function useCharacterCardCollection() {
         ...card,
         data: {
           ...card.data,
-          name: newCardName,  // data 层优先
+          name: newCardName, // data 层优先
         },
-        name: newCardName,  // 顶层同步
+        name: newCardName, // 顶层同步
       };
 
       await handleUpdateCard(cardId, updatedCardData);
@@ -208,15 +214,11 @@ export function useCharacterCardCollection() {
     if (!card) return;
 
     try {
-      await ElMessageBox.confirm(
-        `确定要删除角色卡 "${card.name}" 吗？此操作不可恢复！`,
-        '删除角色卡',
-        {
-          confirmButtonText: '确认删除',
-          cancelButtonText: '取消',
-          type: 'warning',
-        }
-      );
+      await ElMessageBox.confirm(`确定要删除角色卡 "${card.name}" 吗？此操作不可恢复！`, '删除角色卡', {
+        confirmButtonText: '确认删除',
+        cancelButtonText: '取消',
+        type: 'warning',
+      });
 
       await characterCardService.deleteCard(cardId);
 
@@ -290,7 +292,9 @@ export function useCharacterCardCollection() {
           ElMessage.success(`角色卡 "${cardData.name || (cardData.data as any)?.name || '未命名'}" 已成功导入！`);
         }
       } else {
-        ElMessage.error('无法从文件中解析角色卡数据。请检查文件格式是否正确 (.json 或 .png) 或 PNG 是否包含角色卡数据。');
+        ElMessage.error(
+          '无法从文件中解析角色卡数据。请检查文件格式是否正确 (.json 或 .png) 或 PNG 是否包含角色卡数据。'
+        );
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -353,15 +357,11 @@ export function useCharacterCardCollection() {
 
   const handleClearAllCards = async () => {
     try {
-      await ElMessageBox.confirm(
-        '确定要清空所有角色卡吗？此操作不可恢复！',
-        '清空所有角色卡',
-        {
-          confirmButtonText: '确认清空',
-          cancelButtonText: '取消',
-          type: 'warning',
-        }
-      );
+      await ElMessageBox.confirm('确定要清空所有角色卡吗？此操作不可恢复！', '清空所有角色卡', {
+        confirmButtonText: '确认清空',
+        cancelButtonText: '取消',
+        type: 'warning',
+      });
 
       await characterCardService.clearDatabase();
       characterCardCollection.value.cards = {};
@@ -378,17 +378,13 @@ export function useCharacterCardCollection() {
 
   const handleCreateNewCard = async () => {
     try {
-      const createCardResult = await ElMessageBox.prompt(
-        '请输入新角色的名称：',
-        '创建新角色卡',
-        {
-          confirmButtonText: '创建',
-          cancelButtonText: '取消',
-          inputValue: '新角色',
-          inputPattern: /.+/,
-          inputErrorMessage: '名称不能为空',
-        }
-      );
+      const createCardResult = await ElMessageBox.prompt('请输入新角色的名称：', '创建新角色卡', {
+        confirmButtonText: '创建',
+        cancelButtonText: '取消',
+        inputValue: '新角色',
+        inputPattern: /.+/,
+        inputErrorMessage: '名称不能为空',
+      });
       const { value: cardName } = createCardResult as { value: string };
 
       // 创建默认的角色卡数据（确保 data 和顶层一致）
@@ -447,7 +443,6 @@ export function useCharacterCardCollection() {
       return null;
     }
   };
-
 
   return {
     characterCardCollection,

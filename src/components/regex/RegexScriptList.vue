@@ -12,7 +12,13 @@
     @node-click="handleNodeClick"
   >
     <template #header-actions>
-      <el-tooltip content="创建新类别" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+      <el-tooltip
+        content="创建新类别"
+        placement="top"
+        :show-arrow="false"
+        :offset="8"
+        :hide-after="0"
+      >
         <button
           @click="emit('create-category')"
           class="btn-primary-adv sidebar-header-button"
@@ -24,9 +30,15 @@
     </template>
 
     <template #node="{ node, data }">
-      <div class="sidebar-tree-node" :class="{ 'is-disabled': data.isScript && data.raw.disabled }">
+      <div
+        class="sidebar-tree-node"
+        :class="{ 'is-disabled': data.isScript && data.raw.disabled }"
+      >
         <div class="sidebar-tree-node-main">
-          <Icon :icon="data.icon" class="sidebar-tree-node-icon" />
+          <Icon
+            :icon="data.icon"
+            class="sidebar-tree-node-icon"
+          />
           <span class="sidebar-tree-node-label">{{ node.label }}</span>
           <el-tooltip
             v-if="!data.isScript && data.raw.metadata?.source === 'character-card'"
@@ -36,11 +48,23 @@
             :offset="8"
             :hide-after="0"
           >
-            <Icon icon="ph:user-circle-duotone" class="sidebar-tree-node-source-icon" />
+            <Icon
+              icon="ph:user-circle-duotone"
+              class="sidebar-tree-node-source-icon"
+            />
           </el-tooltip>
         </div>
-        <div class="sidebar-tree-node-actions" v-if="!data.isScript">
-          <el-tooltip content="新增脚本" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+        <div
+          class="sidebar-tree-node-actions"
+          v-if="!data.isScript"
+        >
+          <el-tooltip
+            content="新增脚本"
+            placement="top"
+            :show-arrow="false"
+            :offset="8"
+            :hide-after="0"
+          >
             <button
               @click.stop="emit('add-script', data.id)"
               class="sidebar-tree-node-action-button"
@@ -48,7 +72,13 @@
               <Icon icon="ph:plus-circle-duotone" />
             </button>
           </el-tooltip>
-          <el-tooltip content="重命名" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+          <el-tooltip
+            content="重命名"
+            placement="top"
+            :show-arrow="false"
+            :offset="8"
+            :hide-after="0"
+          >
             <button
               @click.stop="emit('rename-category', data.id)"
               class="sidebar-tree-node-action-button"
@@ -56,7 +86,13 @@
               <Icon icon="ph:pencil-simple-duotone" />
             </button>
           </el-tooltip>
-          <el-tooltip content="删除" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+          <el-tooltip
+            content="删除"
+            placement="top"
+            :show-arrow="false"
+            :offset="8"
+            :hide-after="0"
+          >
             <button
               @click.stop="emit('delete-category', data.id)"
               class="sidebar-tree-node-action-button is-danger"
@@ -65,8 +101,17 @@
             </button>
           </el-tooltip>
         </div>
-        <div class="sidebar-tree-node-actions" v-else>
-          <el-tooltip content="导出" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+        <div
+          class="sidebar-tree-node-actions"
+          v-else
+        >
+          <el-tooltip
+            content="导出"
+            placement="top"
+            :show-arrow="false"
+            :offset="8"
+            :hide-after="0"
+          >
             <button
               @click.stop="emit('export-script', data.scriptId)"
               class="sidebar-tree-node-action-button"
@@ -74,7 +119,13 @@
               <Icon icon="ph:export-duotone" />
             </button>
           </el-tooltip>
-          <el-tooltip content="重命名" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+          <el-tooltip
+            content="重命名"
+            placement="top"
+            :show-arrow="false"
+            :offset="8"
+            :hide-after="0"
+          >
             <button
               @click.stop="emit('rename-script', data.scriptId)"
               class="sidebar-tree-node-action-button"
@@ -82,7 +133,13 @@
               <Icon icon="ph:pencil-simple-duotone" />
             </button>
           </el-tooltip>
-          <el-tooltip content="删除" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+          <el-tooltip
+            content="删除"
+            placement="top"
+            :show-arrow="false"
+            :offset="8"
+            :hide-after="0"
+          >
             <button
               @click.stop="emit('delete-script', data.scriptId)"
               class="sidebar-tree-node-action-button is-danger"
@@ -136,7 +193,7 @@ const treeProps = {
 const treeData = computed(() => {
   return Object.values(props.collection.categories)
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-    .map(category => ({
+    .map((category) => ({
       id: category.id,
       label: category.name,
       icon: 'ph:folder-duotone',

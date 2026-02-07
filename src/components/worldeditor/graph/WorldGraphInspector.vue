@@ -1,29 +1,60 @@
 <template>
-  <div class="graph-inspector-popup" :style="inspectorStyle">
-    <div class="graph-inspector-header" @mousedown="startDrag">
+  <div
+    class="graph-inspector-popup"
+    :style="inspectorStyle"
+  >
+    <div
+      class="graph-inspector-header"
+      @mousedown="startDrag"
+    >
       <div class="graph-inspector-title">节点信息</div>
-      <button @click="onClose" class="close-button">
+      <button
+        @click="onClose"
+        class="close-button"
+      >
         <Icon icon="ph:x" />
       </button>
     </div>
     <div class="graph-inspector-body">
       <div class="inspector-field">
         <label class="inspector-label">名称</label>
-        <el-input v-model="selectedLandmark.name" placeholder="节点名称" />
+        <el-input
+          v-model="selectedLandmark.name"
+          placeholder="节点名称"
+        />
       </div>
       <div class="inspector-field">
         <label class="inspector-label">类型</label>
-        <el-select v-model="selectedLandmark.type" filterable allow-create default-first-option placeholder="选择或输入类型">
-          <el-option v-for="type in landmarkTypes" :key="type" :label="localizeLandmarkType(type)" :value="type" />
+        <el-select
+          v-model="selectedLandmark.type"
+          filterable
+          allow-create
+          default-first-option
+          placeholder="选择或输入类型"
+        >
+          <el-option
+            v-for="type in landmarkTypes"
+            :key="type"
+            :label="localizeLandmarkType(type)"
+            :value="type"
+          />
         </el-select>
       </div>
       <div class="inspector-field">
         <label class="inspector-label">重要性 (1-5)</label>
-        <el-input-number v-model.number="selectedLandmark.importance" :min="1" :max="5" controls-position="right" />
+        <el-input-number
+          v-model.number="selectedLandmark.importance"
+          :min="1"
+          :max="5"
+          controls-position="right"
+        />
       </div>
       <div class="inspector-field">
         <label class="inspector-label">人口</label>
-        <el-input-number v-model.number="selectedLandmark.population" controls-position="right" />
+        <el-input-number
+          v-model.number="selectedLandmark.population"
+          controls-position="right"
+        />
       </div>
       <div class="inspector-field">
         <label class="inspector-label">区域</label>
@@ -34,17 +65,34 @@
           :show-selected-color="true"
         />
       </div>
-      <div v-if="selectedForces.length > 0" class="inspector-field">
+      <div
+        v-if="selectedForces.length > 0"
+        class="inspector-field"
+      >
         <label class="inspector-label">势力列表</label>
         <div class="inspector-list">
-          <div v-for="item in selectedForces" :key="item.id" class="inspector-list-item">
+          <div
+            v-for="item in selectedForces"
+            :key="item.id"
+            class="inspector-list-item"
+          >
             <span>{{ item.name }}</span>
-            <span v-if="item.role" class="force-role">{{ item.role }}</span>
+            <span
+              v-if="item.role"
+              class="force-role"
+            >
+              {{ item.role }}
+            </span>
           </div>
         </div>
       </div>
       <div class="inspector-actions">
-        <el-button type="primary" @click="onEdit">打开详细编辑</el-button>
+        <el-button
+          type="primary"
+          @click="onEdit"
+        >
+          打开详细编辑
+        </el-button>
       </div>
     </div>
   </div>

@@ -1,15 +1,12 @@
-import { ref, computed, watch, onMounted } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
-import {
-  saveToLocalStorage as saveToLS,
-  loadFromLocalStorage as loadFromLS,
-} from "../../utils/localStorageUtils";
+import { ref, computed, watch, onMounted } from 'vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { saveToLocalStorage as saveToLS, loadFromLocalStorage as loadFromLS } from '../../utils/localStorageUtils';
 import type { CharacterCard } from '../../types/character';
 import { v4 as uuidv4 } from 'uuid';
-import { createDefaultCharacterCard } from "./useCharacterCard";
-import { processLoadedData } from "./useCardDataHandler";
+import { createDefaultCharacterCard } from './useCharacterCard';
+import { processLoadedData } from './useCardDataHandler';
 
-const LOCAL_STORAGE_KEY_CHARACTER_MANAGER = "characterManagerData";
+const LOCAL_STORAGE_KEY_CHARACTER_MANAGER = 'characterManagerData';
 
 export interface CharacterCollection {
   characters: { [id: string]: CharacterCard };
@@ -127,7 +124,7 @@ export function useCharacterCollection() {
         id: newId,
         order: 0,
         starred: false,
-        chineseName: "默认角色",
+        chineseName: '默认角色',
       };
       characterCollection.value = {
         characters: { [newId]: defaultCharacter },
@@ -154,17 +151,13 @@ export function useCharacterCollection() {
 
   const handleCreateCharacter = async () => {
     try {
-      const createCharacterResult = await ElMessageBox.prompt(
-        '请输入新角色的名称：',
-        '创建新角色',
-        {
-          confirmButtonText: '创建',
-          cancelButtonText: '取消',
-          inputPattern: /.+/,
-          inputErrorMessage: '名称不能为空',
-          inputValue: '新角色',
-        }
-      );
+      const createCharacterResult = await ElMessageBox.prompt('请输入新角色的名称：', '创建新角色', {
+        confirmButtonText: '创建',
+        cancelButtonText: '取消',
+        inputPattern: /.+/,
+        inputErrorMessage: '名称不能为空',
+        inputValue: '新角色',
+      });
       const { value: characterName } = createCharacterResult as { value: string };
 
       const newId = uuidv4();
@@ -181,13 +174,12 @@ export function useCharacterCollection() {
         ...characterCollection.value,
         characters: {
           ...characterCollection.value.characters,
-          [newId]: newCharacter
+          [newId]: newCharacter,
         },
-        activeCharacterId: newId
+        activeCharacterId: newId,
       };
 
       ElMessage.success(`角色 "${characterName}" 已创建！`);
-
     } catch (error) {
       if (error !== 'cancel') {
         ElMessage.info('创建操作已取消');
@@ -205,33 +197,29 @@ export function useCharacterCollection() {
     }
 
     try {
-      await ElMessageBox.confirm(
-        `确定要删除角色 "${character.chineseName}" 吗？此操作不可恢复！`,
-        '删除角色',
-        {
-          confirmButtonText: '确认删除',
-          cancelButtonText: '取消',
-          type: 'warning',
-        }
-      );
+      await ElMessageBox.confirm(`确定要删除角色 "${character.chineseName}" 吗？此操作不可恢复！`, '删除角色', {
+        confirmButtonText: '确认删除',
+        cancelButtonText: '取消',
+        type: 'warning',
+      });
 
       // 使用响应式删除，确保UI立即更新
       const remainingCharacters = { ...characterCollection.value.characters };
       delete remainingCharacters[characterId];
-      
-      const newActiveId = characterCollection.value.activeCharacterId === characterId 
-        ? Object.keys(remainingCharacters)[0] || null 
-        : characterCollection.value.activeCharacterId;
+
+      const newActiveId =
+        characterCollection.value.activeCharacterId === characterId
+          ? Object.keys(remainingCharacters)[0] || null
+          : characterCollection.value.activeCharacterId;
 
       // 立即更新characterCollection，避免时序问题
       characterCollection.value = {
         ...characterCollection.value,
         characters: remainingCharacters,
-        activeCharacterId: newActiveId
+        activeCharacterId: newActiveId,
       };
 
       ElMessage.success(`角色 "${character.chineseName}" 已删除 `);
-
     } catch (error) {
       if (error !== 'cancel') {
         ElMessage.info('删除操作已取消');
@@ -250,7 +238,6 @@ export function useCharacterCollection() {
 
         const importedData = JSON.parse(result) as Partial<CharacterCard> & { name?: string };
 
-
         // 基本验证 (可以根据需要扩展)
         if (!importedData.chineseName && !importedData.japaneseName && !importedData.name) {
           throw new Error('导入的数据缺少角色名称 ');
@@ -265,7 +252,7 @@ export function useCharacterCollection() {
           order: getNextOrder(false),
           starred: typeof processedData.starred === 'boolean' ? processedData.starred : false,
         };
-        
+
         // 如果没有中文名，但有英文名或日文名，则使用它们
         if (!newCharacter.chineseName) {
           newCharacter.chineseName = importedData.name || newCharacter.japaneseName || '未命名角色';
@@ -283,7 +270,7 @@ export function useCharacterCollection() {
 
         ElMessage.success(`角色 "${newCharacter.chineseName}" 已成功导入！`);
       } catch (error) {
-        console.error("导入角色失败:", error);
+        console.error('导入角色失败:', error);
         ElMessage.error(`导入失败: ${error instanceof Error ? error.message : '无效的文件格式 '}`);
       }
     };
@@ -298,18 +285,23 @@ export function useCharacterCollection() {
       // 使用整体替换来确保Vue能正确检测到变化
       const updatedCharacters = {
         ...characterCollection.value.characters,
-        [characterId]: JSON.parse(JSON.stringify(updatedData))
+        [characterId]: JSON.parse(JSON.stringify(updatedData)),
       };
 
       characterCollection.value = {
         ...characterCollection.value,
-        characters: updatedCharacters
+        characters: updatedCharacters,
       };
 
       // 强制触发保存，确保数据持久化
       saveCharactersToLocalStorage();
     } else {
-      console.error('updateCharacter: 角色不存在', characterId, '当前角色:', Object.keys(characterCollection.value.characters));
+      console.error(
+        'updateCharacter: 角色不存在',
+        characterId,
+        '当前角色:',
+        Object.keys(characterCollection.value.characters)
+      );
     }
   };
 

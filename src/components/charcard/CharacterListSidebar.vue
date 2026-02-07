@@ -11,13 +11,25 @@
     @node-click="handleNodeClick"
   >
     <template #header-actions>
-      <el-tooltip content="从文件导入角色" placement="top">
-        <button @click="triggerFileInput" class="btn-primary-adv sidebar-header-button">
+      <el-tooltip
+        content="从文件导入角色"
+        placement="top"
+      >
+        <button
+          @click="triggerFileInput"
+          class="btn-primary-adv sidebar-header-button"
+        >
           <Icon icon="ph:upload-simple-bold" />
         </button>
       </el-tooltip>
-      <el-tooltip content="创建新角色" placement="top">
-        <button @click="emit('create')" class="btn-primary-adv sidebar-header-button">
+      <el-tooltip
+        content="创建新角色"
+        placement="top"
+      >
+        <button
+          @click="emit('create')"
+          class="btn-primary-adv sidebar-header-button"
+        >
           <Icon icon="ph:plus-bold" />
         </button>
       </el-tooltip>
@@ -33,11 +45,17 @@
     <template #node="{ node, data }">
       <div class="sidebar-tree-node">
         <div class="sidebar-tree-node-main">
-          <Icon icon="ph:user-circle-duotone" class="sidebar-tree-node-icon" />
+          <Icon
+            icon="ph:user-circle-duotone"
+            class="sidebar-tree-node-icon"
+          />
           <span class="sidebar-tree-node-label">{{ node.label }}</span>
         </div>
         <div class="sidebar-tree-node-star">
-          <el-tooltip :content="data.raw.starred ? '取消星标' : '设为星标'" placement="top">
+          <el-tooltip
+            :content="data.raw.starred ? '取消星标' : '设为星标'"
+            placement="top"
+          >
             <button
               @click.stop="emit('toggle-star', data.id, !data.raw.starred)"
               class="sidebar-tree-node-action-button"
@@ -48,7 +66,10 @@
           </el-tooltip>
         </div>
         <div class="sidebar-tree-node-actions">
-          <el-tooltip content="删除角色" placement="top">
+          <el-tooltip
+            content="删除角色"
+            placement="top"
+          >
             <button
               @click.stop="emit('delete', data.id)"
               class="sidebar-tree-node-action-button is-danger"
@@ -132,9 +153,7 @@ const handleNodeDrop = (draggingNode: any, dropNode: any, type: any) => {
   const dropId = dropNode.data.id as string | undefined;
   if (!draggingId || !dropId) return false;
 
-  const currentIds = props.characters
-    .map((character) => character.id)
-    .filter((id): id is string => !!id);
+  const currentIds = props.characters.map((character) => character.id).filter((id): id is string => !!id);
 
   const fromIndex = currentIds.indexOf(draggingId);
   const toIndex = currentIds.indexOf(dropId);

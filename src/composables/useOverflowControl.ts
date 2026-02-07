@@ -21,7 +21,10 @@ export function provideOverflowControl() {
 }
 
 export function useOverflowControl() {
-  const control = inject<{ isOverflowHidden: Readonly<typeof isOverflowHidden>, setOverflowHidden: (value: boolean) => void }>(OVERFLOW_CONTROL_KEY);
+  const control = inject<{
+    isOverflowHidden: Readonly<typeof isOverflowHidden>;
+    setOverflowHidden: (value: boolean) => void;
+  }>(OVERFLOW_CONTROL_KEY);
   if (!control) {
     throw new Error('useOverflowControl() must be used after provideOverflowControl()');
   }

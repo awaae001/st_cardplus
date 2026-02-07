@@ -1,12 +1,10 @@
-import { ref, computed, watch, type Ref } from "vue";
-import type { WorldBookEntry, WorldBook } from "../../../types/types";
+import { ref, computed, watch, type Ref } from 'vue';
+import type { WorldBookEntry, WorldBook } from '../../../types/types';
 
-export function useWorldBookEntryState(
-  activeBook: Ref<WorldBook | null>
-) {
+export function useWorldBookEntryState(activeBook: Ref<WorldBook | null>) {
   const selectedEntryIndex = ref<number | null>(null);
   const editableEntry = ref<Partial<WorldBookEntry>>({});
-  const activeTab = ref<"list" | "editor">("list");
+  const activeTab = ref<'list' | 'editor'>('list');
   const saveStatus = ref<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const lastSaveTime = ref<Date | null>(null);
   const hasUnsavedChanges = ref(false);
@@ -68,7 +66,7 @@ export function useWorldBookEntryState(
     const index = parseInt(indexStr, 10);
     if (index >= 0 && index < activeBookEntries.value.length) {
       selectedEntryIndex.value = index;
-      activeTab.value = "editor";
+      activeTab.value = 'editor';
     }
   };
 

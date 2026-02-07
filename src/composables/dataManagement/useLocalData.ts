@@ -3,7 +3,6 @@ import { resetAppDatabase, exportAllDatabases, importAllDatabases } from '@/data
 import { characterCardService } from '@/database/characterCardService';
 
 export function useLocalData(updateStorageInfo: () => Promise<void>) {
-
   const collectLocalStorageData = () => {
     const data: { [key: string]: any } = {};
     for (let i = 0; i < localStorage.length; i++) {
@@ -114,23 +113,25 @@ export function useLocalData(updateStorageInfo: () => Promise<void>) {
         cancelButtonText: '取消',
         type: 'warning',
       }
-    ).then(async () => {
-      try {
-        await resetAppDatabase();
-        localStorage.clear();
+    )
+      .then(async () => {
+        try {
+          await resetAppDatabase();
+          localStorage.clear();
 
-        ElMessage.success('所有本地数据已清除并重建数据库，应用将重新加载');
-        await updateStorageInfo();
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
-      } catch (error) {
-        console.error('清除所有数据失败:', error);
-        ElMessage.error('清除数据时发生错误');
-      }
-    }).catch(() => {
-      ElMessage.info('操作已取消');
-    });
+          ElMessage.success('所有本地数据已清除并重建数据库，应用将重新加载');
+          await updateStorageInfo();
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+        } catch (error) {
+          console.error('清除所有数据失败:', error);
+          ElMessage.error('清除数据时发生错误');
+        }
+      })
+      .catch(() => {
+        ElMessage.info('操作已取消');
+      });
   };
 
   const clearInvalidLocalStorage = async () => {
@@ -143,7 +144,7 @@ export function useLocalData(updateStorageInfo: () => Promise<void>) {
       'webdavConfig',
       'gistConfig',
       'world-editor-data',
-      'worldEditorData'
+      'worldEditorData',
     ];
 
     ElMessageBox.confirm(
@@ -154,31 +155,33 @@ export function useLocalData(updateStorageInfo: () => Promise<void>) {
         cancelButtonText: '取消',
         type: 'warning',
       }
-    ).then(async () => {
-      try {
-        let removedCount = 0;
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && !whitelist.includes(key)) {
-            localStorage.removeItem(key);
-            removedCount++;
-            i--;
+    )
+      .then(async () => {
+        try {
+          let removedCount = 0;
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && !whitelist.includes(key)) {
+              localStorage.removeItem(key);
+              removedCount++;
+              i--;
+            }
           }
-        }
 
-        await characterCardService.clearDatabase();
-        ElMessage.success(`已成功清理 ${removedCount} 个无效缓存条目和角色卡数据库，应用将重新加载`);
-        await updateStorageInfo();
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
-      } catch (error) {
-        console.error('清理缓存失败:', error);
-        ElMessage.error('清理缓存时发生错误');
-      }
-    }).catch(() => {
-      ElMessage.info('操作已取消');
-    });
+          await characterCardService.clearDatabase();
+          ElMessage.success(`已成功清理 ${removedCount} 个无效缓存条目和角色卡数据库，应用将重新加载`);
+          await updateStorageInfo();
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+        } catch (error) {
+          console.error('清理缓存失败:', error);
+          ElMessage.error('清理缓存时发生错误');
+        }
+      })
+      .catch(() => {
+        ElMessage.info('操作已取消');
+      });
   };
 
   return {

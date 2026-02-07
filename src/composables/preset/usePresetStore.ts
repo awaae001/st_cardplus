@@ -21,26 +21,26 @@ export interface PresetSelection {
 }
 
 const getDefaultOrderIdentifiers = () => {
-  const withPersona = defaultPromptOrder.find(entry =>
-    entry.order.some(item => item.identifier === 'personaDescription')
+  const withPersona = defaultPromptOrder.find((entry) =>
+    entry.order.some((item) => item.identifier === 'personaDescription')
   );
   const target = withPersona ?? defaultPromptOrder[0];
-  return target.order.map(item => item.identifier);
+  return target.order.map((item) => item.identifier);
 };
 
 const orderPromptsByIdentifiers = (prompts: PresetPrompt[], identifiers: string[]) => {
   const map = new Map<string, PresetPrompt>();
-  prompts.forEach(prompt => {
+  prompts.forEach((prompt) => {
     if (prompt.identifier) {
       map.set(prompt.identifier, prompt);
     }
   });
   const ordered: PresetPrompt[] = [];
-  identifiers.forEach(id => {
+  identifiers.forEach((id) => {
     const item = map.get(id);
     if (item) ordered.push(item);
   });
-  prompts.forEach(prompt => {
+  prompts.forEach((prompt) => {
     if (!prompt.identifier || !identifiers.includes(prompt.identifier)) {
       ordered.push(prompt);
     }
@@ -61,7 +61,7 @@ export function usePresetStore() {
   const selected = ref<PresetSelection | null>(null);
   const isReady = ref(false);
 
-  const activePreset = computed(() => presets.value.find(p => p.id === activePresetId.value) || null);
+  const activePreset = computed(() => presets.value.find((p) => p.id === activePresetId.value) || null);
   const activePrompts = computed<PresetPrompt[]>(() => {
     return (activePreset.value?.data?.prompts as PresetPrompt[]) || [];
   });
@@ -90,7 +90,8 @@ export function usePresetStore() {
     } else {
       presets.value = loaded;
       const remembered = presetService.getActivePresetId();
-      activePresetId.value = remembered && loaded.find(p => p.id === remembered) ? remembered : loaded[0]?.id ?? null;
+      activePresetId.value =
+        remembered && loaded.find((p) => p.id === remembered) ? remembered : (loaded[0]?.id ?? null);
       selected.value = { type: 'header' };
     }
     isReady.value = true;
@@ -158,14 +159,13 @@ export function usePresetStore() {
       const order = presets.value.length;
       const data = presetService.createDefaultPresetData(defaultOpenAIPreset) as any;
       const identifiers = getDefaultOrderIdentifiers();
-      const reorderedPrompts = orderPromptsByIdentifiers(
-        (data.prompts as PresetPrompt[]) || [],
-        identifiers
-      ).map((prompt: PresetPrompt, index: number) => ({
-        ...prompt,
-        content: '',
-        order: index,
-      }));
+      const reorderedPrompts = orderPromptsByIdentifiers((data.prompts as PresetPrompt[]) || [], identifiers).map(
+        (prompt: PresetPrompt, index: number) => ({
+          ...prompt,
+          content: '',
+          order: index,
+        })
+      );
       data.prompts = reorderedPrompts;
       data.prompt_order = JSON.parse(JSON.stringify(defaultPromptOrder));
       const preset: StoredPresetFile = {
@@ -217,7 +217,7 @@ export function usePresetStore() {
         type: 'warning',
       });
       await presetService.deletePreset(preset.id);
-      presets.value = presets.value.filter(p => p.id !== preset.id);
+      presets.value = presets.value.filter((p) => p.id !== preset.id);
       activePresetId.value = presets.value[0]?.id ?? null;
       selected.value = { type: 'header' };
       ElMessage.success('预设已删除');
@@ -229,7 +229,7 @@ export function usePresetStore() {
   };
 
   const addPrompt = async (presetId: string) => {
-    const preset = presets.value.find(p => p.id === presetId);
+    const preset = presets.value.find((p) => p.id === presetId);
     if (!preset) return;
     const now = new Date().toISOString();
     const prompts = (preset.data.prompts as PresetPrompt[]) || [];
@@ -252,7 +252,7 @@ export function usePresetStore() {
   };
 
   const addPrompts = async (presetId: string, incoming: PresetPrompt[]) => {
-    const preset = presets.value.find(p => p.id === presetId);
+    const preset = presets.value.find((p) => p.id === presetId);
     if (!preset) return;
     const prompts = (preset.data.prompts as PresetPrompt[]) || [];
     const startOrder = prompts.length;
@@ -296,7 +296,7 @@ export function usePresetStore() {
     const now = new Date().toISOString();
     const updated = orderedIds
       .map((id, index) => {
-        const preset = presets.value.find(p => p.id === id);
+        const preset = presets.value.find((p) => p.id === id);
         if (!preset) return null;
         preset.order = index;
         preset.updatedAt = now;
@@ -304,18 +304,20 @@ export function usePresetStore() {
       })
       .filter(Boolean) as StoredPresetFile[];
     presets.value = updated;
-    await presetService.updatePresetOrder(updated.map(p => ({
-      id: p.id,
-      order: p.order,
-      updatedAt: p.updatedAt,
-    })));
+    await presetService.updatePresetOrder(
+      updated.map((p) => ({
+        id: p.id,
+        order: p.order,
+        updatedAt: p.updatedAt,
+      }))
+    );
   };
 
   const reorderPrompts = async (presetId: string, orderedIndices: number[]) => {
-    const preset = presets.value.find(p => p.id === presetId);
+    const preset = presets.value.find((p) => p.id === presetId);
     if (!preset) return;
     const prompts = (preset.data.prompts as PresetPrompt[]) || [];
-    const reordered = orderedIndices.map(index => prompts[index]).filter(Boolean);
+    const reordered = orderedIndices.map((index) => prompts[index]).filter(Boolean);
     reordered.forEach((prompt, index) => {
       prompt.order = index;
     });
@@ -334,7 +336,7 @@ export function usePresetStore() {
   };
 
   const duplicatePrompt = async (presetId: string, promptIndex: number) => {
-    const preset = presets.value.find(p => p.id === presetId);
+    const preset = presets.value.find((p) => p.id === presetId);
     if (!preset) return;
     const prompts = (preset.data.prompts as PresetPrompt[]) || [];
     const source = prompts[promptIndex];
@@ -351,7 +353,7 @@ export function usePresetStore() {
   };
 
   const removePrompt = async (presetId: string, promptIndex: number) => {
-    const preset = presets.value.find(p => p.id === presetId);
+    const preset = presets.value.find((p) => p.id === presetId);
     if (!preset) return;
     const prompts = (preset.data.prompts as PresetPrompt[]) || [];
     const target = prompts[promptIndex];

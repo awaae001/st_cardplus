@@ -114,7 +114,8 @@ export function useV3CharacterCard() {
     mergedData.data.scenario = mergedData.data.scenario || mergedData.scenario;
     mergedData.data.first_mes = mergedData.data.first_mes || mergedData.first_mes;
     mergedData.data.mes_example = mergedData.data.mes_example || mergedData.mes_example;
-    mergedData.data.tags = (mergedData.data.tags && mergedData.data.tags.length > 0) ? mergedData.data.tags : mergedData.tags;
+    mergedData.data.tags =
+      mergedData.data.tags && mergedData.data.tags.length > 0 ? mergedData.data.tags : mergedData.tags;
 
     // 2. 从 data 层同步到顶层（用于兼容性）
     mergedData.name = mergedData.data.name;

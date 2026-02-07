@@ -3,37 +3,40 @@ import type { CharacterCard } from '../../types/character';
 import { addItem, removeItem, exportSection } from './sectionHelpers';
 
 export function useCardSections(form: Ref<CharacterCard>) {
-  const addTrait = () => addItem(form.value.traits, () => ({
-    name: '',
-    description: '',
-    dialogueExamples: [''],
-    behaviorExamples: ['']
-  }));
+  const addTrait = () =>
+    addItem(form.value.traits, () => ({
+      name: '',
+      description: '',
+      dialogueExamples: [''],
+      behaviorExamples: [''],
+    }));
 
   const removeTrait = (index: number) => removeItem(form.value.traits, index);
 
-  const addSkill = () => addItem(form.value.skills, () => ({
-    name: '',
-    type: '',
-    description: '',
-    dialogExample: '',
-    behaviorExample: ''
-  }));
+  const addSkill = () =>
+    addItem(form.value.skills, () => ({
+      name: '',
+      type: '',
+      description: '',
+      dialogExample: '',
+      behaviorExample: '',
+    }));
 
   const removeSkill = (index: number) => removeItem(form.value.skills, index);
 
-  const addRelationship = () => addItem(form.value.relationships, () => ({
-    name: '',
-    description: '',
-    features: '',
-    dialogueExamples: ['']
-  }));
+  const addRelationship = () =>
+    addItem(form.value.relationships, () => ({
+      name: '',
+      description: '',
+      features: '',
+      dialogueExamples: [''],
+    }));
 
   const removeRelationship = (index: number) => removeItem(form.value.relationships, index);
 
   // 4位数字ID生成器 (1000-9999)
   const generateNoteId = (): number => {
-    const existingIds = new Set(form.value.notes.map(note => note.id));
+    const existingIds = new Set(form.value.notes.map((note) => note.id));
     let newId: number;
     do {
       newId = Math.floor(Math.random() * 9000) + 1000; // 1000-9999
@@ -41,35 +44,38 @@ export function useCardSections(form: Ref<CharacterCard>) {
     return newId;
   };
 
-  const addNote = () => addItem(form.value.notes, () => ({
-    id: generateNoteId(),
-    name: '',
-    data: ['']
-  }));
+  const addNote = () =>
+    addItem(form.value.notes, () => ({
+      id: generateNoteId(),
+      name: '',
+      data: [''],
+    }));
 
   const removeNote = (id: number) => {
-    const index = form.value.notes.findIndex(note => note.id === id);
+    const index = form.value.notes.findIndex((note) => note.id === id);
     removeItem(form.value.notes, index);
   };
 
-  const addAttire = () => addItem(form.value.attires, () => ({
-    name: '',
-    description: '',
-    tops: '',
-    bottoms: '',
-    shoes: '',
-    socks: '',
-    underwears: '',
-    accessories: ''
-  }));
+  const addAttire = () =>
+    addItem(form.value.attires, () => ({
+      name: '',
+      description: '',
+      tops: '',
+      bottoms: '',
+      shoes: '',
+      socks: '',
+      underwears: '',
+      accessories: '',
+    }));
 
   const removeAttire = (index: number) => removeItem(form.value.attires, index);
   const exportAttires = () => {
-    const processedAttires = form.value.attires.map(attire => ({
+    const processedAttires = form.value.attires.map((attire) => ({
       ...attire,
-      accessories: typeof attire.accessories === 'string'
-        ? attire.accessories.split('\n').filter(a => a.trim() !== '')
-        : attire.accessories || []
+      accessories:
+        typeof attire.accessories === 'string'
+          ? attire.accessories.split('\n').filter((a) => a.trim() !== '')
+          : attire.accessories || [],
     }));
     return exportSection(processedAttires, '服装套装');
   };

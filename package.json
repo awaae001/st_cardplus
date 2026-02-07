@@ -14,7 +14,9 @@
     "electron": "electron .",
     "start": "node scripts/run-dev.mjs",
     "build:electron": "cross-env NODE_ENV=production vite build && tsc -p electron/tsconfig.json && electron-builder",
-    "electron:serve": "cross-env NODE_ENV=development vite build && tsc -p electron/tsconfig.json && electron ."
+    "electron:serve": "cross-env NODE_ENV=development vite build && tsc -p electron/tsconfig.json && electron .",
+    "format": "prettier --write \"src/**/*.{vue,ts,tsx,js,jsx,json,css,scss,md}\" \"electron/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.{vue,ts,tsx,js,jsx,json,css,scss,md}\" \"electron/**/*.ts\""
   },
   "dependencies": {
     "@codemirror/lang-javascript": "^6.2.4",
@@ -63,6 +65,7 @@
     "cross-env": "^7.0.3",
     "electron": "37.3.1",
     "electron-builder": "26.0.19",
+    "prettier": "^3.8.1",
     "terser": "^5.46.0",
     "ts-node": "^10.9.2",
     "typescript": "~5.7.3",

@@ -1,11 +1,7 @@
 import { ref, readonly, onMounted } from 'vue';
 import type { HistoryEntry } from '@/types/world-editor';
 import { v4 as uuidv4 } from 'uuid';
-import {
-  readSessionStorageJSON,
-  writeSessionStorageJSON,
-  removeSessionStorageItem,
-} from '@/utils/localStorageUtils';
+import { readSessionStorageJSON, writeSessionStorageJSON, removeSessionStorageItem } from '@/utils/localStorageUtils';
 
 export function useHistory(storageKey: string, maxHistorySize = 100) {
   const history = ref<HistoryEntry[]>([]);
@@ -22,7 +18,7 @@ export function useHistory(storageKey: string, maxHistorySize = 100) {
       };
       writeSessionStorageJSON(storageKey, state);
     } catch (e) {
-      console.error("Failed to save history to sessionStorage", e);
+      console.error('Failed to save history to sessionStorage', e);
     }
   };
 
@@ -35,7 +31,7 @@ export function useHistory(storageKey: string, maxHistorySize = 100) {
         updateUndoRedoState();
       }
     } catch (e) {
-      console.error("Failed to load history from sessionStorage", e);
+      console.error('Failed to load history from sessionStorage', e);
     }
   });
 

@@ -7,14 +7,27 @@
     @close="handleClose"
   >
     <div class="worldbook-selector-container">
-      <el-scrollbar v-loading="isLoading" max-height="500px">
-        <el-empty v-if="!isLoading && worldBooks.length === 0" description="暂无可用的世界书">
-          <el-button type="primary" size="small" @click="handleGoToWorldBook">
+      <el-scrollbar
+        v-loading="isLoading"
+        max-height="500px"
+      >
+        <el-empty
+          v-if="!isLoading && worldBooks.length === 0"
+          description="暂无可用的世界书"
+        >
+          <el-button
+            type="primary"
+            size="small"
+            @click="handleGoToWorldBook"
+          >
             前往世界书管理
           </el-button>
         </el-empty>
 
-        <div v-else class="worldbook-list">
+        <div
+          v-else
+          class="worldbook-list"
+        >
           <div
             v-for="book in worldBooks"
             :key="book.id"
@@ -24,28 +37,53 @@
           >
             <div class="worldbook-item-header">
               <div class="worldbook-item-title">
-                <Icon icon="ph:book-duotone" class="worldbook-item-icon" />
+                <Icon
+                  icon="ph:book-duotone"
+                  class="worldbook-item-icon"
+                />
                 <span class="worldbook-item-name">{{ book.name }}</span>
               </div>
               <el-tag size="small">{{ book.entries.length }} 条目</el-tag>
             </div>
 
-            <div v-if="book.description" class="worldbook-item-description">
+            <div
+              v-if="book.description"
+              class="worldbook-item-description"
+            >
               {{ book.description }}
             </div>
 
-            <div v-if="book.entries.length > 0" class="worldbook-item-stats">
-              <el-tag v-if="constantEntriesCount(book) > 0" type="success" size="small" effect="plain">
+            <div
+              v-if="book.entries.length > 0"
+              class="worldbook-item-stats"
+            >
+              <el-tag
+                v-if="constantEntriesCount(book) > 0"
+                type="success"
+                size="small"
+                effect="plain"
+              >
                 常驻: {{ constantEntriesCount(book) }}
               </el-tag>
-              <el-tag v-if="disabledEntriesCount(book) > 0" type="info" size="small" effect="plain">
+              <el-tag
+                v-if="disabledEntriesCount(book) > 0"
+                type="info"
+                size="small"
+                effect="plain"
+              >
                 禁用: {{ disabledEntriesCount(book) }}
               </el-tag>
             </div>
 
             <!-- 预览条目列表 -->
-            <el-collapse v-if="selectedBookId === book.id" class="worldbook-item-preview">
-              <el-collapse-item title="预览条目列表" name="preview">
+            <el-collapse
+              v-if="selectedBookId === book.id"
+              class="worldbook-item-preview"
+            >
+              <el-collapse-item
+                title="预览条目列表"
+                name="preview"
+              >
                 <div class="entry-preview-list">
                   <div
                     v-for="(entry, index) in book.entries.slice(0, 10)"
@@ -59,9 +97,19 @@
                     <span class="entry-preview-comment">
                       {{ entry.comment || `条目 ${index + 1}` }}
                     </span>
-                    <el-tag v-if="entry.disable" type="info" size="small" effect="plain">禁用</el-tag>
+                    <el-tag
+                      v-if="entry.disable"
+                      type="info"
+                      size="small"
+                      effect="plain"
+                    >
+                      禁用
+                    </el-tag>
                   </div>
-                  <div v-if="book.entries.length > 10" class="entry-preview-more">
+                  <div
+                    v-if="book.entries.length > 10"
+                    class="entry-preview-more"
+                  >
                     还有 {{ book.entries.length - 10 }} 个条目...
                   </div>
                 </div>
@@ -110,7 +158,7 @@ const router = useRouter();
 
 const dialogVisible = computed({
   get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value)
+  set: (value) => emit('update:modelValue', value),
 });
 
 const isLoading = ref(false);
@@ -119,12 +167,12 @@ const selectedBookId = ref<string | null>(null);
 
 // 统计常驻条目数量
 const constantEntriesCount = (book: WorldBook) => {
-  return book.entries.filter(entry => entry.constant).length;
+  return book.entries.filter((entry) => entry.constant).length;
 };
 
 // 统计禁用条目数量
 const disabledEntriesCount = (book: WorldBook) => {
-  return book.entries.filter(entry => entry.disable).length;
+  return book.entries.filter((entry) => entry.disable).length;
 };
 
 // 加载世界书列表

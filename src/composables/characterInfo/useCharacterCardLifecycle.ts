@@ -4,7 +4,7 @@ import {
   loadFromLocalStorage,
   initAutoSave,
   clearAutoSave,
-  getSetting
+  getSetting,
 } from '../../utils/localStorageUtils';
 import type { CharacterCard } from '../../types/character';
 

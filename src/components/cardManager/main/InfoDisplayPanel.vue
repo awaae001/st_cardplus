@@ -1,21 +1,39 @@
 <template>
   <div class="info-display-container">
     <!-- 正则脚本信息展示 -->
-    <div v-if="type === 'regex'" class="regex-panel">
-      <div v-if="character.data.extensions?.regex_scripts?.length" class="regex-content">
+    <div
+      v-if="type === 'regex'"
+      class="regex-panel"
+    >
+      <div
+        v-if="character.data.extensions?.regex_scripts?.length"
+        class="regex-content"
+      >
         <!-- 单个正则脚本时显示类似世界书的样式 -->
-        <div v-if="character.data.extensions.regex_scripts.length === 1" class="regex-single-script">
-          <el-descriptions :column="1" border>
+        <div
+          v-if="character.data.extensions.regex_scripts.length === 1"
+          class="regex-single-script"
+        >
+          <el-descriptions
+            :column="1"
+            border
+          >
             <el-descriptions-item label="正则脚本">
-              <el-tag type="success" size="large">
+              <el-tag
+                type="success"
+                size="large"
+              >
                 {{ character.data.extensions.regex_scripts[0].scriptName }}
               </el-tag>
             </el-descriptions-item>
           </el-descriptions>
         </div>
-        
+
         <!-- 多个正则脚本时显示列表 -->
-        <div v-else class="regex-multiple-scripts">
+        <div
+          v-else
+          class="regex-multiple-scripts"
+        >
           <el-scrollbar max-height="200px">
             <div class="regex-scripts-list">
               <el-tag
@@ -29,7 +47,11 @@
           </el-scrollbar>
         </div>
       </div>
-      <el-empty v-else description="无正则脚本" :image-size="60" />
+      <el-empty
+        v-else
+        description="无正则脚本"
+        :image-size="60"
+      />
     </div>
   </div>
 </template>

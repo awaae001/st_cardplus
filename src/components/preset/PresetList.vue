@@ -11,7 +11,13 @@
     @node-click="handleNodeClick"
   >
     <template #header-actions>
-      <el-tooltip content="创建新预设" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+      <el-tooltip
+        content="创建新预设"
+        placement="top"
+        :show-arrow="false"
+        :offset="8"
+        :hide-after="0"
+      >
         <button
           @click="$emit('create-preset')"
           class="btn-primary-adv sidebar-header-button"
@@ -20,7 +26,13 @@
           <Icon icon="ph:plus-bold" />
         </button>
       </el-tooltip>
-      <el-tooltip content="新建空白模板" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+      <el-tooltip
+        content="新建空白模板"
+        placement="top"
+        :show-arrow="false"
+        :offset="8"
+        :hide-after="0"
+      >
         <button
           @click="$emit('create-blank')"
           class="btn-secondary-adv sidebar-header-button"
@@ -32,13 +44,28 @@
     </template>
 
     <template #node="{ node, data }">
-      <div class="sidebar-tree-node" :class="{ 'is-header': data.isHeader, 'is-disabled': data.isPrompt && data.enabled === false }">
+      <div
+        class="sidebar-tree-node"
+        :class="{ 'is-header': data.isHeader, 'is-disabled': data.isPrompt && data.enabled === false }"
+      >
         <div class="sidebar-tree-node-main">
-          <Icon :icon="data.icon" class="sidebar-tree-node-icon" />
+          <Icon
+            :icon="data.icon"
+            class="sidebar-tree-node-icon"
+          />
           <span class="sidebar-tree-node-label">{{ node.label }}</span>
         </div>
-        <div class="sidebar-tree-node-actions" v-if="data.isPreset">
-          <el-tooltip content="新增条目" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+        <div
+          class="sidebar-tree-node-actions"
+          v-if="data.isPreset"
+        >
+          <el-tooltip
+            content="新增条目"
+            placement="top"
+            :show-arrow="false"
+            :offset="8"
+            :hide-after="0"
+          >
             <button
               @click.stop="$emit('add-prompt', data.id)"
               class="sidebar-tree-node-action-button"
@@ -46,7 +73,13 @@
               <Icon icon="ph:plus-circle-duotone" />
             </button>
           </el-tooltip>
-          <el-tooltip content="重命名" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+          <el-tooltip
+            content="重命名"
+            placement="top"
+            :show-arrow="false"
+            :offset="8"
+            :hide-after="0"
+          >
             <button
               @click.stop="$emit('rename-preset', data.id)"
               class="sidebar-tree-node-action-button"
@@ -54,7 +87,13 @@
               <Icon icon="ph:pencil-simple-duotone" />
             </button>
           </el-tooltip>
-          <el-tooltip content="删除" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+          <el-tooltip
+            content="删除"
+            placement="top"
+            :show-arrow="false"
+            :offset="8"
+            :hide-after="0"
+          >
             <button
               @click.stop="$emit('delete-preset', data.id)"
               class="sidebar-tree-node-action-button is-danger"
@@ -63,8 +102,17 @@
             </button>
           </el-tooltip>
         </div>
-        <div class="sidebar-tree-node-actions" v-if="data.isPrompt">
-          <el-tooltip content="复制条目" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
+        <div
+          class="sidebar-tree-node-actions"
+          v-if="data.isPrompt"
+        >
+          <el-tooltip
+            content="复制条目"
+            placement="top"
+            :show-arrow="false"
+            :offset="8"
+            :hide-after="0"
+          >
             <button
               @click.stop="$emit('duplicate-prompt', data.presetId, data.promptIndex)"
               class="sidebar-tree-node-action-button"
@@ -93,17 +141,47 @@
 
     <template #footer>
       <div class="preset-footer-actions">
-        <el-tooltip content="导出当前预设" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
-          <button class="btn-success-adv preset-bottom-button-text" @click="$emit('export-preset')">
-            <Icon icon="ph:export-duotone" width="16" height="16" class="preset-button-text-icon" />
+        <el-tooltip
+          content="导出当前预设"
+          placement="top"
+          :show-arrow="false"
+          :offset="8"
+          :hide-after="0"
+        >
+          <button
+            class="btn-success-adv preset-bottom-button-text"
+            @click="$emit('export-preset')"
+          >
+            <Icon
+              icon="ph:export-duotone"
+              width="16"
+              height="16"
+              class="preset-button-text-icon"
+            />
             <span class="preset-button-text-short">导出</span>
             <span class="preset-button-text-long">导出预设</span>
           </button>
         </el-tooltip>
-        <el-tooltip content="从文件导入预设" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
-          <el-upload action="#" :before-upload="handleImportPreset" :show-file-list="false" accept=".json">
+        <el-tooltip
+          content="从文件导入预设"
+          placement="top"
+          :show-arrow="false"
+          :offset="8"
+          :hide-after="0"
+        >
+          <el-upload
+            action="#"
+            :before-upload="handleImportPreset"
+            :show-file-list="false"
+            accept=".json"
+          >
             <button class="btn-warning-adv preset-bottom-button-text">
-              <Icon icon="ph:file-text-duotone" width="16" height="16" class="preset-button-text-icon" />
+              <Icon
+                icon="ph:file-text-duotone"
+                width="16"
+                height="16"
+                class="preset-button-text-icon"
+              />
               <span class="preset-button-text-short">导入</span>
               <span class="preset-button-text-long">input</span>
             </button>
@@ -159,7 +237,7 @@ const treeData = computed(() => {
   return props.presets
     .slice()
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-    .map(preset => ({
+    .map((preset) => ({
       id: preset.id,
       label: preset.name,
       icon: 'ph:folder-duotone',
@@ -207,7 +285,7 @@ const currentNodeKey = computed(() => {
     return `${props.activePresetId}-header`;
   }
   if (props.selectedPromptIndex !== null && props.selectedPromptIndex !== undefined) {
-    const preset = props.presets.find(p => p.id === props.activePresetId);
+    const preset = props.presets.find((p) => p.id === props.activePresetId);
     const prompt = preset?.data?.prompts?.[props.selectedPromptIndex] as Record<string, any> | undefined;
     return `${props.activePresetId}-${prompt?.identifier ?? props.selectedPromptIndex}`;
   }

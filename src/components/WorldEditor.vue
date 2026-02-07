@@ -1,26 +1,57 @@
 <template>
   <div class="world-editor-container">
     <div class="world-editor-mobile-layout">
-      <el-tabs v-model="activeTab" type="border-card" class="world-editor-tabs-mobile">
-        <el-tab-pane name="list" class="world-editor-tab-pane">
+      <el-tabs
+        v-model="activeTab"
+        type="border-card"
+        class="world-editor-tabs-mobile"
+      >
+        <el-tab-pane
+          name="list"
+          class="world-editor-tab-pane"
+        >
           <template #label>
             <span class="world-editor-tab-label">
-              <Icon icon="ph:list-bullets-duotone" class="world-editor-tab-icon" />
+              <Icon
+                icon="ph:list-bullets-duotone"
+                class="world-editor-tab-icon"
+              />
               <span class="world-editor-tab-text">项目列表</span>
             </span>
           </template>
-          <WorldEditorToolbar :projects="projects" :landmarks="landmarks" :forces="forces" :regions="regions" :selected-item="selectedItem"
-            :can-undo="canUndo" :can-redo="canRedo" @select="handleSelection" @open-graph="handleOpenGraph"
-            @add="handleAdd" @delete="handleDelete" @undo="handleUndo" @redo="handleRedo" @edit="handleEdit"
-            @copy="handleCopy" :drag-drop-handlers="dragDropHandlers" />
+          <WorldEditorToolbar
+            :projects="projects"
+            :landmarks="landmarks"
+            :forces="forces"
+            :regions="regions"
+            :selected-item="selectedItem"
+            :can-undo="canUndo"
+            :can-redo="canRedo"
+            @select="handleSelection"
+            @open-graph="handleOpenGraph"
+            @add="handleAdd"
+            @delete="handleDelete"
+            @undo="handleUndo"
+            @redo="handleRedo"
+            @edit="handleEdit"
+            @copy="handleCopy"
+            :drag-drop-handlers="dragDropHandlers"
+          />
         </el-tab-pane>
-        <el-tab-pane name="editor" class="world-editor-tab-pane" :disabled="!selectedItem && !graphProjectId">
+        <el-tab-pane
+          name="editor"
+          class="world-editor-tab-pane"
+          :disabled="!selectedItem && !graphProjectId"
+        >
           <template #label>
             <span class="world-editor-tab-label">
-              <Icon icon="ph:note-pencil-duotone" class="world-editor-tab-icon" />
-              <span class="world-editor-tab-text-truncated">{{
-                selectedItem ? selectedItem.name || "编辑中" : "编辑条目"
-              }}</span>
+              <Icon
+                icon="ph:note-pencil-duotone"
+                class="world-editor-tab-icon"
+              />
+              <span class="world-editor-tab-text-truncated">
+                {{ selectedItem ? selectedItem.name || '编辑中' : '编辑条目' }}
+              </span>
             </span>
           </template>
           <WorldGraph
@@ -49,16 +80,40 @@
     </div>
 
     <div class="world-editor-desktop-layout">
-      <Splitpanes class="default-theme" style="height: 100%">
-        <Pane size="15" min-size="12" max-size="30">
+      <Splitpanes
+        class="default-theme"
+        style="height: 100%"
+      >
+        <Pane
+          size="15"
+          min-size="12"
+          max-size="30"
+        >
           <div class="toolbar-container">
-            <WorldEditorToolbar :projects="projects" :landmarks="landmarks" :forces="forces" :regions="regions"
-              :selected-item="selectedItem" :can-undo="canUndo" :can-redo="canRedo" @select="handleSelection"
-              @open-graph="handleOpenGraph" @add="handleAdd" @delete="handleDelete" @undo="handleUndo"
-              @redo="handleRedo" @edit="handleEdit" @copy="handleCopy" :drag-drop-handlers="dragDropHandlers" />
+            <WorldEditorToolbar
+              :projects="projects"
+              :landmarks="landmarks"
+              :forces="forces"
+              :regions="regions"
+              :selected-item="selectedItem"
+              :can-undo="canUndo"
+              :can-redo="canRedo"
+              @select="handleSelection"
+              @open-graph="handleOpenGraph"
+              @add="handleAdd"
+              @delete="handleDelete"
+              @undo="handleUndo"
+              @redo="handleRedo"
+              @edit="handleEdit"
+              @copy="handleCopy"
+              :drag-drop-handlers="dragDropHandlers"
+            />
           </div>
         </Pane>
-        <Pane size="85" min-size="70">
+        <Pane
+          size="85"
+          min-size="70"
+        >
           <div class="main-panel-container">
             <WorldGraph
               v-if="graphProjectId"
@@ -85,18 +140,28 @@
         </Pane>
       </Splitpanes>
     </div>
-    <ProjectModal v-model:visible="isModalVisible" :project-data="editingProject" @submit="handleModalSubmit" />
+    <ProjectModal
+      v-model:visible="isModalVisible"
+      :project-data="editingProject"
+      @submit="handleModalSubmit"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { ElTabs, ElTabPane, ElMessageBox } from "element-plus";
-import { Icon } from "@iconify/vue";
+import { ElTabs, ElTabPane, ElMessageBox } from 'element-plus';
+import { Icon } from '@iconify/vue';
 import { Splitpanes, Pane } from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
 import '@/css/worldeditor.css';
-import type { Project, EnhancedLandmark, EnhancedForce, EnhancedRegion, ProjectIntegration } from '@/types/world-editor';
+import type {
+  Project,
+  EnhancedLandmark,
+  EnhancedForce,
+  EnhancedRegion,
+  ProjectIntegration,
+} from '@/types/world-editor';
 import { ActionType } from '@/types/world-editor';
 import WorldEditorToolbar from './worldeditor/WorldEditorToolbar.vue';
 import WorldEditorMainPanel from './worldeditor/WorldEditorMainPanel.vue';
@@ -127,7 +192,7 @@ const {
   handleAdd: handleAddEntity,
   handleDelete: coreHandleDelete,
   handleCopy,
-  handleProjectSubmit
+  handleProjectSubmit,
 } = useWorldEditor();
 
 const handleSelection = (item: Project | EnhancedLandmark | EnhancedForce | EnhancedRegion | ProjectIntegration) => {
@@ -136,7 +201,9 @@ const handleSelection = (item: Project | EnhancedLandmark | EnhancedForce | Enha
   graphProjectId.value = null;
 };
 
-const handleSelectionFromChild = (item: Project | EnhancedLandmark | EnhancedForce | EnhancedRegion | ProjectIntegration) => {
+const handleSelectionFromChild = (
+  item: Project | EnhancedLandmark | EnhancedForce | EnhancedRegion | ProjectIntegration
+) => {
   coreHandleSelection(item);
   graphProjectId.value = null;
 };
@@ -158,7 +225,7 @@ const {
   editingProject,
   handleAddProject,
   handleEdit: handleEditProject,
-  handleModalSubmit
+  handleModalSubmit,
 } = useWorldEditorUI(handleProjectSubmit);
 
 // Drag and Drop Logic
@@ -177,7 +244,8 @@ const handleAdd = (type: 'project' | 'landmark' | 'force' | 'region') => {
 };
 
 const handleEdit = (item: Project | EnhancedLandmark | EnhancedForce | EnhancedRegion | ProjectIntegration) => {
-  if ('createdAt' in item && !('projectId' in item)) { // Is a Project
+  if ('createdAt' in item && !('projectId' in item)) {
+    // Is a Project
     handleEditProject(item as Project);
   } else {
     // Selecting is the "edit" action for landmarks, forces, and integration
@@ -189,8 +257,8 @@ const deleteLandmarkTree = (landmarkId: string) => {
   const ids = collectDescendantIds(landmarks.value, landmarkId);
   ids.add(landmarkId);
   removeLandmarkLinksForIds(landmarks.value, ids);
-  ids.forEach(id => removeLandmarkFromHierarchy(landmarks.value, id));
-  landmarks.value = landmarks.value.filter(landmark => !ids.has(landmark.id));
+  ids.forEach((id) => removeLandmarkFromHierarchy(landmarks.value, id));
+  landmarks.value = landmarks.value.filter((landmark) => !ids.has(landmark.id));
   if (selectedItem.value && 'importance' in selectedItem.value && ids.has(selectedItem.value.id)) {
     selectedItem.value = projects.value[0] || landmarks.value[0] || forces.value[0] || regions.value[0] || null;
   }
@@ -226,7 +294,7 @@ const handleUndo = () => {
   if (!restoredState) return;
 
   const updateEntity = (collection: any[], updatedEntity: any) => {
-    const index = collection.findIndex(e => e.id === updatedEntity.id);
+    const index = collection.findIndex((e) => e.id === updatedEntity.id);
     if (index !== -1) {
       collection[index] = updatedEntity;
       selectedItem.value = collection[index];
@@ -235,12 +303,19 @@ const handleUndo = () => {
     return false;
   };
 
-  if (!updateEntity(landmarks.value, restoredState) && !updateEntity(forces.value, restoredState) && !updateEntity(regions.value, restoredState)) {
-    if ('importance' in restoredState) { // is landmark
+  if (
+    !updateEntity(landmarks.value, restoredState) &&
+    !updateEntity(forces.value, restoredState) &&
+    !updateEntity(regions.value, restoredState)
+  ) {
+    if ('importance' in restoredState) {
+      // is landmark
       landmarks.value.push(restoredState as EnhancedLandmark);
-    } else if ('power' in restoredState) { // is force
+    } else if ('power' in restoredState) {
+      // is force
       forces.value.push(restoredState as EnhancedForce);
-    } else { // is force
+    } else {
+      // is force
       regions.value.push(restoredState as EnhancedRegion);
     }
     selectedItem.value = restoredState;
@@ -252,7 +327,7 @@ const handleRedo = () => {
   if (!restoredState) return;
 
   const updateEntity = (collection: any[], updatedEntity: any) => {
-    const index = collection.findIndex(e => e.id === updatedEntity.id);
+    const index = collection.findIndex((e) => e.id === updatedEntity.id);
     if (index !== -1) {
       collection[index] = updatedEntity;
       selectedItem.value = collection[index];
@@ -268,7 +343,7 @@ const handleRedo = () => {
 
 // Watch for changes in the selected item to add to history
 watch(
-  () => selectedItem.value ? JSON.stringify(selectedItem.value) : '',
+  () => (selectedItem.value ? JSON.stringify(selectedItem.value) : ''),
   (newJson, oldJson) => {
     if (oldJson && newJson) {
       const oldState = JSON.parse(oldJson);
@@ -296,8 +371,6 @@ watch(
   },
   { deep: true }
 );
-
-
 </script>
 
 <style scoped>
@@ -324,5 +397,4 @@ watch(
   box-sizing: border-box;
   overflow: hidden;
 }
-
 </style>

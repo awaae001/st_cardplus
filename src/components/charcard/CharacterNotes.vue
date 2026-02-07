@@ -2,11 +2,23 @@
   <section class="form-section">
     <div class="title-Btn-add form-section-title">
       <h3 class="title-fixed">
-        <Icon icon="ph:note-duotone" class="form-section-icon" />角色备注
+        <Icon
+          icon="ph:note-duotone"
+          class="form-section-icon"
+        />
+        角色备注
       </h3>
-      <div style="display: flex; gap: 8px; margin-left: 16px;">
-        <el-button type="primary" @click="handleAddNote">
-          <Icon icon="material-symbols:note-add-outline" width="18" height="18" style="margin-right: 4px;" />
+      <div style="display: flex; gap: 8px; margin-left: 16px">
+        <el-button
+          type="primary"
+          @click="handleAddNote"
+        >
+          <Icon
+            icon="material-symbols:note-add-outline"
+            width="18"
+            height="18"
+            style="margin-right: 4px"
+          />
           添加备注
         </el-button>
       </div>
@@ -24,18 +36,24 @@
       <template #item="{ element: note }">
         <el-card class="draggable-card">
           <div class="drag-handle">
-            <Icon icon="material-symbols:drag-handle" width="20" height="20" />
+            <Icon
+              icon="material-symbols:drag-handle"
+              width="20"
+              height="20"
+            />
           </div>
-          <el-form-item
-            style="margin-bottom: 0"
-          >
+          <el-form-item style="margin-bottom: 0">
             <el-input
               :model-value="note.name"
               @update:model-value="(value) => handleUpdateNoteName(note.id, value)"
               placeholder="备注名称"
             />
           </el-form-item>
-          <div v-for="(dataItem, dataIndex) in note.data" :key="`${note.id}-${dataIndex}`" class="cardInput">
+          <div
+            v-for="(dataItem, dataIndex) in note.data"
+            :key="`${note.id}-${dataIndex}`"
+            class="cardInput"
+          >
             <el-input
               :model-value="dataItem"
               @update:model-value="(value) => handleUpdateNoteData(note.id, dataIndex, value)"
@@ -43,15 +61,22 @@
               :rows="2"
               :placeholder="`备注内容 ${dataIndex + 1}`"
             />
-            <el-button @click="handleRemoveNoteDataItem(note.id, dataIndex)" size="small">
-              <Icon icon="material-symbols:delete-outline" width="18" height="18" />
+            <el-button
+              @click="handleRemoveNoteDataItem(note.id, dataIndex)"
+              size="small"
+            >
+              <Icon
+                icon="material-symbols:delete-outline"
+                width="18"
+                height="18"
+              />
             </el-button>
           </div>
           <el-button
             type="primary"
             @click="handleAddNoteDataItem(note.id)"
             size="small"
-            style="width: 100%; margin-top: 4px;"
+            style="width: 100%; margin-top: 4px"
           >
             添加备注内容
           </el-button>
@@ -59,9 +84,14 @@
           <el-button
             type="danger"
             @click="handleRemoveNote(note.id)"
-            style="margin-top: 1rem; width: 100%;"
+            style="margin-top: 1rem; width: 100%"
           >
-            <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
+            <Icon
+              icon="material-symbols:delete-outline"
+              width="18"
+              height="18"
+              style="margin-right: 4px"
+            />
             删除备注
           </el-button>
         </el-card>
@@ -93,7 +123,7 @@ const localNotes = ref<Note[]>([]);
 
 // 4位数字ID生成器 (1000-9999)
 const generateNoteId = (): number => {
-  const existingIds = new Set(localNotes.value.map(note => note.id));
+  const existingIds = new Set(localNotes.value.map((note) => note.id));
   let newId: number;
   do {
     newId = Math.floor(Math.random() * 9000) + 1000; // 1000-9999
@@ -102,14 +132,18 @@ const generateNoteId = (): number => {
 };
 
 // 深度克隆函数
-const deepClone = <T>(obj: T): T => {
+const deepClone = <T,>(obj: T): T => {
   return JSON.parse(JSON.stringify(obj));
 };
 
 // 监听props变化，深度克隆到本地状态
-watch(() => props.notes, (newNotes) => {
-  localNotes.value = deepClone(newNotes);
-}, { deep: true, immediate: true });
+watch(
+  () => props.notes,
+  (newNotes) => {
+    localNotes.value = deepClone(newNotes);
+  },
+  { deep: true, immediate: true }
+);
 
 // 发送更新事件到父组件
 const emitUpdate = () => {
@@ -118,7 +152,7 @@ const emitUpdate = () => {
 
 // 根据ID查找备注索引
 const findNoteIndex = (id: number): number => {
-  return localNotes.value.findIndex(note => note.id === id);
+  return localNotes.value.findIndex((note) => note.id === id);
 };
 
 // 添加新备注
@@ -126,7 +160,7 @@ const handleAddNote = () => {
   const newNote: Note = {
     id: generateNoteId(),
     name: '',
-    data: ['']
+    data: [''],
   };
   localNotes.value.push(newNote);
   emitUpdate();

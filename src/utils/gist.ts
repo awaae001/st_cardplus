@@ -55,10 +55,7 @@ export async function testGistConnection(token: string): Promise<GistResponse> {
 /**
  * 创建新的备份 Gist (Secret Gist)
  */
-export async function createBackupGist(
-  token: string,
-  backupData: BackupData
-): Promise<GistResponse> {
+export async function createBackupGist(token: string, backupData: BackupData): Promise<GistResponse> {
   try {
     const octokit = createOctokitClient(token);
 
@@ -92,11 +89,7 @@ export async function createBackupGist(
 /**
  * 上传备份数据到指定的 Gist
  */
-export async function uploadToGist(
-  token: string,
-  gistId: string,
-  backupData: BackupData
-): Promise<GistResponse> {
+export async function uploadToGist(token: string, gistId: string, backupData: BackupData): Promise<GistResponse> {
   try {
     const octokit = createOctokitClient(token);
 
@@ -139,10 +132,7 @@ export async function uploadToGist(
 /**
  * 从 Gist 下载备份数据
  */
-export async function downloadFromGist(
-  token: string,
-  gistId: string
-): Promise<GistResponse> {
+export async function downloadFromGist(token: string, gistId: string): Promise<GistResponse> {
   try {
     const octokit = createOctokitClient(token);
 
@@ -201,7 +191,7 @@ export async function downloadFromGist(
         hasLocalStorage: !!backupData.localStorage,
         hasDatabases: !!backupData.databases,
         localStorageType: typeof backupData.localStorage,
-        databasesType: typeof backupData.databases
+        databasesType: typeof backupData.databases,
       });
     } catch (error) {
       console.error('[Gist API] JSON 解析失败:', error);

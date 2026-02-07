@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { Icon } from "@iconify/vue";
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { Icon } from '@iconify/vue';
 import { getHiddenMenuItems, type MenuItemConfig } from '@/utils/localStorageUtils';
 import { toolboxFixedTools, getIconifyIconName } from '@/config/menuConfig';
 
@@ -21,33 +21,33 @@ const hiddenMenuItems = ref<MenuItemConfig[]>([]);
 
 // 获取固定工具（总是显示的工具箱工具）
 const getFixedTools = (): ToolboxDisplayItem[] => {
-  return toolboxFixedTools.map(tool => ({
+  return toolboxFixedTools.map((tool) => ({
     id: tool.id,
     title: tool.title,
     icon: tool.icon,
     description: tool.description,
     route: tool.route,
     type: 'fixed',
-    category: tool.category
+    category: tool.category,
   }));
 };
 
 // 获取来自侧边栏的隐藏项目（只包含非工具箱的主菜单项）
 const getHiddenSidebarItems = (): ToolboxDisplayItem[] => {
   return hiddenMenuItems.value
-    .filter(item => {
+    .filter((item) => {
       // 只显示非工具箱相关的隐藏项目
       // 排除工具箱本身和工具箱内的小工具
       return item.route !== '/toolbox' && !item.route.startsWith('/toolbox/');
     })
-    .map(item => ({
+    .map((item) => ({
       id: item.id,
       title: item.title,
       icon: getIconifyIconName(item.icon),
       description: item.description || '从侧边栏隐藏的菜单项',
       route: item.route,
       type: 'hidden',
-      isMainMenu: item.type === 'main'
+      isMainMenu: item.type === 'main',
     }));
 };
 
@@ -60,8 +60,8 @@ const allTools = computed((): ToolboxDisplayItem[] => {
 });
 
 // 按类型分组
-const fixedTools = computed(() => allTools.value.filter(tool => tool.type === 'fixed'));
-const hiddenSidebarItems = computed(() => allTools.value.filter(tool => tool.type === 'hidden'));
+const fixedTools = computed(() => allTools.value.filter((tool) => tool.type === 'fixed'));
+const hiddenSidebarItems = computed(() => allTools.value.filter((tool) => tool.type === 'hidden'));
 
 // 刷新隐藏项目
 const refreshHiddenItems = () => {
@@ -99,7 +99,11 @@ onUnmounted(() => {
           @click="$router.push(tool.route)"
         >
           <div class="card-content">
-            <Icon :icon="tool.icon" width="48" height="48" />
+            <Icon
+              :icon="tool.icon"
+              width="48"
+              height="48"
+            />
             <h3>{{ tool.title }}</h3>
             <p>{{ tool.description }}</p>
           </div>
@@ -108,9 +112,16 @@ onUnmounted(() => {
     </div>
 
     <!-- 来自侧边栏的隐藏项目 -->
-    <div v-if="hiddenSidebarItems.length > 0" class="section">
+    <div
+      v-if="hiddenSidebarItems.length > 0"
+      class="section"
+    >
       <h2 class="section-title">
-        <Icon icon="heroicons:eye-slash" width="20" height="20" />
+        <Icon
+          icon="heroicons:eye-slash"
+          width="20"
+          height="20"
+        />
         来自侧边栏 ({{ hiddenSidebarItems.length }})
       </h2>
       <p class="section-description">这些项目已从侧边栏隐藏，可在此快速访问</p>
@@ -122,10 +133,20 @@ onUnmounted(() => {
           class="hidden-item-card"
           @click="$router.push(item.route)"
         >
-          <Icon :icon="item.icon" width="24" height="24" class="hidden-item-icon" />
+          <Icon
+            :icon="item.icon"
+            width="24"
+            height="24"
+            class="hidden-item-icon"
+          />
           <div class="hidden-item-info">
             <span class="hidden-item-title">{{ item.title }}</span>
-            <span v-if="item.description" class="hidden-item-description">{{ item.description }}</span>
+            <span
+              v-if="item.description"
+              class="hidden-item-description"
+            >
+              {{ item.description }}
+            </span>
           </div>
         </div>
       </div>

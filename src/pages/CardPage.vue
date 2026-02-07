@@ -1,12 +1,20 @@
 <template>
   <div class="card-page-container">
     <!-- Mobile Layout -->
-    <div class="card-page-mobile-layout" v-if="useNewEditor">
-      <el-tabs v-model="activeTab" type="border-card" class="card-page-tabs-mobile">
+    <div
+      class="card-page-mobile-layout"
+      v-if="useNewEditor"
+    >
+      <el-tabs
+        v-model="activeTab"
+        type="border-card"
+        class="card-page-tabs-mobile"
+      >
         <el-tab-pane name="list">
           <template #label>
             <span>
-              <i class="el-icon-user"></i> 角色列表
+              <i class="el-icon-user"></i>
+              角色列表
             </span>
           </template>
           <CharacterListSidebar
@@ -20,10 +28,14 @@
             @toggle-star="handleToggleStar"
           />
         </el-tab-pane>
-        <el-tab-pane name="editor" :disabled="!activeCharacter">
+        <el-tab-pane
+          name="editor"
+          :disabled="!activeCharacter"
+        >
           <template #label>
             <span>
-              <i class="el-icon-edit"></i> {{ activeCharacter ? activeCharacter.chineseName || '编辑中' : '编辑角色' }}
+              <i class="el-icon-edit"></i>
+              {{ activeCharacter ? activeCharacter.chineseName || '编辑中' : '编辑角色' }}
             </span>
           </template>
           <div class="editor-area">
@@ -33,7 +45,10 @@
               :character="activeCharacter"
               @update:character="handleUpdateCharacter"
             />
-            <div v-else class="editor-empty-state">
+            <div
+              v-else
+              class="editor-empty-state"
+            >
               <el-empty description="请在左侧选择一个角色进行编辑，或创建一个新角色 " />
             </div>
           </div>
@@ -42,9 +57,19 @@
     </div>
 
     <!-- Desktop Layout -->
-    <div class="card-page-desktop-layout" v-if="useNewEditor">
-      <Splitpanes class="default-theme" style="width: 100%; height: 100%">
-        <Pane size="15" min-size="10" max-size="25">
+    <div
+      class="card-page-desktop-layout"
+      v-if="useNewEditor"
+    >
+      <Splitpanes
+        class="default-theme"
+        style="width: 100%; height: 100%"
+      >
+        <Pane
+          size="15"
+          min-size="10"
+          max-size="25"
+        >
           <CharacterListSidebar
             :characters="characters"
             :active-character-id="activeCharacterId"
@@ -64,7 +89,10 @@
               :character="activeCharacter"
               @update:character="handleUpdateCharacter"
             />
-            <div v-else class="editor-empty-state">
+            <div
+              v-else
+              class="editor-empty-state"
+            >
               <el-empty description="请在左侧选择一个角色进行编辑，或创建一个新角色 " />
             </div>
           </div>
@@ -72,8 +100,11 @@
       </Splitpanes>
     </div>
 
-    <div v-if="!useNewEditor" class="editor-area-full">
-        <component :is="editorComponent" />
+    <div
+      v-if="!useNewEditor"
+      class="editor-area-full"
+    >
+      <component :is="editorComponent" />
     </div>
   </div>
 </template>
@@ -153,13 +184,17 @@ const handleToggleStar = (characterId: string, starred: boolean) => {
 const originalTitle = document.title;
 
 // Watch for changes in the active character and update the document title
-watch(activeCharacter, (newCharacter) => {
-  if (newCharacter && newCharacter.chineseName) {
-    document.title = `角色卡 : ${newCharacter.chineseName}`;
-  } else {
-    document.title = '角色卡编辑器';
-  }
-}, { immediate: true, deep: true });
+watch(
+  activeCharacter,
+  (newCharacter) => {
+    if (newCharacter && newCharacter.chineseName) {
+      document.title = `角色卡 : ${newCharacter.chineseName}`;
+    } else {
+      document.title = '角色卡编辑器';
+    }
+  },
+  { immediate: true, deep: true }
+);
 
 onMounted(async () => {
   const module = await import('../components/CharacterInfoEditor.vue');
@@ -212,8 +247,8 @@ onUnmounted(() => {
 }
 
 .editor-area-full {
-    width: 100%;
-    height: 100%;
+  width: 100%;
+  height: 100%;
 }
 
 @media (min-width: 768px) {

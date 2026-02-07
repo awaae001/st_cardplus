@@ -1,19 +1,36 @@
 <template>
-  <div v-if="showBanner" class="survey-banner">
+  <div
+    v-if="showBanner"
+    class="survey-banner"
+  >
     <span>我们有一个新年调查，去填写一下？</span>
-    <a href="https://tally.so/r/kdeaLo" target="_blank" rel="noopener noreferrer">填写调查</a>
-    <button v-if="props.dismissible" @click="dismissBanner">不再显示</button>
+    <a
+      href="https://tally.so/r/kdeaLo"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      填写调查
+    </a>
+    <button
+      v-if="props.dismissible"
+      @click="dismissBanner"
+    >
+      不再显示
+    </button>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 
-const props = withDefaults(defineProps<{
-  dismissible?: boolean;
-}>(), {
-  dismissible: true,
-});
+const props = withDefaults(
+  defineProps<{
+    dismissible?: boolean;
+  }>(),
+  {
+    dismissible: true,
+  }
+);
 
 const showBanner = ref(false);
 

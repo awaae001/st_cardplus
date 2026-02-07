@@ -8,23 +8,49 @@
   >
     <div class="regex-selector-container">
       <div class="selector-header">
-        <el-text type="info" size="small">
+        <el-text
+          type="info"
+          size="small"
+        >
           从正则编辑器中选择要导出到角色卡的正则脚本
         </el-text>
         <div class="selector-actions">
-          <el-button size="small" @click="handleSelectAll">全选</el-button>
-          <el-button size="small" @click="handleDeselectAll">取消全选</el-button>
+          <el-button
+            size="small"
+            @click="handleSelectAll"
+          >
+            全选
+          </el-button>
+          <el-button
+            size="small"
+            @click="handleDeselectAll"
+          >
+            取消全选
+          </el-button>
         </div>
       </div>
 
-      <el-scrollbar v-loading="isLoading" max-height="400px">
-        <el-empty v-if="!isLoading && categories.length === 0" description="暂无可用的正则脚本">
-          <el-button type="primary" size="small" @click="handleGoToRegexEditor">
+      <el-scrollbar
+        v-loading="isLoading"
+        max-height="400px"
+      >
+        <el-empty
+          v-if="!isLoading && categories.length === 0"
+          description="暂无可用的正则脚本"
+        >
+          <el-button
+            type="primary"
+            size="small"
+            @click="handleGoToRegexEditor"
+          >
             前往正则编辑器
           </el-button>
         </el-empty>
 
-        <div v-else class="regex-categories-list">
+        <div
+          v-else
+          class="regex-categories-list"
+        >
           <div
             v-for="category in categories"
             :key="category.id"
@@ -32,16 +58,26 @@
           >
             <div class="category-header">
               <div class="category-title">
-                <Icon icon="ph:folder-duotone" class="category-icon" />
+                <Icon
+                  icon="ph:folder-duotone"
+                  class="category-icon"
+                />
                 <span class="category-name">{{ category.name }}</span>
-                <el-tag v-if="category.metadata?.source === 'character-card'" size="small" type="primary">
+                <el-tag
+                  v-if="category.metadata?.source === 'character-card'"
+                  size="small"
+                  type="primary"
+                >
                   来自角色卡
                 </el-tag>
               </div>
               <el-tag size="small">{{ category.scripts.length }} 个脚本</el-tag>
             </div>
 
-            <el-checkbox-group v-model="selectedScriptIds" class="scripts-list">
+            <el-checkbox-group
+              v-model="selectedScriptIds"
+              class="scripts-list"
+            >
               <el-checkbox
                 v-for="script in category.scripts"
                 :key="script.id"
@@ -49,9 +85,18 @@
                 class="script-checkbox"
               >
                 <div class="script-item">
-                  <Icon icon="ph:file-code-duotone" class="script-icon" />
+                  <Icon
+                    icon="ph:file-code-duotone"
+                    class="script-icon"
+                  />
                   <span class="script-name">{{ script.scriptName }}</span>
-                  <el-tag v-if="script.disabled" size="small" type="info">禁用</el-tag>
+                  <el-tag
+                    v-if="script.disabled"
+                    size="small"
+                    type="info"
+                  >
+                    禁用
+                  </el-tag>
                 </div>
               </el-checkbox>
             </el-checkbox-group>
@@ -60,7 +105,10 @@
       </el-scrollbar>
 
       <div class="selector-footer">
-        <el-text size="small" type="info">
+        <el-text
+          size="small"
+          type="info"
+        >
           已选择 {{ selectedScriptIds.length }} 个正则脚本
         </el-text>
       </div>
@@ -100,7 +148,7 @@ interface Emits {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  defaultSelectedIds: () => []
+  defaultSelectedIds: () => [],
 });
 
 const emit = defineEmits<Emits>();
@@ -108,7 +156,7 @@ const router = useRouter();
 
 const dialogVisible = computed({
   get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value)
+  set: (value) => emit('update:modelValue', value),
 });
 
 const { regexCollection } = useRegexCollection();
@@ -118,13 +166,13 @@ const selectedScriptIds = ref<string[]>([]);
 // 获取所有分类列表
 const categories = computed<RegexCategory[]>(() => {
   return Object.values(regexCollection.value.categories)
-    .filter(cat => cat.scripts.length > 0)
+    .filter((cat) => cat.scripts.length > 0)
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 });
 
 // 获取所有脚本的ID
 const allScriptIds = computed(() => {
-  return categories.value.flatMap(cat => cat.scripts.map(s => s.id));
+  return categories.value.flatMap((cat) => cat.scripts.map((s) => s.id));
 });
 
 // 全选
@@ -141,7 +189,7 @@ const handleDeselectAll = () => {
 const handleConfirm = () => {
   // 根据选中的ID找到对应的脚本对象
   const selectedScripts: SillyTavernRegexScript[] = [];
-  
+
   for (const category of categories.value) {
     for (const script of category.scripts) {
       if (selectedScriptIds.value.includes(script.id)) {

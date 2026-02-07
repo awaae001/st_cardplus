@@ -7,22 +7,34 @@
         <span class="home-count">{{ cardCount }} 个角色</span>
       </div>
       <div class="home-actions">
-        <el-button type="success" @click="emit('create-new')" :icon="Plus">
+        <el-button
+          type="success"
+          @click="emit('create-new')"
+          :icon="Plus"
+        >
           创建角色卡
         </el-button>
-        <el-button @click="triggerImport" :icon="FolderOpened">
+        <el-button
+          @click="triggerImport"
+          :icon="FolderOpened"
+        >
           导入文件
         </el-button>
         <el-dropdown @command="handleMenuCommand">
-          <el-button :icon="MoreFilled">
-            更多操作
-          </el-button>
+          <el-button :icon="MoreFilled">更多操作</el-button>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item command="export-all" :icon="Download">
+              <el-dropdown-item
+                command="export-all"
+                :icon="Download"
+              >
                 导出全部
               </el-dropdown-item>
-              <el-dropdown-item command="clear-all" :icon="Delete" divided>
+              <el-dropdown-item
+                command="clear-all"
+                :icon="Delete"
+                divided
+              >
                 清空所有
               </el-dropdown-item>
             </el-dropdown-menu>
@@ -68,12 +80,21 @@
 
     <!-- 角色卡网格 -->
     <el-scrollbar class="home-content">
-      <div v-if="filteredCards.length === 0" class="home-empty">
-        <Icon icon="ph:cards-duotone" class="empty-icon" />
+      <div
+        v-if="filteredCards.length === 0"
+        class="home-empty"
+      >
+        <Icon
+          icon="ph:cards-duotone"
+          class="empty-icon"
+        />
         <p class="empty-text">{{ emptyText }}</p>
         <p class="empty-hint">{{ emptyHint }}</p>
       </div>
-      <div v-else class="card-grid">
+      <div
+        v-else
+        class="card-grid"
+      >
         <div
           v-for="card in filteredCards"
           :key="card.id"
@@ -87,14 +108,21 @@
               :alt="card.name"
               class="card-grid-avatar-img"
             />
-            <Icon v-else icon="ph:user-circle-duotone" class="card-grid-avatar-icon" />
+            <Icon
+              v-else
+              icon="ph:user-circle-duotone"
+              class="card-grid-avatar-icon"
+            />
           </div>
           <div class="card-grid-content">
             <h3 class="card-grid-name">{{ card.name || '未命名角色' }}</h3>
             <p class="card-grid-description">{{ card.description || '暂无描述' }}</p>
             <div class="card-grid-meta">
               <span class="card-grid-time">{{ formatTime(card.updatedAt) }}</span>
-              <div v-if="card.tags && card.tags.length > 0" class="card-grid-tags">
+              <div
+                v-if="card.tags && card.tags.length > 0"
+                class="card-grid-tags"
+              >
                 <el-tag
                   v-for="tag in card.tags.slice(0, 3)"
                   :key="tag"
@@ -105,25 +133,46 @@
                 >
                   {{ tag }}
                 </el-tag>
-                <span v-if="card.tags.length > 3" class="card-grid-tag-more">
+                <span
+                  v-if="card.tags.length > 3"
+                  class="card-grid-tag-more"
+                >
                   +{{ card.tags.length - 3 }}
                 </span>
               </div>
             </div>
           </div>
           <div class="card-grid-actions">
-            <el-tooltip content="重命名" placement="top">
-              <button @click.stop="emit('rename-card', card.id)" class="card-action-btn">
+            <el-tooltip
+              content="重命名"
+              placement="top"
+            >
+              <button
+                @click.stop="emit('rename-card', card.id)"
+                class="card-action-btn"
+              >
                 <Icon icon="ph:pencil-simple-duotone" />
               </button>
             </el-tooltip>
-            <el-tooltip content="导出" placement="top">
-              <button @click.stop="emit('export-card', card.id)" class="card-action-btn">
+            <el-tooltip
+              content="导出"
+              placement="top"
+            >
+              <button
+                @click.stop="emit('export-card', card.id)"
+                class="card-action-btn"
+              >
                 <Icon icon="ph:export-duotone" />
               </button>
             </el-tooltip>
-            <el-tooltip content="删除" placement="top">
-              <button @click.stop="emit('delete-card', card.id)" class="card-action-btn is-danger">
+            <el-tooltip
+              content="删除"
+              placement="top"
+            >
+              <button
+                @click.stop="emit('delete-card', card.id)"
+                class="card-action-btn is-danger"
+              >
                 <Icon icon="ph:trash-duotone" />
               </button>
             </el-tooltip>
@@ -148,14 +197,7 @@ import {
   ElDropdownMenu,
   ElDropdownItem,
 } from 'element-plus';
-import {
-  Plus,
-  FolderOpened,
-  Search,
-  MoreFilled,
-  Download,
-  Delete,
-} from '@element-plus/icons-vue';
+import { Plus, FolderOpened, Search, MoreFilled, Download, Delete } from '@element-plus/icons-vue';
 import { Icon } from '@iconify/vue';
 import type { CharacterCardCollection } from '@/types/character-card-collection';
 
@@ -182,9 +224,7 @@ const fileInput = ref<HTMLInputElement>();
 
 // 计算所有卡片
 const allCards = computed(() => {
-  return Object.values(props.collection.cards).sort(
-    (a, b) => (a.order ?? 0) - (b.order ?? 0)
-  );
+  return Object.values(props.collection.cards).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 });
 
 // 卡片数量
@@ -207,17 +247,13 @@ const filteredCards = computed(() => {
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
     cards = cards.filter(
-      (card) =>
-        card.name?.toLowerCase().includes(query) ||
-        card.description?.toLowerCase().includes(query)
+      (card) => card.name?.toLowerCase().includes(query) || card.description?.toLowerCase().includes(query)
     );
   }
 
   // 标签过滤
   if (selectedTags.value.length > 0) {
-    cards = cards.filter((card) =>
-      selectedTags.value.every((tag) => card.tags?.includes(tag))
-    );
+    cards = cards.filter((card) => selectedTags.value.every((tag) => card.tags?.includes(tag)));
   }
 
   return cards;

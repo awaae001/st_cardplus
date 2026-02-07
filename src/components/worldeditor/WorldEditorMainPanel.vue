@@ -10,8 +10,14 @@
           @import-from-clipboard="handleImportFromClipboard"
         />
       </div>
-      <div class="editor-content" :key="props.selectedItem.id">
-        <ProjectEditor v-if="isProject(props.selectedItem)" :project="props.selectedItem" />
+      <div
+        class="editor-content"
+        :key="props.selectedItem.id"
+      >
+        <ProjectEditor
+          v-if="isProject(props.selectedItem)"
+          :project="props.selectedItem"
+        />
         <LandmarkEditor
           v-else-if="isLandmark(props.selectedItem)"
           :landmark="props.selectedItem"
@@ -22,8 +28,17 @@
           :create-region="props.createRegion"
           @select-force="handleSelectForce"
         />
-        <RegionEditor v-else-if="isRegion(props.selectedItem)" :region="props.selectedItem" />
-        <ForceEditor v-else-if="isForce(props.selectedItem)" :force="props.selectedItem" :all-tags="props.allTags" :all-forces="props.forces" :all-landmarks="props.landmarks" />
+        <RegionEditor
+          v-else-if="isRegion(props.selectedItem)"
+          :region="props.selectedItem"
+        />
+        <ForceEditor
+          v-else-if="isForce(props.selectedItem)"
+          :force="props.selectedItem"
+          :all-tags="props.allTags"
+          :all-forces="props.forces"
+          :all-landmarks="props.landmarks"
+        />
         <IntegratedPanel
           v-else-if="isIntegration(props.selectedItem)"
           :integration="props.selectedItem"
@@ -32,19 +47,31 @@
           :regions="props.regions || []"
           :forces="props.forces || []"
         />
-        <div v-else class="editor-placeholder">
+        <div
+          v-else
+          class="editor-placeholder"
+        >
           <p>未知项目类型</p>
         </div>
       </div>
     </template>
-    <div v-else class="editor-placeholder">
+    <div
+      v-else
+      class="editor-placeholder"
+    >
       <p>请从左侧列表选择一个项目进行编辑</p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { Project, EnhancedLandmark, EnhancedForce, EnhancedRegion, ProjectIntegration } from '@/types/world-editor';
+import type {
+  Project,
+  EnhancedLandmark,
+  EnhancedForce,
+  EnhancedRegion,
+  ProjectIntegration,
+} from '@/types/world-editor';
 import ProjectEditor from './ProjectEditor.vue';
 import LandmarkEditor from './editorPacel/LandmarkEditor.vue';
 import ForceEditor from './editorPacel/ForceEditor.vue';
@@ -88,30 +115,32 @@ const handleSelectForce = (force: EnhancedForce) => {
 // 对于整合面板，我们需要特殊处理剪贴板和文件系统操作
 const handleCopyToClipboard = () => {
   if (!props.selectedItem) return;
-  
+
   if (isIntegration(props.selectedItem)) {
     // 整合面板：导出当前项目的完整数据
     const currentProject = getCurrentProject(props.selectedItem);
     if (currentProject) {
-      const projectLandmarks = props.landmarks?.filter(l => l.projectId === currentProject.id) || [];
-      const projectForces = props.forces?.filter(f => f.projectId === currentProject.id) || [];
-      const projectRegions = props.regions?.filter(r => r.projectId === currentProject.id) || [];
-      
+      const projectLandmarks = props.landmarks?.filter((l) => l.projectId === currentProject.id) || [];
+      const projectForces = props.forces?.filter((f) => f.projectId === currentProject.id) || [];
+      const projectRegions = props.regions?.filter((r) => r.projectId === currentProject.id) || [];
+
       const exportData = {
         project: currentProject,
         landmarks: projectLandmarks,
         forces: projectForces,
-        regions: projectRegions
+        regions: projectRegions,
       };
-      
-      navigator.clipboard.writeText(JSON.stringify(exportData, null, 2))
+
+      navigator.clipboard
+        .writeText(JSON.stringify(exportData, null, 2))
         .then(() => ElMessage.success('项目数据已复制到剪贴板'))
         .catch(() => ElMessage.error('复制失败'));
     }
   } else {
     // 非整合面板：使用原有逻辑
     const jsonData = JSON.stringify(props.selectedItem, null, 2);
-    navigator.clipboard.writeText(jsonData)
+    navigator.clipboard
+      .writeText(jsonData)
       .then(() => ElMessage.success('数据已复制到剪贴板'))
       .catch(() => ElMessage.error('复制失败'));
   }
@@ -119,11 +148,11 @@ const handleCopyToClipboard = () => {
 
 const handleImportFromClipboard = async () => {
   if (!props.selectedItem) return;
-  
+
   try {
     const text = await navigator.clipboard.readText();
     const importedData = JSON.parse(text);
-    
+
     if (isIntegration(props.selectedItem)) {
       // 整合面板：导入项目数据
       if (importedData.project) {
@@ -142,22 +171,22 @@ const handleImportFromClipboard = async () => {
 
 const handleSaveToFile = () => {
   if (!props.selectedItem) return;
-  
+
   if (isIntegration(props.selectedItem)) {
     // 整合面板：保存项目完整数据
     const currentProject = getCurrentProject(props.selectedItem);
     if (currentProject) {
-      const projectLandmarks = props.landmarks?.filter(l => l.projectId === currentProject.id) || [];
-      const projectForces = props.forces?.filter(f => f.projectId === currentProject.id) || [];
-      const projectRegions = props.regions?.filter(r => r.projectId === currentProject.id) || [];
-      
+      const projectLandmarks = props.landmarks?.filter((l) => l.projectId === currentProject.id) || [];
+      const projectForces = props.forces?.filter((f) => f.projectId === currentProject.id) || [];
+      const projectRegions = props.regions?.filter((r) => r.projectId === currentProject.id) || [];
+
       const exportData = {
         project: currentProject,
         landmarks: projectLandmarks,
         forces: projectForces,
-        regions: projectRegions
+        regions: projectRegions,
       };
-      
+
       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -192,7 +221,7 @@ const handleLoadFromFile = () => {
         try {
           const content = e.target?.result as string;
           const data = JSON.parse(content);
-          
+
           if (isIntegration(props.selectedItem!)) {
             // 整合面板：加载项目数据
             if (data.project) {
@@ -215,7 +244,7 @@ const handleLoadFromFile = () => {
 
 const isProject = (item: any): item is Project => {
   return item && 'createdAt' in item && !('projectId' in item);
-}
+};
 
 const isLandmark = (item: any): item is EnhancedLandmark => {
   return item && 'projectId' in item && 'importance' in item;
@@ -223,21 +252,20 @@ const isLandmark = (item: any): item is EnhancedLandmark => {
 
 const isForce = (item: any): item is EnhancedForce => {
   return item && 'projectId' in item && 'power' in item;
-}
+};
 
 const isRegion = (item: any): item is EnhancedRegion => {
   return item && 'projectId' in item && 'color' in item;
-}
+};
 
 const isIntegration = (item: any): item is ProjectIntegration => {
   return item && item.type === 'integration';
-}
+};
 
 const getCurrentProject = (integration: ProjectIntegration): Project | null => {
   if (!props.projects) return null;
-  return props.projects.find(p => p.id === integration.projectId) || null;
-}
-
+  return props.projects.find((p) => p.id === integration.projectId) || null;
+};
 </script>
 
 <style scoped>

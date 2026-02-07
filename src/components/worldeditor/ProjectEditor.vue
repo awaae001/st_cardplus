@@ -1,8 +1,14 @@
 <template>
   <div class="project-editor">
-    <el-form :model="props.project" label-position="top">
+    <el-form
+      :model="props.project"
+      label-position="top"
+    >
       <el-form-item label="项目名称">
-        <el-input v-model="props.project.name" placeholder="请输入项目名称"></el-input>
+        <el-input
+          v-model="props.project.name"
+          placeholder="请输入项目名称"
+        ></el-input>
       </el-form-item>
       <el-form-item label="项目描述">
         <el-input

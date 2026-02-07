@@ -51,14 +51,14 @@ export function useRegexPersistence(
     const savedState = readSessionStorageJSON<Partial<PersistentRegexState>>(REGEX_SIMULATOR_STATE_KEY);
 
     const defaultScript = createDefaultScript();
-    
+
     if (savedState) {
       // 合并加载的状态和默认脚本，以确保所有字段都存在
       const loadedFormState = { ...defaultScript, ...(savedState.formState || {}) };
-      
+
       // 逐个赋值以保持响应性
       Object.assign(stateRefs.formState.value, loadedFormState);
-      
+
       stateRefs.testString.value = savedState.testString ?? '';
       stateRefs.smartInputText.value = savedState.smartInputText ?? '';
       stateRefs.userMacroValue.value = savedState.userMacroValue ?? '测试用户';
