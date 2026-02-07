@@ -202,7 +202,7 @@
                     注入位置
                     <el-tooltip content="injection_position" placement="top" :show-arrow="false">
                       <span
-                        class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[var(--el-fill-color-light)] text-[var(--el-text-color-secondary)] text-xs leading-none">?</span>
+                        class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-(--el-fill-color-light) text-(--el-text-color-secondary) text-xs leading-none">?</span>
                     </el-tooltip>
                   </span>
                 </template>
@@ -217,7 +217,7 @@
                     注入深度
                     <el-tooltip content="injection_depth" placement="top" :show-arrow="false">
                       <span
-                        class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[var(--el-fill-color-light)] text-[var(--el-text-color-secondary)] text-xs leading-none">?</span>
+                        class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-(--el-fill-color-light) text-(--el-text-color-secondary) text-xs leading-none">?</span>
                     </el-tooltip>
                   </span>
                 </template>
@@ -231,7 +231,7 @@
                     注入顺序
                     <el-tooltip content="injection_order" placement="top" :show-arrow="false">
                       <span
-                        class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[var(--el-fill-color-light)] text-[var(--el-text-color-secondary)] text-xs leading-none">?</span>
+                        class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-(--el-fill-color-light) text-(--el-text-color-secondary) text-xs leading-none">?</span>
                     </el-tooltip>
                   </span>
                 </template>
@@ -245,7 +245,7 @@
                     禁止覆盖
                     <el-tooltip content="forbid_overrides" placement="top" :show-arrow="false">
                       <span
-                        class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[var(--el-fill-color-light)] text-[var(--el-text-color-secondary)] text-xs leading-none">?</span>
+                        class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-(--el-fill-color-light) text-(--el-text-color-secondary) text-xs leading-none">?</span>
                     </el-tooltip>
                   </span>
                 </template>
@@ -257,7 +257,7 @@
                     触发器列表
                     <el-tooltip content="injection_trigger" placement="top" :show-arrow="false">
                       <span
-                        class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[var(--el-fill-color-light)] text-[var(--el-text-color-secondary)] text-xs leading-none">?</span>
+                        class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-(--el-fill-color-light) text-(--el-text-color-secondary) text-xs leading-none">?</span>
                     </el-tooltip>
                   </span>
                 </template>

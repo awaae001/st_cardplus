@@ -80,14 +80,12 @@
       <splitpanes v-else class="default-theme" :horizontal="false">
         <!-- 脚本列表侧边栏 -->
         <pane min-size="10" size="15">
-          <div class="sidebar-panel">
-            <RegexScriptList :collection="regexCollection" :active-category-id="activeCategoryId"
-              :selected-script="selectedScript" :drag-drop-handlers="dragDropHandlers"
-              @select-category="handleSelectCategory" @select-script="handleSelectScript"
-              @create-category="handleCreateCategory" @rename-category="handleRenameCategory"
-              @delete-category="handleDeleteCategory" @add-script="handleAddScript" @rename-script="handleRenameScript"
-              @delete-script="handleDeleteScript" @export-script="handleExportSingleScript" />
-          </div>
+          <RegexScriptList :collection="regexCollection" :active-category-id="activeCategoryId"
+            :selected-script="selectedScript" :drag-drop-handlers="dragDropHandlers"
+            @select-category="handleSelectCategory" @select-script="handleSelectScript"
+            @create-category="handleCreateCategory" @rename-category="handleRenameCategory"
+            @delete-category="handleDeleteCategory" @add-script="handleAddScript" @rename-script="handleRenameScript"
+            @delete-script="handleDeleteScript" @export-script="handleExportSingleScript" />
         </pane>
 
         <pane v-if="editorPanelVisible" min-size="40" size="60">
