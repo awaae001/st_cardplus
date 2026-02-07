@@ -217,6 +217,8 @@ import { saveAs } from 'file-saver';
 import { cleanObject } from '@/utils/objectUtils';
 import { getSessionStorageItem, setSessionStorageValue } from '@/utils/localStorageUtils';
 import { defaultOpenAIPreset } from '@/types/openai-preset';
+import { getPromptOrderIdentifiers, upsertPromptOrderEntry } from '@/composables/preset/utils/presetPromptOrder';
+import { resolvePromptIdentifier } from '@/composables/preset/utils/presetTree';
 import { Delete, ArrowUp, ArrowDown } from '@element-plus/icons-vue';
 
 const { isMobileOrTablet } = useDevice();
@@ -241,6 +243,7 @@ const {
   removePrompt,
   updateHeader,
   updatePrompt,
+  updatePromptOrder,
 } = usePresetStore();
 
 const {
@@ -315,6 +318,35 @@ const selectedPromptIndex = computed(() =>
   selected.value?.type === 'prompt' ? (selected.value.promptIndex ?? null) : null
 );
 
+const getNodeIdentifier = (nodeData: any) => {
+  const raw = nodeData?.raw;
+  if (!raw) return null;
+  return resolvePromptIdentifier(raw, nodeData.promptIndex ?? 0);
+};
+
+const moveIdentifier = (list: string[], fromId: string, toId: string, type: 'prev' | 'next') => {
+  const next = list.slice();
+  const fromIndex = next.indexOf(fromId);
+  const toIndex = next.indexOf(toId);
+  if (fromIndex === -1 || toIndex === -1) return next;
+  next.splice(fromIndex, 1);
+  const insertIndex = type === 'prev' ? toIndex : toIndex + 1;
+  next.splice(insertIndex, 0, fromId);
+  return next;
+};
+
+const insertBeforeOrAfter = (list: string[], id: string, anchorId: string, type: 'prev' | 'next') => {
+  if (list.includes(id)) return list;
+  const next = list.slice();
+  const anchorIndex = next.indexOf(anchorId);
+  if (anchorIndex === -1) return next;
+  const insertIndex = type === 'prev' ? anchorIndex : anchorIndex + 1;
+  next.splice(insertIndex, 0, id);
+  return next;
+};
+
+const removeFromList = (list: string[], id: string) => list.filter((item) => item !== id);
+
 const dragDropHandlers = {
   allowDrag: (draggingNode: any) => {
     return Boolean(draggingNode?.data?.isPreset || draggingNode?.data?.isPrompt);
@@ -325,11 +357,7 @@ const dragDropHandlers = {
       return dropNode.data.isPreset && (type === 'prev' || type === 'next');
     }
     if (draggingNode.data.isPrompt) {
-      return (
-        dropNode.data.isPrompt &&
-        draggingNode.data.presetId === dropNode.data.presetId &&
-        (type === 'prev' || type === 'next')
-      );
+      return dropNode.data.isPrompt && draggingNode.data.presetId === dropNode.data.presetId && (type === 'prev' || type === 'next');
     }
     return false;
   },
@@ -353,21 +381,23 @@ const dragDropHandlers = {
       const presetId = draggingNode.data.presetId;
       const preset = presets.value.find((p) => p.id === presetId);
       if (!preset) return false;
-      const prompts = (preset.data.prompts as Record<string, any>[]) || [];
-      const indices = prompts.map((_, index) => index);
-      const fromIndex = indices.indexOf(draggingNode.data.promptIndex);
-      const toIndex = indices.indexOf(dropNode.data.promptIndex);
-      if (fromIndex === -1 || toIndex === -1) return false;
-      indices.splice(fromIndex, 1);
-      const insertIndex = type === 'prev' ? toIndex : toIndex + 1;
-      indices.splice(insertIndex, 0, draggingNode.data.promptIndex);
-      reorderPrompts(presetId, indices);
-      if (selected.value?.type === 'prompt') {
-        const newIndex = indices.indexOf(selected.value.promptIndex ?? -1);
-        if (newIndex >= 0) {
-          selected.value.promptIndex = newIndex;
-        }
+      const fromId = getNodeIdentifier(draggingNode.data);
+      const toId = getNodeIdentifier(dropNode.data);
+      if (!fromId || !toId) return false;
+      const identifiers = getPromptOrderIdentifiers(preset.data.prompt_order);
+      const fromInOrder = identifiers.includes(fromId);
+      const toInOrder = identifiers.includes(toId);
+      let next = identifiers;
+      if (fromInOrder && toInOrder) {
+        next = moveIdentifier(identifiers, fromId, toId, type);
+      } else if (fromInOrder && !toInOrder) {
+        next = removeFromList(identifiers, fromId);
+      } else if (!fromInOrder && toInOrder) {
+        next = insertBeforeOrAfter(identifiers, fromId, toId, type);
+      } else {
+        return false;
       }
+      updatePromptOrder(presetId, next);
       return true;
     }
     return false;
@@ -392,12 +422,7 @@ const handleExportPreset = () => {
   const filename = `${activePreset.value.name || 'preset'}.json`;
   const prompts = (activePreset.value.data.prompts as Record<string, any>[]) || [];
   const orderList = buildSidebarOrder(prompts);
-  const promptOrder = Array.isArray(activePreset.value.data.prompt_order)
-    ? activePreset.value.data.prompt_order.map((entry: any) => ({
-        ...entry,
-        order: orderList,
-      }))
-    : [{ character_id: 100000, order: orderList }];
+  const promptOrder = upsertPromptOrderEntry(activePreset.value.data.prompt_order, orderList);
   const exportData = {
     ...activePreset.value.data,
     prompt_order: promptOrder,

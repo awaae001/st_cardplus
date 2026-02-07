@@ -3,6 +3,12 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { defaultOpenAIPreset, defaultPromptOrder } from '@/types/openai-preset';
 import { presetService } from '@/database/presetService';
 import type { StoredPresetFile } from '@/database/db';
+import {
+  buildPromptOrderListFromIdentifiers,
+  getPromptOrderIdentifiers,
+  removePromptOrderIdentifier,
+  upsertPromptOrderEntry,
+} from '@/composables/preset/utils/presetPromptOrder';
 
 export type PresetPrompt = Record<string, any> & {
   identifier?: string;
@@ -48,12 +54,12 @@ const orderPromptsByIdentifiers = (prompts: PresetPrompt[], identifiers: string[
   return ordered;
 };
 
-const buildPromptOrderList = (prompts: PresetPrompt[]) => {
-  return prompts.map((prompt, index) => ({
-    identifier: prompt.identifier ?? `prompt-${index}`,
-    enabled: typeof prompt.enabled === 'boolean' ? prompt.enabled : true,
-  }));
-};
+  const buildPromptOrderList = (prompts: PresetPrompt[]) => {
+    return prompts.map((prompt, index) => ({
+      identifier: prompt.identifier ?? `prompt-${index}`,
+      enabled: typeof prompt.enabled === 'boolean' ? prompt.enabled : true,
+    }));
+  };
 
 export function usePresetStore() {
   const presets = ref<StoredPresetFile[]>([]);
@@ -322,15 +328,18 @@ export function usePresetStore() {
       prompt.order = index;
     });
     preset.data.prompts = reordered as any;
-    const orderList = buildPromptOrderList(reordered);
-    if (Array.isArray(preset.data.prompt_order)) {
-      preset.data.prompt_order = preset.data.prompt_order.map((entry: any) => ({
-        ...entry,
-        order: orderList,
-      }));
-    } else {
-      preset.data.prompt_order = [{ character_id: 100000, order: orderList }];
-    }
+    const orderIdentifiers = getPromptOrderIdentifiers(preset.data.prompt_order);
+    const orderSet = new Set(orderIdentifiers);
+    const orderList =
+      orderIdentifiers.length > 0
+        ? reordered
+            .filter((prompt) => typeof prompt.identifier === 'string' && orderSet.has(prompt.identifier))
+            .map((prompt) => ({
+              identifier: prompt.identifier as string,
+              enabled: typeof prompt.enabled === 'boolean' ? prompt.enabled : true,
+            }))
+        : buildPromptOrderList(reordered);
+    preset.data.prompt_order = upsertPromptOrderEntry(preset.data.prompt_order, orderList);
     preset.updatedAt = new Date().toISOString();
     await presetService.updatePreset(preset);
   };
@@ -358,12 +367,28 @@ export function usePresetStore() {
     const prompts = (preset.data.prompts as PresetPrompt[]) || [];
     const target = prompts[promptIndex];
     if (!target) return;
+    const identifier = typeof target.identifier === 'string' ? target.identifier : '';
+    const inOrder = identifier ? getPromptOrderIdentifiers(preset.data.prompt_order).includes(identifier) : false;
     try {
-      await ElMessageBox.confirm(`确定删除条目 "${target.name || target.identifier || '未命名'}" 吗？`, '删除条目', {
-        confirmButtonText: '删除',
+      const actionText = inOrder ? '移除' : '删除';
+      const description = inOrder
+        ? `确定移除条目 "${target.name || target.identifier || '未命名'}" 并移至未插入吗？`
+        : `确定删除条目 "${target.name || target.identifier || '未命名'}" 吗？`;
+      await ElMessageBox.confirm(description, '删除条目', {
+        confirmButtonText: actionText,
         cancelButtonText: '取消',
         type: 'warning',
       });
+      if (inOrder && identifier) {
+        const { next, removed } = removePromptOrderIdentifier(preset.data.prompt_order, identifier);
+        if (removed) {
+          preset.data.prompt_order = next as any;
+          preset.updatedAt = new Date().toISOString();
+          await presetService.updatePreset(preset);
+          ElMessage.success('条目已移至未插入');
+          return;
+        }
+      }
       const updatedPrompts = prompts.filter((_, idx) => idx !== promptIndex);
       preset.data.prompts = updatedPrompts as any;
       preset.updatedAt = new Date().toISOString();
@@ -396,6 +421,16 @@ export function usePresetStore() {
     await presetService.updatePreset(activePreset.value);
   };
 
+  const updatePromptOrder = async (presetId: string, identifiers: string[]) => {
+    const preset = presets.value.find((p) => p.id === presetId);
+    if (!preset) return;
+    const prompts = (preset.data.prompts as PresetPrompt[]) || [];
+    const orderList = buildPromptOrderListFromIdentifiers(identifiers, prompts as any, preset.data.prompt_order);
+    preset.data.prompt_order = upsertPromptOrderEntry(preset.data.prompt_order, orderList);
+    preset.updatedAt = new Date().toISOString();
+    await presetService.updatePreset(preset);
+  };
+
   return {
     presets,
     activePresetId,
@@ -420,5 +455,6 @@ export function usePresetStore() {
     removePrompt,
     updateHeader,
     updatePrompt,
+    updatePromptOrder,
   };
 }

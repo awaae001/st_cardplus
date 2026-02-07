@@ -3,6 +3,7 @@
     title="预设列表"
     :tree-data="treeData"
     :tree-props="treeProps"
+    node-key="nodeKey"
     :current-node-key="currentNodeKey"
     :draggable="true"
     :allow-drag="props.dragDropHandlers.allowDrag"
@@ -198,6 +199,12 @@ import { ElTooltip, ElUpload } from 'element-plus';
 import { Icon } from '@iconify/vue';
 import SidebarTreePanel from '../common/SidebarTreePanel.vue';
 import type { StoredPresetFile } from '@/database/db';
+import {
+  buildPresetTreeData,
+  getHeaderNodeKey,
+  resolvePromptIdentifier,
+  getPromptNodeKey,
+} from '@/composables/preset/utils/presetTree';
 
 interface Props {
   presets: StoredPresetFile[];
@@ -233,66 +240,25 @@ const treeProps = {
   label: 'label',
 };
 
-const treeData = computed(() => {
-  return props.presets
-    .slice()
-    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-    .map((preset) => ({
-      id: preset.id,
-      label: preset.name,
-      icon: 'ph:folder-duotone',
-      isPreset: true,
-      children: [
-        {
-          id: `${preset.id}-header`,
-          label: '头部设置',
-          icon: 'ph:sliders-duotone',
-          isHeader: true,
-          presetId: preset.id,
-        },
-        ...((preset.data.prompts as Record<string, any>[]) || [])
-          .map((prompt, index) => ({
-            prompt,
-            index,
-            order: typeof prompt.order === 'number' ? prompt.order : null,
-            identifier: typeof prompt.identifier === 'string' ? prompt.identifier : null,
-          }))
-          .sort((a, b) => {
-            if (a.order !== null && b.order !== null) return a.order - b.order;
-            if (a.order !== null) return -1;
-            if (b.order !== null) return 1;
-            const aId = a.identifier ?? String(a.index);
-            const bId = b.identifier ?? String(b.index);
-            return aId.localeCompare(bId);
-          })
-          .map(({ prompt, index }) => ({
-            id: `${preset.id}-${prompt.identifier ?? index}`,
-            label: prompt.name || prompt.identifier || `条目 ${index + 1}`,
-            icon: 'ph:note-duotone',
-            isPrompt: true,
-            presetId: preset.id,
-            promptIndex: index,
-            raw: prompt,
-            enabled: typeof prompt.enabled === 'boolean' ? prompt.enabled : true,
-          })),
-      ],
-    }));
-});
+const treeData = computed(() => buildPresetTreeData(props.presets));
 
 const currentNodeKey = computed(() => {
   if (!props.activePresetId) return undefined;
   if (props.selectedIsHeader) {
-    return `${props.activePresetId}-header`;
+    return getHeaderNodeKey(props.activePresetId);
   }
   if (props.selectedPromptIndex !== null && props.selectedPromptIndex !== undefined) {
     const preset = props.presets.find((p) => p.id === props.activePresetId);
     const prompt = preset?.data?.prompts?.[props.selectedPromptIndex] as Record<string, any> | undefined;
-    return `${props.activePresetId}-${prompt?.identifier ?? props.selectedPromptIndex}`;
+    if (!prompt) return undefined;
+    const identifier = resolvePromptIdentifier(prompt, props.selectedPromptIndex);
+    return getPromptNodeKey(props.activePresetId, identifier);
   }
   return props.activePresetId;
 });
 
 const handleNodeClick = (data: any) => {
+  if (data.isGroup) return;
   if (data.isHeader) {
     emit('select-header', data.presetId);
   } else if (data.isPrompt) {
