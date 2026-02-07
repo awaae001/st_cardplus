@@ -1,5 +1,15 @@
+import {
+  Briefcase,
+  Collection,
+  DataLine,
+  EditPen,
+  House,
+  Location,
+  Postcard,
+  Tickets,
+  Tools,
+} from '@element-plus/icons-vue';
 import { markRaw } from 'vue';
-import { House, EditPen, Location, Postcard, Tools, DataLine, Collection, Tickets } from '@element-plus/icons-vue';
 
 // 菜单项类型
 export type MenuItemType = 'main' | 'tool';
@@ -38,6 +48,7 @@ export const iconMap = {
   DataLine: markRaw(DataLine),
   Collection: markRaw(Collection),
   Tickets: markRaw(Tickets),
+  Briefcase: markRaw(Briefcase),
 };
 
 // Iconify 图标映射
@@ -50,6 +61,7 @@ export const iconifyIconMap: Record<string, string> = {
   DataLine: 'ep:data-line',
   Collection: 'ep:collection',
   Tickets: 'ep:tickets',
+  Briefcase: 'ep:briefcase',
 };
 
 // 主菜单项配置
@@ -137,7 +149,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     visible: true,
     order: 8,
     title: '工具箱',
-    icon: 'Tools',
+    icon: 'Briefcase',
     route: '/toolbox',
     fixed: true,
   },
