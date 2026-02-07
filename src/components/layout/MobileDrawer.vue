@@ -31,14 +31,14 @@
       <!-- 菜单区域 -->
       <div class="drawer-menu">
         <div
-          v-for="item in menuItems"
+          v-for="item in allMenuItems"
           :key="item.id"
           class="menu-item"
-          :class="{ active: isActive(item.route) }"
-          @click="handleMenuClick(item.route)"
+          :class="{ active: isActive(item.index) }"
+          @click="handleMenuClick(item.index)"
         >
           <el-icon :size="20">
-            <component :is="getIconComponent(item.icon)" />
+            <component :is="item.icon" />
           </el-icon>
           <span class="menu-text">{{ item.title }}</span>
           <span
@@ -77,40 +77,19 @@
 </template>
 
 <script setup lang="ts">
-import type { MenuItemConfig } from '@/config/menuConfig';
-import { getIconComponent } from '@/config/menuConfig';
+import { useNavigation } from '@/composables/useNavigation';
 import { Close, Moon, Setting, Sunny } from '@element-plus/icons-vue';
-import { useDark, useToggle } from '@vueuse/core';
 import { ElButton, ElDrawer, ElIcon } from 'element-plus';
-import { useRoute, useRouter } from 'vue-router';
-
-// Props
-defineProps<{
-  menuItems: MenuItemConfig[];
-}>();
 
 // Model
 const visible = defineModel<boolean>({ default: false });
 
-// 路由
-const router = useRouter();
-const route = useRoute();
-
-// 主题
-const isDark = useDark();
-const toggleDark = useToggle(isDark);
-
-// 判断是否激活
-const isActive = (path: string) => {
-  if (path === '/') {
-    return route.path === '/';
-  }
-  return route.path.startsWith(path);
-};
+// 使用导航上下文
+const { allMenuItems, isDark, toggleDark, isActive, navigateTo } = useNavigation();
 
 // 菜单点击
 const handleMenuClick = (path: string) => {
-  router.push(path);
+  navigateTo(path);
   visible.value = false;
 };
 </script>

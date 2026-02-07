@@ -1,20 +1,15 @@
 <template>
   <div class="app-layout min-h-screen flex flex-col bg-(--el-bg-color-page)">
     <!-- 顶部导航栏 -->
-    <AppHeader
-      :menu-items="mainMenuItems"
-      :is-mobile="isMobile"
-      @toggle-drawer="drawerVisible = true"
-    />
+    <AppHeader @toggle-drawer="drawerVisible = true" />
 
     <!-- 面包屑导航 -->
-    <AppBreadcrumb :is-mobile="isMobile" />
+    <AppBreadcrumb />
 
     <!-- 移动端抽屉菜单 -->
     <MobileDrawer
       v-if="isMobile"
       v-model="drawerVisible"
-      :menu-items="mainMenuItems"
     />
 
     <!-- 主内容区域 -->
@@ -37,15 +32,11 @@
     </main>
 
     <!-- 移动端底部标签栏 -->
-    <MobileTabBar
-      :menu-items="mainMenuItems"
-      :is-mobile="isMobile"
-    />
+    <MobileTabBar />
   </div>
 </template>
 
 <script setup lang="ts">
-import { useWindowSize } from '@vueuse/core';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { RouterView, useRoute } from 'vue-router';
 
@@ -55,6 +46,7 @@ import MobileDrawer from '@/components/layout/MobileDrawer.vue';
 import MobileTabBar from '@/components/layout/MobileTabBar.vue';
 import SurveyBanner from '@/components/SurveyBanner.vue';
 
+import { provideNavigation } from '@/composables/useNavigation';
 import { provideOverflowControl } from '@/composables/useOverflowControl';
 import { usePersonalization } from '@/composables/usePersonalization';
 
@@ -66,20 +58,13 @@ const { isOverflowHidden, setOverflowHidden } = provideOverflowControl();
 // 路由
 const route = useRoute();
 
-// 响应式尺寸（1024px 以下使用移动端布局，包含平板端）
-const { width } = useWindowSize();
-const isMobile = computed(() => width.value < 1024);
-
-// 抽屉状态
-const drawerVisible = ref(false);
-
 // 个性化设置
 const { allowBodyScroll, sidebarConfig, refreshSidebarConfig } = usePersonalization();
 
 // Beta 功能开关
 const betaFeaturesEnabled = ref(false);
 
-// 动态生成菜单项
+// 动态生成菜单项（过滤 Beta 功能并排序）
 const mainMenuItems = computed(() => {
   return sidebarConfig.value.items
     .filter((item) => {
@@ -91,6 +76,12 @@ const mainMenuItems = computed(() => {
     })
     .sort((a, b) => a.order - b.order);
 });
+
+// 提供导航上下文给所有子组件
+const { isMobile } = provideNavigation(mainMenuItems);
+
+// 抽屉状态
+const drawerVisible = ref(false);
 
 // 监听路由变化，控制溢出
 watch(
@@ -141,7 +132,7 @@ onUnmounted(() => {
 
 /* 移动端底部安全区域填充 */
 .pb-mobile-safe {
-  padding-bottom: calc(56px + env(safe-area-inset-bottom, 0) + 16px);
+  padding-bottom: calc(56px + env(safe-area-inset-bottom, 0));
 }
 </style>
 

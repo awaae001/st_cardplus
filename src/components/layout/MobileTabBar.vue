@@ -4,7 +4,7 @@
     v-if="isMobile"
   >
     <router-link
-      v-for="item in tabItems"
+      v-for="item in tabBarItems"
       :key="item.index"
       :to="item.index"
       class="tab-item"
@@ -19,44 +19,11 @@
 </template>
 
 <script setup lang="ts">
-import type { MenuItemConfig } from '@/config/menuConfig';
-import { getIconComponent } from '@/config/menuConfig';
+import { useNavigation } from '@/composables/useNavigation';
 import { ElIcon } from 'element-plus';
-import { computed } from 'vue';
-import { useRoute } from 'vue-router';
 
-// Props
-const props = defineProps<{
-  menuItems: MenuItemConfig[];
-  isMobile: boolean;
-}>();
-
-// 路由
-const route = useRoute();
-
-// 底部标签栏显示的项目（最多5个核心功能）
-const tabItems = computed(() => {
-  // 优先显示的核心功能 ID
-  const priorityIds = ['home', 'cardmanager', 'cardinfo', 'world', 'toolbox'];
-
-  return props.menuItems
-    .filter((item) => item.visible && priorityIds.includes(item.id))
-    .sort((a, b) => priorityIds.indexOf(a.id) - priorityIds.indexOf(b.id))
-    .slice(0, 5)
-    .map((item) => ({
-      ...item,
-      index: item.route,
-      icon: getIconComponent(item.icon),
-    }));
-});
-
-// 判断是否激活
-const isActive = (path: string) => {
-  if (path === '/') {
-    return route.path === '/';
-  }
-  return route.path.startsWith(path);
-};
+// 使用导航上下文
+const { isMobile, tabBarItems, isActive } = useNavigation();
 </script>
 
 <style scoped>

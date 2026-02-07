@@ -3,7 +3,7 @@
     <!-- Logo 区域 -->
     <div
       class="header-logo"
-      @click="router.push('/')"
+      @click="navigateTo('/')"
     >
       <img
         src="@/image/logo.png"
@@ -64,7 +64,7 @@
             <el-dropdown-item
               v-for="item in overflowItems"
               :key="item.index"
-              @click="router.push(item.index)"
+              @click="navigateTo(item.index)"
             >
               <el-icon :size="16">
                 <component :is="item.icon" />
@@ -119,7 +119,7 @@
       <el-button
         :icon="Setting"
         circle
-        @click="router.push('/about')"
+        @click="navigateTo('/about')"
         class="action-btn"
       />
       <!-- 移动端汉堡菜单按钮 -->
@@ -135,81 +135,19 @@
 </template>
 
 <script setup lang="ts">
-import { useDark, useToggle, useWindowSize } from '@vueuse/core';
-import { computed } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-
-import type { MenuItemConfig } from '@/config/menuConfig';
-import { getIconComponent } from '@/config/menuConfig';
+import { useNavigation } from '@/composables/useNavigation';
 
 import { Menu, Moon, MoreFilled, Setting, Sunny } from '@element-plus/icons-vue';
 import { ElDropdown, ElDropdownItem, ElDropdownMenu, ElIcon, ElTooltip } from 'element-plus';
 
-// 窗口尺寸检测
-const { width } = useWindowSize();
-const isNarrowScreen = computed(() => width.value >= 1024 && width.value <= 1400);
-
-// 顶栏最多显示的菜单项数量
-const MAX_VISIBLE_ITEMS = 6;
-
-// Props
-const props = defineProps<{
-  menuItems: MenuItemConfig[];
-  isMobile: boolean;
-}>();
+// 使用导航上下文
+const { isMobile, isNarrowScreen, isDark, mainNavItems, overflowItems, toolboxItem, toggleDark, isActive, navigateTo } =
+  useNavigation();
 
 // Emits
 const emit = defineEmits<{
   'toggle-drawer': [];
 }>();
-
-// 路由
-const router = useRouter();
-const route = useRoute();
-
-// 主题切换
-const isDark = useDark();
-const toggleDark = useToggle(isDark);
-
-// 可见菜单项（不含工具箱）
-const regularMenuItems = computed(() => {
-  return props.menuItems
-    .filter((item) => item.visible && item.id !== 'toolbox')
-    .map((item) => ({
-      ...item,
-      index: item.route,
-      icon: getIconComponent(item.icon),
-    }));
-});
-
-// 工具箱菜单项（始终显示）
-const toolboxItem = computed(() => {
-  const item = props.menuItems.find((item) => item.id === 'toolbox' && item.visible);
-  if (!item) return null;
-  return {
-    ...item,
-    index: item.route,
-    icon: getIconComponent(item.icon),
-  };
-});
-
-// 主要导航项（顶栏直接显示）
-const mainNavItems = computed(() => {
-  return regularMenuItems.value.slice(0, MAX_VISIBLE_ITEMS);
-});
-
-// 溢出项（放入更多菜单，不含工具箱）
-const overflowItems = computed(() => {
-  return regularMenuItems.value.slice(MAX_VISIBLE_ITEMS);
-});
-
-// 判断是否激活
-const isActive = (path: string) => {
-  if (path === '/') {
-    return route.path === '/';
-  }
-  return route.path.startsWith(path);
-};
 </script>
 
 <style scoped>
@@ -228,7 +166,7 @@ const isActive = (path: string) => {
 }
 
 .logo-img {
-  @apply w-8 h-8 rounded-lg;
+  @apply w-10 h-10 rounded-lg;
 }
 
 .logo-text {

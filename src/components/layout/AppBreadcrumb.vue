@@ -21,15 +21,14 @@
 </template>
 
 <script setup lang="ts">
+import { useNavigation } from '@/composables/useNavigation';
 import { ArrowRight, HomeFilled } from '@element-plus/icons-vue';
 import { ElBreadcrumb, ElBreadcrumbItem, ElIcon } from 'element-plus';
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 
-// Props
-const props = defineProps<{
-  isMobile: boolean;
-}>();
+// 使用导航上下文
+const { isMobile } = useNavigation();
 
 // 路由
 const route = useRoute();
