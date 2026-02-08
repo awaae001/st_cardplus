@@ -59,7 +59,23 @@ export function provideNavigation(menuItems: Ref<MenuItemConfig[]>): NavigationC
   // 主题切换
   const isDark = useDark();
   const toggleDarkFn = useToggle(isDark);
-  const toggleDark = () => toggleDarkFn();
+
+  // 带过渡效果的主题切换
+  const toggleDark = () => {
+    // 使用 View Transitions API（现代浏览器）或 fallback
+    if (document.startViewTransition) {
+      document.startViewTransition(() => {
+        toggleDarkFn();
+      });
+    } else {
+      // 手动添加过渡类
+      document.documentElement.classList.add('theme-transitioning');
+      toggleDarkFn();
+      setTimeout(() => {
+        document.documentElement.classList.remove('theme-transitioning');
+      }, 300);
+    }
+  };
 
   // 处理菜单项（添加图标组件和路由索引）
   const processMenuItem = (item: MenuItemConfig): ProcessedMenuItem => ({
