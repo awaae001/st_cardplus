@@ -100,7 +100,8 @@ export function provideNavigation(menuItems: Ref<MenuItemConfig[]>): NavigationC
     if (path === '/') {
       return route.path === '/';
     }
-    return route.path.startsWith(path);
+    // 精确匹配或匹配子路由
+    return route.path === path || route.path.startsWith(path + '/');
   };
 
   // 导航到指定路径
