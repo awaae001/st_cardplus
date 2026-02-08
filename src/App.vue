@@ -176,6 +176,11 @@ onUnmounted(() => {
   width: 0; /* 强制 flex-1 基于剩余空间计算宽度 */
 }
 
+/* 禁止滚动时覆盖 overflow-auto */
+.desktop-main.overflow-hidden {
+  @apply overflow-hidden;
+}
+
 /* 移动端布局改为垂直方向 */
 @media (max-width: 1023px) {
   .app-layout {
