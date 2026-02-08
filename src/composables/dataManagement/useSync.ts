@@ -10,6 +10,7 @@ import {
   loadGistConfig,
   saveGistConfig,
 } from '@/utils/gist';
+import { SYNC_EXCLUDED_KEYS } from '@/config/dataSyncConfig';
 import type { GistConfig, BackupData } from '@/types/gist';
 import { exportAllDatabases, importAllDatabases } from '@/database/utils';
 import { getSessionStorageItem, removeSessionStorageItem, readSessionStorageJSON } from '@/utils/localStorageUtils';
@@ -79,11 +80,11 @@ export function useSync() {
   );
 
   // === Methods ===
-  const collectLocalStorage = (excludeKeys: string[] = []) => {
+  const collectLocalStorage = () => {
     const data: { [key: string]: any } = {};
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (!key || excludeKeys.includes(key)) continue;
+      if (!key || SYNC_EXCLUDED_KEYS.includes(key)) continue;
       data[key] = localStorage.getItem(key);
     }
     return data;
@@ -137,7 +138,7 @@ export function useSync() {
   };
 
   const prepareBackupData = async (): Promise<BackupData> => {
-    const localStorageData = collectLocalStorage(['gistConfig', 'webdavConfig']);
+    const localStorageData = collectLocalStorage();
     setProgress('正在整理本地数据...');
     const dbData = await exportAllDatabases();
     setProgress('本地数据准备完成');
@@ -152,7 +153,6 @@ export function useSync() {
   const genericPull = async (
     provider: SyncProvider,
     downloadFn: (onProgress?: (progress: TransferProgress) => void) => Promise<any>,
-    configKey: string,
     snapshotKey: string,
     snapshotAvailableRef: Ref<boolean>,
     onSuccess?: () => void
@@ -224,14 +224,19 @@ export function useSync() {
         setProgress('正在应用云端数据...');
         const flatData = { ...backupData.localStorage, ...backupData.databases };
         await importAllDatabases(flatData);
-        const preservedConfig = localStorage.getItem(configKey);
+        const webdavConfigPreserved = localStorage.getItem('webdavConfig');
+        const gistConfigPreserved = localStorage.getItem('gistConfig');
+
         localStorage.clear();
-        if (preservedConfig) localStorage.setItem(configKey, preservedConfig);
+
         for (const key in backupData.localStorage) {
           if (Object.prototype.hasOwnProperty.call(backupData.localStorage, key)) {
             localStorage.setItem(key, backupData.localStorage[key]);
           }
         }
+        if (webdavConfigPreserved) localStorage.setItem('webdavConfig', webdavConfigPreserved);
+        if (gistConfigPreserved) localStorage.setItem('gistConfig', gistConfigPreserved);
+
         onSuccess?.();
 
         ElMessage.success(`数据已成功从 ${provider} 恢复，应用将重新加载`);
@@ -350,7 +355,6 @@ export function useSync() {
     await genericPull(
       'webdav',
       (onProgress) => downloadFromWebDAVWithProgress(webdavConfig.value, webdavBackupFileName, onProgress),
-      'webdavConfig',
       snapshotSessionKey,
       snapshotAvailable
     );
@@ -496,7 +500,6 @@ export function useSync() {
     await genericPull(
       'gist',
       (onProgress) => downloadFromGistWithProgress(gistConfig.value.token!, gistConfig.value.gistId!, onProgress),
-      'gistConfig',
       snapshotSessionKey,
       snapshotAvailable,
       () => {
