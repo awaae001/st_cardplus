@@ -17,7 +17,9 @@
       class="flex-1"
       :class="[isOverflowHidden ? 'overflow-hidden' : 'overflow-auto', isMobile ? 'pb-mobile-safe' : '']"
     >
+      <!-- 全局公告 Banner：About 页面有独立 Banner，避免重复 -->
       <SystemBanner
+        v-if="route.name !== 'about'"
         bannerId="newYearSurvey2026"
         startDate="2026-01-01"
         endDate="2026-03-01"

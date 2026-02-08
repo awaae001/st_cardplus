@@ -31,7 +31,7 @@
 
     <!-- 公告横幅 -->
     <SystemBanner
-      bannerId="newYearSurvey2026_about"
+      bannerId="newYearSurvey2026"
       startDate="2026-01-01"
       endDate="2026-03-01"
       message="我们有一个新年调查，去填写一下？"
