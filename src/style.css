@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './css/settings.css';
 
 /* 主题切换过渡效果 - View Transitions API */
 ::view-transition-old(root),
@@ -37,12 +38,7 @@ html.theme-transitioning,
 html.theme-transitioning *,
 html.theme-transitioning *::before,
 html.theme-transitioning *::after {
-  transition:
-    background-color 0.3s ease !important,
-    border-color 0.3s ease !important,
-    color 0.3s ease !important,
-    fill 0.3s ease !important,
-    stroke 0.3s ease !important;
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, fill 0.3s ease, stroke 0.3s ease !important;
 }
 
 html.dark {
