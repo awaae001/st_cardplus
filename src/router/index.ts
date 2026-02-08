@@ -40,6 +40,12 @@ const router = createRouter({
       meta: { title: '关于' },
     },
     {
+      path: '/settings',
+      name: 'settings',
+      component: () => import('../pages/SettingsPage.vue'),
+      meta: { title: '设置' },
+    },
+    {
       path: '/presetmanager',
       name: 'presetManager',
       component: () => import('../pages/Preset.vue'),
