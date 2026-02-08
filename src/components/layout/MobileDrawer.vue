@@ -65,10 +65,17 @@
           </div>
           <div
             class="action-item"
-            @click="handleMenuClick('/about')"
+            @click="handleMenuClick('/settings')"
           >
             <el-icon :size="20"><Setting /></el-icon>
-            <span>设置与关于</span>
+            <span>设置</span>
+          </div>
+          <div
+            class="action-item"
+            @click="handleMenuClick('/about')"
+          >
+            <el-icon :size="20"><InfoFilled /></el-icon>
+            <span>关于</span>
           </div>
         </div>
       </div>
@@ -78,7 +85,7 @@
 
 <script setup lang="ts">
 import { useNavigation } from '@/composables/useNavigation';
-import { Close, Moon, Setting, Sunny } from '@element-plus/icons-vue';
+import { Close, InfoFilled, Moon, Setting, Sunny } from '@element-plus/icons-vue';
 import { ElButton, ElDrawer, ElIcon } from 'element-plus';
 
 // Model

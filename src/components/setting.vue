@@ -1,7 +1,7 @@
 <template>
   <div class="about-page">
     <div class="title-container">
-      <h1>关于与设置</h1>
+      <h1>设置</h1>
       <p class="subtitle">管理自己的自定义设置</p>
     </div>
     <el-tabs
@@ -9,7 +9,7 @@
       class="settings-tabs"
     >
       <el-tab-pane
-        label="设置"
+        label="应用设置"
         name="settings"
       >
         <div class="settings-section">
@@ -28,12 +28,6 @@
       >
         <PersonalizationSettings />
       </el-tab-pane>
-      <el-tab-pane
-        label="关于"
-        name="about"
-      >
-        <AboutSection />
-      </el-tab-pane>
     </el-tabs>
   </div>
 </template>
@@ -42,7 +36,6 @@
 import { ref } from 'vue';
 import AppSettings from './settingPage/AppSettings.vue';
 import DataManagement from './settingPage/DataManagement.vue';
-import AboutSection from './settingPage/AboutSection.vue';
 import PersonalizationSettings from './settingPage/PersonalizationSettings.vue';
 
 const activeTab = ref('settings');

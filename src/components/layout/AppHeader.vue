@@ -119,6 +119,13 @@
       <el-button
         :icon="Setting"
         circle
+        @click="navigateTo('/settings')"
+        class="action-btn"
+      />
+      <!-- 关于按钮 -->
+      <el-button
+        :icon="InfoFilled"
+        circle
         @click="navigateTo('/about')"
         class="action-btn"
       />
@@ -137,7 +144,7 @@
 <script setup lang="ts">
 import { useNavigation } from '@/composables/useNavigation';
 
-import { Menu, Moon, MoreFilled, Setting, Sunny } from '@element-plus/icons-vue';
+import { InfoFilled, Menu, Moon, MoreFilled, Setting, Sunny } from '@element-plus/icons-vue';
 import { ElDropdown, ElDropdownItem, ElDropdownMenu, ElIcon, ElTooltip } from 'element-plus';
 
 // 使用导航上下文
