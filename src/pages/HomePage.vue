@@ -1,40 +1,41 @@
 <template>
   <div class="welcome-container">
     <img
-      src="/image/logo.png"
-      alt="呓语梦轩-ICO"
-      style="width: 120px"
+      src="../image/logo.png"
+      alt="ST CardPlus"
+      class="logo"
     />
-    <h1>欢迎使用快速编辑器</h1>
-    <p class="whatYouwant">你今天要创造些什么？</p>
-    <p>请从侧边栏选择要编辑的内容</p>
+    <h1 class="title">欢迎使用 ST CardPlus</h1>
+    <p class="subtitle">你今天要创造些什么？</p>
+    <p class="hint">请从顶部导航栏选择要编辑的内容</p>
   </div>
 </template>
 
 <script setup lang="ts"></script>
 
 <style scoped>
+@reference "tailwindcss";
+
 .welcome-container {
-  /* width: 100%;
-  height: 100%; */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  margin-top: 16vh;
+  @apply flex flex-col justify-center items-center mt-[16vh];
 }
 
-h1 {
-  font-size: 2rem;
-  margin-bottom: 1rem;
+.logo {
+  @apply w-30 rounded-2xl shadow-lg;
 }
 
-p {
-  font-size: 1.2rem;
+.title {
+  @apply text-3xl font-bold mt-6 mb-2;
+  color: var(--el-text-color-primary);
 }
 
-.whatYouwant {
-  font-size: 1rem;
-  margin-top: -16px;
+.subtitle {
+  @apply text-lg;
+  color: var(--el-text-color-secondary);
+}
+
+.hint {
+  @apply text-base mt-4;
+  color: var(--el-text-color-regular);
 }
 </style>

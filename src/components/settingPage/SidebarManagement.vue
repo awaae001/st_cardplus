@@ -4,9 +4,9 @@
       <div class="setting-content">
         <div class="setting-header">
           <div class="setting-info">
-            <span class="setting-label">侧边栏管理</span>
+            <span class="setting-label">导航栏管理</span>
             <Icon
-              icon="fluent:sidebar-search-20-regular"
+              icon="fluent:navigation-24-regular"
               width="20"
               height="20"
               :style="{ marginLeft: '8px', color: 'var(--el-color-primary)' }"
@@ -26,7 +26,7 @@
             重置默认
           </el-button>
         </div>
-        <p class="setting-description">拖拽排序侧边栏菜单项，或使用开关控制显示/隐藏</p>
+        <p class="setting-description">拖拽排序导航菜单项，或使用开关控制显示/隐藏</p>
       </div>
     </div>
 
@@ -40,9 +40,9 @@
               width="18"
               height="18"
             />
-            显示在侧边栏 ({{ visibleItems.length }})
+            显示在导航栏 ({{ visibleItems.length }})
           </h3>
-          <span class="section-description">这些项目会显示在侧边栏中</span>
+          <span class="section-description">这些项目会显示在导航栏中</span>
         </div>
 
         <div
@@ -146,7 +146,7 @@
             />
             隐藏项目 ({{ hiddenItems.length }})
           </h3>
-          <span class="section-description">这些项目将显示在工具箱中</span>
+          <span class="section-description">这些项目不会显示在导航栏中</span>
         </div>
 
         <div
@@ -223,18 +223,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { Icon } from '@iconify/vue';
-import { ElMessage } from 'element-plus';
+import { getIconifyIconName } from '@/config/menuConfig';
 import {
   type MenuItemConfig,
   getSidebarConfig,
+  resetSidebarConfig,
   setSidebarConfig,
   updateMenuItemVisibility,
   updateMenuItemsOrder,
-  resetSidebarConfig,
 } from '@/utils/localStorageUtils';
-import { getIconifyIconName } from '@/config/menuConfig';
+import { Icon } from '@iconify/vue';
+import { ElMessage } from 'element-plus';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 
 // 响应式数据
 const sidebarConfig = ref(getSidebarConfig());

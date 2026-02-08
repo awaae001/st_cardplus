@@ -1,17 +1,15 @@
-import { ref, onMounted } from 'vue';
-import { ElMessageBox } from 'element-plus';
 import {
   getSetting,
-  setSetting,
   getSidebarConfig,
+  setSetting,
   setSidebarConfig,
   type SidebarConfig,
 } from '@/utils/localStorageUtils';
+import { ElMessageBox } from 'element-plus';
+import { onMounted, ref } from 'vue';
 
 export function usePersonalization() {
-  const autoExpandSidebar = ref(false);
   const allowBodyScroll = ref(false);
-  const useOldSidebar = ref(false);
   const useOldWorldEditor = ref(false);
   const sidebarConfig = ref<SidebarConfig>(getSidebarConfig());
 
@@ -26,21 +24,10 @@ export function usePersonalization() {
     });
   };
 
-  const onAutoExpandSidebarToggle = (value: boolean) => {
-    setSetting('autoExpandSidebar', value);
-    ElMessageBox.confirm('此设置将在您下次刷新页面 (Ctrl+R) 后生效 ', '提示', {
-      confirmButtonText: '立即刷新',
-      cancelButtonText: '稍后',
-      type: 'info',
-    }).then(() => {
-      window.location.reload();
-    });
-  };
-
   const onAllowBodyScrollToggle = createReloadConfirm((value) => setSetting('allowBodyScroll', value));
   const onUseOldWorldEditorToggle = createReloadConfirm((value) => setSetting('useOldWorldEditor', value));
 
-  // 侧边栏配置相关方法
+  // 导航栏配置相关方法
   const refreshSidebarConfig = () => {
     sidebarConfig.value = getSidebarConfig();
   };
@@ -51,18 +38,14 @@ export function usePersonalization() {
   };
 
   onMounted(() => {
-    autoExpandSidebar.value = getSetting('autoExpandSidebar');
     allowBodyScroll.value = getSetting('allowBodyScroll');
     useOldWorldEditor.value = getSetting('useOldWorldEditor');
     refreshSidebarConfig();
   });
 
   return {
-    autoExpandSidebar,
-    onAutoExpandSidebarToggle,
     allowBodyScroll,
     onAllowBodyScrollToggle,
-    useOldSidebar,
     useOldWorldEditor,
     onUseOldWorldEditorToggle,
     sidebarConfig,

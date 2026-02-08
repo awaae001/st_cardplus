@@ -1,28 +1,5 @@
 <template>
   <div style="display: flex; flex-direction: column; gap: 16px">
-    <div class="app-settings">
-      <div class="setting-card">
-        <div class="setting-content">
-          <div class="setting-header">
-            <div class="setting-info">
-              <span class="setting-label">PC端侧边栏自动展开</span>
-              <Icon
-                icon="fluent:sidebar-search-20-regular"
-                width="20"
-                height="20"
-                :style="{ marginLeft: '8px', color: 'var(--el-color-primary)' }"
-              />
-            </div>
-            <el-switch
-              v-model="autoExpandSidebar"
-              @change="onAutoExpandSidebarToggle"
-              size="large"
-            />
-          </div>
-          <p class="setting-description">在PC端，当侧边栏处于折叠状态时，鼠标移入时是否自动展开</p>
-        </div>
-      </div>
-    </div>
     <div class="setting-card">
       <div class="setting-content">
         <div class="setting-header">
@@ -49,17 +26,17 @@
       </div>
     </div>
 
-    <!-- 侧边栏管理组件 -->
+    <!-- 导航栏管理组件 -->
     <SidebarManagement />
   </div>
 </template>
 
 <script setup lang="ts">
-import { Icon } from '@iconify/vue';
 import { usePersonalization } from '@/composables/usePersonalization';
+import { Icon } from '@iconify/vue';
 import SidebarManagement from './SidebarManagement.vue';
 
-const { autoExpandSidebar, onAutoExpandSidebarToggle, allowBodyScroll, onAllowBodyScrollToggle } = usePersonalization();
+const { allowBodyScroll, onAllowBodyScrollToggle } = usePersonalization();
 </script>
 <style scoped>
 .app-settings {
