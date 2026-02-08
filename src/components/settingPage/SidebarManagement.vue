@@ -45,81 +45,78 @@
           <span class="section-description">这些项目会显示在导航栏中</span>
         </div>
 
-        <div
-          class="menu-list"
-          ref="visibleListRef"
-        >
-          <TransitionGroup
-            name="list"
-            tag="div"
+        <div class="menu-list">
+          <draggable
+            v-model="localVisibleItems"
+            item-key="id"
+            handle=".drag-handle"
+            :animation="150"
+            :move="checkMove"
+            ghost-class="sortable-ghost"
+            chosen-class="sortable-chosen"
+            drag-class="sortable-drag"
+            :force-fallback="true"
+            :fallback-class="'sortable-fallback'"
+            :fallback-on-body="true"
+            :touch-start-threshold="3"
+            @end="handleDragEnd"
           >
-            <div
-              v-for="item in visibleItems"
-              :key="item.id"
-              :data-item-id="item.id"
-              class="menu-item"
-              :class="{
-                'is-fixed': item.fixed,
-                'is-dragging': draggedItem?.id === item.id,
-                'drag-over-before': dragOverItem === item.id && insertPosition === 'before',
-                'drag-over-after': dragOverItem === item.id && insertPosition === 'after',
-              }"
-              draggable="true"
-              @dragstart="handleDragStart($event, item)"
-              @dragover="handleDragOver"
-              @drop="handleDrop($event, 'visible')"
-              @dragend="handleDragEnd"
-            >
-              <div class="item-content">
-                <Icon
-                  :icon="getIconName(item.icon)"
-                  width="20"
-                  height="20"
-                  class="item-icon"
-                />
-                <div class="item-info">
-                  <div class="item-main-line">
-                    <span class="item-title">{{ item.title }}</span>
-                    <div class="item-tags">
-                      <span
-                        v-if="item.type === 'tool'"
-                        class="item-type"
-                      >
-                        工具
-                      </span>
-                      <span
-                        v-if="item.beta"
-                        class="item-type beta"
-                      >
-                        测试版
-                      </span>
+            <template #item="{ element: item }">
+              <div
+                class="menu-item"
+                :class="{ 'is-fixed': item.fixed }"
+              >
+                <div class="item-content">
+                  <Icon
+                    :icon="getIconName(item.icon)"
+                    width="20"
+                    height="20"
+                    class="item-icon"
+                  />
+                  <div class="item-info">
+                    <div class="item-main-line">
+                      <span class="item-title">{{ item.title }}</span>
+                      <div class="item-tags">
+                        <span
+                          v-if="item.type === 'tool'"
+                          class="item-type"
+                        >
+                          工具
+                        </span>
+                        <span
+                          v-if="item.beta"
+                          class="item-type beta"
+                        >
+                          测试版
+                        </span>
+                      </div>
                     </div>
+                    <span
+                      v-if="item.description"
+                      class="item-description"
+                    >
+                      {{ item.description }}
+                    </span>
                   </div>
-                  <span
-                    v-if="item.description"
-                    class="item-description"
-                  >
-                    {{ item.description }}
-                  </span>
+                </div>
+                <div class="item-actions">
+                  <el-switch
+                    :model-value="true"
+                    :disabled="item.fixed"
+                    @change="toggleItemVisibility(item.id, false)"
+                    size="small"
+                  />
+                  <Icon
+                    icon="material-symbols:drag-indicator"
+                    width="16"
+                    height="16"
+                    class="drag-handle"
+                    :class="{ disabled: item.fixed }"
+                  />
                 </div>
               </div>
-              <div class="item-actions">
-                <el-switch
-                  :model-value="true"
-                  :disabled="item.fixed"
-                  @change="toggleItemVisibility(item.id, false)"
-                  size="small"
-                />
-                <Icon
-                  icon="material-symbols:drag-indicator"
-                  width="16"
-                  height="16"
-                  class="drag-handle"
-                  :class="{ disabled: item.fixed }"
-                />
-              </div>
-            </div>
-          </TransitionGroup>
+            </template>
+          </draggable>
 
           <div
             v-if="visibleItems.length === 0"
@@ -234,13 +231,14 @@ import {
 } from '@/utils/localStorageUtils';
 import { Icon } from '@iconify/vue';
 import { ElMessage } from 'element-plus';
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import draggable from 'vuedraggable';
 
 // 响应式数据
 const sidebarConfig = ref(getSidebarConfig());
-const draggedItem = ref<MenuItemConfig | null>(null);
-const dragOverItem = ref<string | null>(null);
-const insertPosition = ref<'before' | 'after' | null>(null);
+
+// 本地可编辑的列表（用于 VueDraggable 双向绑定）
+const localVisibleItems = ref<MenuItemConfig[]>([]);
 
 // 计算属性
 const visibleItems = computed(() =>
@@ -249,6 +247,15 @@ const visibleItems = computed(() =>
 
 const hiddenItems = computed(() =>
   sidebarConfig.value.items.filter((item) => !item.visible).sort((a, b) => a.order - b.order)
+);
+
+// 同步 visibleItems 到 localVisibleItems
+watch(
+  visibleItems,
+  (newItems) => {
+    localVisibleItems.value = [...newItems];
+  },
+  { immediate: true }
 );
 
 // 图标名称转换
@@ -312,88 +319,63 @@ const toggleItemVisibility = (itemId: string, visible: boolean) => {
   ElMessage.success(visible ? '已添加到侧边栏' : '已移至工具箱');
 };
 
-// 拖拽相关方法
-const handleDragStart = (event: DragEvent, item: MenuItemConfig) => {
-  // 固定项目不允许拖拽
-  if (item.fixed) {
-    event.preventDefault();
-    return;
+// VueDraggable 相关方法
+
+// 检查是否允许移动（阻止固定项目被移动或被其他项目替换位置）
+const checkMove = (event: {
+  draggedContext: { element: MenuItemConfig };
+  relatedContext: { element?: MenuItemConfig };
+}) => {
+  const draggedItem = event.draggedContext.element;
+  const relatedItem = event.relatedContext.element;
+
+  // 固定项目不能被拖拽
+  if (draggedItem?.fixed) {
+    return false;
   }
 
-  draggedItem.value = item;
-  if (event.dataTransfer) {
-    event.dataTransfer.effectAllowed = 'move';
+  // 不能拖到固定项目的位置
+  if (relatedItem?.fixed) {
+    return false;
   }
+
+  return true;
 };
 
+// 拖拽结束时保存排序
 const handleDragEnd = () => {
-  // 清除所有拖拽状态
-  draggedItem.value = null;
-  dragOverItem.value = null;
-  insertPosition.value = null;
-};
+  // 分离固定项目和可移动项目
+  const fixedItems = localVisibleItems.value.filter((item) => item.fixed);
+  const movableItems = localVisibleItems.value.filter((item) => !item.fixed);
 
-const handleDragOver = (event: DragEvent) => {
-  event.preventDefault();
-  if (!draggedItem.value || event.dataTransfer) {
-    event.dataTransfer!.dropEffect = 'move';
-  }
+  // 分离固定在开头和结尾的项目
+  const fixedAtStart = fixedItems.filter((item) => item.id === 'home');
+  const fixedAtEnd = fixedItems.filter((item) => item.id !== 'home');
 
-  // 获取当前悬停的元素
-  const target = event.target as HTMLElement;
-  const menuItem = target.closest('.menu-item');
+  // 重新构建完整的排序列表
+  const finalOrder: MenuItemConfig[] = [];
+  let orderIndex = 0;
 
-  if (menuItem) {
-    const itemId = menuItem.getAttribute('data-item-id');
-    if (itemId && itemId !== draggedItem.value?.id) {
-      // 计算鼠标相对于元素的位置
-      const rect = menuItem.getBoundingClientRect();
-      const midPoint = rect.top + rect.height / 2;
-      const mouseY = event.clientY;
-
-      dragOverItem.value = itemId;
-      insertPosition.value = mouseY < midPoint ? 'before' : 'after';
-    }
-  }
-};
-
-const handleDrop = (event: DragEvent, listType: 'visible' | 'hidden') => {
-  event.preventDefault();
-
-  if (!draggedItem.value) return;
-
-  const target = event.target as HTMLElement;
-  const dropItem = target.closest('.menu-item');
-
-  if (!dropItem) return;
-
-  const dropItemId = dropItem.getAttribute('data-item-id');
-  if (!dropItemId || dropItemId === draggedItem.value.id) return;
-
-  // 重新排序逻辑
-  const currentList = listType === 'visible' ? visibleItems.value : hiddenItems.value;
-  const draggedIndex = currentList.findIndex((item) => item.id === draggedItem.value!.id);
-  const dropIndex = currentList.findIndex((item) => item.id === dropItemId);
-
-  if (draggedIndex === -1 || dropIndex === -1) return;
-
-  // 创建新的排序
-  const newOrder = [...currentList];
-  const [draggedElement] = newOrder.splice(draggedIndex, 1);
-  newOrder.splice(dropIndex, 0, draggedElement);
-
-  // 更新order值
-  newOrder.forEach((item, index) => {
-    item.order = index;
+  // 固定在开头的项目
+  fixedAtStart.forEach((item) => {
+    item.order = orderIndex++;
+    finalOrder.push(item);
   });
 
-  updateMenuItemsOrder(newOrder);
-  sidebarConfig.value = getSidebarConfig();
+  // 可移动项目
+  movableItems.forEach((item) => {
+    item.order = orderIndex++;
+    finalOrder.push(item);
+  });
 
-  // 清除拖拽状态
-  draggedItem.value = null;
-  dragOverItem.value = null;
-  insertPosition.value = null;
+  // 固定在结尾的项目
+  fixedAtEnd.forEach((item) => {
+    item.order = orderIndex++;
+    finalOrder.push(item);
+  });
+
+  updateMenuItemsOrder(finalOrder);
+  sidebarConfig.value = getSidebarConfig();
   ElMessage.success('排序已更新');
 };
 
@@ -525,17 +507,13 @@ onUnmounted(() => {
   background-color: var(--el-bg-color);
   border: 1px solid var(--el-border-color-light);
   border-radius: 6px;
-  cursor: grab;
+  cursor: default;
   transition: all 0.2s ease;
 }
 
 .menu-item:hover {
   border-color: var(--el-color-primary);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.menu-item:active {
-  cursor: grabbing;
 }
 
 .menu-item.hidden-item {
@@ -560,38 +538,6 @@ onUnmounted(() => {
 .menu-item.is-fixed .item-title {
   color: var(--el-color-warning-dark-2);
   font-weight: 600;
-}
-
-/* 拖拽状态样式 */
-.menu-item.is-dragging {
-  opacity: 0.5;
-  transform: scale(0.95);
-  cursor: grabbing !important;
-}
-
-/* 拖拽目标指示器 */
-.menu-item.drag-over-before::before {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background-color: var(--el-color-primary);
-  border-radius: 2px;
-  z-index: 10;
-}
-
-.menu-item.drag-over-after::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background-color: var(--el-color-primary);
-  border-radius: 2px;
-  z-index: 10;
 }
 
 .item-content {
@@ -729,5 +675,72 @@ onUnmounted(() => {
   position: absolute;
   right: 0;
   left: 0;
+}
+</style>
+
+<!-- 非 scoped 样式：用于 VueDraggable 动态元素 -->
+<style>
+/* VueDraggable 拖拽状态样式 */
+
+/* 占位符（插入位置指示线） */
+.sidebar-management .sortable-ghost {
+  position: relative;
+  opacity: 1 !important;
+  height: 4px !important;
+  min-height: 4px !important;
+  max-height: 4px !important;
+  padding: 0 !important;
+  margin: 4px 0 !important;
+  border: none !important;
+  background: linear-gradient(90deg, var(--el-color-primary) 0%, var(--el-color-primary-light-3) 100%) !important;
+  border-radius: 2px !important;
+  overflow: hidden !important;
+  box-shadow: 0 0 8px var(--el-color-primary-light-5);
+}
+
+.sidebar-management .sortable-ghost::before,
+.sidebar-management .sortable-ghost::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  background-color: var(--el-color-primary);
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+
+.sidebar-management .sortable-ghost::before {
+  left: 0;
+}
+
+.sidebar-management .sortable-ghost::after {
+  right: 0;
+}
+
+.sidebar-management .sortable-ghost > * {
+  display: none !important;
+}
+
+/* 被选中的元素（原位置） */
+.sidebar-management .sortable-chosen {
+  opacity: 0.5;
+}
+
+/* 跟随手指/鼠标移动的元素（forceFallback 模式） */
+.sortable-fallback {
+  opacity: 1 !important;
+  background-color: var(--el-bg-color) !important;
+  border: 1px solid var(--el-color-primary) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2) !important;
+  transform: rotate(1deg);
+  z-index: 9999 !important;
+  pointer-events: none;
+}
+
+/* 拖拽中的元素 */
+.sidebar-management .sortable-drag {
+  opacity: 0 !important;
 }
 </style>
