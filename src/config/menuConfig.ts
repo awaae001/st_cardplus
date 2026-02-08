@@ -1,5 +1,15 @@
+import {
+  Briefcase,
+  Collection,
+  DataLine,
+  EditPen,
+  House,
+  Location,
+  Postcard,
+  Tickets,
+  Tools,
+} from '@element-plus/icons-vue';
 import { markRaw } from 'vue';
-import { House, EditPen, Location, Postcard, Tools, DataLine, Collection, Tickets } from '@element-plus/icons-vue';
 
 // 菜单项类型
 export type MenuItemType = 'main' | 'tool';
@@ -38,6 +48,7 @@ export const iconMap = {
   DataLine: markRaw(DataLine),
   Collection: markRaw(Collection),
   Tickets: markRaw(Tickets),
+  Briefcase: markRaw(Briefcase),
 };
 
 // Iconify 图标映射
@@ -50,6 +61,7 @@ export const iconifyIconMap: Record<string, string> = {
   DataLine: 'ep:data-line',
   Collection: 'ep:collection',
   Tickets: 'ep:tickets',
+  Briefcase: 'ep:briefcase',
 };
 
 // 主菜单项配置
@@ -137,7 +149,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     visible: true,
     order: 8,
     title: '工具箱',
-    icon: 'Tools',
+    icon: 'Briefcase',
     route: '/toolbox',
     fixed: true,
   },
@@ -187,7 +199,7 @@ export const toolboxToolItems: MenuItemConfig[] = [
   },
 ];
 
-// 工具箱固定工具配置（不会出现在侧边栏中的固定工具）
+// 工具箱固定工具配置（不会出现在导航栏中的固定工具）
 export const toolboxFixedTools: ToolboxToolConfig[] = [
   {
     id: 'json-formatter',
@@ -238,13 +250,13 @@ export const getIconifyIconName = (iconName: string): string => {
   return iconifyIconMap[iconName] || iconName;
 };
 
-// 侧边栏配置接口
+// 导航栏配置接口
 export interface SidebarConfig {
   items: MenuItemConfig[];
   lastUpdated: number;
 }
 
-// 创建默认侧边栏配置
+// 创建默认导航栏配置
 export const createDefaultSidebarConfig = (): SidebarConfig => ({
   items: getAllDefaultMenuItems(),
   lastUpdated: Date.now(),

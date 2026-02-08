@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { Icon } from '@iconify/vue';
+import { getIconifyIconName, toolboxFixedTools } from '@/config/menuConfig';
 import { getHiddenMenuItems, type MenuItemConfig } from '@/utils/localStorageUtils';
-import { toolboxFixedTools, getIconifyIconName } from '@/config/menuConfig';
+import { Icon } from '@iconify/vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 
 // 工具箱项目类型
 interface ToolboxDisplayItem {
@@ -11,7 +11,7 @@ interface ToolboxDisplayItem {
   icon: string;
   description: string;
   route: string;
-  type: 'fixed' | 'hidden'; // fixed: 固定工具, hidden: 来自侧边栏的隐藏项目
+  type: 'fixed' | 'hidden'; // fixed: 固定工具, hidden: 来自导航栏的隐藏项目
   category?: string;
   isMainMenu?: boolean; // 是否为主菜单项
 }
@@ -32,7 +32,7 @@ const getFixedTools = (): ToolboxDisplayItem[] => {
   }));
 };
 
-// 获取来自侧边栏的隐藏项目（只包含非工具箱的主菜单项）
+// 获取来自导航栏的隐藏项目（只包含非工具箱的主菜单项）
 const getHiddenSidebarItems = (): ToolboxDisplayItem[] => {
   return hiddenMenuItems.value
     .filter((item) => {
@@ -44,7 +44,7 @@ const getHiddenSidebarItems = (): ToolboxDisplayItem[] => {
       id: item.id,
       title: item.title,
       icon: getIconifyIconName(item.icon),
-      description: item.description || '从侧边栏隐藏的菜单项',
+      description: item.description || '从导航栏隐藏的菜单项',
       route: item.route,
       type: 'hidden',
       isMainMenu: item.type === 'main',
@@ -68,7 +68,7 @@ const refreshHiddenItems = () => {
   hiddenMenuItems.value = getHiddenMenuItems();
 };
 
-// 监听侧边栏配置变化
+// 监听导航栏配置变化
 const handleSidebarConfigChange = () => {
   refreshHiddenItems();
 };
@@ -111,7 +111,7 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- 来自侧边栏的隐藏项目 -->
+    <!-- 来自导航栏的隐藏项目 -->
     <div
       v-if="hiddenSidebarItems.length > 0"
       class="section"
@@ -122,9 +122,9 @@ onUnmounted(() => {
           width="20"
           height="20"
         />
-        来自侧边栏 ({{ hiddenSidebarItems.length }})
+        来自导航栏 ({{ hiddenSidebarItems.length }})
       </h2>
-      <p class="section-description">这些项目已从侧边栏隐藏，可在此快速访问</p>
+      <p class="section-description">这些项目已从导航栏隐藏，可在此快速访问</p>
 
       <div class="hidden-items-grid">
         <div

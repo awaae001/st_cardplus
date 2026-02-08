@@ -1,0 +1,59 @@
+@reference "tailwindcss";
+
+/*
+ * 设置页面通用样式
+ */
+
+/* 设置容器 */
+.app-settings {
+  @apply flex flex-col gap-4;
+}
+
+/* 设置卡片 */
+.setting-card {
+  @apply rounded-lg px-4 py-3 transition-shadow;
+  background-color: var(--el-bg-color-overlay);
+  border: 1px solid var(--el-border-color);
+}
+
+.setting-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* 设置内容区 */
+.setting-content {
+  @apply flex flex-col gap-1;
+}
+
+/* 设置头部 */
+.setting-header {
+  @apply flex justify-between items-center;
+}
+
+/* 设置信息区 */
+.setting-info {
+  @apply flex items-center;
+}
+
+/* 设置标签 */
+.setting-label {
+  @apply text-base font-semibold;
+  color: var(--el-text-color-primary);
+}
+
+/* 设置描述 */
+.setting-description {
+  @apply text-xs leading-normal m-0 text-left;
+  color: var(--el-text-color-secondary);
+}
+
+/* 数字输入控件 */
+.interval-control {
+  @apply flex items-center gap-2;
+}
+
+/* 单位文字 */
+.interval-unit {
+  @apply text-sm;
+  color: var(--el-text-color-secondary);
+}

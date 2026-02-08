@@ -78,7 +78,6 @@
 </template>
 
 <script setup lang="ts">
-import { defineEmits, defineProps } from 'vue';
 import { Icon } from '@iconify/vue';
 import { ElMessageBox } from 'element-plus';
 
