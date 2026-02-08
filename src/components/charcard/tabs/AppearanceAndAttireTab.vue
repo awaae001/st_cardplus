@@ -1,28 +1,62 @@
 <template>
   <section class="form-section">
     <h3 class="form-section-title">
-      <Icon icon="ph:user-focus-duotone" class="form-section-icon" />外貌特征
+      <Icon
+        icon="ph:user-focus-duotone"
+        class="form-section-icon"
+      />
+      外貌特征
     </h3>
     <div class="form-section-content">
       <p class="whatYouwant">
-        <Icon icon="material-symbols:info-outline" width="24" height="24" />
-        <span style="margin-left: 4px;"></span>
+        <Icon
+          icon="material-symbols:info-outline"
+          width="24"
+          height="24"
+        />
+        <span style="margin-left: 4px"></span>
         当你在输入框留空时留空的位置不会被导出，即："不用全部填写"
       </p>
       <div id="appearance-form">
-        <div v-for="(field, index) in displayFields" :key="field.key">
+        <div
+          v-for="(field, index) in displayFields"
+          :key="field.key"
+        >
           <label class="form-label">{{ field.label }}</label>
           <div class="custom-field-container">
-            <el-input type="textarea" :rows="1" v-model="field.value" :placeholder="`请输入 ${field.label} 特征`"
-              @input="updateFormField(field.key, field.value)" />
-            <el-button type="danger" size="small" @click="removeField(index)" class="remove-btn">
-              <Icon icon="material-symbols:delete-outline" width="20" height="20" />
+            <el-input
+              type="textarea"
+              :rows="1"
+              v-model="field.value"
+              :placeholder="`请输入 ${field.label} 特征`"
+              @input="updateFormField(field.key, field.value)"
+            />
+            <el-button
+              type="danger"
+              size="small"
+              @click="removeField(index)"
+              class="remove-btn"
+            >
+              <Icon
+                icon="material-symbols:delete-outline"
+                width="20"
+                height="20"
+              />
             </el-button>
           </div>
         </div>
       </div>
-      <el-button type="primary" size="small" @click="addCustomField" style="margin-top: 1rem;">
-        <Icon icon="material-symbols:add" width="20" height="20" />
+      <el-button
+        type="primary"
+        size="small"
+        @click="addCustomField"
+        style="margin-top: 1rem"
+      >
+        <Icon
+          icon="material-symbols:add"
+          width="20"
+          height="20"
+        />
         添加自定义字段
       </el-button>
     </div>
@@ -30,36 +64,104 @@
   <section class="form-section">
     <div class="form-section-title title-Btn-add">
       <h3 class="title-fixed">
-        <Icon icon="ph:t-shirt-duotone" class="form-section-icon" />服装设定
+        <Icon
+          icon="ph:t-shirt-duotone"
+          class="form-section-icon"
+        />
+        服装设定
       </h3>
-      <div style="display: flex; gap: 8px; margin-left: 16px;">
-        <el-button type="primary" @click="$emit('addAttire')">
-          <Icon icon="material-symbols:desktop-landscape-add-outline" width="18" height="18"
-            style="margin-right: 4px;" />
+      <div style="display: flex; gap: 8px; margin-left: 16px">
+        <el-button
+          type="primary"
+          @click="$emit('addAttire')"
+        >
+          <Icon
+            icon="material-symbols:desktop-landscape-add-outline"
+            width="18"
+            height="18"
+            style="margin-right: 4px"
+          />
           添加套装（卡片）
         </el-button>
-        <el-button type="success" @click="$emit('exportAttires')" title="导出服装设定">
-          <Icon icon="material-symbols:content-copy-outline" width="18" height="18" />
+        <el-button
+          type="success"
+          @click="$emit('exportAttires')"
+          title="导出服装设定"
+        >
+          <Icon
+            icon="material-symbols:content-copy-outline"
+            width="18"
+            height="18"
+          />
         </el-button>
       </div>
     </div>
-    <draggable :model-value="form.attires" @update:model-value="$emit('update:attires', $event)" handle=".drag-handle" item-key="index" animation="200"
-      ghost-class="ghost" chosen-class="chosen" class="form-grid-4-col">
+    <draggable
+      :model-value="form.attires"
+      @update:model-value="$emit('update:attires', $event)"
+      handle=".drag-handle"
+      item-key="index"
+      animation="200"
+      ghost-class="ghost"
+      chosen-class="chosen"
+      class="form-grid-4-col"
+    >
       <template #item="{ element: attire, index }">
         <el-card class="draggable-card">
           <div class="drag-handle">
-            <Icon icon="material-symbols:drag-handle" width="20" height="20" />
+            <Icon
+              icon="material-symbols:drag-handle"
+              width="20"
+              height="20"
+            />
           </div>
-          <el-input v-model="attire.name" placeholder="套装名称" />
-          <el-input v-model="attire.description" type="textarea" :rows="2" placeholder="套装描述" />
-          <el-input v-model="attire.tops" placeholder="上衣" />
-          <el-input v-model="attire.bottoms" placeholder="下装" />
-          <el-input v-model="attire.shoes" placeholder="鞋子" />
-          <el-input v-model="attire.socks" placeholder="袜子" />
-          <el-input v-model="attire.underwears" placeholder="内衣" />
-          <el-input type="textarea" :rows="5" v-model="attire.accessories" placeholder="配饰 · 自动分组，一行一条" />
-          <el-button type="danger" @click="$emit('removeAttire', index)" style="margin-top: 1rem; width: 100%;">
-            <Icon icon="material-symbols:delete-outline" width="18" height="18" style="margin-right: 4px;" />
+          <el-input
+            v-model="attire.name"
+            placeholder="套装名称"
+          />
+          <el-input
+            v-model="attire.description"
+            type="textarea"
+            :rows="2"
+            placeholder="套装描述"
+          />
+          <el-input
+            v-model="attire.tops"
+            placeholder="上衣"
+          />
+          <el-input
+            v-model="attire.bottoms"
+            placeholder="下装"
+          />
+          <el-input
+            v-model="attire.shoes"
+            placeholder="鞋子"
+          />
+          <el-input
+            v-model="attire.socks"
+            placeholder="袜子"
+          />
+          <el-input
+            v-model="attire.underwears"
+            placeholder="内衣"
+          />
+          <el-input
+            type="textarea"
+            :rows="5"
+            v-model="attire.accessories"
+            placeholder="配饰 · 自动分组，一行一条"
+          />
+          <el-button
+            type="danger"
+            @click="$emit('removeAttire', index)"
+            style="margin-top: 1rem; width: 100%"
+          >
+            <Icon
+              icon="material-symbols:delete-outline"
+              width="18"
+              height="18"
+              style="margin-right: 4px"
+            />
             删除套装
           </el-button>
         </el-card>
@@ -77,12 +179,12 @@ import draggable from 'vuedraggable';
 const props = defineProps({
   form: {
     type: Object,
-    required: true
+    required: true,
   },
   attires: {
     type: Array,
-    required: true
-  }
+    required: true,
+  },
 });
 
 defineEmits(['addAttire', 'removeAttire', 'exportAttires', 'update:attires']);
@@ -97,7 +199,24 @@ interface AppearanceField {
 }
 const displayFields = ref<AppearanceField[]>([]);
 const standardFieldsMap: { [key: string]: string } = {
-  'height': '身高', 'hairColor': '发色', 'hairstyle': '发型', 'eyes': '眼睛', 'nose': '鼻子', 'lips': '嘴唇', 'skin': '皮肤', 'body': '身材', 'breasts': '胸部', 'genitals': '生殖器', 'anus': '屁眼', 'pubes': '阴毛', 'bust': '胸围', 'waist': '腰围', 'hips': '臀围', 'thighs': '大腿', 'butt': '屁股', 'feet': '足部'
+  height: '身高',
+  hairColor: '发色',
+  hairstyle: '发型',
+  eyes: '眼睛',
+  nose: '鼻子',
+  lips: '嘴唇',
+  skin: '皮肤',
+  body: '身材',
+  breasts: '胸部',
+  genitals: '生殖器',
+  anus: '屁眼',
+  pubes: '阴毛',
+  bust: '胸围',
+  waist: '腰围',
+  hips: '臀围',
+  thighs: '大腿',
+  butt: '屁股',
+  feet: '足部',
 };
 
 const syncFields = () => {
@@ -119,14 +238,17 @@ const updateFormField = (key: string, value: string) => {
 
 const addCustomField = async () => {
   try {
-    const { value: inputText } = await ElMessageBox.prompt(
+    const result = await ElMessageBox.prompt(
       '<b>请输入自定义字段，每行一个字段</b><br>格式为"字段名:字段描述"<br>例如:<br>纹身:淡青色纹身，一条小龙<br>右腿:断掉的右腿，只有裤腿在晃荡',
       '添加自定义字段',
       {
-        confirmButtonText: '确认', cancelButtonText: '取消', inputType: 'textarea', inputPlaceholder: '字段名:字段描述',
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        inputType: 'textarea',
+        inputPlaceholder: '字段名:字段描述',
         inputValidator: (value) => {
           if (!value) return true;
-          const lines = value.split('\n').filter(line => line.trim());
+          const lines = value.split('\n').filter((line: string) => line.trim());
           for (const line of lines) {
             if (!line.includes(':')) {
               return `格式错误: "${line}"每行必须包含冒号(:)分隔字段名和描述`;
@@ -134,11 +256,12 @@ const addCustomField = async () => {
           }
           return true;
         },
-        dangerouslyUseHTMLString: true
+        dangerouslyUseHTMLString: true,
       }
     );
+    const { value: inputText } = result as { value: string };
     if (inputText) {
-      const lines = inputText.split('\n').filter(line => line.trim());
+      const lines = inputText.split('\n').filter((line: string) => line.trim());
       let addedCount = 0;
       for (const line of lines) {
         const [fieldName, ...fieldValueParts] = line.split(':');
@@ -148,7 +271,9 @@ const addCustomField = async () => {
         const keyExists = Object.keys(form.value.appearance).includes(trimmedName);
         const labelExists = Object.values(standardFieldsMap).includes(trimmedName);
         if (keyExists || labelExists) {
-          ElMessageBox.alert(`字段 "${trimmedName}" 已存在或为预设字段，请使用其他名称 `, '提示', { confirmButtonText: '确定' });
+          ElMessageBox.alert(`字段 "${trimmedName}" 已存在或为预设字段，请使用其他名称 `, '提示', {
+            confirmButtonText: '确定',
+          });
           continue;
         }
         form.value.appearance[trimmedName] = fieldValue;
@@ -176,9 +301,13 @@ onMounted(() => {
   syncFields();
 });
 
-watch(() => form.value.appearance, () => {
-  syncFields();
-}, { deep: true, immediate: true });
+watch(
+  () => form.value.appearance,
+  () => {
+    syncFields();
+  },
+  { deep: true, immediate: true }
+);
 </script>
 
 <style scoped>
@@ -279,7 +408,6 @@ watch(() => form.value.appearance, () => {
 }
 
 @media (min-width: 768px) {
-
   #appearance-form,
   #routine-form {
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -377,13 +505,13 @@ watch(() => form.value.appearance, () => {
 @media (min-width: 1200px) {
   .form-grid-4-col {
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    align-items: flex-start
+    align-items: flex-start;
   }
 
   #appearance-form,
   #routine-form {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    align-items: flex-start
+    align-items: flex-start;
   }
 }
 

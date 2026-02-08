@@ -4,19 +4,34 @@
       <h1>关于与设置</h1>
       <p class="subtitle">管理自己的自定义设置</p>
     </div>
-    <el-tabs v-model="activeTab" class="settings-tabs">
-      <el-tab-pane label="设置" name="settings">
+    <el-tabs
+      v-model="activeTab"
+      class="settings-tabs"
+    >
+      <el-tab-pane
+        label="设置"
+        name="settings"
+      >
         <div class="settings-section">
           <AppSettings />
         </div>
       </el-tab-pane>
-      <el-tab-pane label="迁移与同步" name="data">
+      <el-tab-pane
+        label="迁移与同步"
+        name="data"
+      >
         <DataManagement />
       </el-tab-pane>
-      <el-tab-pane label="个性化" name="personalization">
+      <el-tab-pane
+        label="个性化"
+        name="personalization"
+      >
         <PersonalizationSettings />
       </el-tab-pane>
-      <el-tab-pane label="关于" name="about">
+      <el-tab-pane
+        label="关于"
+        name="about"
+      >
         <AboutSection />
       </el-tab-pane>
     </el-tabs>

@@ -3,10 +3,7 @@ import type { Connection, Edge, EdgeChange, Node } from '@vue-flow/core';
 import type { EnhancedLandmark, EnhancedRegion } from '@/types/world-editor';
 import type { BridgeNodeData, LandmarkNodeForce } from '@/types/worldeditor/worldGraphNodes';
 import { collectDescendantIds, getParentLandmarkId } from '@/utils/worldeditor/landmarkHierarchy';
-import {
-  readSessionStorageJSON,
-  writeSessionStorageJSON,
-} from '@/utils/localStorageUtils';
+import { readSessionStorageJSON, writeSessionStorageJSON } from '@/utils/localStorageUtils';
 import { linkLandmarks, unlinkLandmarks } from '@/composables/worldeditor/worldGraphLinks';
 import { useWorldGraph, type WorldGraphProps } from '@/composables/worldeditor/useWorldGraph';
 import { ElMessage } from 'element-plus';
@@ -55,10 +52,7 @@ const isRemoveChangeWithId = (change: EdgeChange): change is EdgeChange & { id: 
   return change.type === 'remove' && 'id' in change && typeof (change as { id?: unknown }).id === 'string';
 };
 
-export const useWorldGraphView = (
-  props: WorldGraphProps,
-  options?: WorldGraphViewOptions
-): WorldGraphViewState => {
+export const useWorldGraphView = (props: WorldGraphProps, options?: WorldGraphViewOptions): WorldGraphViewState => {
   const activeProjectId = computed(() => {
     if (props.activeProjectId) return props.activeProjectId;
     return props.projects[0]?.id || null;
@@ -66,8 +60,8 @@ export const useWorldGraphView = (
 
   const rootLandmarks = computed(() => {
     if (!activeProjectId.value) return [];
-    return props.landmarks.filter(landmark =>
-      landmark.projectId === activeProjectId.value && !getParentLandmarkId(landmark)
+    return props.landmarks.filter(
+      (landmark) => landmark.projectId === activeProjectId.value && !getParentLandmarkId(landmark)
     );
   });
 
@@ -104,7 +98,7 @@ export const useWorldGraphView = (
 
   const childGraphParent = computed(() => {
     if (!childGraphParentId.value) return null;
-    return props.landmarks.find(landmark => landmark.id === childGraphParentId.value) || null;
+    return props.landmarks.find((landmark) => landmark.id === childGraphParentId.value) || null;
   });
 
   const childGraphTitle = computed(() => {
@@ -115,10 +109,10 @@ export const useWorldGraphView = (
   const childGraphLandmarks = computed(() => {
     if (!childGraphParent.value) return [];
     const descendantIds = collectDescendantIds(props.landmarks, childGraphParent.value.id);
-    return props.landmarks.filter(landmark => descendantIds.has(landmark.id));
+    return props.landmarks.filter((landmark) => descendantIds.has(landmark.id));
   });
 
-  const childGraphLandmarkIdSet = computed(() => new Set(childGraphLandmarks.value.map(landmark => landmark.id)));
+  const childGraphLandmarkIdSet = computed(() => new Set(childGraphLandmarks.value.map((landmark) => landmark.id)));
 
   const positionToSide = (
     parent?: { x: number; y: number },
@@ -167,16 +161,16 @@ export const useWorldGraphView = (
     const parent = childGraphParent.value;
     const externalIds = new Set<string>();
 
-    (parent.relatedLandmarks || []).forEach(id => externalIds.add(id));
-    (parent.roadConnections || []).forEach(conn => externalIds.add(conn.targetId));
+    (parent.relatedLandmarks || []).forEach((id) => externalIds.add(id));
+    (parent.roadConnections || []).forEach((conn) => externalIds.add(conn.targetId));
 
-    externalIds.forEach(externalId => {
+    externalIds.forEach((externalId) => {
       if (childGraphLandmarkIdSet.value.has(externalId)) return;
       if (externalId === parent.id) return;
-      const external = props.landmarks.find(item => item.id === externalId);
+      const external = props.landmarks.find((item) => item.id === externalId);
       if (!external) return;
-      const parentConn = parent.roadConnections?.find(conn => conn.targetId === externalId);
-      const externalConn = external.roadConnections?.find(conn => conn.targetId === parent.id);
+      const parentConn = parent.roadConnections?.find((conn) => conn.targetId === externalId);
+      const externalConn = external.roadConnections?.find((conn) => conn.targetId === parent.id);
       const side = positionToSide(parent.position, external.position);
       if (!side) return;
       const nodeId = `bridge:${parent.id}:${externalId}`;
@@ -226,7 +220,7 @@ export const useWorldGraphView = (
       });
     }
 
-    childGraphBridgeMeta.value.forEach(meta => {
+    childGraphBridgeMeta.value.forEach((meta) => {
       const count = sideCounts[meta.side]++;
       let x = minX;
       let y = minY;
@@ -260,7 +254,7 @@ export const useWorldGraphView = (
     const nodes: Node[] = [];
     const defaults = getBridgeDefaults();
 
-    childGraphBridgeMeta.value.forEach(meta => {
+    childGraphBridgeMeta.value.forEach((meta) => {
       const stored = getBridgePositionMap()[meta.externalId];
       const fallback = defaults[meta.nodeId] || { x: 0, y: 0 };
       const data: BridgeNodeData = {
@@ -287,11 +281,11 @@ export const useWorldGraphView = (
 
   const childGraphBridgeEdges = computed(() => {
     const edges: Edge[] = [];
-    childGraphLandmarks.value.forEach(child => {
-      (child.relatedLandmarks || []).forEach(externalId => {
+    childGraphLandmarks.value.forEach((child) => {
+      (child.relatedLandmarks || []).forEach((externalId) => {
         const meta = childGraphBridgeMeta.value.get(externalId);
         if (!meta) return;
-        const childConn = child.roadConnections?.find(conn => conn.targetId === externalId);
+        const childConn = child.roadConnections?.find((conn) => conn.targetId === externalId);
         edges.push({
           id: `bridge-edge:${child.id}:${externalId}`,
           source: child.id,
@@ -420,7 +414,7 @@ export const useWorldGraphView = (
   const handleChildEdgesChangeProxy = (changes: EdgeChange[]) => {
     const removed = changes.filter(isRemoveChangeWithId);
     if (removed.length > 0) {
-      removed.forEach(change => {
+      removed.forEach((change) => {
         const edgeId = change.id;
         if (edgeId.startsWith('bridge-edge:')) {
           const parts = edgeId.split(':');
@@ -432,7 +426,9 @@ export const useWorldGraphView = (
         }
       });
     }
-    const forwarded = changes.filter(change => !isRemoveChangeWithId(change) || !change.id.startsWith('bridge-edge:'));
+    const forwarded = changes.filter(
+      (change) => !isRemoveChangeWithId(change) || !change.id.startsWith('bridge-edge:')
+    );
     if (forwarded.length > 0) {
       handleChildEdgesChange(forwarded);
     }
@@ -461,29 +457,33 @@ export const useWorldGraphView = (
     handleChildNodeDragStop(event, node as Node);
   };
 
-  watch(childGraphBridgeMeta, (meta) => {
-    const parentId = childGraphParent.value?.id;
-    if (!parentId) return;
-    const validIds = new Set(Array.from(meta.values()).map(item => item.nodeId));
-    const nextPositions: Record<string, { x: number; y: number }> = {};
-    Object.entries(getBridgePositionMap()).forEach(([externalId, pos]) => {
-      const nodeId = `bridge:${parentId}:${externalId}`;
-      if (validIds.has(nodeId)) {
-        nextPositions[externalId] = pos;
+  watch(
+    childGraphBridgeMeta,
+    (meta) => {
+      const parentId = childGraphParent.value?.id;
+      if (!parentId) return;
+      const validIds = new Set(Array.from(meta.values()).map((item) => item.nodeId));
+      const nextPositions: Record<string, { x: number; y: number }> = {};
+      Object.entries(getBridgePositionMap()).forEach(([externalId, pos]) => {
+        const nodeId = `bridge:${parentId}:${externalId}`;
+        if (validIds.has(nodeId)) {
+          nextPositions[externalId] = pos;
+        }
+      });
+      const defaults = getBridgeDefaults();
+      let changed = false;
+      meta.forEach((item) => {
+        if (!nextPositions[item.externalId] && defaults[item.nodeId]) {
+          nextPositions[item.externalId] = defaults[item.nodeId];
+          changed = true;
+        }
+      });
+      if (changed || Object.keys(nextPositions).length !== Object.keys(getBridgePositionMap()).length) {
+        setBridgePositionMap(nextPositions);
       }
-    });
-    const defaults = getBridgeDefaults();
-    let changed = false;
-    meta.forEach(item => {
-      if (!nextPositions[item.externalId] && defaults[item.nodeId]) {
-        nextPositions[item.externalId] = defaults[item.nodeId];
-        changed = true;
-      }
-    });
-    if (changed || Object.keys(nextPositions).length !== Object.keys(getBridgePositionMap()).length) {
-      setBridgePositionMap(nextPositions);
-    }
-  }, { immediate: true });
+    },
+    { immediate: true }
+  );
 
   const handleNodeClick = (event: unknown, node?: Node) => {
     selectNode(event, node);

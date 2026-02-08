@@ -12,7 +12,7 @@ export interface CharacterCardV3 {
   first_mes: string;
   mes_example: string;
   creatorcomment: string;
-  
+
   // Stored in extensions in V2, but top-level in V3
   avatar: 'none' | string;
   talkativeness: number;
@@ -34,25 +34,27 @@ export interface CharacterCardV3 {
     tags: string[];
     creator: string;
     character_version: string;
-    
+
     // World Info, inline or linked
     // Based on observation, this can be an object with 'entries' when embedded,
     // or an empty array when not.
-    character_book?: {
-      name?: string;
-      entries?: any[];
-      [key: string]: any;
-    } | [];
+    character_book?:
+      | {
+          name?: string;
+          entries?: any[];
+          [key: string]: any;
+        }
+      | [];
 
     extensions?: {
       world?: string; // Linked world book name
-      [key:string]: any;
+      [key: string]: any;
     };
     [key: string]: any;
   };
 
   // Not in spec, but used for local management in this app
-  id?: string; 
+  id?: string;
   chineseName?: string; // Alias for name, used in this app
 
   [key: string]: any; // Allow other top-level fields for compatibility

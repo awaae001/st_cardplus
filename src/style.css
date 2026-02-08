@@ -1,29 +1,4 @@
-@import "tailwindcss";
-
-
-/* 主题切换过渡动画 - 只在切换时生效 */
-.theme-transitioning {
-  transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-    color 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-
-.theme-transitioning *,
-.theme-transitioning *::before,
-.theme-transitioning *::after {
-  transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-    color 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-
-/* 特别处理菜单项 */
-.theme-transitioning .el-menu,
-.theme-transitioning .el-menu-item,
-.theme-transitioning .menu-bar {
-  transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-    color 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
+@import 'tailwindcss';
 
 h1 {
   display: block;

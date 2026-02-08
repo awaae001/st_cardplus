@@ -1,18 +1,41 @@
 <template>
-  <div class="landmark-node" :class="nodeSizeClass(data.type)">
+  <div
+    class="landmark-node"
+    :class="nodeSizeClass(data.type)"
+  >
     <div class="landmark-badge-stack">
-      <div v-if="data.forces.length > 0" class="landmark-badge" title="势力">
-        <Icon icon="ph:users-three" class="landmark-badge-icon is-forces" />
+      <div
+        v-if="data.forces.length > 0"
+        class="landmark-badge"
+        title="势力"
+      >
+        <Icon
+          icon="ph:users-three"
+          class="landmark-badge-icon is-forces"
+        />
         <span class="landmark-badge-count">{{ data.forces.length }}</span>
       </div>
-      <div v-if="(data.childCount ?? 0) > 0" class="landmark-badge" title="子地标">
-        <Icon icon="ph:tree-structure" class="landmark-badge-icon is-children" />
+      <div
+        v-if="(data.childCount ?? 0) > 0"
+        class="landmark-badge"
+        title="子地标"
+      >
+        <Icon
+          icon="ph:tree-structure"
+          class="landmark-badge-icon is-children"
+        />
         <span class="landmark-badge-count">{{ data.childCount }}</span>
       </div>
     </div>
-    <span class="landmark-region-tail" :style="{ backgroundColor: data.regionColor || 'transparent' }"></span>
+    <span
+      class="landmark-region-tail"
+      :style="{ backgroundColor: data.regionColor || 'transparent' }"
+    ></span>
     <div class="landmark-node-header">
-      <Icon :icon="iconForType(data.type)" class="landmark-node-icon" />
+      <Icon
+        :icon="iconForType(data.type)"
+        class="landmark-node-icon"
+      />
       <div class="landmark-node-title">{{ data.name }}</div>
     </div>
     <el-tooltip placement="top">
@@ -20,30 +43,80 @@
         <div class="landmark-tooltip">
           <div class="landmark-tooltip-title">{{ tooltipTitle }}</div>
           <div class="landmark-tooltip-row">
-            <Icon class="landmark-tooltip-icon" icon="ph:users-three" />
+            <Icon
+              class="landmark-tooltip-icon"
+              icon="ph:users-three"
+            />
             <span>人口</span>
             <span class="landmark-tooltip-value">{{ formatPopulation(data.population) }}</span>
           </div>
           <div class="landmark-tooltip-row">
-            <Icon class="landmark-tooltip-icon" icon="ph:shield-fill" />
+            <Icon
+              class="landmark-tooltip-icon"
+              icon="ph:shield-fill"
+            />
             <span>重要性</span>
             <span class="landmark-tooltip-value">{{ data.importance }}</span>
           </div>
         </div>
       </template>
       <span class="landmark-region-badge">
-        <Icon class="landmark-region-shield" icon="ph:shield-fill" :style="{ color: data.regionColor }" />
+        <Icon
+          class="landmark-region-shield"
+          icon="ph:shield-fill"
+          :style="{ color: data.regionColor }"
+        />
         <span class="landmark-importance-value">{{ data.importance }}</span>
       </span>
     </el-tooltip>
-    <Handle type="source" :position="Position.Right" id="sr" class="landmark-handle" />
-    <Handle type="target" :position="Position.Right" id="tr" class="landmark-handle" />
-    <Handle type="source" :position="Position.Left" id="sl" class="landmark-handle" />
-    <Handle type="target" :position="Position.Left" id="tl" class="landmark-handle" />
-    <Handle type="source" :position="Position.Top" id="st" class="landmark-handle" />
-    <Handle type="target" :position="Position.Top" id="tt" class="landmark-handle" />
-    <Handle type="source" :position="Position.Bottom" id="sb" class="landmark-handle" />
-    <Handle type="target" :position="Position.Bottom" id="tb" class="landmark-handle" />
+    <Handle
+      type="source"
+      :position="Position.Right"
+      id="sr"
+      class="landmark-handle"
+    />
+    <Handle
+      type="target"
+      :position="Position.Right"
+      id="tr"
+      class="landmark-handle"
+    />
+    <Handle
+      type="source"
+      :position="Position.Left"
+      id="sl"
+      class="landmark-handle"
+    />
+    <Handle
+      type="target"
+      :position="Position.Left"
+      id="tl"
+      class="landmark-handle"
+    />
+    <Handle
+      type="source"
+      :position="Position.Top"
+      id="st"
+      class="landmark-handle"
+    />
+    <Handle
+      type="target"
+      :position="Position.Top"
+      id="tt"
+      class="landmark-handle"
+    />
+    <Handle
+      type="source"
+      :position="Position.Bottom"
+      id="sb"
+      class="landmark-handle"
+    />
+    <Handle
+      type="target"
+      :position="Position.Bottom"
+      id="tb"
+      class="landmark-handle"
+    />
   </div>
 </template>
 
@@ -125,7 +198,9 @@ const formatPopulation = (value?: number) => {
 
 .landmark-badge + .landmark-badge {
   margin-left: -10px;
-  box-shadow: 0 6px 12px rgba(15, 23, 42, 0.12), 0 0 0 2px #ffffff;
+  box-shadow:
+    0 6px 12px rgba(15, 23, 42, 0.12),
+    0 0 0 2px #ffffff;
 }
 
 .landmark-badge-icon {

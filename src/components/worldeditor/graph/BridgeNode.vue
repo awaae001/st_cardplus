@@ -1,9 +1,22 @@
 <template>
-  <div class="bridge-node" :title="data.label">
+  <div
+    class="bridge-node"
+    :title="data.label"
+  >
     <span class="bridge-dot"></span>
     <span class="bridge-label">{{ data.label }}</span>
-    <Handle :id="data.handleId" type="source" :position="handlePosition" class="bridge-handle" />
-    <Handle :id="data.handleId" type="target" :position="handlePosition" class="bridge-handle" />
+    <Handle
+      :id="data.handleId"
+      type="source"
+      :position="handlePosition"
+      class="bridge-handle"
+    />
+    <Handle
+      :id="data.handleId"
+      type="target"
+      :position="handlePosition"
+      class="bridge-handle"
+    />
   </div>
 </template>
 

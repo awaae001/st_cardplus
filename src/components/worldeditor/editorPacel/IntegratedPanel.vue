@@ -3,11 +3,18 @@
     <div class="panel-header">
       <h1 class="panel-title">{{ currentProject?.name }} - 内容整合</h1>
       <div class="header-actions">
-        <el-button type="primary" @click="exportSelectedJSON" :disabled="selectedItems.length === 0">
+        <el-button
+          type="primary"
+          @click="exportSelectedJSON"
+          :disabled="selectedItems.length === 0"
+        >
           <Icon icon="ph:export-duotone" />
           导出选中JSON ({{ selectedItems.length }})
         </el-button>
-        <el-button type="success" @click="exportAllJSON">
+        <el-button
+          type="success"
+          @click="exportAllJSON"
+        >
           <Icon icon="ph:file-text-duotone" />
           导出全部JSON
         </el-button>
@@ -24,8 +31,18 @@
               <div class="card-header">
                 <span>选择地标 ({{ selectedLandmarks.length }}/{{ projectLandmarks.length }})</span>
                 <div class="header-actions-small">
-                  <el-button size="small" @click="selectAllLandmarks">全选</el-button>
-                  <el-button size="small" @click="clearLandmarkSelection">清空</el-button>
+                  <el-button
+                    size="small"
+                    @click="selectAllLandmarks"
+                  >
+                    全选
+                  </el-button>
+                  <el-button
+                    size="small"
+                    @click="clearLandmarkSelection"
+                  >
+                    清空
+                  </el-button>
                 </div>
               </div>
             </template>
@@ -42,21 +59,37 @@
                   @change="toggleLandmarkSelection(landmark.id)"
                 />
                 <div class="item-content">
-                  <Icon icon="ph:map-pin-duotone" class="item-icon landmark-icon" />
+                  <Icon
+                    icon="ph:map-pin-duotone"
+                    class="item-icon landmark-icon"
+                  />
                   <div class="item-info">
                     <div class="item-name">{{ landmark.name }}</div>
-                    <div class="item-meta">{{ getLandmarkTypeLabel(landmark.type) }} | 重要性: {{ landmark.importance }}星</div>
-                    <div class="item-description" v-if="landmark.description">
+                    <div class="item-meta">
+                      {{ getLandmarkTypeLabel(landmark.type) }} | 重要性: {{ landmark.importance }}星
+                    </div>
+                    <div
+                      class="item-description"
+                      v-if="landmark.description"
+                    >
                       {{ landmark.description.slice(0, 50) }}{{ landmark.description.length > 50 ? '...' : '' }}
                     </div>
-                    <div class="item-relations" v-if="getLandmarkParentName(landmark) || getLandmarkChildNames(landmark).length">
+                    <div
+                      class="item-relations"
+                      v-if="getLandmarkParentName(landmark) || getLandmarkChildNames(landmark).length"
+                    >
                       <span v-if="getLandmarkParentName(landmark)">属于: {{ getLandmarkParentName(landmark) }}</span>
-                      <span v-if="getLandmarkChildNames(landmark).length">包括: {{ getLandmarkChildNames(landmark).join('、') }}</span>
+                      <span v-if="getLandmarkChildNames(landmark).length">
+                        包括: {{ getLandmarkChildNames(landmark).join('、') }}
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
-              <div v-if="projectLandmarks.length === 0" class="empty-message">
+              <div
+                v-if="projectLandmarks.length === 0"
+                class="empty-message"
+              >
                 暂无地标数据
               </div>
             </div>
@@ -70,8 +103,18 @@
               <div class="card-header">
                 <span>选择势力 ({{ selectedForces.length }}/{{ projectForces.length }})</span>
                 <div class="header-actions-small">
-                  <el-button size="small" @click="selectAllForces">全选</el-button>
-                  <el-button size="small" @click="clearForceSelection">清空</el-button>
+                  <el-button
+                    size="small"
+                    @click="selectAllForces"
+                  >
+                    全选
+                  </el-button>
+                  <el-button
+                    size="small"
+                    @click="clearForceSelection"
+                  >
+                    清空
+                  </el-button>
                 </div>
               </div>
             </template>
@@ -88,17 +131,26 @@
                   @change="toggleForceSelection(force.id)"
                 />
                 <div class="item-content">
-                  <Icon icon="ph:flag-duotone" class="item-icon force-icon" />
+                  <Icon
+                    icon="ph:flag-duotone"
+                    class="item-icon force-icon"
+                  />
                   <div class="item-info">
                     <div class="item-name">{{ force.name }}</div>
                     <div class="item-meta">{{ getForceTypeLabel(force.type) }} | 实力: {{ force.power }}星</div>
-                    <div class="item-description" v-if="force.description">
+                    <div
+                      class="item-description"
+                      v-if="force.description"
+                    >
                       {{ force.description.slice(0, 50) }}{{ force.description.length > 50 ? '...' : '' }}
                     </div>
                   </div>
                 </div>
               </div>
-              <div v-if="projectForces.length === 0" class="empty-message">
+              <div
+                v-if="projectForces.length === 0"
+                class="empty-message"
+              >
                 暂无势力数据
               </div>
             </div>
@@ -112,8 +164,18 @@
               <div class="card-header">
                 <span>选择区域 ({{ selectedRegions.length }}/{{ projectRegions.length }})</span>
                 <div class="header-actions-small">
-                  <el-button size="small" @click="selectAllRegions">全选</el-button>
-                  <el-button size="small" @click="clearRegionSelection">清空</el-button>
+                  <el-button
+                    size="small"
+                    @click="selectAllRegions"
+                  >
+                    全选
+                  </el-button>
+                  <el-button
+                    size="small"
+                    @click="clearRegionSelection"
+                  >
+                    清空
+                  </el-button>
                 </div>
               </div>
             </template>
@@ -130,16 +192,25 @@
                   @change="toggleRegionSelection(region.id)"
                 />
                 <div class="item-content">
-                  <Icon icon="ph:map-trifold-duotone" class="item-icon region-icon" />
+                  <Icon
+                    icon="ph:map-trifold-duotone"
+                    class="item-icon region-icon"
+                  />
                   <div class="item-info">
                     <div class="item-name">{{ region.name }}</div>
-                    <div class="item-description" v-if="region.description">
+                    <div
+                      class="item-description"
+                      v-if="region.description"
+                    >
                       {{ region.description.slice(0, 50) }}{{ region.description.length > 50 ? '...' : '' }}
                     </div>
                   </div>
                 </div>
               </div>
-              <div v-if="projectRegions.length === 0" class="empty-message">
+              <div
+                v-if="projectRegions.length === 0"
+                class="empty-message"
+              >
                 暂无区域数据
               </div>
             </div>
@@ -149,7 +220,10 @@
     </div>
 
     <!-- 预览区域 -->
-    <div class="preview-section" v-if="selectedItems.length > 0">
+    <div
+      class="preview-section"
+      v-if="selectedItems.length > 0"
+    >
       <el-card>
         <template #header>
           <div class="card-header">
@@ -159,7 +233,11 @@
                 <span class="preview-filter-label">过滤空字段</span>
                 <el-switch v-model="filterEmptyFields" />
               </div>
-              <el-button type="primary" size="small" @click="exportSelectedJSON">
+              <el-button
+                type="primary"
+                size="small"
+                @click="exportSelectedJSON"
+              >
                 <Icon icon="ph:copy-duotone" />
                 复制JSON
               </el-button>
@@ -171,7 +249,6 @@
         </div>
       </el-card>
     </div>
-
   </div>
 </template>
 
@@ -179,7 +256,13 @@
 import { ref, computed } from 'vue';
 import { ElCard, ElButton, ElRow, ElCol, ElCheckbox, ElMessage, ElSwitch } from 'element-plus';
 import { Icon } from '@iconify/vue';
-import type { Project, EnhancedLandmark, EnhancedForce, EnhancedRegion, ProjectIntegration } from '@/types/world-editor';
+import type {
+  Project,
+  EnhancedLandmark,
+  EnhancedForce,
+  EnhancedRegion,
+  ProjectIntegration,
+} from '@/types/world-editor';
 import { cleanObject, removeEmptyFields } from '@/utils/objectUtils';
 import { getLandmarkTypeLabel } from '@/utils/worldeditor/landmarkMeta';
 import { getParentLandmarkId } from '@/utils/worldeditor/landmarkHierarchy';
@@ -203,20 +286,22 @@ const filterEmptyFields = ref(true);
 // 计算当前项目的地标和势力
 const projectLandmarks = computed(() => {
   if (!props.currentProject) return [];
-  return props.landmarks.filter(l => l.projectId === props.currentProject!.id);
+  return props.landmarks.filter((l) => l.projectId === props.currentProject!.id);
 });
 
 const projectForces = computed(() => {
   if (!props.currentProject) return [];
-  return props.forces.filter(f => f.projectId === props.currentProject!.id);
+  return props.forces.filter((f) => f.projectId === props.currentProject!.id);
 });
 
 const projectRegions = computed(() => {
   if (!props.currentProject) return [];
-  return props.regions.filter(r => r.projectId === props.currentProject!.id);
+  return props.regions.filter((r) => r.projectId === props.currentProject!.id);
 });
 
-const landmarkIdToName = computed(() => new Map(projectLandmarks.value.map(landmark => [landmark.id, landmark.name])));
+const landmarkIdToName = computed(
+  () => new Map(projectLandmarks.value.map((landmark) => [landmark.id, landmark.name]))
+);
 
 const getLandmarkParentName = (landmark: EnhancedLandmark) => {
   const parentId = getParentLandmarkId(landmark);
@@ -226,19 +311,16 @@ const getLandmarkParentName = (landmark: EnhancedLandmark) => {
 
 const getLandmarkChildNames = (landmark: EnhancedLandmark) => {
   const childIds = landmark.childLandmarkIds || [];
-  return childIds
-    .map(id => landmarkIdToName.value.get(id))
-    .filter(Boolean) as string[];
+  return childIds.map((id) => landmarkIdToName.value.get(id)).filter(Boolean) as string[];
 };
 
 // 计算选中的所有项目
 const selectedItems = computed(() => {
-  const landmarks = projectLandmarks.value.filter(l => selectedLandmarks.value.includes(l.id));
-  const forces = projectForces.value.filter(f => selectedForces.value.includes(f.id));
-  const regions = projectRegions.value.filter(r => selectedRegions.value.includes(r.id));
+  const landmarks = projectLandmarks.value.filter((l) => selectedLandmarks.value.includes(l.id));
+  const forces = projectForces.value.filter((f) => selectedForces.value.includes(f.id));
+  const regions = projectRegions.value.filter((r) => selectedRegions.value.includes(r.id));
   return [...landmarks, ...forces, ...regions];
 });
-
 
 // 势力类型标签映射
 const getForceTypeLabel = (type: string): string => {
@@ -253,7 +335,7 @@ const getForceTypeLabel = (type: string): string => {
     tribal: '部族组织',
     guild: '行会',
     cult: '教派',
-    custom: '自定义'
+    custom: '自定义',
   };
   return labels[type] || type;
 };
@@ -287,7 +369,7 @@ const toggleRegionSelection = (regionId: string) => {
 };
 
 const selectAllLandmarks = () => {
-  selectedLandmarks.value = projectLandmarks.value.map(l => l.id);
+  selectedLandmarks.value = projectLandmarks.value.map((l) => l.id);
 };
 
 const clearLandmarkSelection = () => {
@@ -295,7 +377,7 @@ const clearLandmarkSelection = () => {
 };
 
 const selectAllForces = () => {
-  selectedForces.value = projectForces.value.map(f => f.id);
+  selectedForces.value = projectForces.value.map((f) => f.id);
 };
 
 const clearForceSelection = () => {
@@ -303,7 +385,7 @@ const clearForceSelection = () => {
 };
 
 const selectAllRegions = () => {
-  selectedRegions.value = projectRegions.value.map(r => r.id);
+  selectedRegions.value = projectRegions.value.map((r) => r.id);
 };
 
 const clearRegionSelection = () => {
@@ -315,20 +397,20 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce | EnhancedRegion)
   if (items.length === 0) return '{}';
 
   // 创建ID到名称的映射，以便将UUID替换为可读的名称
-  const landmarkIdToNameMap = new Map(props.landmarks.map(l => [l.id, l.name]));
-  const forceIdToNameMap = new Map(props.forces.map(f => [f.id, f.name]));
-  const regionIdToNameMap = new Map(props.regions.map(r => [r.id, r.name]));
+  const landmarkIdToNameMap = new Map(props.landmarks.map((l) => [l.id, l.name]));
+  const forceIdToNameMap = new Map(props.forces.map((f) => [f.id, f.name]));
+  const regionIdToNameMap = new Map(props.regions.map((r) => [r.id, r.name]));
 
   const idToName = (id: string, map: Map<string, string>) => map.get(id) || id;
   const toNameList = (value?: string | string[], map?: Map<string, string>) => {
     if (!value) return [];
     const list = Array.isArray(value) ? value : [value];
-    return list.map(id => idToName(id, map || new Map()));
+    return list.map((id) => idToName(id, map || new Map()));
   };
 
   const landmarks = items
     .filter((item): item is EnhancedLandmark => 'importance' in item)
-    .map(landmark => {
+    .map((landmark) => {
       const relativePosition = landmark.relativePosition
         ? {
             north: toNameList(landmark.relativePosition.north, landmarkIdToNameMap),
@@ -341,7 +423,7 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce | EnhancedRegion)
         ? idToName(landmark.parentLandmarkIds[0], landmarkIdToNameMap)
         : undefined;
       const childNames = (landmark.childLandmarkIds || [])
-        .map(id => idToName(id, landmarkIdToNameMap))
+        .map((id) => idToName(id, landmarkIdToNameMap))
         .filter(Boolean);
       const cleanedLandmark = {
         name: landmark.name,
@@ -354,8 +436,8 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce | EnhancedRegion)
         belongs_to: parentName || undefined,
         includes: childNames.length > 0 ? childNames : undefined,
         // 将关联ID转换为名称
-        controllingForces: landmark.controllingForces?.map(id => idToName(id, forceIdToNameMap)),
-        relatedLandmarks: landmark.relatedLandmarks?.map(id => idToName(id, landmarkIdToNameMap)),
+        controllingForces: landmark.controllingForces?.map((id) => idToName(id, forceIdToNameMap)),
+        relatedLandmarks: landmark.relatedLandmarks?.map((id) => idToName(id, landmarkIdToNameMap)),
         climate: landmark.climate,
         terrain: landmark.terrain,
         population: landmark.population,
@@ -367,23 +449,23 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce | EnhancedRegion)
 
   const forces = items
     .filter((item): item is EnhancedForce => 'power' in item)
-    .map(force => {
+    .map((force) => {
       const cleanedForce = {
         name: force.name,
         description: force.description,
         type: getForceTypeLabel(force.type),
         power: force.power,
-        leaders: force.leaders?.map(l => `${l.title}: ${l.name}`.trim()),
+        leaders: force.leaders?.map((l) => `${l.title}: ${l.name}`.trim()),
         totalMembers: force.totalMembers,
         // 将关联ID转换为名称
         headquarters: force.headquarters ? idToName(force.headquarters, landmarkIdToNameMap) : undefined,
-        branchLocations: force.branchLocations?.map(branch => {
+        branchLocations: force.branchLocations?.map((branch) => {
           const locationName = idToName(branch.locationId, landmarkIdToNameMap);
           const managerInfo = branch.manager ? ` (主理人: ${branch.manager})` : '';
           return `${branch.type}: ${locationName}${managerInfo}`;
         }),
-        allies: force.allies?.map(id => idToName(id, forceIdToNameMap)),
-        enemies: force.enemies?.map(id => idToName(id, forceIdToNameMap)),
+        allies: force.allies?.map((id) => idToName(id, forceIdToNameMap)),
+        enemies: force.enemies?.map((id) => idToName(id, forceIdToNameMap)),
         capabilities: force.capabilities,
         weaknesses: force.weaknesses,
         tags: force.tags,
@@ -394,7 +476,7 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce | EnhancedRegion)
 
   const regions = items
     .filter((item): item is EnhancedRegion => !('importance' in item) && !('power' in item))
-    .map(region => {
+    .map((region) => {
       const cleanedRegion = {
         name: region.name,
         description: region.description,
@@ -406,7 +488,7 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce | EnhancedRegion)
   const exportData = {
     project: {
       name: props.currentProject?.name || '未命名项目',
-      description: props.currentProject?.description || ''
+      description: props.currentProject?.description || '',
     },
     landmarks,
     regions,
@@ -415,8 +497,8 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce | EnhancedRegion)
       landmarkCount: landmarks.length,
       regionCount: regions.length,
       forceCount: forces.length,
-      totalCount: items.length
-    }
+      totalCount: items.length,
+    },
   };
 
   const outputData = filterEmptyFields.value ? removeEmptyFields(exportData) : exportData;
@@ -429,7 +511,7 @@ const exportSelectedJSON = async () => {
     ElMessage.warning('请先选择要导出的内容');
     return;
   }
-  
+
   const jsonData = generateJSON(selectedItems.value);
   try {
     await navigator.clipboard.writeText(jsonData);
@@ -445,7 +527,7 @@ const exportAllJSON = async () => {
     ElMessage.warning('当前项目没有可导出的内容');
     return;
   }
-  
+
   const jsonData = generateJSON(allItems);
   try {
     await navigator.clipboard.writeText(jsonData);

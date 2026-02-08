@@ -8,15 +8,12 @@ import {
   createBackupGist,
   listUserGists,
   loadGistConfig,
-  saveGistConfig
+  saveGistConfig,
 } from '@/utils/gist';
+import { SYNC_EXCLUDED_KEYS } from '@/config/dataSyncConfig';
 import type { GistConfig, BackupData } from '@/types/gist';
 import { exportAllDatabases, importAllDatabases } from '@/database/utils';
-import {
-  getSessionStorageItem,
-  removeSessionStorageItem,
-  readSessionStorageJSON,
-} from '@/utils/localStorageUtils';
+import { getSessionStorageItem, removeSessionStorageItem, readSessionStorageJSON } from '@/utils/localStorageUtils';
 
 interface WebDAVConfig {
   url: string;
@@ -30,12 +27,11 @@ interface TransferProgress {
   lengthComputable?: boolean;
 }
 
-
 export function useSync() {
   // === State ===
   const webdavConfig = ref<WebDAVConfig>({ url: '', username: '', password: '' });
   const gistConfig = ref<GistConfig>({ token: '', gistId: '', lastSyncTime: undefined, autoSync: false });
-  
+
   const snapshotAvailable = ref(false);
   const syncProgressActive = ref(false);
   const syncProgressText = ref('');
@@ -45,7 +41,7 @@ export function useSync() {
   const selectedProvider = ref<SyncProvider>('webdav');
   const providerOptions = [
     { label: 'WebDAV', value: 'webdav', icon: 'material-symbols:cloud' },
-    { label: 'GitHub Gist', value: 'gist', icon: 'mdi:github' }
+    { label: 'GitHub Gist', value: 'gist', icon: 'mdi:github' },
   ];
   const webdavBackupFileName = 'st-cardplus-webdav-backup.json';
   const snapshotSessionKey = 'sync-snapshot';
@@ -67,28 +63,34 @@ export function useSync() {
   });
 
   // === Watchers ===
-  watch(webdavConfig, (newConfig) => {
-    localStorage.setItem('webdavConfig', JSON.stringify(newConfig));
-  }, { deep: true });
+  watch(
+    webdavConfig,
+    (newConfig) => {
+      localStorage.setItem('webdavConfig', JSON.stringify(newConfig));
+    },
+    { deep: true }
+  );
 
-  watch(gistConfig, (newConfig) => {
-    saveGistConfig(newConfig);
-  }, { deep: true });
-
+  watch(
+    gistConfig,
+    (newConfig) => {
+      saveGistConfig(newConfig);
+    },
+    { deep: true }
+  );
 
   // === Methods ===
-  const collectLocalStorage = (excludeKeys: string[] = []) => {
+  const collectLocalStorage = () => {
     const data: { [key: string]: any } = {};
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (!key || excludeKeys.includes(key)) continue;
+      if (!key || SYNC_EXCLUDED_KEYS.includes(key)) continue;
       data[key] = localStorage.getItem(key);
     }
     return data;
   };
 
-  const formatErrorMessage = (error: unknown, fallback: string) =>
-    error instanceof Error ? error.message : fallback;
+  const formatErrorMessage = (error: unknown, fallback: string) => (error instanceof Error ? error.message : fallback);
 
   const startProgress = (action: 'push' | 'pull' | 'test', text: string) => {
     syncProgressActive.value = true;
@@ -136,7 +138,7 @@ export function useSync() {
   };
 
   const prepareBackupData = async (): Promise<BackupData> => {
-    const localStorageData = collectLocalStorage(['gistConfig', 'webdavConfig']);
+    const localStorageData = collectLocalStorage();
     setProgress('正在整理本地数据...');
     const dbData = await exportAllDatabases();
     setProgress('本地数据准备完成');
@@ -151,7 +153,6 @@ export function useSync() {
   const genericPull = async (
     provider: SyncProvider,
     downloadFn: (onProgress?: (progress: TransferProgress) => void) => Promise<any>,
-    configKey: string,
     snapshotKey: string,
     snapshotAvailableRef: Ref<boolean>,
     onSuccess?: () => void
@@ -186,9 +187,12 @@ export function useSync() {
       });
       setProgress('正在解析备份数据...');
 
-      const backupData: BackupData | null = provider === 'webdav'
-        ? JSON.parse(result) as BackupData
-        : (result.success ? result.data as BackupData : null);
+      const backupData: BackupData | null =
+        provider === 'webdav'
+          ? (JSON.parse(result) as BackupData)
+          : result.success
+            ? (result.data as BackupData)
+            : null;
 
       if (!backupData) {
         ElMessage.error(provider === 'gist' ? result.message : '拉取失败或数据为空');
@@ -216,19 +220,23 @@ export function useSync() {
         }
       );
 
-
       try {
         setProgress('正在应用云端数据...');
         const flatData = { ...backupData.localStorage, ...backupData.databases };
         await importAllDatabases(flatData);
-        const preservedConfig = localStorage.getItem(configKey);
+        const webdavConfigPreserved = localStorage.getItem('webdavConfig');
+        const gistConfigPreserved = localStorage.getItem('gistConfig');
+
         localStorage.clear();
-        if (preservedConfig) localStorage.setItem(configKey, preservedConfig);
+
         for (const key in backupData.localStorage) {
           if (Object.prototype.hasOwnProperty.call(backupData.localStorage, key)) {
             localStorage.setItem(key, backupData.localStorage[key]);
           }
         }
+        if (webdavConfigPreserved) localStorage.setItem('webdavConfig', webdavConfigPreserved);
+        if (gistConfigPreserved) localStorage.setItem('gistConfig', gistConfigPreserved);
+
         onSuccess?.();
 
         ElMessage.success(`数据已成功从 ${provider} 恢复，应用将重新加载`);
@@ -347,7 +355,6 @@ export function useSync() {
     await genericPull(
       'webdav',
       (onProgress) => downloadFromWebDAVWithProgress(webdavConfig.value, webdavBackupFileName, onProgress),
-      'webdavConfig',
       snapshotSessionKey,
       snapshotAvailable
     );
@@ -414,13 +421,16 @@ export function useSync() {
           return;
         }
         ElMessageBox.alert(
-          gists.map((g: any) =>
-            `<div style="margin-bottom: 10px; padding: 8px; background: var(--el-fill-color-light); border-radius: 4px;">
+          gists
+            .map(
+              (g: any) =>
+                `<div style="margin-bottom: 10px; padding: 8px; background: var(--el-fill-color-light); border-radius: 4px;">
               <strong>ID:</strong> ${g.id}<br/>
               <strong>描述:</strong> ${g.description}<br/>
               <strong>更新:</strong> ${new Date(g.updated_at).toLocaleString('zh-CN')}
             </div>`
-          ).join(''),
+            )
+            .join(''),
           '您的备份 Gists',
           {
             dangerouslyUseHTMLString: true,
@@ -490,7 +500,6 @@ export function useSync() {
     await genericPull(
       'gist',
       (onProgress) => downloadFromGistWithProgress(gistConfig.value.token!, gistConfig.value.gistId!, onProgress),
-      'gistConfig',
       snapshotSessionKey,
       snapshotAvailable,
       () => {
@@ -503,31 +512,27 @@ export function useSync() {
   // --- Unified Handlers ---
   const handleTestConnection = async () => {
     startProgress('test', '正在测试连接...');
-    const ok = selectedProvider.value === 'webdav'
-      ? await testWebDAV()
-      : await testGist();
+    const ok = selectedProvider.value === 'webdav' ? await testWebDAV() : await testGist();
     if (ok) finishProgress('完成');
     else failProgress('连接失败');
   };
 
   const handlePush = async () => {
-    ElMessageBox.confirm(
-      '确定要将本地数据推送到云端吗？这将覆盖云端上已有的备份。',
-      '确认推送',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }
-    ).then(async () => {
-      if (selectedProvider.value === 'webdav') {
-        await pushToWebDAV();
-      } else {
-        await pushToGist();
-      }
-    }).catch(() => {
-      ElMessage.info('推送操作已取消');
-    });
+    ElMessageBox.confirm('确定要将本地数据推送到云端吗？这将覆盖云端上已有的备份。', '确认推送', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
+      .then(async () => {
+        if (selectedProvider.value === 'webdav') {
+          await pushToWebDAV();
+        } else {
+          await pushToGist();
+        }
+      })
+      .catch(() => {
+        ElMessage.info('推送操作已取消');
+      });
   };
 
   const handlePull = async () => {
@@ -561,7 +566,6 @@ export function useSync() {
 
     const savedGistConfig = loadGistConfig();
     if (savedGistConfig) gistConfig.value = savedGistConfig;
-
   };
 
   return {

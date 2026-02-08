@@ -6,11 +6,25 @@
     @update:model-value="$emit('update:visible', $event)"
     :close-on-click-modal="false"
   >
-    <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
-      <el-form-item label="项目名称" prop="name">
-        <el-input v-model="form.name" placeholder="请输入项目名称" />
+    <el-form
+      ref="formRef"
+      :model="form"
+      :rules="rules"
+      label-width="80px"
+    >
+      <el-form-item
+        label="项目名称"
+        prop="name"
+      >
+        <el-input
+          v-model="form.name"
+          placeholder="请输入项目名称"
+        />
       </el-form-item>
-      <el-form-item label="项目描述" prop="description">
+      <el-form-item
+        label="项目描述"
+        prop="description"
+      >
         <el-input
           type="textarea"
           :rows="3"
@@ -22,7 +36,12 @@
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="$emit('update:visible', false)">取消</el-button>
-        <el-button type="primary" @click="handleSubmit">确定</el-button>
+        <el-button
+          type="primary"
+          @click="handleSubmit"
+        >
+          确定
+        </el-button>
       </span>
     </template>
   </el-dialog>

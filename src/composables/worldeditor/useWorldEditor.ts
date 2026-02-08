@@ -1,5 +1,11 @@
 import { ref, onMounted, watch, computed } from 'vue';
-import type { Project, EnhancedLandmark, EnhancedForce, EnhancedRegion, ProjectIntegration } from '@/types/world-editor';
+import type {
+  Project,
+  EnhancedLandmark,
+  EnhancedForce,
+  EnhancedRegion,
+  ProjectIntegration,
+} from '@/types/world-editor';
 import { LandmarkType, ImportanceLevel, ForceType, PowerLevel } from '@/types/world-editor';
 import { v4 as uuidv4 } from 'uuid';
 import { saveToLocalStorage, loadFromLocalStorage } from '@/utils/localStorageUtils';
@@ -15,7 +21,9 @@ export function useWorldEditor() {
   const landmarks = ref<EnhancedLandmark[]>([]);
   const forces = ref<EnhancedForce[]>([]);
   const regions = ref<EnhancedRegion[]>([]);
-  const selectedItem = ref<Project | EnhancedLandmark | EnhancedForce | EnhancedRegion | ProjectIntegration | null>(null);
+  const selectedItem = ref<Project | EnhancedLandmark | EnhancedForce | EnhancedRegion | ProjectIntegration | null>(
+    null
+  );
 
   // Data Persistence
   watch(
@@ -35,14 +43,14 @@ export function useWorldEditor() {
   // Computed properties
   const allTags = computed(() => {
     const tags = new Set<string>();
-    landmarks.value.forEach(item => {
+    landmarks.value.forEach((item) => {
       if (item.tags) {
-        item.tags.forEach(tag => tags.add(tag));
+        item.tags.forEach((tag) => tags.add(tag));
       }
     });
-    forces.value.forEach(item => {
+    forces.value.forEach((item) => {
       if (item.tags) {
-        item.tags.forEach(tag => tags.add(tag));
+        item.tags.forEach((tag) => tags.add(tag));
       }
     });
     return Array.from(tags);
@@ -138,7 +146,7 @@ export function useWorldEditor() {
   const handleAdd = (type: 'landmark' | 'force' | 'region') => {
     const projectId = activeProjectId.value;
     if (!projectId) {
-      console.error("No active project to add the item to.");
+      console.error('No active project to add the item to.');
       return;
     }
 
@@ -160,39 +168,44 @@ export function useWorldEditor() {
   const handleDelete = (item: Project | EnhancedLandmark | EnhancedForce | EnhancedRegion | ProjectIntegration) => {
     // ProjectIntegration cannot be deleted, it's a virtual node
     if ('type' in item && item.type === 'integration') {
-      console.warn("Integration nodes cannot be deleted.");
+      console.warn('Integration nodes cannot be deleted.');
       return;
     }
 
-    if ('projectId' in item) { // Landmark, Force, or Region
-      if ('importance' in item) { // Landmark
+    if ('projectId' in item) {
+      // Landmark, Force, or Region
+      if ('importance' in item) {
+        // Landmark
         removeLandmarkLinksForIds(landmarks.value, new Set([item.id]));
         removeLandmarkFromHierarchy(landmarks.value, item.id);
-        const index = landmarks.value.findIndex(l => l.id === item.id);
+        const index = landmarks.value.findIndex((l) => l.id === item.id);
         if (index > -1) landmarks.value.splice(index, 1);
-      } else if ('power' in item) { // Force
-        const index = forces.value.findIndex(f => f.id === item.id);
+      } else if ('power' in item) {
+        // Force
+        const index = forces.value.findIndex((f) => f.id === item.id);
         if (index > -1) forces.value.splice(index, 1);
-      } else { // Region
-        const index = regions.value.findIndex(r => r.id === item.id);
+      } else {
+        // Region
+        const index = regions.value.findIndex((r) => r.id === item.id);
         if (index > -1) regions.value.splice(index, 1);
-        landmarks.value.forEach(landmark => {
+        landmarks.value.forEach((landmark) => {
           if (landmark.regionId === item.id) {
             landmark.regionId = undefined;
           }
         });
       }
-    } else if ('createdAt' in item) { // Project
+    } else if ('createdAt' in item) {
+      // Project
       const project = item as Project;
       if (projects.value.length <= 1) {
-        console.warn("Cannot delete the last project.");
+        console.warn('Cannot delete the last project.');
         return;
       }
-      const index = projects.value.findIndex(p => p.id === project.id);
+      const index = projects.value.findIndex((p) => p.id === project.id);
       if (index > -1) {
-        landmarks.value = landmarks.value.filter(l => l.projectId !== project.id);
-        forces.value = forces.value.filter(f => f.projectId !== project.id);
-        regions.value = regions.value.filter(r => r.projectId !== project.id);
+        landmarks.value = landmarks.value.filter((l) => l.projectId !== project.id);
+        forces.value = forces.value.filter((f) => f.projectId !== project.id);
+        regions.value = regions.value.filter((r) => r.projectId !== project.id);
         projects.value.splice(index, 1);
       }
     }
@@ -244,7 +257,7 @@ export function useWorldEditor() {
 
   const handleProjectSubmit = (projectData: Project, editingProject: Project | null) => {
     if (editingProject) {
-      const index = projects.value.findIndex(p => p.id === editingProject.id);
+      const index = projects.value.findIndex((p) => p.id === editingProject.id);
       if (index !== -1) {
         projects.value[index] = { ...projects.value[index], ...projectData, updatedAt: new Date().toISOString() };
       }
@@ -259,7 +272,6 @@ export function useWorldEditor() {
       selectedItem.value = newProject;
     }
   };
-
 
   // Data Loading and Mock Data Generation
   onMounted(() => {
@@ -292,6 +304,6 @@ export function useWorldEditor() {
     handleAdd,
     handleDelete,
     handleCopy,
-    handleProjectSubmit
+    handleProjectSubmit,
   };
 }

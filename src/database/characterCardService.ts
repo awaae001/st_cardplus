@@ -2,11 +2,7 @@ import { db } from './db';
 import type { StoredCharacterCard } from './db';
 import type { CharacterCardV3 } from '../types/character-card-v3';
 import { estimateEncodedSize, sanitizeForIndexedDB } from './utils';
-import {
-  getSessionStorageItem,
-  setSessionStorageItem,
-  removeSessionStorageItem,
-} from '@/utils/localStorageUtils';
+import { getSessionStorageItem, setSessionStorageItem, removeSessionStorageItem } from '@/utils/localStorageUtils';
 
 // 重新导出 StoredCharacterCard 类型供外部使用
 export type { StoredCharacterCard };
@@ -35,9 +31,10 @@ export const characterCardService = {
     const allCardsStored = await db.characterCards.orderBy('order').toArray();
     console.log('--- [DEBUG] All cards from DB ---', allCardsStored);
 
-    const cards: Record<string, CharacterCardV3 & { id: string; createdAt: string; updatedAt: string; order: number }> = {};
+    const cards: Record<string, CharacterCardV3 & { id: string; createdAt: string; updatedAt: string; order: number }> =
+      {};
 
-    allCardsStored.forEach(storedCard => {
+    allCardsStored.forEach((storedCard) => {
       cards[storedCard.id] = {
         ...storedCard.cardData,
         id: storedCard.id,
@@ -49,9 +46,7 @@ export const characterCardService = {
 
     // 从 sessionStorage 获取并验证 activeCardId
     const activeCardId = getSessionStorageItem(ACTIVE_CARD_ID_KEY);
-    const finalActiveCardId = activeCardId && cards[activeCardId]
-      ? activeCardId
-      : (allCardsStored[0]?.id || null);
+    const finalActiveCardId = activeCardId && cards[activeCardId] ? activeCardId : allCardsStored[0]?.id || null;
 
     return {
       cards,
@@ -184,22 +179,19 @@ export const characterCardService = {
    */
   async searchByName(query: string): Promise<StoredCharacterCard[]> {
     const lowerQuery = query.toLowerCase();
-    return await db.characterCards
-      .filter(card => card.name.toLowerCase().includes(lowerQuery))
-      .toArray();
+    return await db.characterCards.filter((card) => card.name.toLowerCase().includes(lowerQuery)).toArray();
   },
 
   /**
    * 通过标签搜索角色卡
    */
   async searchByTags(tags: string[]): Promise<StoredCharacterCard[]> {
-    const lowerTags = tags.map(tag => tag.toLowerCase());
+    const lowerTags = tags.map((tag) => tag.toLowerCase());
     return await db.characterCards
-      .filter(card => {
-        const cardTags = (card.tags || []).map(tag => tag.toLowerCase());
-        return lowerTags.some(tag => cardTags.includes(tag));
+      .filter((card) => {
+        const cardTags = (card.tags || []).map((tag) => tag.toLowerCase());
+        return lowerTags.some((tag) => cardTags.includes(tag));
       })
       .toArray();
   },
-
 };

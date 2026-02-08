@@ -4,7 +4,7 @@ import {
   type SidebarConfig,
   createDefaultSidebarConfig,
   validateMenuConfig,
-  migrateMenuConfig
+  migrateMenuConfig,
 } from '@/config/menuConfig';
 
 const SETTINGS_KEY = 'settings';
@@ -16,6 +16,7 @@ interface AppSettings {
   betaFeaturesEnabled: boolean;
   umamiEnabled: boolean;
   autoSaveInterval: number;
+  autoSaveDebounce: number;
   useOldWorldEditor: boolean;
   autoExpandSidebar: boolean;
   allowBodyScroll: boolean;
@@ -25,7 +26,6 @@ interface AppSettings {
 type LocalStorageSnapshot = Record<string, string | null>;
 type SessionStorageSnapshot = Record<string, string | null>;
 export type AppSettingsKey = keyof AppSettings;
-
 
 export const getLocalStorageItem = (key: string): string | null => {
   try {
@@ -109,7 +109,6 @@ export const restoreLocalStorageSnapshot = (
   });
 };
 
-
 export const getSessionStorageItem = (key: string): string | null => {
   try {
     return sessionStorage.getItem(key);
@@ -192,7 +191,6 @@ export const restoreSessionStorageSnapshot = (
   });
 };
 
-
 export const readLocalStorageJSON = <T>(key: string): T | null => {
   const value = getLocalStorageItem(key);
   if (!value) return null;
@@ -211,7 +209,6 @@ export const writeLocalStorageJSON = (key: string, value: unknown): void => {
     console.error(`写入本地存储 JSON 失败: ${key}`, error);
   }
 };
-
 
 export const readSessionStorageJSON = <T>(key: string): T | null => {
   const value = getSessionStorageItem(key);
@@ -232,12 +229,12 @@ export const writeSessionStorageJSON = (key: string, value: unknown): void => {
   }
 };
 
-
 // 使用统一配置文件中的默认配置
 const defaultSettings: AppSettings = {
   betaFeaturesEnabled: false,
   umamiEnabled: true,
   autoSaveInterval: 5,
+  autoSaveDebounce: 1.5,
   useOldWorldEditor: false,
   autoExpandSidebar: false,
   allowBodyScroll: false,
@@ -250,6 +247,12 @@ const normalizeSettingValue = <K extends AppSettingsKey>(key: K, value: AppSetti
     const fallback = defaultSettings.autoSaveInterval;
     const safeInterval = Number.isFinite(interval) ? interval : fallback;
     return Math.max(1, Math.min(60, safeInterval)) as AppSettings[K];
+  }
+  if (key === 'autoSaveDebounce') {
+    const debounce = Number(value);
+    const fallback = defaultSettings.autoSaveDebounce;
+    const safeDebounce = Number.isFinite(debounce) ? debounce : fallback;
+    return Math.max(0.1, Math.min(10, safeDebounce)) as AppSettings[K];
   }
   return value;
 };
@@ -276,7 +279,7 @@ const getSettings = (): AppSettings => {
       return {
         ...defaultSettings,
         ...parsed,
-        sidebarConfig
+        sidebarConfig,
       };
     }
   } catch (error) {
@@ -383,12 +386,8 @@ export const clearLocalStorage = (key = 'characterCardData') => {
  * @param customInterval - 自定义保存间隔（毫秒），如果不提供则使用用户设置的间隔
  * @returns 定时器ID
  */
-export const initAutoSave = (
-  saveFn: () => void,
-  conditionFn: () => boolean,
-  customInterval?: number
-) => {
-  const intervalMs = customInterval || (getSetting('autoSaveInterval') * 1000);
+export const initAutoSave = (saveFn: () => void, conditionFn: () => boolean, customInterval?: number) => {
+  const intervalMs = customInterval || getSetting('autoSaveInterval') * 1000;
   return window.setInterval(() => {
     if (conditionFn()) {
       saveFn();
@@ -403,7 +402,6 @@ export const initAutoSave = (
 export const clearAutoSave = (timerId: number) => {
   clearInterval(timerId);
 };
-
 
 /**
  * 获取侧边栏配置
@@ -420,7 +418,7 @@ export const getSidebarConfig = (): SidebarConfig => {
 export const setSidebarConfig = (config: SidebarConfig) => {
   const updatedConfig = {
     ...config,
-    lastUpdated: Date.now()
+    lastUpdated: Date.now(),
   };
   saveSettings({ sidebarConfig: updatedConfig });
   console.log('侧边栏配置已保存');
@@ -436,9 +434,7 @@ export const setSidebarConfig = (config: SidebarConfig) => {
  */
 export const getVisibleSidebarItems = (): MenuItemConfig[] => {
   const config = getSidebarConfig();
-  return config.items
-    .filter(item => item.visible)
-    .sort((a, b) => a.order - b.order);
+  return config.items.filter((item) => item.visible).sort((a, b) => a.order - b.order);
 };
 
 /**
@@ -447,9 +443,7 @@ export const getVisibleSidebarItems = (): MenuItemConfig[] => {
  */
 export const getHiddenMenuItems = (): MenuItemConfig[] => {
   const config = getSidebarConfig();
-  return config.items
-    .filter(item => !item.visible)
-    .sort((a, b) => a.order - b.order);
+  return config.items.filter((item) => !item.visible).sort((a, b) => a.order - b.order);
 };
 
 /**
@@ -459,7 +453,7 @@ export const getHiddenMenuItems = (): MenuItemConfig[] => {
  */
 export const updateMenuItemVisibility = (itemId: string, visible: boolean) => {
   const config = getSidebarConfig();
-  const itemIndex = config.items.findIndex(item => item.id === itemId);
+  const itemIndex = config.items.findIndex((item) => item.id === itemId);
 
   if (itemIndex !== -1) {
     const item = config.items[itemIndex];
@@ -482,7 +476,7 @@ export const updateMenuItemsOrder = (items: MenuItemConfig[]) => {
 
   // 更新顺序
   items.forEach((item, index) => {
-    const existingItemIndex = config.items.findIndex(configItem => configItem.id === item.id);
+    const existingItemIndex = config.items.findIndex((configItem) => configItem.id === item.id);
     if (existingItemIndex !== -1) {
       config.items[existingItemIndex].order = index;
     }

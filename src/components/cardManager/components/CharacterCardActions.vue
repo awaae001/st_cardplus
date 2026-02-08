@@ -1,18 +1,51 @@
 <template>
-  <div class="character-card-actions" v-if="context === 'list'">
-    <el-tooltip content="从文件导入角色卡" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
-      <el-upload action="#" :before-upload="handleFileUpload" :show-file-list="false" accept=".json">
+  <div
+    class="character-card-actions"
+    v-if="context === 'list'"
+  >
+    <el-tooltip
+      content="从文件导入角色卡"
+      placement="top"
+      :show-arrow="false"
+      :offset="8"
+      :hide-after="0"
+    >
+      <el-upload
+        action="#"
+        :before-upload="handleFileUpload"
+        :show-file-list="false"
+        accept=".json"
+      >
         <button class="btn-primary-adv character-card-action-button-text">
-          <Icon icon="ph:upload-duotone" width="16" height="16" class="character-card-action-button-icon" />
+          <Icon
+            icon="ph:upload-duotone"
+            width="16"
+            height="16"
+            class="character-card-action-button-icon"
+          />
           <span class="character-card-action-text-short">导入</span>
           <span class="character-card-action-text-long">从文件导入</span>
         </button>
       </el-upload>
     </el-tooltip>
 
-    <el-tooltip content="导出所有角色卡" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
-      <button @click="$emit('export-all')" class="btn-success-adv character-card-action-button-text">
-        <Icon icon="ph:export-duotone" width="16" height="16" class="character-card-action-button-icon" />
+    <el-tooltip
+      content="导出所有角色卡"
+      placement="top"
+      :show-arrow="false"
+      :offset="8"
+      :hide-after="0"
+    >
+      <button
+        @click="$emit('export-all')"
+        class="btn-success-adv character-card-action-button-text"
+      >
+        <Icon
+          icon="ph:export-duotone"
+          width="16"
+          height="16"
+          class="character-card-action-button-icon"
+        />
         <span class="character-card-action-text-short">导出</span>
         <span class="character-card-action-text-long">导出全部</span>
       </button>
@@ -20,9 +53,23 @@
 
     <span class="character-card-action-divider"></span>
 
-    <el-tooltip content="清空所有角色卡" placement="top" :show-arrow="false" :offset="8" :hide-after="0">
-      <button @click="$emit('clear-all')" class="btn-danger-adv character-card-action-button-text">
-        <Icon icon="ph:trash-simple-duotone" width="16" height="16" class="character-card-action-button-icon" />
+    <el-tooltip
+      content="清空所有角色卡"
+      placement="top"
+      :show-arrow="false"
+      :offset="8"
+      :hide-after="0"
+    >
+      <button
+        @click="$emit('clear-all')"
+        class="btn-danger-adv character-card-action-button-text"
+      >
+        <Icon
+          icon="ph:trash-simple-duotone"
+          width="16"
+          height="16"
+          class="character-card-action-button-icon"
+        />
         <span class="character-card-action-text-short">清空</span>
         <span class="character-card-action-text-long">清空所有</span>
       </button>
@@ -30,33 +77,104 @@
   </div>
 
   <!-- Editor Actions -->
-  <div v-if="context === 'editor'" class="character-card-editor-actions">
-    <div v-if="hasActiveCard" class="save-button-group">
-      <el-tooltip content="手动立即保存" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
-        <button @click="$emit('update-card')" class="btn-primary-adv character-card-editor-button" aria-label="更新当前角色卡">
-          <Icon icon="ph:floppy-disk-duotone" class="character-card-editor-button-icon" />
+  <div
+    v-if="context === 'editor'"
+    class="character-card-editor-actions"
+  >
+    <div
+      v-if="hasActiveCard"
+      class="save-button-group"
+    >
+      <el-tooltip
+        content="手动立即保存"
+        placement="bottom"
+        :show-arrow="false"
+        :offset="8"
+        :hide-after="0"
+      >
+        <button
+          @click="$emit('update-card')"
+          class="btn-primary-adv character-card-editor-button"
+          aria-label="更新当前角色卡"
+        >
+          <Icon
+            icon="ph:floppy-disk-duotone"
+            class="character-card-editor-button-icon"
+          />
         </button>
       </el-tooltip>
-      <el-tooltip :content="getTooltipText()" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
-        <div class="save-status-badge" :class="getBadgeClass()" @click="$emit('toggle-mode')">
-          <Icon v-if="saveStatus === 'saving'" icon="eos-icons:loading" class="badge-icon spinning" />
-          <Icon v-else-if="saveStatus === 'saved'" icon="ph:check-circle-fill" class="badge-icon" />
-          <Icon v-else-if="saveStatus === 'error'" icon="ph:warning-circle-fill" class="badge-icon" />
-          <Icon v-else :icon="getModeIcon()" class="badge-icon" />
+      <el-tooltip
+        :content="getTooltipText()"
+        placement="bottom"
+        :show-arrow="false"
+        :offset="8"
+        :hide-after="0"
+      >
+        <div
+          class="save-status-badge"
+          :class="getBadgeClass()"
+          @click="$emit('toggle-mode')"
+        >
+          <Icon
+            v-if="saveStatus === 'saving'"
+            icon="eos-icons:loading"
+            class="badge-icon spinning"
+          />
+          <Icon
+            v-else-if="saveStatus === 'saved'"
+            icon="ph:check-circle-fill"
+            class="badge-icon"
+          />
+          <Icon
+            v-else-if="saveStatus === 'error'"
+            icon="ph:warning-circle-fill"
+            class="badge-icon"
+          />
+          <Icon
+            v-else
+            :icon="getModeIcon()"
+            class="badge-icon"
+          />
           <span class="badge-text">{{ getBadgeText() }}</span>
         </div>
       </el-tooltip>
     </div>
 
-    <el-tooltip content="另存为新角色卡" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
-      <button @click="$emit('save-as-new')" class="btn-secondary-adv character-card-editor-button" aria-label="另存为新角色卡">
-        <Icon icon="ph:copy-simple-duotone" class="character-card-editor-button-icon" />
+    <el-tooltip
+      content="另存为新角色卡"
+      placement="bottom"
+      :show-arrow="false"
+      :offset="8"
+      :hide-after="0"
+    >
+      <button
+        @click="$emit('save-as-new')"
+        class="btn-secondary-adv character-card-editor-button"
+        aria-label="另存为新角色卡"
+      >
+        <Icon
+          icon="ph:copy-simple-duotone"
+          class="character-card-editor-button-icon"
+        />
       </button>
     </el-tooltip>
 
-    <el-tooltip content="导出当前角色卡" placement="bottom" :show-arrow="false" :offset="8" :hide-after="0">
-      <button @click="$emit('export-current')" class="btn-success-adv character-card-editor-button" aria-label="导出当前角色卡">
-        <Icon icon="ph:export-duotone" class="character-card-editor-button-icon" />
+    <el-tooltip
+      content="导出当前角色卡"
+      placement="bottom"
+      :show-arrow="false"
+      :offset="8"
+      :hide-after="0"
+    >
+      <button
+        @click="$emit('export-current')"
+        class="btn-success-adv character-card-editor-button"
+        aria-label="导出当前角色卡"
+      >
+        <Icon
+          icon="ph:export-duotone"
+          class="character-card-editor-button-icon"
+        />
       </button>
     </el-tooltip>
   </div>

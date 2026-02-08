@@ -1,6 +1,6 @@
-import { ref, computed, onMounted } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
-import type { RegexCategory, RegexScriptCollection, SillyTavernRegexScript } from "./types";
+import { ref, computed, onMounted } from 'vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import type { RegexCategory, RegexScriptCollection, SillyTavernRegexScript } from './types';
 import { v4 as uuidv4 } from 'uuid';
 import { getSessionStorageItem, setSessionStorageItem } from '@/utils/localStorageUtils';
 
@@ -88,20 +88,17 @@ export function useRegexCollection() {
 
   const handleCreateCategory = async () => {
     try {
-      const { value: categoryName } = await ElMessageBox.prompt(
-        '请输入新类别的名称：',
-        '创建新类别',
-        {
-          confirmButtonText: '创建',
-          cancelButtonText: '取消',
-          inputPattern: /.+/,
-          inputErrorMessage: '名称不能为空',
-        }
-      );
+      const createCategoryResult = await ElMessageBox.prompt('请输入新类别的名称：', '创建新类别', {
+        confirmButtonText: '创建',
+        cancelButtonText: '取消',
+        inputPattern: /.+/,
+        inputErrorMessage: '名称不能为空',
+      });
+      const { value: categoryName } = createCategoryResult as { value: string };
 
       const newCategoryId = uuidv4();
       const now = new Date().toISOString();
-      const existingOrders = Object.values(regexCollection.value.categories).map(c => c.order);
+      const existingOrders = Object.values(regexCollection.value.categories).map((c) => c.order);
       const maxOrder = existingOrders.length > 0 ? Math.max(...existingOrders) : -1;
 
       const newCategory: RegexCategory = {
@@ -130,17 +127,14 @@ export function useRegexCollection() {
     if (!category) return;
 
     try {
-      const { value: newCategoryName } = await ElMessageBox.prompt(
-        '请输入新的名称：',
-        '重命名类别',
-        {
-          confirmButtonText: '确认',
-          cancelButtonText: '取消',
-          inputValue: category.name,
-          inputPattern: /.+/,
-          inputErrorMessage: '名称不能为空',
-        }
-      );
+      const renameCategoryResult = await ElMessageBox.prompt('请输入新的名称：', '重命名类别', {
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        inputValue: category.name,
+        inputPattern: /.+/,
+        inputErrorMessage: '名称不能为空',
+      });
+      const { value: newCategoryName } = renameCategoryResult as { value: string };
 
       category.name = newCategoryName;
       category.updatedAt = new Date().toISOString();
@@ -164,15 +158,11 @@ export function useRegexCollection() {
     }
 
     try {
-      await ElMessageBox.confirm(
-        `确定要删除类别 "${category.name}" 吗？此类别下的所有脚本也会被删除！`,
-        '删除类别',
-        {
-          confirmButtonText: '确认删除',
-          cancelButtonText: '取消',
-          type: 'warning',
-        }
-      );
+      await ElMessageBox.confirm(`确定要删除类别 "${category.name}" 吗？此类别下的所有脚本也会被删除！`, '删除类别', {
+        confirmButtonText: '确认删除',
+        cancelButtonText: '取消',
+        type: 'warning',
+      });
 
       delete regexCollection.value.categories[categoryId];
 
@@ -223,7 +213,7 @@ export function useRegexCollection() {
   const handleUpdateScript = (scriptId: string, updates: Partial<SillyTavernRegexScript>) => {
     // 在所有类别中查找该脚本
     for (const category of Object.values(regexCollection.value.categories)) {
-      const scriptIndex = category.scripts.findIndex(s => s.id === scriptId);
+      const scriptIndex = category.scripts.findIndex((s) => s.id === scriptId);
       if (scriptIndex !== -1) {
         Object.assign(category.scripts[scriptIndex], updates);
         category.updatedAt = new Date().toISOString();
@@ -239,7 +229,7 @@ export function useRegexCollection() {
     let scriptIndex = -1;
 
     for (const category of Object.values(regexCollection.value.categories)) {
-      const index = category.scripts.findIndex(s => s.id === scriptId);
+      const index = category.scripts.findIndex((s) => s.id === scriptId);
       if (index !== -1) {
         foundCategory = category;
         scriptIndex = index;
@@ -255,15 +245,11 @@ export function useRegexCollection() {
     const script = foundCategory.scripts[scriptIndex];
 
     try {
-      await ElMessageBox.confirm(
-        `确定要删除脚本 "${script.scriptName}" 吗？此操作不可恢复！`,
-        '删除脚本',
-        {
-          confirmButtonText: '确认删除',
-          cancelButtonText: '取消',
-          type: 'warning',
-        }
-      );
+      await ElMessageBox.confirm(`确定要删除脚本 "${script.scriptName}" 吗？此操作不可恢复！`, '删除脚本', {
+        confirmButtonText: '确认删除',
+        cancelButtonText: '取消',
+        type: 'warning',
+      });
 
       foundCategory.scripts.splice(scriptIndex, 1);
       foundCategory.updatedAt = new Date().toISOString();
@@ -287,13 +273,13 @@ export function useRegexCollection() {
     const toCategory = regexCollection.value.categories[toCategoryId];
 
     if (!fromCategory || !toCategory) {
-      ElMessage.error("移动脚本失败：源或目标类别未找到");
+      ElMessage.error('移动脚本失败：源或目标类别未找到');
       return false;
     }
 
-    const scriptIndex = fromCategory.scripts.findIndex(s => s.id === scriptId);
+    const scriptIndex = fromCategory.scripts.findIndex((s) => s.id === scriptId);
     if (scriptIndex === -1) {
-      ElMessage.error("移动脚本失败：在源类别中未找到该脚本");
+      ElMessage.error('移动脚本失败：在源类别中未找到该脚本');
       return false;
     }
 
@@ -332,11 +318,9 @@ export function useRegexCollection() {
     }
 
     const proposedName = characterName || '未命名角色';
-    
+
     // 检查是否存在同名分类
-    const existingCategory = Object.values(regexCollection.value.categories).find(
-      cat => cat.name === proposedName
-    );
+    const existingCategory = Object.values(regexCollection.value.categories).find((cat) => cat.name === proposedName);
 
     let targetCategoryId: string;
     let targetCategoryName = proposedName;
@@ -352,7 +336,8 @@ export function useRegexCollection() {
             cancelButtonText: '创建新分类',
             type: 'warning',
           }
-        ).then(() => ({ action: 'merge' as const }))
+        )
+          .then(() => ({ action: 'merge' as const }))
           .catch((error) => {
             if (error === 'cancel') {
               return { action: 'create' as const };
@@ -362,17 +347,17 @@ export function useRegexCollection() {
 
         if (action === 'merge') {
           targetCategoryId = existingCategory.id;
-          
+
           // 合并脚本到已有分类
-          const newScripts = scripts.map(script => ({
+          const newScripts = scripts.map((script) => ({
             ...script,
             id: `script-${Date.now()}-${uuidv4()}`,
             categoryId: targetCategoryId,
           }));
-          
+
           existingCategory.scripts.push(...newScripts);
           existingCategory.updatedAt = new Date().toISOString();
-          
+
           // 更新 metadata
           if (!existingCategory.metadata) {
             existingCategory.metadata = {};
@@ -380,7 +365,7 @@ export function useRegexCollection() {
           existingCategory.metadata.source = 'character-card';
           existingCategory.metadata.characterCardId = characterCardId;
           existingCategory.metadata.characterName = characterName;
-          
+
           saveToStorage();
           ElMessage.success(`已将 ${scripts.length} 个正则脚本合并到分类 "${proposedName}"`);
           return targetCategoryId;
@@ -388,7 +373,7 @@ export function useRegexCollection() {
           // 创建新分类 - 自动添加数字后缀
           let suffix = 1;
           let newName = `${proposedName}-${suffix}`;
-          while (Object.values(regexCollection.value.categories).some(cat => cat.name === newName)) {
+          while (Object.values(regexCollection.value.categories).some((cat) => cat.name === newName)) {
             suffix++;
             newName = `${proposedName}-${suffix}`;
           }
@@ -406,10 +391,10 @@ export function useRegexCollection() {
     // 创建新分类
     targetCategoryId = uuidv4();
     const now = new Date().toISOString();
-    const existingOrders = Object.values(regexCollection.value.categories).map(c => c.order);
+    const existingOrders = Object.values(regexCollection.value.categories).map((c) => c.order);
     const maxOrder = existingOrders.length > 0 ? Math.max(...existingOrders) : -1;
 
-    const newScripts = scripts.map(script => ({
+    const newScripts = scripts.map((script) => ({
       ...script,
       id: `script-${Date.now()}-${uuidv4()}`,
       categoryId: targetCategoryId,

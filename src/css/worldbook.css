@@ -260,7 +260,6 @@
   font-size: 16px;
 }
 
-
 /* vuedraggable 拖拽状态样式 */
 .entry-chosen {
   opacity: 0.8;
@@ -529,13 +528,13 @@
   .worldbook-mobile-layout {
     display: none;
   }
-  
+
   .worldbook-desktop-layout {
     display: flex;
     gap: 16px;
     height: calc(100vh - 32px);
   }
-  
+
   .worldbook-desktop-panel-left {
     width: 320px;
     background: var(--el-bg-color);
@@ -545,7 +544,7 @@
     display: flex;
     flex-direction: column;
   }
-  
+
   .worldbook-desktop-panel-right {
     flex: 1;
     background: var(--el-bg-color);
@@ -557,7 +556,7 @@
     height: 100%;
     box-sizing: border-box;
   }
-  
+
   .worldbook-add-button-desktop {
     border-radius: 50%;
     width: 36px;
@@ -567,29 +566,29 @@
     align-items: center;
     justify-content: center;
   }
-  
+
   .worldbook-add-icon-desktop {
     font-size: 20px;
   }
-  
+
   .worldbook-empty-list-desktop {
     padding: 60px 20px;
     text-align: center;
   }
-  
+
   .worldbook-bottom-panel-header-desktop {
     margin-top: auto;
     padding-top: 16px;
     border-top: 1px solid var(--el-border-color-lighter);
   }
-  
+
   .worldbook-bottom-panel-buttons-desktop {
     display: flex;
     gap: 8px;
     justify-content: center;
     flex-wrap: wrap;
   }
-  
+
   .worldbook-bottom-button-desktop {
     border-radius: 50%;
     width: 32px;
@@ -599,27 +598,27 @@
     align-items: center;
     justify-content: center;
   }
-  
+
   .worldbook-bottom-button-icon-desktop {
     font-size: 16px;
   }
-  
+
   .worldbook-bottom-button-icon-delete-desktop {
     font-size: 16px;
   }
-  
+
   .worldbook-button-divider-desktop {
     width: 1px;
     height: 20px;
     background: var(--el-border-color-lighter);
     margin: 0 4px;
   }
-  
+
   .worldbook-editor-buttons-desktop {
     display: flex;
     gap: 8px;
   }
-  
+
   .worldbook-editor-button-desktop {
     border-radius: 50%;
     width: 32px;
@@ -629,24 +628,24 @@
     align-items: center;
     justify-content: center;
   }
-  
+
   .worldbook-editor-button-icon-desktop {
     font-size: 16px;
   }
-  
+
   .worldbook-editor-button-icon-delete-desktop {
     font-size: 16px;
   }
-  
+
   .worldbook-editor-empty-state-desktop {
     padding: 100px 20px;
     text-align: center;
   }
-  
+
   .worldbook-editor-form-desktop {
     padding: 16px;
   }
-  
+
   /* 桌面端网格布局 */
   .form-grid-2-col {
     grid-template-columns: 1fr 1fr;
@@ -667,16 +666,16 @@
   .form-grid-3-col-end-align {
     grid-template-columns: 1fr 1fr 1fr;
   }
-  
+
   .form-grid-span-2 {
     grid-column: span 2;
   }
-  
+
   /* 桌面端按钮文本 */
   .worldbook-button-text-short {
     display: none;
   }
-  
+
   .worldbook-button-text-long {
     display: inline;
   }

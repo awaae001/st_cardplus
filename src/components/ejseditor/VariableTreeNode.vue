@@ -1,31 +1,41 @@
 <template>
   <div class="variable-tree-node">
-    <div 
+    <div
       class="node-content"
-      :class="{ 
+      :class="{
         'is-leaf': !node.children,
-        'is-selectable': !node.children 
+        'is-selectable': !node.children,
       }"
       @click="handleClick"
     >
       <div class="node-left">
-        <el-icon v-if="node.children" class="expand-icon">
+        <el-icon
+          v-if="node.children"
+          class="expand-icon"
+        >
           <ArrowRight v-if="!isExpanded" />
           <ArrowDown v-else />
         </el-icon>
-        <el-icon v-else class="leaf-icon">
+        <el-icon
+          v-else
+          class="leaf-icon"
+        >
           <Document />
         </el-icon>
         <span class="node-label">{{ node.key }}</span>
       </div>
-      
+
       <div class="node-right">
-        <el-tag v-if="!node.children" size="small" type="info">
+        <el-tag
+          v-if="!node.children"
+          size="small"
+          type="info"
+        >
           {{ formatValue(node.value) }}
         </el-tag>
-        <el-tooltip 
-          v-if="node.description" 
-          :content="node.description" 
+        <el-tooltip
+          v-if="node.description"
+          :content="node.description"
           placement="top"
         >
           <el-icon class="description-icon">
@@ -34,9 +44,12 @@
         </el-tooltip>
       </div>
     </div>
-    
+
     <!-- 递归渲染子节点 -->
-    <div v-if="node.children && isExpanded" class="child-nodes">
+    <div
+      v-if="node.children && isExpanded"
+      class="child-nodes"
+    >
       <VariableTreeNode
         v-for="child in node.children"
         :key="child.path"
@@ -48,37 +61,37 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { ArrowRight, ArrowDown, Document, InfoFilled } from '@element-plus/icons-vue'
-import type { VariableNode } from '@/types/ejs-editor'
+import { ref } from 'vue';
+import { ArrowRight, ArrowDown, Document, InfoFilled } from '@element-plus/icons-vue';
+import type { VariableNode } from '@/types/ejs-editor';
 
 interface Props {
-  node: VariableNode
+  node: VariableNode;
 }
 
-const props = defineProps<Props>()
+const props = defineProps<Props>();
 const emit = defineEmits<{
-  'select-variable': [node: VariableNode]
-}>()
+  'select-variable': [node: VariableNode];
+}>();
 
-const isExpanded = ref(false)
+const isExpanded = ref(false);
 
 function handleClick() {
   if (props.node.children) {
-    isExpanded.value = !isExpanded.value
+    isExpanded.value = !isExpanded.value;
   } else {
-    emit('select-variable', props.node)
+    emit('select-variable', props.node);
   }
 }
 
 function formatValue(value: any): string {
   if (value === null || value === undefined) {
-    return 'null'
+    return 'null';
   }
   if (typeof value === 'string') {
-    return `"${value}"`
+    return `"${value}"`;
   }
-  return String(value)
+  return String(value);
 }
 </script>
 

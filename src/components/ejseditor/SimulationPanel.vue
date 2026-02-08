@@ -2,20 +2,34 @@
   <div class="simulation-panel">
     <div class="panel-content">
       <!-- 模拟头部 -->
-      <div class="simulation-header" :class="{ 'mobile-header': isMobile }">
+      <div
+        class="simulation-header"
+        :class="{ 'mobile-header': isMobile }"
+      >
         <h4 class="section-title">模拟测试</h4>
-        <el-tooltip content="通过输入不同的变量值来测试模板输出" placement="top">
+        <el-tooltip
+          content="通过输入不同的变量值来测试模板输出"
+          placement="top"
+        >
           <el-icon class="help-icon"><QuestionFilled /></el-icon>
         </el-tooltip>
       </div>
 
       <!-- 模拟控制 -->
       <div class="simulation-controls">
-        <div v-if="store.flatVariables.length === 0" class="empty-state">
+        <div
+          v-if="store.flatVariables.length === 0"
+          class="empty-state"
+        >
           <el-text type="info">没有可模拟的变量</el-text>
-          <el-text type="info" size="small">请先在“变量定义”中添加变量</el-text>
+          <el-text
+            type="info"
+            size="small"
+          >
+            请先在“变量定义”中添加变量
+          </el-text>
         </div>
-        
+
         <div v-else>
           <!-- 添加变量区域 -->
           <div class="add-variable-section">
@@ -23,7 +37,7 @@
               v-model="variableToAdd"
               placeholder="选择要模拟的变量"
               filterable
-              style="flex-grow: 1;"
+              style="flex-grow: 1"
             >
               <el-option
                 v-for="variable in availableVariables"
@@ -32,23 +46,46 @@
                 :value="variable.readablePath"
               >
                 <span style="float: left">{{ variable.alias }}</span>
-                <span style="float: right; color: var(--el-text-color-secondary); font-size: 13px;">
+                <span style="float: right; color: var(--el-text-color-secondary); font-size: 13px">
                   {{ variable.readablePath }}
                 </span>
               </el-option>
             </el-select>
-            <el-button @click="addVariable" :disabled="!variableToAdd">添加</el-button>
+            <el-button
+              @click="addVariable"
+              :disabled="!variableToAdd"
+            >
+              添加
+            </el-button>
           </div>
 
           <!-- 已添加的变量列表 -->
           <div class="simulated-variables-list">
-            <div v-if="Object.keys(store.simulationValues).length === 0" class="no-sim-vars">
-              <el-text type="info" size="small">请从上方添加变量进行模拟</el-text>
+            <div
+              v-if="Object.keys(store.simulationValues).length === 0"
+              class="no-sim-vars"
+            >
+              <el-text
+                type="info"
+                size="small"
+              >
+                请从上方添加变量进行模拟
+              </el-text>
             </div>
-            <div v-else v-for="variable in simulatedVariables" :key="variable.id" class="form-item">
+            <div
+              v-else
+              v-for="variable in simulatedVariables"
+              :key="variable.id"
+              class="form-item"
+            >
               <label>
                 {{ variable.alias || '变量' }}
-                <el-text type="info" size="small">({{ variable.readablePath }})</el-text>
+                <el-text
+                  type="info"
+                  size="small"
+                >
+                  ({{ variable.readablePath }})
+                </el-text>
               </label>
               <div class="input-with-delete">
                 <el-input
@@ -75,7 +112,7 @@
           :disabled="!store.ejsTemplate"
           :icon="VideoPlay"
           :size="isMobile ? 'default' : 'default'"
-          style="width: 100%; margin-top: 10px;"
+          style="width: 100%; margin-top: 10px"
         >
           {{ isMobile ? '运行测试' : '运行测试' }}
         </el-button>
@@ -86,28 +123,39 @@
       <div class="test-result">
         <h5>输出结果</h5>
         <div class="result-container">
-          <div v-if="!store.testResult && !store.ejsTemplate" class="empty-result">
-            <el-empty description="请先配置模板" :image-size="60">
-              <el-text type="info">
-                需要先设置变量路径和阶段，生成模板后才能进行测试
-              </el-text>
+          <div
+            v-if="!store.testResult && !store.ejsTemplate"
+            class="empty-result"
+          >
+            <el-empty
+              description="请先配置模板"
+              :image-size="60"
+            >
+              <el-text type="info">需要先设置变量路径和阶段，生成模板后才能进行测试</el-text>
             </el-empty>
           </div>
-          
-          <div v-else-if="!store.testResult" class="no-result">
-            <el-text type="info">
-              点击"运行测试"查看输出结果
-            </el-text>
+
+          <div
+            v-else-if="!store.testResult"
+            class="no-result"
+          >
+            <el-text type="info">点击"运行测试"查看输出结果</el-text>
           </div>
-          
-          <div v-else class="result-content">
+
+          <div
+            v-else
+            class="result-content"
+          >
             <pre>{{ store.testResult }}</pre>
           </div>
         </div>
       </div>
 
       <!-- 阶段对比表 -->
-      <div v-if="allStages.length > 0" class="stage-comparison">
+      <div
+        v-if="allStages.length > 0"
+        class="stage-comparison"
+      >
         <h5>所有阶段一览</h5>
         <div class="comparison-table">
           <div
@@ -120,10 +168,18 @@
             <div class="row-name">{{ stage.name }}</div>
             <div class="row-condition">{{ formatConditions(stage) }}</div>
             <div class="row-status">
-              <el-tag v-if="isStageMatched(stage)" type="success" size="small">
+              <el-tag
+                v-if="isStageMatched(stage)"
+                type="success"
+                size="small"
+              >
                 匹配
               </el-tag>
-              <el-tag v-else type="info" size="small">
+              <el-tag
+                v-else
+                type="info"
+                size="small"
+              >
                 未匹配
               </el-tag>
             </div>
@@ -131,77 +187,83 @@
         </div>
       </div>
     </div>
-      <!-- 测试建议 -->
+    <!-- 测试建议 -->
   </div>
 </template>
 
 <script setup lang="ts">
-import { QuestionFilled, VideoPlay, Delete } from '@element-plus/icons-vue'
-import { ref, computed } from 'vue'
-import { useEjsEditorStore } from '@/composables/ejs/ejsEditor'
-import { useDevice } from '@/composables/useDevice'
-import type { Stage, Condition, ConditionGroup } from '@/types/ejs-editor'
+import { QuestionFilled, VideoPlay, Delete } from '@element-plus/icons-vue';
+import { ref, computed } from 'vue';
+import { useEjsEditorStore } from '@/composables/ejs/ejsEditor';
+import { useDevice } from '@/composables/useDevice';
+import type { Stage, Condition, ConditionGroup } from '@/types/ejs-editor';
 
-const store = useEjsEditorStore()
-const { isMobile } = useDevice()
-const variableToAdd = ref<string | null>(null)
+const store = useEjsEditorStore();
+const { isMobile } = useDevice();
+const variableToAdd = ref<string | null>(null);
 
 // 可供选择的变量（未被添加到模拟中的）
-const allStages = computed(() => store.logicBlocks.flatMap(block => block.stages));
+const allStages = computed(() => store.logicBlocks.flatMap((block) => block.stages));
 
 const availableVariables = computed(() => {
-  const simulatedPaths = Object.keys(store.simulationValues)
-  return store.flatVariables.filter(v => {
-    const statDataPath = `stat_data.${v.readablePath}`
-    return !simulatedPaths.includes(v.readablePath) && !simulatedPaths.includes(statDataPath)
-  })
-})
+  const simulatedPaths = Object.keys(store.simulationValues);
+  return store.flatVariables.filter((v) => {
+    const statDataPath = `stat_data.${v.readablePath}`;
+    return !simulatedPaths.includes(v.readablePath) && !simulatedPaths.includes(statDataPath);
+  });
+});
 
 // 已添加到模拟中的变量
 const simulatedVariables = computed(() => {
-  const simulatedPaths = Object.keys(store.simulationValues)
-  return store.flatVariables.filter(v => {
-    const statDataPath = `stat_data.${v.readablePath}`
-    return simulatedPaths.includes(v.readablePath) || simulatedPaths.includes(statDataPath)
-  })
-})
+  const simulatedPaths = Object.keys(store.simulationValues);
+  return store.flatVariables.filter((v) => {
+    const statDataPath = `stat_data.${v.readablePath}`;
+    return simulatedPaths.includes(v.readablePath) || simulatedPaths.includes(statDataPath);
+  });
+});
 
 function addVariable() {
   if (variableToAdd.value) {
     // 如果变量路径不包含stat_data前缀，则添加它
-    const key = variableToAdd.value.startsWith('stat_data.')
-      ? variableToAdd.value
-      : `stat_data.${variableToAdd.value}`
-    store.simulationValues[key] = '' // 默认值为空字符串
-    variableToAdd.value = null
+    const key = variableToAdd.value.startsWith('stat_data.') ? variableToAdd.value : `stat_data.${variableToAdd.value}`;
+    store.simulationValues[key] = ''; // 默认值为空字符串
+    variableToAdd.value = null;
   }
 }
 
 function removeVariable(path: string) {
   // 尝试删除带stat_data前缀和不带前缀的版本
-  delete store.simulationValues[path]
-  const statDataPath = path.startsWith('stat_data.') ? path : `stat_data.${path}`
-  const plainPath = path.startsWith('stat_data.') ? path.substring(10) : path
-  delete store.simulationValues[statDataPath]
-  delete store.simulationValues[plainPath]
+  delete store.simulationValues[path];
+  const statDataPath = path.startsWith('stat_data.') ? path : `stat_data.${path}`;
+  const plainPath = path.startsWith('stat_data.') ? path.substring(10) : path;
+  delete store.simulationValues[statDataPath];
+  delete store.simulationValues[plainPath];
 }
 
 function formatSingleCondition(condition: Condition): string {
-  const { variableAlias, type, value, endValue } = condition
-  const valStr = typeof value === 'string' ? `'${value}'` : value
+  const { variableAlias, type, value, endValue } = condition;
+  const valStr = typeof value === 'string' ? `'${value}'` : value;
 
   switch (type) {
-    case 'less': return `${variableAlias || '变量'} < ${valStr}`
-    case 'lessEqual': return `${variableAlias || '变量'} <= ${valStr}`
-    case 'equal': return `${variableAlias || '变量'} == ${valStr}`
-    case 'greater': return `${variableAlias || '变量'} > ${valStr}`
-    case 'greaterEqual': return `${variableAlias || '变量'} >= ${valStr}`
+    case 'less':
+      return `${variableAlias || '变量'} < ${valStr}`;
+    case 'lessEqual':
+      return `${variableAlias || '变量'} <= ${valStr}`;
+    case 'equal':
+      return `${variableAlias || '变量'} == ${valStr}`;
+    case 'greater':
+      return `${variableAlias || '变量'} > ${valStr}`;
+    case 'greaterEqual':
+      return `${variableAlias || '变量'} >= ${valStr}`;
     case 'range':
-      const endValStr = typeof endValue === 'string' ? `'${endValue}'` : endValue
-      return `${variableAlias || '变量'} in [${valStr}, ${endValStr})`
-    case 'is': return `${variableAlias || '变量'} is ${valStr}`
-    case 'isNot': return `${variableAlias || '变量'} is not ${valStr}`
-    default: return '未知条件'
+      const endValStr = typeof endValue === 'string' ? `'${endValue}'` : endValue;
+      return `${variableAlias || '变量'} in [${valStr}, ${endValStr})`;
+    case 'is':
+      return `${variableAlias || '变量'} is ${valStr}`;
+    case 'isNot':
+      return `${variableAlias || '变量'} is not ${valStr}`;
+    default:
+      return '未知条件';
   }
 }
 
@@ -210,7 +272,7 @@ function formatConditions(stage: Stage): string {
     return '无条件 (始终激活)';
   }
   const groupStrings = stage.conditionGroups
-    .map(group => {
+    .map((group) => {
       if (!group.conditions || group.conditions.length === 0) return null;
       const conditionStrings = group.conditions.map(formatSingleCondition).join(' AND ');
       return `(${conditionStrings})`;
@@ -229,7 +291,7 @@ function isStageMatched(stage: Stage): boolean {
 
   const checkCondition = (cond: Condition): boolean => {
     // 寻找对应的扁平变量来获取正确的readablePath
-    const flatVariable = store.flatVariables.find(v => v.id === cond.variablePath);
+    const flatVariable = store.flatVariables.find((v) => v.id === cond.variablePath);
     const readablePath = flatVariable ? flatVariable.readablePath : cond.variablePath;
     // 构建完整的stat_data路径来匹配存储的值
     const fullPath = `stat_data.${readablePath}`;
@@ -245,16 +307,23 @@ function isStageMatched(stage: Stage): boolean {
     if (!isNaN(numSimValue) && !isNaN(numCondValue)) {
       const numCondEndValue = Number(condEndValue);
       switch (cond.type) {
-        case 'less': return numSimValue < numCondValue;
-        case 'lessEqual': return numSimValue <= numCondValue;
-        case 'equal': return numSimValue == numCondValue; // Use == for loose equality
-        case 'greater': return numSimValue > numCondValue;
-        case 'greaterEqual': return numSimValue >= numCondValue;
+        case 'less':
+          return numSimValue < numCondValue;
+        case 'lessEqual':
+          return numSimValue <= numCondValue;
+        case 'equal':
+          return numSimValue == numCondValue; // Use == for loose equality
+        case 'greater':
+          return numSimValue > numCondValue;
+        case 'greaterEqual':
+          return numSimValue >= numCondValue;
         case 'range':
           if (isNaN(numCondEndValue)) return false;
           return numSimValue >= numCondValue && numSimValue < numCondEndValue;
-        case 'is': return simValue === condValue; // Strict equality for 'is'
-        case 'isNot': return simValue !== condValue; // Strict inequality for 'isNot'
+        case 'is':
+          return simValue === condValue; // Strict equality for 'is'
+        case 'isNot':
+          return simValue !== condValue; // Strict inequality for 'isNot'
       }
     }
 
@@ -262,10 +331,14 @@ function isStageMatched(stage: Stage): boolean {
     const strSimValue = String(simValue);
     const strCondValue = String(condValue);
     switch (cond.type) {
-      case 'equal': return strSimValue == strCondValue;
-      case 'is': return strSimValue === strCondValue;
-      case 'isNot': return strSimValue !== strCondValue;
-      default: return false; // Other types require numeric values
+      case 'equal':
+        return strSimValue == strCondValue;
+      case 'is':
+        return strSimValue === strCondValue;
+      case 'isNot':
+        return strSimValue !== strCondValue;
+      default:
+        return false; // Other types require numeric values
     }
   };
 
@@ -563,7 +636,7 @@ function isStageMatched(stage: Stage): boolean {
   .form-item .el-input {
     font-size: 14px;
   }
-  
+
   .value-buttons {
     justify-content: center;
     gap: 3px;
@@ -573,7 +646,7 @@ function isStageMatched(stage: Stage): boolean {
     padding: 4px 8px;
     font-size: 11px;
   }
-  
+
   .comparison-row {
     grid-template-columns: 20px 1fr 60px 45px;
     gap: 3px;
@@ -588,7 +661,7 @@ function isStageMatched(stage: Stage): boolean {
   .row-condition {
     font-size: 10px;
   }
-  
+
   .suggestion-item {
     flex-direction: column;
     align-items: center;

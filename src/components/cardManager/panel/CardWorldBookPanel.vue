@@ -7,19 +7,26 @@
     </div>
 
     <!-- 未绑定世界书的提示 -->
-    <div v-if="!hasWorldBook" class="empty-state">
+    <div
+      v-if="!hasWorldBook"
+      class="empty-state"
+    >
       <el-empty description="当前角色卡未绑定世界书">
         <template #description>
           <div class="empty-description">
             <p>当前角色卡未绑定世界书</p>
             <p class="empty-hint">
-              「创建」将为角色卡创建一个全新的空世界书；<br>
+              「创建」将为角色卡创建一个全新的空世界书；
+              <br />
               「绑定」将从世界书数据库中选择一个现有世界书复制到角色卡中
             </p>
           </div>
         </template>
         <div class="empty-actions">
-          <el-button type="primary" @click="handleCreateNewWorldBook">
+          <el-button
+            type="primary"
+            @click="handleCreateNewWorldBook"
+          >
             <Icon icon="ph:plus-circle-duotone" />
             创建新世界书
           </el-button>
@@ -32,39 +39,76 @@
     </div>
 
     <!-- 世界书编辑器 -->
-    <div v-else class="worldbook-editor-wrapper">
+    <div
+      v-else
+      class="worldbook-editor-wrapper"
+    >
       <!-- 桌面端：分栏布局 -->
       <div class="worldbook-layout worldbook-layout-desktop">
         <Splitpanes class="default-theme">
-          <Pane size="15" min-size="10" max-size="30">
-            <WorldBookList :collection="mockCollection" :active-book-id="mockActiveBookId"
-              @select-entry="onListSelectEntry" @add-entry="onListAddEntry" @duplicate-entry="onListDuplicateEntry"
-              @delete-entry="onListDeleteEntry" :selected-entry="selectedEntry" :drag-drop-handlers="dragDropHandlers"
-              :hide-book-selector="true" />
+          <Pane
+            size="15"
+            min-size="10"
+            max-size="30"
+          >
+            <WorldBookList
+              :collection="mockCollection"
+              :active-book-id="mockActiveBookId"
+              @select-entry="onListSelectEntry"
+              @add-entry="onListAddEntry"
+              @duplicate-entry="onListDuplicateEntry"
+              @delete-entry="onListDeleteEntry"
+              :selected-entry="selectedEntry"
+              :drag-drop-handlers="dragDropHandlers"
+              :hide-book-selector="true"
+            />
           </Pane>
-          <Pane size="85" min-size="70">
+          <Pane
+            size="85"
+            min-size="70"
+          >
             <div class="worldbook-editor-panel">
               <div class="content-panel-header">
                 <h2 class="content-panel-title">
-                  <Icon icon="ph:note-pencil-duotone" class="content-panel-icon" />
-                  编辑: <span class="content-panel-text-highlight">{{ selectedEntry ? selectedEntry.comment || "新条目" :
-                    "未选择条目"
-                    }}</span>
+                  <Icon
+                    icon="ph:note-pencil-duotone"
+                    class="content-panel-icon"
+                  />
+                  编辑:
+                  <span class="content-panel-text-highlight">
+                    {{ selectedEntry ? selectedEntry.comment || '新条目' : '未选择条目' }}
+                  </span>
                 </h2>
                 <div class="editor-actions">
-                  <el-tooltip content="保存状态" placement="top">
-                    <el-tag :type="saveStatusType" size="small">{{ saveStatusText }}</el-tag>
+                  <el-tooltip
+                    content="保存状态"
+                    placement="top"
+                  >
+                    <el-tag
+                      :type="saveStatusType"
+                      size="small"
+                    >
+                      {{ saveStatusText }}
+                    </el-tag>
                   </el-tooltip>
                   <el-button-group size="small">
                     <el-button @click="toggleAutoSaveMode">
                       <Icon :icon="autoSaveMode === 'auto' ? 'ph:floppy-disk-duotone' : 'ph:hand-eye-duotone'" />
                       {{ autoSaveMode === 'auto' ? '自动保存' : '监听模式' }}
                     </el-button>
-                    <el-button v-if="selectedEntry" @click="saveCurrentEntry" :disabled="saveStatus === 'saved'">
+                    <el-button
+                      v-if="selectedEntry"
+                      @click="saveCurrentEntry"
+                      :disabled="saveStatus === 'saved'"
+                    >
                       <Icon icon="ph:floppy-disk-duotone" />
                       保存
                     </el-button>
-                    <el-button v-if="selectedEntry" type="danger" @click="deleteSelectedEntry">
+                    <el-button
+                      v-if="selectedEntry"
+                      type="danger"
+                      @click="deleteSelectedEntry"
+                    >
                       <Icon icon="ph:trash-duotone" />
                       删除
                     </el-button>
@@ -72,13 +116,27 @@
                 </div>
               </div>
               <div class="worldbook-editor-container">
-                <WorldBookEditor v-if="selectedEntry" :entry="selectedEntry" v-model="editableEntry"
-                  :all-keywords="allKeywords" :current-entry-index="currentEntryIndex" :total-entries="totalEntries"
-                  @go-to-previous="goToPreviousEntry" @go-to-next="goToNextEntry"
-                  :is-next-entry-in-different-book="false" :is-previous-entry-in-different-book="false"
-                  :save-status="saveStatus" />
-                <div v-else class="editor-empty-state">
-                  <el-empty description="请选择一个条目进行编辑" :image-size="100" />
+                <WorldBookEditor
+                  v-if="selectedEntry"
+                  :entry="selectedEntry"
+                  v-model="editableEntry"
+                  :all-keywords="allKeywords"
+                  :current-entry-index="currentEntryIndex"
+                  :total-entries="totalEntries"
+                  @go-to-previous="goToPreviousEntry"
+                  @go-to-next="goToNextEntry"
+                  :is-next-entry-in-different-book="false"
+                  :is-previous-entry-in-different-book="false"
+                  :save-status="saveStatus"
+                />
+                <div
+                  v-else
+                  class="editor-empty-state"
+                >
+                  <el-empty
+                    description="请选择一个条目进行编辑"
+                    :image-size="100"
+                  />
                 </div>
               </div>
             </div>
@@ -88,22 +146,47 @@
 
       <!-- 移动端：标签页布局 -->
       <div class="worldbook-layout worldbook-layout-mobile">
-        <el-tabs v-model="mobileActiveTab" type="border-card" class="worldbook-mobile-tabs">
-          <el-tab-pane name="list" label="条目列表">
-            <WorldBookList :collection="mockCollection" :active-book-id="mockActiveBookId"
-              @select-entry="handleMobileSelectEntry" @add-entry="onListAddEntry"
-              @duplicate-entry="onListDuplicateEntry" @delete-entry="onListDeleteEntry" :selected-entry="selectedEntry"
-              :drag-drop-handlers="dragDropHandlers" :hide-book-selector="true" />
+        <el-tabs
+          v-model="mobileActiveTab"
+          type="border-card"
+          class="worldbook-mobile-tabs"
+        >
+          <el-tab-pane
+            name="list"
+            label="条目列表"
+          >
+            <WorldBookList
+              :collection="mockCollection"
+              :active-book-id="mockActiveBookId"
+              @select-entry="handleMobileSelectEntry"
+              @add-entry="onListAddEntry"
+              @duplicate-entry="onListDuplicateEntry"
+              @delete-entry="onListDeleteEntry"
+              :selected-entry="selectedEntry"
+              :drag-drop-handlers="dragDropHandlers"
+              :hide-book-selector="true"
+            />
           </el-tab-pane>
-          <el-tab-pane name="editor" :label="selectedEntry ? (selectedEntry.comment || '新条目') : '编辑器'">
+          <el-tab-pane
+            name="editor"
+            :label="selectedEntry ? selectedEntry.comment || '新条目' : '编辑器'"
+          >
             <div class="worldbook-editor-panel-mobile">
               <div class="content-panel-header-mobile">
                 <h2 class="content-panel-title-mobile">
-                  <Icon icon="ph:note-pencil-duotone" class="content-panel-icon" />
-                  {{ selectedEntry ? selectedEntry.comment || "新条目" : "未选择条目" }}
+                  <Icon
+                    icon="ph:note-pencil-duotone"
+                    class="content-panel-icon"
+                  />
+                  {{ selectedEntry ? selectedEntry.comment || '新条目' : '未选择条目' }}
                 </h2>
                 <div class="editor-actions-mobile">
-                  <el-tag :type="saveStatusType" size="small">{{ saveStatusText }}</el-tag>
+                  <el-tag
+                    :type="saveStatusType"
+                    size="small"
+                  >
+                    {{ saveStatusText }}
+                  </el-tag>
                   <el-dropdown @command="handleMobileActionCommand">
                     <el-button size="small">
                       <Icon icon="ph:dots-three-vertical-duotone" />
@@ -114,11 +197,19 @@
                           <Icon :icon="autoSaveMode === 'auto' ? 'ph:floppy-disk-duotone' : 'ph:hand-eye-duotone'" />
                           {{ autoSaveMode === 'auto' ? '自动保存' : '监听模式' }}
                         </el-dropdown-item>
-                        <el-dropdown-item v-if="selectedEntry" command="save" :disabled="saveStatus === 'saved'">
+                        <el-dropdown-item
+                          v-if="selectedEntry"
+                          command="save"
+                          :disabled="saveStatus === 'saved'"
+                        >
                           <Icon icon="ph:floppy-disk-duotone" />
                           保存
                         </el-dropdown-item>
-                        <el-dropdown-item v-if="selectedEntry" command="delete" divided>
+                        <el-dropdown-item
+                          v-if="selectedEntry"
+                          command="delete"
+                          divided
+                        >
                           <Icon icon="ph:trash-duotone" />
                           删除
                         </el-dropdown-item>
@@ -128,13 +219,27 @@
                 </div>
               </div>
               <div class="worldbook-editor-container">
-                <WorldBookEditor v-if="selectedEntry" :entry="selectedEntry" v-model="editableEntry"
-                  :all-keywords="allKeywords" :current-entry-index="currentEntryIndex" :total-entries="totalEntries"
-                  @go-to-previous="goToPreviousEntry" @go-to-next="goToNextEntry"
-                  :is-next-entry-in-different-book="false" :is-previous-entry-in-different-book="false"
-                  :save-status="saveStatus" />
-                <div v-else class="editor-empty-state">
-                  <el-empty description="请从左侧选择一个条目进行编辑" :image-size="80" />
+                <WorldBookEditor
+                  v-if="selectedEntry"
+                  :entry="selectedEntry"
+                  v-model="editableEntry"
+                  :all-keywords="allKeywords"
+                  :current-entry-index="currentEntryIndex"
+                  :total-entries="totalEntries"
+                  @go-to-previous="goToPreviousEntry"
+                  @go-to-next="goToNextEntry"
+                  :is-next-entry-in-different-book="false"
+                  :is-previous-entry-in-different-book="false"
+                  :save-status="saveStatus"
+                />
+                <div
+                  v-else
+                  class="editor-empty-state"
+                >
+                  <el-empty
+                    description="请从左侧选择一个条目进行编辑"
+                    :image-size="80"
+                  />
                 </div>
               </div>
             </div>
@@ -144,25 +249,51 @@
     </div>
 
     <!-- 世界书选择对话框 -->
-    <WorldBookSelectorDialog v-model="showWorldBookSelector" @confirm="handleBindWorldBook" />
+    <WorldBookSelectorDialog
+      v-model="showWorldBookSelector"
+      @confirm="handleBindWorldBook"
+    />
 
     <!-- 世界书选择对话框 (用于替换) -->
-    <WorldBookSelectorDialog v-model="showReplaceWorldBookSelector" @confirm="handleConfirmReplace" />
+    <WorldBookSelectorDialog
+      v-model="showReplaceWorldBookSelector"
+      @confirm="handleConfirmReplace"
+    />
 
     <!-- 确认对话框 -->
-    <ConfirmDialog ref="confirmDialogRef" :title="confirmConfig.title" :message="confirmConfig.message"
-      :type="confirmConfig.type" :confirm-text="confirmConfig.confirmText" :cancel-text="confirmConfig.cancelText"
-      @confirm="confirmConfig.onConfirm" @cancel="confirmConfig.onCancel" />
+    <ConfirmDialog
+      ref="confirmDialogRef"
+      :title="confirmConfig.title"
+      :message="confirmConfig.message"
+      :type="confirmConfig.type"
+      :confirm-text="confirmConfig.confirmText"
+      :cancel-text="confirmConfig.cancelText"
+      @confirm="confirmConfig.onConfirm"
+      @cancel="confirmConfig.onCancel"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { ElButton, ElEmpty, ElTag, ElTooltip, ElButtonGroup, ElMessage, ElMessageBox, ElTabs, ElTabPane, ElDropdown, ElDropdownMenu, ElDropdownItem } from 'element-plus';
+import {
+  ElButton,
+  ElEmpty,
+  ElTag,
+  ElTooltip,
+  ElButtonGroup,
+  ElMessage,
+  ElMessageBox,
+  ElTabs,
+  ElTabPane,
+  ElDropdown,
+  ElDropdownMenu,
+  ElDropdownItem,
+} from 'element-plus';
 import { Icon } from '@iconify/vue';
 import { Splitpanes, Pane } from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
-import '../../../css/worldbook.css'
+import '../../../css/worldbook.css';
 
 import type { CharacterCardV3 } from '@/types/character-card-v3';
 import type { CharacterBook } from '@/types/character-book';
@@ -201,8 +332,8 @@ const confirmConfig = ref({
   type: 'info' as 'info' | 'warning' | 'danger',
   confirmText: '确认',
   cancelText: '取消',
-  onConfirm: () => { },
-  onCancel: () => { }
+  onConfirm: () => {},
+  onCancel: () => {},
 });
 
 // 计算属性：是否有世界书
@@ -223,7 +354,12 @@ watch(
       return;
     }
     // 使用转换器确保编辑器使用 WorldBookEntry 结构
-    const wb = convertCharacterBookToWorldBook(charBook, 'character-book');
+    const normalizedCharBook: CharacterBook = {
+      ...charBook,
+      extensions: charBook.extensions ?? {},
+      entries: charBook.entries ?? [],
+    };
+    const wb = convertCharacterBookToWorldBook(normalizedCharBook, 'character-book');
     mockActiveBook.value = wb;
   },
   { immediate: true, deep: true }
@@ -275,7 +411,7 @@ const {
   updateEntry: async (entry: WorldBookEntry) => {
     // 更新本地 worldbook 的单个条目，再写回 character_book
     if (mockActiveBook.value) {
-      const idx = mockActiveBook.value.entries.findIndex(e => e.uid === entry.uid);
+      const idx = mockActiveBook.value.entries.findIndex((e) => e.uid === entry.uid);
       if (idx !== -1) mockActiveBook.value.entries[idx] = entry;
       const characterBook = convertWorldBookToCharacterBook(mockActiveBook.value);
       props.character.data.character_book = characterBook;
@@ -292,7 +428,7 @@ const {
   },
   deleteEntry: async (entryId: number) => {
     if (!mockActiveBook.value) return false;
-    const index = mockActiveBook.value.entries.findIndex(e => e.uid === entryId);
+    const index = mockActiveBook.value.entries.findIndex((e) => e.uid === entryId);
     if (index !== -1) {
       mockActiveBook.value.entries.splice(index, 1);
       const characterBook = convertWorldBookToCharacterBook(mockActiveBook.value);
@@ -308,17 +444,12 @@ const {
 const dragDropHandlers = useWorldBookDragDrop(
   mockCollection as any,
   // moveEntryBetweenBooks
-  (
-    _entryToMove: WorldBookEntry,
-    _fromBookId: string,
-    _toBookId: string,
-    _insertIndex: number
-  ) => {
+  (_entryToMove: WorldBookEntry, _fromBookId: string, _toBookId: string, _insertIndex: number) => {
     // 只有一个世界书，不支持跨书移动
     return;
   },
   // updateBookEntries
-  (bookId: string, entries: WorldBookEntry[]) => {
+  (_bookId: string, entries: WorldBookEntry[]) => {
     if (mockActiveBook.value) {
       mockActiveBook.value.entries = entries;
       const characterBook = convertWorldBookToCharacterBook(mockActiveBook.value);
@@ -340,12 +471,12 @@ const dragDropHandlers = useWorldBookDragDrop(
 const allKeywords = computed(() => {
   if (!mockActiveBook.value) return [];
   const keywords = new Set<string>();
-  mockActiveBook.value.entries.forEach(entry => {
+  mockActiveBook.value.entries.forEach((entry) => {
     if (entry.key && Array.isArray(entry.key)) {
-      entry.key.forEach(k => keywords.add(k));
+      entry.key.forEach((k) => keywords.add(k));
     }
     if (entry.keysecondary && Array.isArray(entry.keysecondary)) {
-      entry.keysecondary.forEach(k => keywords.add(k));
+      entry.keysecondary.forEach((k) => keywords.add(k));
     }
   });
   return Array.from(keywords);
@@ -353,7 +484,7 @@ const allKeywords = computed(() => {
 
 const currentEntryIndex = computed(() => {
   if (!mockActiveBook.value || !selectedEntry.value) return -1;
-  return mockActiveBook.value.entries.findIndex(e => e.uid === selectedEntry.value!.uid);
+  return mockActiveBook.value.entries.findIndex((e) => e.uid === selectedEntry.value!.uid);
 });
 
 const totalEntries = computed(() => {
@@ -364,20 +495,28 @@ const saveStatusType = computed(() => {
   // 未保存时给出提示色
   if (hasUnsavedChanges.value) return 'danger';
   switch (saveStatus.value) {
-    case 'saved': return 'success';
-    case 'saving': return 'warning';
-    case 'error': return 'danger';
-    default: return 'info';
+    case 'saved':
+      return 'success';
+    case 'saving':
+      return 'warning';
+    case 'error':
+      return 'danger';
+    default:
+      return 'info';
   }
 });
 
 const saveStatusText = computed(() => {
   if (hasUnsavedChanges.value) return '未保存';
   switch (saveStatus.value) {
-    case 'saved': return '已保存';
-    case 'saving': return '保存中...';
-    case 'error': return '保存失败';
-    default: return '空闲';
+    case 'saved':
+      return '已保存';
+    case 'saving':
+      return '保存中...';
+    case 'error':
+      return '保存失败';
+    default:
+      return '空闲';
   }
 });
 
@@ -443,7 +582,7 @@ const handleCreateNewWorldBook = () => {
   props.character.data.character_book = {
     name: `${props.character.name}的世界书`,
     entries: [],
-    extensions: {}
+    extensions: {},
   };
   emit('worldbookChanged');
   ElMessage.success('已创建新世界书');
@@ -510,9 +649,7 @@ const handleAddToDB = async () => {
   try {
     // 检查是否已存在同名世界书
     const collection = await worldBookService.getFullWorldBookCollection();
-    const existingBook = Object.values(collection.books).find(
-      book => book.name === mockActiveBook.value?.name
-    );
+    const existingBook = Object.values(collection.books).find((book) => book.name === mockActiveBook.value?.name);
 
     if (existingBook) {
       // 如果存在同名世界书，询问用户
@@ -542,7 +679,7 @@ const handleAddToDB = async () => {
         },
         onCancel: () => {
           confirmDialogRef.value?.close();
-        }
+        },
       };
       confirmDialogRef.value?.open();
     } else {
@@ -576,7 +713,7 @@ const handleReplaceFromDB = () => {
     },
     onCancel: () => {
       confirmDialogRef.value?.close();
-    }
+    },
   };
   confirmDialogRef.value?.open();
 };
@@ -606,7 +743,7 @@ defineExpose({
   handleAddToDB,
   handleReplaceFromDB,
   currentWorldBookName: computed(() => mockActiveBook.value?.name || '未命名世界书'),
-  hasWorldBook
+  hasWorldBook,
 });
 </script>
 

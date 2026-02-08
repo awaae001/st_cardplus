@@ -1,6 +1,6 @@
 import { ref, watch, type Ref } from 'vue';
-import { watchDebounced } from '@vueuse/core';
 import type { CharacterCardV3 } from '@/types/character-card-v3';
+import { getSetting } from '@/utils/localStorageUtils';
 
 export type AutoSaveMode = 'auto' | 'watch' | 'manual';
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
@@ -38,9 +38,16 @@ export function useCharacterCardAutoSave(options: AutoSaveOptions) {
     isLoadingData,
     onSave,
     autoSaveMode = ref<AutoSaveMode>('watch'),
-    watchDebounceMs = 1500,
-    autoSaveIntervalMs = 5000,
+    watchDebounceMs,
+    autoSaveIntervalMs,
   } = options;
+
+  const intervalMs = ref<number>(
+    typeof autoSaveIntervalMs === 'number' ? autoSaveIntervalMs : getSetting('autoSaveInterval') * 1000
+  );
+  const debounceMs = ref<number>(
+    typeof watchDebounceMs === 'number' ? watchDebounceMs : getSetting('autoSaveDebounce') * 1000
+  );
 
   // 保存状态
   const saveStatus = ref<SaveStatus>('idle');
@@ -88,7 +95,12 @@ export function useCharacterCardAutoSave(options: AutoSaveOptions) {
 
     // 5. 执行保存
     console.log('[AutoSave] 开始保存角色卡:', cardId);
-    console.log('[AutoSave] 数据详情 - data.name:', characterData.value.data?.name, '顶层name:', characterData.value.name);
+    console.log(
+      '[AutoSave] 数据详情 - data.name:',
+      characterData.value.data?.name,
+      '顶层name:',
+      characterData.value.name
+    );
     isSaving.value = true;
     saveStatus.value = 'saving';
 
@@ -224,15 +236,18 @@ export function useCharacterCardAutoSave(options: AutoSaveOptions) {
   };
 
   // 监听模式：用户停止编辑后自动保存
-  watchDebounced(
-    characterData,
-    () => {
-      if (autoSaveMode.value === 'watch') {
-        performSave();
-      }
-    },
-    { debounce: watchDebounceMs, deep: true }
-  );
+  let debounceTimer: number | null = null;
+  const debouncedWatchSave = () => {
+    if (autoSaveMode.value !== 'watch') return;
+    if (debounceTimer !== null) {
+      clearTimeout(debounceTimer);
+    }
+    debounceTimer = window.setTimeout(() => {
+      performSave();
+    }, debounceMs.value);
+  };
+
+  watch(characterData, debouncedWatchSave, { deep: true });
 
   // 自动模式：定时自动保存
   let autoSaveTimer: number | null = null;
@@ -250,11 +265,34 @@ export function useCharacterCardAutoSave(options: AutoSaveOptions) {
       if (mode === 'auto') {
         autoSaveTimer = window.setInterval(() => {
           performSave();
-        }, autoSaveIntervalMs);
+        }, intervalMs.value);
       }
     },
     { immediate: true }
   );
+
+  const handleIntervalChange = (event: Event) => {
+    const detail = (event as CustomEvent<number>).detail;
+    if (typeof detail !== 'number' || !Number.isFinite(detail)) return;
+    intervalMs.value = detail * 1000;
+    if (autoSaveMode.value === 'auto') {
+      if (autoSaveTimer !== null) {
+        clearInterval(autoSaveTimer);
+        autoSaveTimer = null;
+      }
+      autoSaveTimer = window.setInterval(() => {
+        performSave();
+      }, intervalMs.value);
+    }
+  };
+
+  window.addEventListener('autoSaveIntervalChange', handleIntervalChange);
+  const handleDebounceChange = (event: Event) => {
+    const detail = (event as CustomEvent<number>).detail;
+    if (typeof detail !== 'number' || !Number.isFinite(detail)) return;
+    debounceMs.value = detail * 1000;
+  };
+  window.addEventListener('autoSaveDebounceChange', handleDebounceChange);
 
   // 清理定时器
   const cleanup = () => {
@@ -262,6 +300,12 @@ export function useCharacterCardAutoSave(options: AutoSaveOptions) {
       clearInterval(autoSaveTimer);
       autoSaveTimer = null;
     }
+    if (debounceTimer !== null) {
+      clearTimeout(debounceTimer);
+      debounceTimer = null;
+    }
+    window.removeEventListener('autoSaveIntervalChange', handleIntervalChange);
+    window.removeEventListener('autoSaveDebounceChange', handleDebounceChange);
   };
 
   return {

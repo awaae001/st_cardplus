@@ -52,8 +52,11 @@ export interface GistInfo {
   public: boolean;
   created_at: string;
   updated_at: string;
-  files: Record<string, {
-    filename: string;
-    size: number;
-  }>;
+  files: Record<
+    string,
+    {
+      filename: string;
+      size: number;
+    }
+  >;
 }

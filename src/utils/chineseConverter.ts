@@ -3,27 +3,27 @@
  * 使用 opencc-js 进行角色卡文本的简繁体转换
  */
 
-import * as OpenCC from 'opencc-js'
-import { read, write } from './pngCardMetadata'
+import * as OpenCC from 'opencc-js';
+import { read, write } from './pngCardMetadata';
 
 /**
  * 支持的转换配置
  */
 export type ConversionConfig =
-  | 'cn'      // 简体化
-  | 't'       // 繁体化（OpenCC 标准）
-  | 'tw'      // 台湾正体
-  | 'twp'     // 台湾正体（含惯用词）
-  | 'hk'      // 香港繁体
-  | 'jp'      // 日本新字体
+  | 'cn' // 简体化
+  | 't' // 繁体化（OpenCC 标准）
+  | 'tw' // 台湾正体
+  | 'twp' // 台湾正体（含惯用词）
+  | 'hk' // 香港繁体
+  | 'jp'; // 日本新字体
 
 /**
  * 转换方向配置（便于用户选择）
  */
 export interface ConversionOption {
-  value: ConversionConfig
-  label: string
-  description: string
+  value: ConversionConfig;
+  label: string;
+  description: string;
 }
 
 /**
@@ -33,44 +33,44 @@ export const CONVERSION_OPTIONS: ConversionOption[] = [
   {
     value: 'cn',
     label: '转换为简体中文',
-    description: '将文本转换为简体中文（大陆标准）'
+    description: '将文本转换为简体中文（大陆标准）',
   },
   {
     value: 't',
     label: '转换为繁体中文',
-    description: '将文本转换为繁体中文（OpenCC 标准）'
+    description: '将文本转换为繁体中文（OpenCC 标准）',
   },
   {
     value: 'tw',
     label: '转换为台湾正体',
-    description: '将文本转换为台湾正体中文'
+    description: '将文本转换为台湾正体中文',
   },
   {
     value: 'twp',
     label: '转换为台湾正体（惯用词）',
-    description: '将文本转换为台湾正体中文，包含台湾惯用词汇'
+    description: '将文本转换为台湾正体中文，包含台湾惯用词汇',
   },
   {
     value: 'hk',
     label: '转换为香港繁体',
-    description: '将文本转换为香港繁体中文'
+    description: '将文本转换为香港繁体中文',
   },
   {
     value: 'jp',
     label: '转换为日本新字体',
-    description: '将文本转换为日本新字体（限汉字部分）'
-  }
-]
+    description: '将文本转换为日本新字体（限汉字部分）',
+  },
+];
 
 /**
  * 单个文件处理结果
  */
 export interface ConversionResult {
-  success: boolean
-  fileName: string
-  message?: string
-  convertedData?: Uint8Array
-  error?: Error
+  success: boolean;
+  fileName: string;
+  message?: string;
+  convertedData?: Uint8Array;
+  error?: Error;
 }
 
 /**
@@ -81,22 +81,22 @@ export interface ConversionResult {
  */
 function convertObjectStrings<T>(obj: T, converter: (text: string) => string): T {
   if (typeof obj === 'string') {
-    return converter(obj) as T
+    return converter(obj) as T;
   }
 
   if (Array.isArray(obj)) {
-    return obj.map(item => convertObjectStrings(item, converter)) as T
+    return obj.map((item) => convertObjectStrings(item, converter)) as T;
   }
 
   if (obj !== null && typeof obj === 'object') {
-    const converted: any = {}
+    const converted: any = {};
     for (const [key, value] of Object.entries(obj)) {
-      converted[key] = convertObjectStrings(value, converter)
+      converted[key] = convertObjectStrings(value, converter);
     }
-    return converted as T
+    return converted as T;
   }
 
-  return obj
+  return obj;
 }
 
 /**
@@ -105,23 +105,18 @@ function convertObjectStrings<T>(obj: T, converter: (text: string) => string): T
  * @param config 转换配置
  * @returns 转换后的 JSON 字符串
  */
-export function convertCharacterCardJson(
-  jsonData: any | string,
-  config: ConversionConfig
-): string {
+export function convertCharacterCardJson(jsonData: any | string, config: ConversionConfig): string {
   // 解析 JSON（如果是字符串）
-  const cardData = typeof jsonData === 'string'
-    ? JSON.parse(jsonData)
-    : jsonData
+  const cardData = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
 
   // 创建转换器
-  const converter = OpenCC.Converter({ from: 'cn', to: config })
+  const converter = OpenCC.Converter({ from: 'cn', to: config });
 
   // 递归转换所有字符串字段
-  const convertedData = convertObjectStrings(cardData, converter)
+  const convertedData = convertObjectStrings(cardData, converter);
 
   // 返回 JSON 字符串
-  return JSON.stringify(convertedData)
+  return JSON.stringify(convertedData);
 }
 
 /**
@@ -130,75 +125,72 @@ export function convertCharacterCardJson(
  * @param config 转换配置
  * @returns 转换结果
  */
-export async function convertPngCharacterCard(
-  file: File,
-  config: ConversionConfig
-): Promise<ConversionResult> {
+export async function convertPngCharacterCard(file: File, config: ConversionConfig): Promise<ConversionResult> {
   try {
     // 读取文件为 Uint8Array
-    const arrayBuffer = await file.arrayBuffer()
-    const imageData = new Uint8Array(arrayBuffer)
+    const arrayBuffer = await file.arrayBuffer();
+    const imageData = new Uint8Array(arrayBuffer);
 
     // 提取 PNG 中的角色卡 JSON 数据
-    let jsonString: string
+    let jsonString: string;
     try {
-      jsonString = read(imageData)
+      jsonString = read(imageData);
     } catch (error) {
       return {
         success: false,
         fileName: file.name,
         message: '无法读取角色卡元数据，可能不是有效的角色卡 PNG 文件',
-        error: error instanceof Error ? error : new Error(String(error))
-      }
+        error: error instanceof Error ? error : new Error(String(error)),
+      };
     }
 
     if (!jsonString) {
       return {
         success: false,
         fileName: file.name,
-        message: 'PNG 文件中未找到角色卡数据'
-      }
+        message: 'PNG 文件中未找到角色卡数据',
+      };
     }
 
     // 转换 JSON 数据
-    let convertedJsonString: string
+    let convertedJsonString: string;
     try {
-      convertedJsonString = convertCharacterCardJson(jsonString, config)
+      convertedJsonString = convertCharacterCardJson(jsonString, config);
     } catch (error) {
       return {
         success: false,
         fileName: file.name,
         message: '转换过程中发生错误',
-        error: error instanceof Error ? error : new Error(String(error))
-      }
+        error: error instanceof Error ? error : new Error(String(error)),
+      };
     }
 
     // 将转换后的 JSON 写回 PNG
-    let convertedImageData: Uint8Array
+    let convertedImageData: Uint8Array;
     try {
-      convertedImageData = write(imageData, convertedJsonString)
+      convertedImageData = write(imageData, convertedJsonString);
     } catch (error) {
       return {
         success: false,
         fileName: file.name,
         message: '写入转换后的数据时发生错误',
-        error: error instanceof Error ? error : new Error(String(error))
-      }
+        error: error instanceof Error ? error : new Error(String(error)),
+      };
     }
 
     return {
       success: true,
       fileName: file.name,
       message: '转换成功',
-      convertedData: convertedImageData
-    }
+      convertedData: convertedImageData,
+    };
   } catch (error) {
     return {
       success: false,
       fileName: file.name,
       message: '处理文件时发生未知错误',
-      error: error instanceof Error ? error : new Error(String(error))
-    }
+      error: error instanceof Error ? error : new Error(String(error)),
+    };
   }
 }
 
@@ -214,27 +206,27 @@ export async function convertPngCharacterCardBatch(
   config: ConversionConfig,
   onProgress?: (current: number, total: number, fileName: string) => void
 ): Promise<ConversionResult[]> {
-  const results: ConversionResult[] = []
+  const results: ConversionResult[] = [];
 
   for (let i = 0; i < files.length; i++) {
-    const file = files[i]
+    const file = files[i];
 
     // 触发进度回调
     if (onProgress) {
-      onProgress(i, files.length, file.name)
+      onProgress(i, files.length, file.name);
     }
 
     // 转换单个文件
-    const result = await convertPngCharacterCard(file, config)
-    results.push(result)
+    const result = await convertPngCharacterCard(file, config);
+    results.push(result);
   }
 
   // 最后一次进度更新（完成）
   if (onProgress && files.length > 0) {
-    onProgress(files.length, files.length, '全部完成')
+    onProgress(files.length, files.length, '全部完成');
   }
 
-  return results
+  return results;
 }
 
 /**
@@ -242,35 +234,32 @@ export async function convertPngCharacterCardBatch(
  * @param result 转换结果
  * @param originalFileName 原始文件名
  */
-export function downloadConvertedPng(
-  result: ConversionResult,
-  originalFileName?: string
-): void {
+export function downloadConvertedPng(result: ConversionResult, originalFileName?: string): void {
   if (!result.success || !result.convertedData) {
-    throw new Error('转换未成功或数据不可用')
+    throw new Error('转换未成功或数据不可用');
   }
 
   // 创建 Blob
-  const blob = new Blob([result.convertedData.slice()], { type: 'image/png' })
+  const blob = new Blob([result.convertedData.slice()], { type: 'image/png' });
 
   // 生成下载文件名（添加后缀以区分）
-  const fileName = originalFileName || result.fileName
-  const baseName = fileName.replace(/\.png$/i, '')
-  const newFileName = `${baseName}_converted.png`
+  const fileName = originalFileName || result.fileName;
+  const baseName = fileName.replace(/\.png$/i, '');
+  const newFileName = `${baseName}_converted.png`;
 
   // 创建下载链接
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = newFileName
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = newFileName;
 
   // 触发下载
-  document.body.appendChild(link)
-  link.click()
+  document.body.appendChild(link);
+  link.click();
 
   // 清理
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }
 
 /**
@@ -278,19 +267,16 @@ export function downloadConvertedPng(
  * @param results 转换结果数组
  * @param delay 每个下载之间的延迟（毫秒），避免浏览器阻止
  */
-export async function downloadConvertedPngBatch(
-  results: ConversionResult[],
-  delay: number = 300
-): Promise<void> {
-  const successResults = results.filter(r => r.success && r.convertedData)
+export async function downloadConvertedPngBatch(results: ConversionResult[], delay: number = 300): Promise<void> {
+  const successResults = results.filter((r) => r.success && r.convertedData);
 
   for (let i = 0; i < successResults.length; i++) {
-    const result = successResults[i]
-    downloadConvertedPng(result, result.fileName)
+    const result = successResults[i];
+    downloadConvertedPng(result, result.fileName);
 
     // 延迟以避免浏览器阻止多个下载
     if (i < successResults.length - 1) {
-      await new Promise(resolve => setTimeout(resolve, delay))
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
 }

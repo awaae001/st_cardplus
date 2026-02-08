@@ -2,9 +2,25 @@
   <div class="header">
     <h2>SillyTavern 正则表达式编辑器</h2>
     <div>
-      <el-button @click="triggerFileInput" type="primary">导入JSON</el-button>
-      <el-button @click="$emit('export')" type="success">导出JSON</el-button>
-      <input type="file" ref="fileInput" @change="handleFileImport" style="display: none" accept=".json" />
+      <el-button
+        @click="triggerFileInput"
+        type="primary"
+      >
+        导入JSON
+      </el-button>
+      <el-button
+        @click="$emit('export')"
+        type="success"
+      >
+        导出JSON
+      </el-button>
+      <input
+        type="file"
+        ref="fileInput"
+        @change="handleFileImport"
+        style="display: none"
+        accept=".json"
+      />
     </div>
   </div>
 </template>
@@ -40,7 +56,9 @@ const handleFileImport = (event: Event) => {
     }
   };
 
-  reader.onerror = () => { ElMessage.error('读取文件失败 '); };
+  reader.onerror = () => {
+    ElMessage.error('读取文件失败 ');
+  };
   reader.readAsText(file);
   target.value = '';
 };

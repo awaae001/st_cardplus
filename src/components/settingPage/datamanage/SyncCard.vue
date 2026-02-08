@@ -4,55 +4,106 @@
       <div class="setting-header">
         <div class="setting-info">
           <span class="setting-label">云同步</span>
-          <Icon icon="material-symbols:cloud-sync-outline" width="20" height="20"
-            style="margin-left: 8px; color: var(--el-color-primary);" />
+          <Icon
+            icon="material-symbols:cloud-sync-outline"
+            width="20"
+            height="20"
+            style="margin-left: 8px; color: var(--el-color-primary)"
+          />
         </div>
       </div>
 
       <!-- 同步提供商选择 -->
       <div class="sync-provider-selector">
         <span class="provider-label">同步提供商</span>
-        <el-segmented v-model="selectedProvider" :options="providerOptions" size="default" />
+        <el-segmented
+          v-model="selectedProvider"
+          :options="providerOptions"
+          size="default"
+        />
       </div>
 
       <!-- WebDAV 配置 -->
-      <div v-show="selectedProvider === 'webdav'" class="sync-config-container">
-        <el-input v-model="webdavConfig.url" placeholder="WebDAV URL" />
-        <el-input v-model="webdavConfig.username" placeholder="用户名" />
-        <el-input v-model="webdavConfig.password" placeholder="密码" type="password" show-password />
+      <div
+        v-show="selectedProvider === 'webdav'"
+        class="sync-config-container"
+      >
+        <el-input
+          v-model="webdavConfig.url"
+          placeholder="WebDAV URL"
+        />
+        <el-input
+          v-model="webdavConfig.username"
+          placeholder="用户名"
+        />
+        <el-input
+          v-model="webdavConfig.password"
+          placeholder="密码"
+          type="password"
+          show-password
+        />
         <p class="provider-description">
-          将数据备份到你的 WebDAV 服务器<br />
-          <span style="color: var(--el-color-warning);">请注意前端该死的跨域问题，尽量使用自建服务</span>
+          将数据备份到你的 WebDAV 服务器
+          <br />
+          <span style="color: var(--el-color-warning)">请注意前端该死的跨域问题，尽量使用自建服务</span>
         </p>
       </div>
 
       <!-- GitHub Gist 配置 -->
-      <div v-show="selectedProvider === 'gist'" class="sync-config-container">
-        <el-input v-model="gistConfig.token" placeholder="GitHub Personal Access Token" type="password" show-password>
+      <div
+        v-show="selectedProvider === 'gist'"
+        class="sync-config-container"
+      >
+        <el-input
+          v-model="gistConfig.token"
+          placeholder="GitHub Personal Access Token"
+          type="password"
+          show-password
+        >
           <template #append>
             <el-button @click="openGistTokenHelp">
               <Icon icon="material-symbols:help-outline" />
             </el-button>
           </template>
         </el-input>
-        <el-input v-model="gistConfig.gistId" placeholder="Gist ID (可选，留空将创建新 Gist)">
+        <el-input
+          v-model="gistConfig.gistId"
+          placeholder="Gist ID (可选，留空将创建新 Gist)"
+        >
           <template #append>
-            <el-button @click="listGists" :disabled="!gistConfig.token">
+            <el-button
+              @click="listGists"
+              :disabled="!gistConfig.token"
+            >
               <Icon icon="material-symbols:list" />
             </el-button>
           </template>
         </el-input>
-        <div class="sync-time-display" v-if="gistConfig.lastSyncTime">
-          <Icon icon="material-symbols:schedule" style="margin-right: 4px;" />
+        <div
+          class="sync-time-display"
+          v-if="gistConfig.lastSyncTime"
+        >
+          <Icon
+            icon="material-symbols:schedule"
+            style="margin-right: 4px"
+          />
           <span>上次同步: {{ formatSyncTime(gistConfig.lastSyncTime) }}</span>
         </div>
         <p class="provider-description">
-          将数据备份到 GitHub Gist (私密 Gist)<br />
-          需要创建 Personal Access Token 并赋予 <code>gist</code> 权限
-          <a href="https://github.com/settings/tokens/new?scopes=gist&description=ST-CardPlus-Sync" target="_blank"
-            style="color: var(--el-color-primary);">创建 Token</a>
+          将数据备份到 GitHub Gist (私密 Gist)
           <br />
-          <span style="color: var(--el-color-info); font-size: 12px;">
+          需要创建 Personal Access Token 并赋予
+          <code>gist</code>
+          权限
+          <a
+            href="https://github.com/settings/tokens/new?scopes=gist&description=ST-CardPlus-Sync"
+            target="_blank"
+            style="color: var(--el-color-primary)"
+          >
+            创建 Token
+          </a>
+          <br />
+          <span style="color: var(--el-color-info); font-size: 12px">
             💡 单文件最大 100MB, Gist 总计最大 1GB · 首次推送自动创建 Gist, 后续更新同一个 Gist
           </span>
         </p>
@@ -60,27 +111,64 @@
 
       <!-- 统一操作按钮 -->
       <div class="sync-action-buttons">
-        <el-button @click="handleTestConnection" :disabled="syncProgressActive">
-          <Icon icon="material-symbols:add-link-rounded" style="margin-right: 8px;" />
+        <el-button
+          @click="handleTestConnection"
+          :disabled="syncProgressActive"
+        >
+          <Icon
+            icon="material-symbols:add-link-rounded"
+            style="margin-right: 8px"
+          />
           {{ testButtonText }}
         </el-button>
-        <el-button @click="handlePush" type="primary" plain :disabled="!canPush || syncProgressActive">
-          <Icon icon="material-symbols:cloud-upload" style="margin-right: 8px;" />
+        <el-button
+          @click="handlePush"
+          type="primary"
+          plain
+          :disabled="!canPush || syncProgressActive"
+        >
+          <Icon
+            icon="material-symbols:cloud-upload"
+            style="margin-right: 8px"
+          />
           {{ pushButtonText }}
         </el-button>
-        <el-button @click="handlePull" type="success" plain :disabled="!canPull || syncProgressActive">
-          <Icon icon="material-symbols:cloud-download-outline" style="margin-right: 8px;" />
+        <el-button
+          @click="handlePull"
+          type="success"
+          plain
+          :disabled="!canPull || syncProgressActive"
+        >
+          <Icon
+            icon="material-symbols:cloud-download-outline"
+            style="margin-right: 8px"
+          />
           {{ pullButtonText }}
         </el-button>
       </div>
 
-      <transition name="sync-progress" appear>
-        <div v-if="syncProgressActive" class="sync-progress">
+      <transition
+        name="sync-progress"
+        appear
+      >
+        <div
+          v-if="syncProgressActive"
+          class="sync-progress"
+        >
           <div class="sync-progress-label">
-            <Icon icon="material-symbols:hourglass-top" width="16" height="16" />
+            <Icon
+              icon="material-symbols:hourglass-top"
+              width="16"
+              height="16"
+            />
             <span>{{ syncProgressText || '处理中...' }}</span>
           </div>
-          <el-progress :percentage="100" :indeterminate="true" :stroke-width="12" :show-text="false" />
+          <el-progress
+            :percentage="100"
+            :indeterminate="true"
+            :stroke-width="12"
+            :show-text="false"
+          />
         </div>
       </transition>
     </div>
@@ -190,7 +278,10 @@ const pullButtonText = computed(() => {
 
 .sync-progress-enter-active,
 .sync-progress-leave-active {
-  transition: max-height 240ms ease, opacity 240ms ease, margin-top 240ms ease;
+  transition:
+    max-height 240ms ease,
+    opacity 240ms ease,
+    margin-top 240ms ease;
   overflow: hidden;
 }
 

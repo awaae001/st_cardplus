@@ -2,7 +2,11 @@
   <div class="greetings-panel-container">
     <el-scrollbar>
       <div class="greetings-grid">
-        <div v-for="(greeting, index) in model" :key="index" class="greeting-item">
+        <div
+          v-for="(greeting, index) in model"
+          :key="index"
+          class="greeting-item"
+        >
           <el-input
             :model-value="greeting"
             @update:model-value="updateGreeting(index, $event)"
@@ -11,11 +15,23 @@
             placeholder="请输入开场白"
             resize="none"
           />
-          <el-button type="danger" :icon="Delete" circle @click="removeGreeting(index)" class="delete-button" />
+          <el-button
+            type="danger"
+            :icon="Delete"
+            circle
+            @click="removeGreeting(index)"
+            class="delete-button"
+          />
         </div>
       </div>
     </el-scrollbar>
-    <el-button type="primary" @click="addGreeting" class="add-button">添加开场白</el-button>
+    <el-button
+      type="primary"
+      @click="addGreeting"
+      class="add-button"
+    >
+      添加开场白
+    </el-button>
   </div>
 </template>
 

@@ -37,5 +37,5 @@ export default {
   hostname,
   tmpdir,
   homedir,
-  EOL
+  EOL,
 };

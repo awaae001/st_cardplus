@@ -1,13 +1,14 @@
 import Dexie, { type Table } from 'dexie';
 import type { WorldBook, WorldBookEntry } from '../types/types';
 import type { CharacterCardV3 } from '../types/character-card-v3';
+import type { OpenAIChatCompletionPreset } from '../types/openai-preset';
 
 // 定义存储在 IndexedDB 中的 WorldBookEntry 结构，增加了 bookId 作为外键
 export interface StoredWorldBookEntry extends WorldBookEntry {
   id?: number; // 自增主键
   bookId: string;
 }
-export interface StoredWorldBook extends Omit<WorldBook, 'entries'> { }
+export interface StoredWorldBook extends Omit<WorldBook, 'entries'> {}
 export interface StoredCharacterCard {
   id: string; // UUID 主键
   name: string; // 角色名称
@@ -19,6 +20,15 @@ export interface StoredCharacterCard {
   order: number; // 排序序号
   tags?: string[]; // 标签
   metadata?: Record<string, any>; // 额外元数据
+}
+
+export interface StoredPresetFile {
+  id: string; // UUID 主键
+  name: string; // 预设名称
+  order: number; // 排序序号
+  createdAt: string; // 创建时间 ISO 8601
+  updatedAt: string; // 更新时间 ISO 8601
+  data: Omit<OpenAIChatCompletionPreset, 'prompts'> & { prompts: Record<string, any>[] };
 }
 
 /**
@@ -48,6 +58,13 @@ export class AppDatabase extends Dexie {
    */
   characterCards!: Table<StoredCharacterCard, string>;
 
+  /**
+   * `presets` 表，用于存储预设文件
+   * 主键是 `id` (string, UUID)
+   * 索引了 `name`, `order`, `updatedAt` 字段以便查询和排序
+   */
+  presets!: Table<StoredPresetFile, string>;
+
   constructor() {
     super('appDatabase');
     this.version(1).stores({
@@ -58,6 +75,12 @@ export class AppDatabase extends Dexie {
       books: '&id, name, order, updatedAt',
       entries: '++id, bookId, uid',
       characterCards: '&id, name, order, updatedAt',
+    });
+    this.version(3).stores({
+      books: '&id, name, order, updatedAt',
+      entries: '++id, bookId, uid',
+      characterCards: '&id, name, order, updatedAt',
+      presets: '&id, name, order, updatedAt',
     });
   }
 }

@@ -3,12 +3,27 @@ import {
   saveToLocalStorage,
   loadFromLocalStorage,
   initAutoSave,
-  clearAutoSave
+  clearAutoSave,
+  getSetting,
 } from '../../utils/localStorageUtils';
 import type { CharacterCard } from '../../types/character';
 
 export function useCharacterCardLifecycle(form: Ref<CharacterCard>, processLoadedData: (data: any) => CharacterCard) {
   let autoSaveTimer: number | null = null;
+  let intervalMs = getSetting('autoSaveInterval') * 1000;
+  const handleIntervalChange = (event: Event) => {
+    const detail = (event as CustomEvent<number>).detail;
+    if (typeof detail !== 'number' || !Number.isFinite(detail)) return;
+    intervalMs = detail * 1000;
+    if (autoSaveTimer) {
+      clearAutoSave(autoSaveTimer);
+    }
+    autoSaveTimer = initAutoSave(
+      () => saveToLocalStorage(form.value),
+      () => !!form.value.chineseName,
+      intervalMs
+    );
+  };
 
   onMounted(() => {
     const loadedData = loadFromLocalStorage('characterCardData', processLoadedData);
@@ -17,13 +32,16 @@ export function useCharacterCardLifecycle(form: Ref<CharacterCard>, processLoade
     }
     autoSaveTimer = initAutoSave(
       () => saveToLocalStorage(form.value),
-      () => !!form.value.chineseName
+      () => !!form.value.chineseName,
+      intervalMs
     );
+    window.addEventListener('autoSaveIntervalChange', handleIntervalChange);
   });
 
   onBeforeUnmount(() => {
     if (autoSaveTimer) {
       clearAutoSave(autoSaveTimer);
     }
+    window.removeEventListener('autoSaveIntervalChange', handleIntervalChange);
   });
 }

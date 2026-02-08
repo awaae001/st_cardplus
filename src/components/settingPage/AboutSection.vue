@@ -1,68 +1,155 @@
 <template>
   <div class="about-section">
-    <h2>关于应用 <span v-if="isDevDomain" style="color: #e6a23c; font-size: 12px;">滚动测试版本</span></h2>
-    <p>这是一个用于创建和管理 SillyTavern 角色卡的在线应用程序 </p>
-    <p style="display: flex;align-items: center;gap: 8px;">你可以访问
-      <Icon icon="qlementine-icons:discord-fill-16" width="16" height="16" /><a href="https://discord.gg/KH6rHAGBXD"
-        target="_blank" style="color: #409eff;">discord 频道</a> 发送反馈或者访问我的 GitHub 页面获取更多信息或贡献代码：
+    <h2>
+      关于应用
+      <span
+        v-if="isDevDomain"
+        style="color: #e6a23c; font-size: 12px"
+      >
+        滚动测试版本
+      </span>
+    </h2>
+    <p>这是一个用于创建和管理 SillyTavern 角色卡的在线应用程序</p>
+    <p style="display: flex; align-items: center; gap: 8px">
+      你可以访问
+      <Icon
+        icon="qlementine-icons:discord-fill-16"
+        width="16"
+        height="16"
+      />
+      <a
+        href="https://discord.gg/KH6rHAGBXD"
+        target="_blank"
+        style="color: #409eff"
+      >
+        discord 频道
+      </a>
+      发送反馈或者访问我的 GitHub 页面获取更多信息或贡献代码：
     </p>
     <p>
       开发版本：
       <b v-if="appCommitCount === '1'">在线版_{{ appVersion }}</b>
       <b v-else>dev_{{ appVersion }}({{ appCommitCount }})</b>
-      [0.1.12]
+      [0.1.13]
     </p>
-    <SurveyBanner :dismissible="false" />
+    <SystemBanner
+      bannerId="newYearSurvey2026_about"
+      startDate="2026-01-01"
+      endDate="2026-03-01"
+      message="我们有一个新年调查，去填写一下？"
+      link="https://tally.so/r/kdeaLo"
+      linkText="填写调查"
+      :dismissible="false"
+    />
   </div>
 
   <div class="changelog-section">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px">
       <h3>更新日志</h3>
       <div class="branch-selector">
-        <label for="branch-select" style="width: 50px;">分支: </label>
-        <el-select v-model="selectedBranch" placeholder="选择分支" size="small">
-          <el-option v-for="branch in branches" :key="branch.name" :label="branch.name" :value="branch.name" />
+        <label
+          for="branch-select"
+          style="width: 50px"
+        >
+          分支:
+        </label>
+        <el-select
+          v-model="selectedBranch"
+          placeholder="选择分支"
+          size="small"
+        >
+          <el-option
+            v-for="branch in branches"
+            :key="branch.name"
+            :label="branch.name"
+            :value="branch.name"
+          />
         </el-select>
       </div>
     </div>
-    <div v-for="(log, index) in gitLogs" :key="index" class="commit-item">
-      <div class="commit-header" @click="log.expanded = !log.expanded">
+    <div
+      v-for="(log, index) in gitLogs"
+      :key="index"
+      class="commit-item"
+    >
+      <div
+        class="commit-header"
+        @click="log.expanded = !log.expanded"
+      >
         <span class="commit-message">{{ log.message }}</span>
         <div class="commit-meta">
-          <a :href="log.html_url" target="_blank" class="commit-id">#{{ log.sha.substring(0, 7) }}</a>
+          <a
+            :href="log.html_url"
+            target="_blank"
+            class="commit-id"
+          >
+            #{{ log.sha.substring(0, 7) }}
+          </a>
           <span class="commit-date">{{ new Date(log.date).toLocaleDateString() }}</span>
         </div>
       </div>
       <transition name="slide-fade">
-        <div v-if="log.expanded" class="commit-details">
+        <div
+          v-if="log.expanded"
+          class="commit-details"
+        >
           <pre>{{ log.fullMessage }}</pre>
         </div>
       </transition>
     </div>
     <div class="load-more-container">
-      <button @click="() => loadMore()" :disabled="!hasMore || loading" class="load-more-button">
-        {{ loading ? '加载中...' : (hasMore ? '加载更多' : '没有更多了') }}
+      <button
+        @click="() => loadMore()"
+        :disabled="!hasMore || loading"
+        class="load-more-button"
+      >
+        {{ loading ? '加载中...' : hasMore ? '加载更多' : '没有更多了' }}
       </button>
     </div>
   </div>
 
-  <div style="display: flex;">
-    <a href="https://github.com/awaae001/st_cardplus" target="_blank" class="github-link">
-      <Icon icon="mdi:github" width="24" height="24" style="margin-right: 4px;" />
+  <div style="display: flex">
+    <a
+      href="https://github.com/awaae001/st_cardplus"
+      target="_blank"
+      class="github-link"
+    >
+      <Icon
+        icon="mdi:github"
+        width="24"
+        height="24"
+        style="margin-right: 4px"
+      />
       GitHub 仓库
     </a>
     <template v-if="isMainDomain">
-      <div style="margin: 6px; display: inline;"></div>
-      <a href="https://autopatchcn.yuanshen.com/client_app/download/launcher/20241225164539_9oyGHAOXvzP4uaBW/mihoyo/yuanshen_setup_202412201736.exe"
-        target="_blank" class="pro">
-        <Icon icon="material-symbols:key-vertical-outline" width="24" height="24"
-          style="margin-right: 4px; display: inline-block;" />
+      <div style="margin: 6px; display: inline"></div>
+      <a
+        href="https://autopatchcn.yuanshen.com/client_app/download/launcher/20241225164539_9oyGHAOXvzP4uaBW/mihoyo/yuanshen_setup_202412201736.exe"
+        target="_blank"
+        class="pro"
+      >
+        <Icon
+          icon="material-symbols:key-vertical-outline"
+          width="24"
+          height="24"
+          style="margin-right: 4px; display: inline-block"
+        />
         解锁高级版
       </a>
-      <div style="margin: 6px; display: inline;"></div>
-      <a href="https://dev.st-cardplus-1kl.pages.dev/" style="background-color: rgb(218 204 76);" target="_blank"
-        class="pro">
-        <Icon icon="material-symbols:build-circle-outline" width="24" height="24" style="margin-right: 4px;" />
+      <div style="margin: 6px; display: inline"></div>
+      <a
+        href="https://dev.st-cardplus-1kl.pages.dev/"
+        style="background-color: rgb(218 204 76)"
+        target="_blank"
+        class="pro"
+      >
+        <Icon
+          icon="material-symbols:build-circle-outline"
+          width="24"
+          height="24"
+          style="margin-right: 4px"
+        />
         访问滚动测试
       </a>
     </template>
@@ -72,7 +159,7 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
 import { computed, onMounted, ref } from 'vue';
-import SurveyBanner from '@/components/SurveyBanner.vue';
+import SystemBanner from '@/components/SystemBanner.vue';
 import { ElSelect, ElOption } from 'element-plus';
 
 const appVersion = __APP_VERSION__;
@@ -109,7 +196,9 @@ const loadMore = async (isBranchChange = false) => {
 
   try {
     if (!selectedBranch.value) return;
-    const response = await fetch(`https://api.github.com/repos/awaae001/st_cardplus/commits?sha=${selectedBranch.value}&per_page=10&page=${page.value}`);
+    const response = await fetch(
+      `https://api.github.com/repos/awaae001/st_cardplus/commits?sha=${selectedBranch.value}&per_page=10&page=${page.value}`
+    );
     if (response.ok) {
       const commits: Commit[] = await response.json();
       if (commits.length < 10) {
@@ -157,7 +246,6 @@ watch(selectedBranch, (newBranch) => {
     loadMore(true);
   }
 });
-
 
 const isMainDomain = computed(() => {
   return window.location.hostname === 'cardplus.jiuci.top';

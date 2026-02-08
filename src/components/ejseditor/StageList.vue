@@ -1,7 +1,12 @@
 <template>
   <div class="stage-list-container">
     <div class="list-header">
-      <el-button type="primary" :size="isMobile ? 'small' : 'small'" :icon="Plus" @click="addStage">
+      <el-button
+        type="primary"
+        :size="isMobile ? 'small' : 'small'"
+        :icon="Plus"
+        @click="addStage"
+      >
         {{ isMobile ? '添加' : '添加阶段' }}
       </el-button>
       <el-input
@@ -15,9 +20,21 @@
       </el-input>
     </div>
 
-    <div v-if="localStages.length === 0" class="empty-state">
-      <el-empty description="暂无阶段" :image-size="50">
-        <el-button type="primary" @click="addStage" size="small">添加第一个阶段</el-button>
+    <div
+      v-if="localStages.length === 0"
+      class="empty-state"
+    >
+      <el-empty
+        description="暂无阶段"
+        :image-size="50"
+      >
+        <el-button
+          type="primary"
+          @click="addStage"
+          size="small"
+        >
+          添加第一个阶段
+        </el-button>
       </el-empty>
     </div>
 
@@ -34,27 +51,59 @@
     >
       <template #item="{ element: stage, index }">
         <div class="stage-item-wrapper">
-          <div class="stage-item" :class="{ 'is-expanded': expandedStageId.includes(stage.id) }" @click="toggleExpand(stage.id)">
+          <div
+            class="stage-item"
+            :class="{ 'is-expanded': expandedStageId.includes(stage.id) }"
+            @click="toggleExpand(stage.id)"
+          >
             <div class="stage-header">
               <div class="stage-info">
-                <el-icon class="drag-handle" @click.stop><Menu /></el-icon>
+                <el-icon
+                  class="drag-handle"
+                  @click.stop
+                >
+                  <Menu />
+                </el-icon>
                 <span class="stage-index">{{ index + 1 }}</span>
                 <span class="stage-name">{{ stage.name }}</span>
-                <el-tooltip :content="stage.name" placement="top" :enterable="false">
-                  <el-icon class="info-icon" @click.stop><InfoFilled /></el-icon>
+                <el-tooltip
+                  :content="stage.name"
+                  placement="top"
+                  :enterable="false"
+                >
+                  <el-icon
+                    class="info-icon"
+                    @click.stop
+                  >
+                    <InfoFilled />
+                  </el-icon>
                 </el-tooltip>
               </div>
               <div class="stage-actions">
-                <el-button type="danger" size="small" :icon="Delete" circle @click.stop="removeStage(stage.id)" />
+                <el-button
+                  type="danger"
+                  size="small"
+                  :icon="Delete"
+                  circle
+                  @click.stop="removeStage(stage.id)"
+                />
               </div>
             </div>
             <div class="stage-condition">
-              <el-tag size="small" type="info">{{ formatConditions(stage) }}</el-tag>
+              <el-tag
+                size="small"
+                type="info"
+              >
+                {{ formatConditions(stage) }}
+              </el-tag>
             </div>
           </div>
           <el-collapse-transition>
             <div v-show="expandedStageId.includes(stage.id)">
-              <StageEditor :stage="stage" :logic-block-id="props.logicBlock.id" />
+              <StageEditor
+                :stage="stage"
+                :logic-block-id="props.logicBlock.id"
+              />
             </div>
           </el-collapse-transition>
         </div>
@@ -83,10 +132,13 @@ const expandedStageId = ref<string[]>([]);
 
 // Use a local ref for draggable to work correctly with props
 const localStages = ref([...props.logicBlock.stages]);
-watch(() => props.logicBlock.stages, (newStages) => {
-  localStages.value = [...newStages];
-}, { deep: true });
-
+watch(
+  () => props.logicBlock.stages,
+  (newStages) => {
+    localStages.value = [...newStages];
+  },
+  { deep: true }
+);
 
 function onDragEnd() {
   store.updateStagesOrder(props.logicBlock.id, localStages.value);
@@ -97,7 +149,7 @@ function addStage() {
 }
 
 function updateDefaultContent(content: string) {
-    store.updateLogicBlock(props.logicBlock.id, { defaultStageContent: content });
+  store.updateLogicBlock(props.logicBlock.id, { defaultStageContent: content });
 }
 
 function toggleExpand(stageId: string) {
@@ -128,17 +180,25 @@ function formatSingleCondition(condition: Condition): string {
   const { variableAlias, type, value, endValue } = condition;
   const valStr = typeof value === 'string' ? `'${value}'` : value;
   switch (type) {
-    case 'less': return `${variableAlias || '变量'} < ${valStr}`;
-    case 'lessEqual': return `${variableAlias || '变量'} <= ${valStr}`;
-    case 'equal': return `${variableAlias || '变量'} == ${valStr}`;
-    case 'greater': return `${variableAlias || '变量'} > ${valStr}`;
-    case 'greaterEqual': return `${variableAlias || '变量'} >= ${valStr}`;
+    case 'less':
+      return `${variableAlias || '变量'} < ${valStr}`;
+    case 'lessEqual':
+      return `${variableAlias || '变量'} <= ${valStr}`;
+    case 'equal':
+      return `${variableAlias || '变量'} == ${valStr}`;
+    case 'greater':
+      return `${variableAlias || '变量'} > ${valStr}`;
+    case 'greaterEqual':
+      return `${variableAlias || '变量'} >= ${valStr}`;
     case 'range':
       const endValStr = typeof endValue === 'string' ? `'${endValue}'` : endValue;
       return `${variableAlias || '变量'} in [${valStr}, ${endValStr})`;
-    case 'is': return `${variableAlias || '变量'} is ${valStr}`;
-    case 'isNot': return `${variableAlias || '变量'} is not ${valStr}`;
-    default: return '未知条件';
+    case 'is':
+      return `${variableAlias || '变量'} is ${valStr}`;
+    case 'isNot':
+      return `${variableAlias || '变量'} is not ${valStr}`;
+    default:
+      return '未知条件';
   }
 }
 
@@ -147,7 +207,7 @@ function formatConditions(stage: Stage): string {
     return '无条件 (始终激活)';
   }
   const groupStrings = stage.conditionGroups
-    .map(group => {
+    .map((group) => {
       if (!group.conditions || group.conditions.length === 0) return null;
       const conditionStrings = group.conditions.map(formatSingleCondition).join(' AND ');
       return `(${conditionStrings})`;
@@ -167,13 +227,13 @@ function formatConditions(stage: Stage): string {
   border-radius: 4px;
 }
 .list-header {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
-    align-items: center;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  align-items: center;
 }
 .default-content-input {
-    flex-grow: 1;
+  flex-grow: 1;
 }
 .empty-state {
   text-align: center;
@@ -250,7 +310,7 @@ function formatConditions(stage: Stage): string {
   border: 1px dashed var(--el-color-primary);
 }
 .chosen {
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 .stage-condition {
   margin-top: 4px;

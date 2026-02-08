@@ -4,11 +4,25 @@
       <div class="setting-header">
         <div class="setting-info">
           <span class="setting-label">清除所有本地数据</span>
-          <Icon icon="mdi:delete-variant" width="20" height="20" style="margin-left: 8px; color: var(--el-color-danger);" />
+          <Icon
+            icon="mdi:delete-variant"
+            width="20"
+            height="20"
+            style="margin-left: 8px; color: var(--el-color-danger)"
+          />
         </div>
         <div>
-          <el-button @click="clearAllData" type="danger" plain>
-            <Icon icon="mdi:delete-empty" width="20" height="20" style="margin-right: 8px;" />
+          <el-button
+            @click="clearAllData"
+            type="danger"
+            plain
+          >
+            <Icon
+              icon="mdi:delete-empty"
+              width="20"
+              height="20"
+              style="margin-right: 8px"
+            />
             立即清除
           </el-button>
         </div>

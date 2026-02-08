@@ -1,83 +1,93 @@
 <template>
-  <div class="sidebar-container">
-    <div class="sidebar-header">
-      <h3 class="sidebar-title">角色列表</h3>
-      <div>
-        <el-tooltip content="从文件导入角色" placement="top">
-          <button @click="triggerFileInput" class="btn-primary-adv sidebar-add-button">
-            <Icon icon="ph:upload-simple-bold" />
-          </button>
-        </el-tooltip>
-        <el-tooltip content="创建新角色" placement="top">
-          <button @click="emit('create')" class="btn-primary-adv sidebar-add-button">
-            <Icon icon="ph:plus-bold" />
-          </button>
-        </el-tooltip>
-        <input
-          type="file"
-          ref="fileInput"
-          @change="handleFileImport"
-          style="display: none"
-          accept=".json"
-        />
-      </div>
-    </div>
-    <el-scrollbar class="sidebar-list-scrollbar">
-      <div v-if="characters.length === 0" class="empty-list">
-        <el-empty description="没有角色" :image-size="60" />
-      </div>
-      <draggable
-        v-else
-        v-model="localCharacters"
-        item-key="id"
-        tag="ul"
-        class="character-list"
-        ghost-class="character-list-ghost"
-        :animation="200"
-        handle=".drag-handle"
-        :move="handleMove"
-        @end="handleDragEnd"
+  <SidebarTreePanel
+    title="角色列表"
+    :tree-data="treeData"
+    :tree-props="treeProps"
+    :current-node-key="activeCharacterId ?? undefined"
+    :draggable="true"
+    :allow-drag="allowDrag"
+    :allow-drop="allowDrop"
+    :handle-node-drop="handleNodeDrop"
+    @node-click="handleNodeClick"
+  >
+    <template #header-actions>
+      <el-tooltip
+        content="从文件导入角色"
+        placement="top"
       >
-        <template #item="{ element: character }">
-          <li
-            :class="['character-list-item', { 'is-active': character.id === activeCharacterId }]"
-            @click="emit('select', character.id!)"
+        <button
+          @click="triggerFileInput"
+          class="btn-primary-adv sidebar-header-button"
+        >
+          <Icon icon="ph:upload-simple-bold" />
+        </button>
+      </el-tooltip>
+      <el-tooltip
+        content="创建新角色"
+        placement="top"
+      >
+        <button
+          @click="emit('create')"
+          class="btn-primary-adv sidebar-header-button"
+        >
+          <Icon icon="ph:plus-bold" />
+        </button>
+      </el-tooltip>
+      <input
+        type="file"
+        ref="fileInput"
+        @change="handleFileImport"
+        style="display: none"
+        accept=".json"
+      />
+    </template>
+
+    <template #node="{ node, data }">
+      <div class="sidebar-tree-node">
+        <div class="sidebar-tree-node-main">
+          <Icon
+            icon="ph:user-circle-duotone"
+            class="sidebar-tree-node-icon"
+          />
+          <span class="sidebar-tree-node-label">{{ node.label }}</span>
+        </div>
+        <div class="sidebar-tree-node-star">
+          <el-tooltip
+            :content="data.raw.starred ? '取消星标' : '设为星标'"
+            placement="top"
           >
-            <button class="drag-handle" aria-label="拖动排序" @click.stop>
-              <Icon icon="ph:dots-six-vertical" />
+            <button
+              @click.stop="emit('toggle-star', data.id, !data.raw.starred)"
+              class="sidebar-tree-node-action-button"
+              :class="{ 'is-active': data.raw.starred }"
+            >
+              <Icon :icon="data.raw.starred ? 'ph:star-fill' : 'ph:star'" />
             </button>
-            <span class="character-name">{{ character.chineseName || '未命名角色' }}</span>
-            <div class="character-actions" :class="{ 'is-active': character.starred }">
-              <el-tooltip :content="character.starred ? '取消星标' : '设为星标'" placement="top">
-                <button
-                  @click.stop="emit('toggle-star', character.id!, !character.starred)"
-                  class="star-button"
-                  :class="{ 'is-active': character.starred }"
-                >
-                  <Icon :icon="character.starred ? 'ph:star-fill' : 'ph:star'" />
-                </button>
-              </el-tooltip>
-              <el-tooltip content="删除角色" placement="top">
-                <button
-                  @click.stop="emit('delete', character.id!)"
-                  class="delete-button"
-                >
-                  <Icon icon="ph:trash-duotone" />
-                </button>
-              </el-tooltip>
-            </div>
-          </li>
-        </template>
-      </draggable>
-    </el-scrollbar>
-  </div>
+          </el-tooltip>
+        </div>
+        <div class="sidebar-tree-node-actions">
+          <el-tooltip
+            content="删除角色"
+            placement="top"
+          >
+            <button
+              @click.stop="emit('delete', data.id)"
+              class="sidebar-tree-node-action-button is-danger"
+            >
+              <Icon icon="ph:trash-duotone" />
+            </button>
+          </el-tooltip>
+        </div>
+      </div>
+    </template>
+  </SidebarTreePanel>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import { ElScrollbar, ElTooltip, ElEmpty } from 'element-plus';
+import { computed, ref } from 'vue';
+import { ElTooltip } from 'element-plus';
 import { Icon } from '@iconify/vue';
-import draggable from 'vuedraggable';
+import SidebarTreePanel from '../common/SidebarTreePanel.vue';
 import type { CharacterCard } from '../../types/character';
 
 interface Props {
@@ -96,15 +106,21 @@ const emit = defineEmits<{
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const props = defineProps<Props>();
-const localCharacters = ref<CharacterCard[]>([...props.characters]);
 
-watch(
-  () => props.characters,
-  (newCharacters) => {
-    localCharacters.value = [...newCharacters];
-  },
-  { deep: true }
-);
+const treeProps = {
+  children: 'children',
+  label: 'label',
+};
+
+const treeData = computed(() => {
+  return props.characters
+    .filter((character) => !!character.id)
+    .map((character) => ({
+      id: character.id as string,
+      label: character.chineseName || '未命名角色',
+      raw: character,
+    }));
+});
 
 const triggerFileInput = () => {
   fileInput.value?.click();
@@ -115,181 +131,58 @@ const handleFileImport = (event: Event) => {
   if (target.files && target.files[0]) {
     const file = target.files[0];
     emit('import', file);
-    // Reset file input to allow importing the same file again
     target.value = '';
   }
 };
 
-const handleDragEnd = () => {
-  const orderedIds = localCharacters.value
-    .map((character) => character.id)
-    .filter((id): id is string => !!id);
-  emit('reorder', orderedIds);
+const allowDrag = (draggingNode: any) => {
+  return !!draggingNode?.data?.id;
 };
 
-const handleMove = (event: { draggedContext: { element: CharacterCard }, relatedContext: { element?: CharacterCard } }) => {
-  const draggedCharacter = event.draggedContext.element;
-  const relatedCharacter = event.relatedContext.element;
-  if (!relatedCharacter) return true;
-  return !!draggedCharacter.starred === !!relatedCharacter.starred;
+const allowDrop = (draggingNode: any, dropNode: any, type: any) => {
+  if (!draggingNode?.data || !dropNode?.data) return false;
+  if (type === 'inner') return false;
+  return Boolean(draggingNode.data.raw?.starred) === Boolean(dropNode.data.raw?.starred);
+};
+
+const handleNodeDrop = (draggingNode: any, dropNode: any, type: any) => {
+  if (!draggingNode?.data || !dropNode?.data) return false;
+  if (type === 'inner') return false;
+
+  const draggingId = draggingNode.data.id as string | undefined;
+  const dropId = dropNode.data.id as string | undefined;
+  if (!draggingId || !dropId) return false;
+
+  const currentIds = props.characters.map((character) => character.id).filter((id): id is string => !!id);
+
+  const fromIndex = currentIds.indexOf(draggingId);
+  const toIndex = currentIds.indexOf(dropId);
+  if (fromIndex === -1 || toIndex === -1) return false;
+
+  currentIds.splice(fromIndex, 1);
+  const normalizedToIndex = fromIndex < toIndex ? toIndex - 1 : toIndex;
+  const insertIndex = type === 'prev' ? normalizedToIndex : normalizedToIndex + 1;
+  currentIds.splice(insertIndex, 0, draggingId);
+
+  emit('reorder', currentIds);
+  return true;
+};
+
+const handleNodeClick = (data: any) => {
+  if (data?.id) {
+    emit('select', data.id);
+  }
 };
 </script>
 
 <style scoped>
-.sidebar-container {
+.sidebar-tree-node-star {
   display: flex;
-  flex-direction: column;
-  height: 100%;
-  background-color: var(--el-bg-color-page);
-  border-right: 1px solid var(--el-border-color-light);
-  /* width: 280px; Or any width you prefer */
-}
-
-.sidebar-header {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 12px 10px 12px 16px;
-  border-bottom: 1px solid var(--el-border-color-light);
-  flex-shrink: 0;
+  margin-right: 4px;
 }
 
-.sidebar-title {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
-}
-
-.sidebar-add-button {
-  font-size: 16px;
-}
-
-.sidebar-header > div {
-  display: flex;
-  gap: 4px;
-}
-
-.sidebar-list-scrollbar {
-  flex-grow: 1;
-}
-
-.empty-list {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  color: var(--el-text-color-secondary);
-}
-
-.character-list {
-  list-style: none;
-  padding: 8px;
-  margin: 0;
-}
-
-.character-list-ghost {
-  opacity: 0.6;
-  background-color: var(--el-fill-color-light);
-}
-
-.character-list-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.drag-handle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 8px;
-  color: var(--el-text-color-secondary);
-  background: none;
-  border: none;
-  padding: 4px;
-  cursor: grab;
-}
-
-.drag-handle:active {
-  cursor: grabbing;
-}
-
-.character-list-item:hover {
-  background-color: var(--el-fill-color-light);
-}
-
-.character-list-item.is-active {
-  background-color: var(--el-color-primary-light-9);
-  color: var(--el-color-primary);
-  font-weight: 600;
-}
-
-.character-name {
-  flex-grow: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.character-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-left: 8px;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.star-button {
-  background: none;
-  border: none;
-  padding: 4px;
-  cursor: pointer;
-  color: var(--el-text-color-secondary);
-  border-radius: 4px;
-  font-size: 14px;
-  display: inline-flex;
-  align-items: center;
-}
-
-.star-button.is-active {
+.sidebar-tree-node-action-button.is-active {
   color: var(--el-color-warning);
-}
-
-.star-button:hover {
-  background-color: var(--el-color-warning-light-9);
-}
-
-.delete-button {
-  background: none;
-  border: none;
-  padding: 4px;
-  cursor: pointer;
-  color: var(--el-text-color-secondary);
-  border-radius: 4px;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  opacity: 1;
-}
-
-.character-actions.is-active {
-  opacity: 1;
-}
-
-.character-list-item:hover .character-actions {
-  opacity: 1;
-}
-
-.delete-button:hover {
-  background-color: var(--el-color-danger-light-9);
-  color: var(--el-color-danger);
 }
 </style>

@@ -1,8 +1,7 @@
-import { ref, onMounted, onBeforeUnmount, type Ref } from "vue";
-import { ElMessage } from "element-plus";
-import { initAutoSave, clearAutoSave } from "../../../utils/localStorageUtils";
-import { watchDebounced } from "@vueuse/core";
-import type { WorldBookEntry } from "../../../types/types";
+import { ref, onMounted, onBeforeUnmount, watch, type Ref } from 'vue';
+import { ElMessage } from 'element-plus';
+import { initAutoSave, clearAutoSave, getSetting } from '../../../utils/localStorageUtils';
+import type { WorldBookEntry } from '../../../types/types';
 
 type EntryCallbacks = {
   updateEntry: (entry: WorldBookEntry) => Promise<void>;
@@ -18,10 +17,7 @@ type EntryState = {
   activeBookEntries: Ref<WorldBookEntry[]>;
 };
 
-export function useWorldBookEntryAutoSave(
-  state: EntryState,
-  callbacks: EntryCallbacks
-) {
+export function useWorldBookEntryAutoSave(state: EntryState, callbacks: EntryCallbacks) {
   const {
     selectedEntry,
     editableEntry,
@@ -35,6 +31,30 @@ export function useWorldBookEntryAutoSave(
   const autoSaveMode = ref<'auto' | 'watch' | 'manual'>('watch');
   const isAutoSaving = ref(false);
   let autoSaveTimer: number | null = null;
+  const intervalMs = ref<number>(getSetting('autoSaveInterval') * 1000);
+  const debounceMs = ref<number>(getSetting('autoSaveDebounce') * 1000);
+  const handleIntervalChange = (event: Event) => {
+    const detail = (event as CustomEvent<number>).detail;
+    if (typeof detail !== 'number' || !Number.isFinite(detail)) return;
+    intervalMs.value = detail * 1000;
+    if (autoSaveTimer) {
+      clearAutoSave(autoSaveTimer);
+    }
+    autoSaveTimer = initAutoSave(
+      () => {
+        if (autoSaveMode.value === 'auto') {
+          autoSaveCurrentEntry();
+        }
+      },
+      () => !!selectedEntry.value && !!editableEntry.value.uid,
+      intervalMs.value
+    );
+  };
+  const handleDebounceChange = (event: Event) => {
+    const detail = (event as CustomEvent<number>).detail;
+    if (typeof detail !== 'number' || !Number.isFinite(detail)) return;
+    debounceMs.value = detail * 1000;
+  };
 
   const toggleAutoSaveMode = () => {
     const modes: Array<'auto' | 'watch' | 'manual'> = ['auto', 'watch', 'manual'];
@@ -43,9 +63,9 @@ export function useWorldBookEntryAutoSave(
     autoSaveMode.value = modes[nextIndex];
 
     const messages = {
-      auto: '已切换到自动保存模式：每 5 秒自动保存',
-      watch: '已切换到监听模式：检测到修改后 1.5 秒自动保存',
-      manual: '已切换到手动模式：自动保存已禁用'
+      auto: `已切换到自动保存模式：每 ${Math.max(1, Math.round(intervalMs.value / 1000))} 秒自动保存`,
+      watch: `已切换到监听模式：检测到修改后 ${Math.max(0.1, Math.round(debounceMs.value * 10) / 10)} 秒自动保存`,
+      manual: '已切换到手动模式：自动保存已禁用',
     };
 
     ElMessage.info(messages[autoSaveMode.value]);
@@ -62,7 +82,7 @@ export function useWorldBookEntryAutoSave(
 
     try {
       const entryToSave = JSON.parse(JSON.stringify(editableEntry.value)) as WorldBookEntry;
-      const targetIndex = activeBookEntries.value.findIndex(e => e.uid === entryToSave.uid);
+      const targetIndex = activeBookEntries.value.findIndex((e) => e.uid === entryToSave.uid);
 
       if (targetIndex !== -1) {
         activeBookEntries.value[targetIndex] = entryToSave;
@@ -93,15 +113,18 @@ export function useWorldBookEntryAutoSave(
     }
   };
 
-  watchDebounced(
-    editableEntry,
-    () => {
-      if (autoSaveMode.value === 'watch') {
-        autoSaveCurrentEntry();
-      }
-    },
-    { debounce: 500, deep: true }
-  );
+  let debounceTimer: number | null = null;
+  const debouncedWatchSave = () => {
+    if (autoSaveMode.value !== 'watch') return;
+    if (debounceTimer !== null) {
+      clearTimeout(debounceTimer);
+    }
+    debounceTimer = window.setTimeout(() => {
+      autoSaveCurrentEntry();
+    }, debounceMs.value);
+  };
+
+  watch(editableEntry, debouncedWatchSave, { deep: true });
 
   onMounted(() => {
     autoSaveTimer = initAutoSave(
@@ -110,14 +133,22 @@ export function useWorldBookEntryAutoSave(
           autoSaveCurrentEntry();
         }
       },
-      () => !!selectedEntry.value && !!editableEntry.value.uid
+      () => !!selectedEntry.value && !!editableEntry.value.uid,
+      intervalMs.value
     );
+    window.addEventListener('autoSaveIntervalChange', handleIntervalChange);
+    window.addEventListener('autoSaveDebounceChange', handleDebounceChange);
   });
 
   onBeforeUnmount(() => {
     if (autoSaveTimer) {
       clearAutoSave(autoSaveTimer);
     }
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+    window.removeEventListener('autoSaveIntervalChange', handleIntervalChange);
+    window.removeEventListener('autoSaveDebounceChange', handleDebounceChange);
   });
 
   return {

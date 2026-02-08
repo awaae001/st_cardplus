@@ -26,6 +26,5 @@ dist-electron/main.js
 .vscode/
 
 doc/
-pnpm-lock.yaml
 
 temp/*

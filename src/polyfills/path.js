@@ -37,5 +37,5 @@ export default {
   basename,
   extname,
   sep,
-  delimiter
+  delimiter,
 };

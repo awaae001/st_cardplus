@@ -49,26 +49,28 @@ export function useCardImport(
     uploadProgress.value = '正在分析图片...';
 
     try {
-     const extractCharacterData = async (file: File): Promise<CharacterCardV3 | null> => {
-       try {
-         const arrayBuffer = await file.arrayBuffer();
-         const image = new Uint8Array(arrayBuffer);
-         const jsonData = readPngMetadata(image);
-         return JSON.parse(jsonData);
-       } catch (error) {
-         console.log('No valid character data found in PNG metadata.', error);
-         return null;
-       }
-     };
+      const extractCharacterData = async (file: File): Promise<CharacterCardV3 | null> => {
+        try {
+          const arrayBuffer = await file.arrayBuffer();
+          const image = new Uint8Array(arrayBuffer);
+          const jsonData = readPngMetadata(image);
+          return JSON.parse(jsonData);
+        } catch (error) {
+          console.log('No valid character data found in PNG metadata.', error);
+          return null;
+        }
+      };
 
-     const characterCardData = await extractCharacterData(file);
+      const characterCardData = await extractCharacterData(file);
 
       if (characterCardData) {
         // 如果 PNG 包含元数据，则加载角色卡
         uploadProgress.value = '正在加载角色卡...';
         loadCharacter(characterCardData);
         handleImageUpdate(file); // 同时更新图片预览
-        ElMessage.success(`角色卡 "${characterCardData.name || (characterCardData.data as any)?.name || '未命名'}" 已成功加载！`);
+        ElMessage.success(
+          `角色卡 "${characterCardData.name || (characterCardData.data as any)?.name || '未命名'}" 已成功加载！`
+        );
       } else {
         // 如果 PNG 不包含元数据，则仅将其作为图片使用
         uploadProgress.value = '正在加载图片...';
