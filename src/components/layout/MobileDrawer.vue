@@ -11,7 +11,7 @@
       <div class="drawer-header">
         <div class="header-content">
           <img
-            src="@/image/logo.png"
+            src="/image/logo.png"
             alt="Logo"
             class="drawer-logo"
           />

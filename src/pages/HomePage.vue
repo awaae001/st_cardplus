@@ -1,7 +1,7 @@
 <template>
   <div class="welcome-container">
     <img
-      src="../image/logo.png"
+      src="/image/logo.png"
       alt="ST CardPlus"
       class="logo"
     />

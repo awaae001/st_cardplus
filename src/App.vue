@@ -17,7 +17,14 @@
       class="flex-1"
       :class="[isOverflowHidden ? 'overflow-hidden' : 'overflow-auto', isMobile ? 'pb-mobile-safe' : '']"
     >
-      <SurveyBanner />
+      <SystemBanner
+        bannerId="newYearSurvey2026"
+        startDate="2026-01-01"
+        endDate="2026-03-01"
+        message="我们有一个新年调查，去填写一下？"
+        link="https://tally.so/r/kdeaLo"
+        linkText="填写调查"
+      />
       <RouterView v-slot="{ Component, route: currentRoute }">
         <transition
           name="fade"
@@ -44,7 +51,7 @@ import AppBreadcrumb from '@/components/layout/AppBreadcrumb.vue';
 import AppHeader from '@/components/layout/AppHeader.vue';
 import MobileDrawer from '@/components/layout/MobileDrawer.vue';
 import MobileTabBar from '@/components/layout/MobileTabBar.vue';
-import SurveyBanner from '@/components/SurveyBanner.vue';
+import SystemBanner from '@/components/SystemBanner.vue';
 
 import { provideNavigation } from '@/composables/useNavigation';
 import { provideOverflowControl } from '@/composables/useOverflowControl';

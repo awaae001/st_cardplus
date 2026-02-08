@@ -6,7 +6,7 @@
       @click="navigateTo('/')"
     >
       <img
-        src="@/image/logo.png"
+        src="/image/logo.png"
         alt="Logo"
         class="logo-img"
       />
