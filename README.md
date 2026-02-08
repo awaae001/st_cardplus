@@ -17,7 +17,7 @@
 
 **Discord 社区**：[St_CardPlus](https://discord.gg/KH6rHAGBXD)
 
-![alt text](image.png)
+![alt text](/public/image/hello.png)
 
 ## 主要功能
 

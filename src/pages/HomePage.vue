@@ -1,7 +1,7 @@
 <template>
   <div class="welcome-container">
     <img
-      src="../image/logo.png"
+      src="/image/logo.png"
       alt="呓语梦轩-ICO"
       style="width: 120px"
     />

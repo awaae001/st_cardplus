@@ -238,7 +238,6 @@ const {
   addPrompt,
   importPreset,
   reorderPresets,
-  reorderPrompts,
   duplicatePrompt,
   removePrompt,
   updateHeader,
