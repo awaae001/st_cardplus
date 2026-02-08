@@ -3,8 +3,8 @@ import {
   type MenuItemType,
   type SidebarConfig,
   createDefaultSidebarConfig,
-  validateMenuConfig,
   migrateMenuConfig,
+  validateMenuConfig,
 } from '@/config/menuConfig';
 
 const SETTINGS_KEY = 'settings';
@@ -267,10 +267,10 @@ const getSettings = (): AppSettings => {
     if (savedSettings) {
       const parsed = JSON.parse(savedSettings);
 
-      // 处理侧边栏配置的迁移和验证
+      // 处理导航栏配置的迁移和验证
       let sidebarConfig = parsed.sidebarConfig;
       if (!sidebarConfig || !validateMenuConfig(sidebarConfig)) {
-        console.log('侧边栏配置无效或不存在，使用默认配置');
+        console.log('导航栏配置无效或不存在，使用默认配置');
         sidebarConfig = createDefaultSidebarConfig();
       } else {
         // 尝试迁移配置以确保包含所有新功能
@@ -404,16 +404,16 @@ export const clearAutoSave = (timerId: number) => {
 };
 
 /**
- * 获取侧边栏配置
- * @returns 侧边栏配置
+ * 获取导航栏配置
+ * @returns 导航栏配置
  */
 export const getSidebarConfig = (): SidebarConfig => {
   return getSettings().sidebarConfig;
 };
 
 /**
- * 保存侧边栏配置
- * @param config - 侧边栏配置
+ * 保存导航栏配置
+ * @param config - 导航栏配置
  */
 export const setSidebarConfig = (config: SidebarConfig) => {
   const updatedConfig = {
@@ -421,7 +421,7 @@ export const setSidebarConfig = (config: SidebarConfig) => {
     lastUpdated: Date.now(),
   };
   saveSettings({ sidebarConfig: updatedConfig });
-  console.log('侧边栏配置已保存');
+  console.log('导航栏配置已保存');
 
   // 发送自定义事件通知配置已更新
   const event = new CustomEvent('sidebarConfigChange', { detail: updatedConfig });
@@ -429,7 +429,7 @@ export const setSidebarConfig = (config: SidebarConfig) => {
 };
 
 /**
- * 获取可见的侧边栏菜单项（按顺序排列）
+ * 获取可见的导航栏菜单项（按顺序排列）
  * @returns 可见的菜单项数组
  */
 export const getVisibleSidebarItems = (): MenuItemConfig[] => {
@@ -486,10 +486,10 @@ export const updateMenuItemsOrder = (items: MenuItemConfig[]) => {
 };
 
 /**
- * 重置侧边栏配置为默认值
+ * 重置导航栏配置为默认值
  */
 export const resetSidebarConfig = () => {
   const defaultConfig = createDefaultSidebarConfig();
   setSidebarConfig(defaultConfig);
-  console.log('侧边栏配置已重置为默认值');
+  console.log('导航栏配置已重置为默认值');
 };

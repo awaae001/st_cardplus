@@ -327,7 +327,7 @@ const toggleItemVisibility = (itemId: string, visible: boolean) => {
     }
   }
 
-  ElMessage.success(visible ? '已添加到侧边栏' : '已移至工具箱');
+  ElMessage.success(visible ? '已添加到导航栏' : '已移至工具箱');
 };
 
 // VueDraggable 相关方法
@@ -397,7 +397,7 @@ const resetToDefault = () => {
   ElMessage.success('已重置为默认配置');
 };
 
-// 监听侧边栏配置变化
+// 监听导航栏配置变化
 const handleSidebarConfigChange = () => {
   sidebarConfig.value = getSidebarConfig();
 };

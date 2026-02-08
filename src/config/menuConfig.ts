@@ -199,7 +199,7 @@ export const toolboxToolItems: MenuItemConfig[] = [
   },
 ];
 
-// 工具箱固定工具配置（不会出现在侧边栏中的固定工具）
+// 工具箱固定工具配置（不会出现在导航栏中的固定工具）
 export const toolboxFixedTools: ToolboxToolConfig[] = [
   {
     id: 'json-formatter',
@@ -250,13 +250,13 @@ export const getIconifyIconName = (iconName: string): string => {
   return iconifyIconMap[iconName] || iconName;
 };
 
-// 侧边栏配置接口
+// 导航栏配置接口
 export interface SidebarConfig {
   items: MenuItemConfig[];
   lastUpdated: number;
 }
 
-// 创建默认侧边栏配置
+// 创建默认导航栏配置
 export const createDefaultSidebarConfig = (): SidebarConfig => ({
   items: getAllDefaultMenuItems(),
   lastUpdated: Date.now(),
