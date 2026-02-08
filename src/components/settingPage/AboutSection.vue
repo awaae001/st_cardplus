@@ -32,7 +32,15 @@
       <b v-else>dev_{{ appVersion }}({{ appCommitCount }})</b>
       [0.1.13]
     </p>
-    <SurveyBanner :dismissible="false" />
+    <SystemBanner
+      bannerId="newYearSurvey2026_about"
+      startDate="2026-01-01"
+      endDate="2026-03-01"
+      message="我们有一个新年调查，去填写一下？"
+      link="https://tally.so/r/kdeaLo"
+      linkText="填写调查"
+      :dismissible="false"
+    />
   </div>
 
   <div class="changelog-section">
@@ -151,7 +159,7 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
 import { computed, onMounted, ref } from 'vue';
-import SurveyBanner from '@/components/SurveyBanner.vue';
+import SystemBanner from '@/components/SystemBanner.vue';
 import { ElSelect, ElOption } from 'element-plus';
 
 const appVersion = __APP_VERSION__;

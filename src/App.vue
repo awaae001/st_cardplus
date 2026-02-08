@@ -115,7 +115,14 @@
         class="content-container"
         :class="{ 'overflow-hidden': isOverflowHidden }"
       >
-        <SurveyBanner />
+        <SystemBanner
+          bannerId="newYearSurvey2026"
+          startDate="2026-01-01"
+          endDate="2026-03-01"
+          message="我们有一个新年调查，去填写一下？"
+          link="https://tally.so/r/kdeaLo"
+          linkText="填写调查"
+        />
         <RouterView v-slot="{ Component, route }">
           <transition
             name="fade"
@@ -134,7 +141,7 @@
 
 <script setup lang="ts">
 import { RouterView } from 'vue-router';
-import SurveyBanner from '@/components/SurveyBanner.vue';
+import SystemBanner from '@/components/SystemBanner.vue';
 import { Menu as IconMenu, Moon, Sunny, InfoFilled } from '@element-plus/icons-vue';
 import { ElContainer, ElAside, ElMain, ElMenu, ElMenuItem, ElIcon, ElButton, ElDrawer, ElDivider } from 'element-plus';
 import { useRoute } from 'vue-router';
