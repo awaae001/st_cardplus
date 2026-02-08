@@ -145,6 +145,9 @@ importers:
       electron-builder:
         specifier: 26.0.19
         version: 26.0.19(electron-builder-squirrel-windows@26.0.19)
+      prettier:
+        specifier: ^3.8.1
+        version: 3.8.1
       terser:
         specifier: ^5.46.0
         version: 5.46.0
@@ -2202,6 +2205,11 @@ packages:
   postject@1.0.0-alpha.6:
     resolution: {integrity: sha512-b9Eb8h2eVqNE8edvKdwqkrY6O7kAwmI8kcnBv1NScolYJbo59XUF0noFq+lxbC1yN20bmC0WBEbDC5H/7ASb0A==}
     engines: {node: '>=14.0.0'}
+    hasBin: true
+
+  prettier@3.8.1:
+    resolution: {integrity: sha512-UOnG6LftzbdaHZcKoPFtOcCKztrQ57WkHDeRD9t/PTQtmT0NHSeWWepj6pS0z/N7+08BHFDQVUrfmfMRcZwbMg==}
+    engines: {node: '>=14'}
     hasBin: true
 
   proc-log@2.0.1:
@@ -4835,6 +4843,8 @@ snapshots:
     dependencies:
       commander: 9.5.0
     optional: true
+
+  prettier@3.8.1: {}
 
   proc-log@2.0.1: {}
 
