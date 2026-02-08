@@ -486,6 +486,21 @@ export const updateMenuItemsOrder = (items: MenuItemConfig[]) => {
 };
 
 /**
+ * 更新菜单项的 TabBar 显示状态
+ * @param itemId - 菜单项ID
+ * @param showInTabBar - 是否在移动端 TabBar 中显示
+ */
+export const updateMenuItemTabBar = (itemId: string, showInTabBar: boolean) => {
+  const config = getSidebarConfig();
+  const itemIndex = config.items.findIndex((item) => item.id === itemId);
+
+  if (itemIndex !== -1) {
+    config.items[itemIndex].showInTabBar = showInTabBar;
+    setSidebarConfig(config);
+  }
+};
+
+/**
  * 重置导航栏配置为默认值
  */
 export const resetSidebarConfig = () => {

@@ -40,10 +40,10 @@
         >
           <Icon
             icon="heroicons:eye"
-            width="16"
-            height="16"
+            width="20"
+            height="20"
           />
-          <span>显示中</span>
+          <span class="tab-text">导航栏</span>
           <span class="tab-badge">{{ visibleItems.length }}</span>
         </button>
         <button
@@ -53,11 +53,24 @@
         >
           <Icon
             icon="heroicons:eye-slash"
-            width="16"
-            height="16"
+            width="20"
+            height="20"
           />
-          <span>工具箱</span>
+          <span class="tab-text">工具箱</span>
           <span class="tab-badge hidden-badge">{{ hiddenItems.length }}</span>
+        </button>
+        <button
+          @click="activeTab = 'tabbar'"
+          class="tab-button"
+          :class="{ active: activeTab === 'tabbar' }"
+        >
+          <Icon
+            icon="heroicons:device-phone-mobile"
+            width="20"
+            height="20"
+          />
+          <span class="tab-text">快捷入口</span>
+          <span class="tab-badge tabbar-badge">{{ tabBarItems.length }}</span>
         </button>
       </div>
 
@@ -149,7 +162,7 @@
               width="32"
               height="32"
             />
-            <p>暂无显示项目</p>
+            <p>暂无导航栏项目</p>
           </div>
         </div>
 
@@ -221,7 +234,76 @@
               width="32"
               height="32"
             />
-            <p>所有项目都已显示</p>
+            <p>所有项目都已在导航栏中</p>
+          </div>
+        </div>
+
+        <!-- TabBar 快捷入口配置 -->
+        <div
+          v-show="activeTab === 'tabbar'"
+          class="menu-list"
+        >
+          <!-- 说明提示 -->
+          <div class="tabbar-tips">
+            <Icon
+              icon="heroicons:information-circle"
+              width="20"
+              height="20"
+            />
+            <span>选择要在移动端底部快捷入口显示的项目（建议 3-4 个，避免过多导致拥挤）</span>
+          </div>
+
+          <TransitionGroup
+            name="list"
+            tag="div"
+            class="menu-list-inner"
+          >
+            <div
+              v-for="item in visibleItems"
+              :key="item.id"
+              class="menu-item tabbar-item"
+            >
+              <div class="item-content">
+                <Icon
+                  :icon="getIconName(item.icon)"
+                  width="20"
+                  height="20"
+                  class="item-icon"
+                />
+                <div class="item-info">
+                  <div class="item-main-line">
+                    <span class="item-title">{{ item.title }}</span>
+                    <div class="item-tags">
+                      <span
+                        v-if="item.showInTabBar"
+                        class="item-type tabbar-active"
+                      >
+                        已添加
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="item-actions">
+                <el-switch
+                  :model-value="item.showInTabBar === true"
+                  @change="toggleTabBarVisibility(item.id, $event as boolean)"
+                  size="small"
+                />
+              </div>
+            </div>
+          </TransitionGroup>
+
+          <div
+            v-if="visibleItems.length === 0"
+            class="empty-state"
+          >
+            <Icon
+              icon="heroicons:inbox"
+              width="32"
+              height="32"
+            />
+            <p>没有可添加到快捷入口的项目</p>
           </div>
         </div>
       </div>
@@ -236,6 +318,7 @@ import {
   getSidebarConfig,
   resetSidebarConfig,
   setSidebarConfig,
+  updateMenuItemTabBar,
   updateMenuItemVisibility,
   updateMenuItemsOrder,
 } from '@/utils/localStorageUtils';
@@ -246,7 +329,7 @@ import draggable from 'vuedraggable';
 
 // 响应式数据
 const sidebarConfig = ref(getSidebarConfig());
-const activeTab = ref<'visible' | 'hidden'>('visible');
+const activeTab = ref<'visible' | 'hidden' | 'tabbar'>('visible');
 
 // 本地可编辑的列表（用于 VueDraggable 双向绑定）
 const localVisibleItems = ref<MenuItemConfig[]>([]);
@@ -258,6 +341,13 @@ const visibleItems = computed(() =>
 
 const hiddenItems = computed(() =>
   sidebarConfig.value.items.filter((item) => !item.visible).sort((a, b) => a.order - b.order)
+);
+
+// TabBar 显示的项目（可见且 showInTabBar 为 true）
+const tabBarItems = computed(() =>
+  sidebarConfig.value.items
+    .filter((item) => item.visible && item.showInTabBar === true)
+    .sort((a, b) => a.order - b.order)
 );
 
 // 同步 visibleItems 到 localVisibleItems
@@ -328,6 +418,19 @@ const toggleItemVisibility = (itemId: string, visible: boolean) => {
   }
 
   ElMessage.success(visible ? '已添加到导航栏' : '已移至工具箱');
+};
+
+// 切换 TabBar 显示状态
+const toggleTabBarVisibility = (itemId: string, showInTabBar: boolean) => {
+  updateMenuItemTabBar(itemId, showInTabBar);
+
+  // 重新获取配置
+  sidebarConfig.value = getSidebarConfig();
+
+  // 触发配置变更事件，通知其他组件（如移动端 TabBar）更新
+  window.dispatchEvent(new CustomEvent('sidebarConfigChange'));
+
+  ElMessage.success(showInTabBar ? '已添加到移动端快捷入口' : '已从快捷入口移除');
 };
 
 // VueDraggable 相关方法
@@ -455,9 +558,32 @@ onUnmounted(() => {
 
 /* 标签按钮 */
 .tab-button {
-  @apply flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-colors;
+  @apply flex-1 flex items-center justify-center gap-2.5 px-3 py-3.5 text-sm font-medium transition-colors;
   color: var(--el-text-color-secondary);
   border-bottom: 2px solid transparent;
+  min-width: 0; /* 允许 flex 收缩 */
+}
+
+/* 移动端优化 - 减少文字，更紧凑 */
+@media (max-width: 480px) {
+  .tab-button {
+    @apply gap-1.5 px-2 py-3;
+  }
+
+  .tab-button .tab-text {
+    @apply text-xs;
+  }
+}
+
+/* 超小屏幕 - 隐藏文字只显示图标 */
+@media (max-width: 360px) {
+  .tab-button .tab-text {
+    @apply hidden;
+  }
+
+  .tab-button {
+    @apply gap-1;
+  }
 }
 
 .tab-button:hover {
@@ -471,14 +597,41 @@ onUnmounted(() => {
   background-color: var(--el-color-primary-light-9);
 }
 
+/* 标签文字 */
+.tab-text {
+  @apply whitespace-nowrap;
+}
+
 /* 标签徽章 */
 .tab-badge {
-  @apply inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-xs rounded-full text-white;
+  @apply inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-xs rounded-full text-white flex-shrink-0;
   background-color: var(--el-color-primary);
 }
 
 .tab-badge.hidden-badge {
   background-color: var(--el-text-color-disabled);
+}
+
+.tab-badge.tabbar-badge {
+  background-color: var(--el-color-success);
+}
+
+/* TabBar 配置提示 */
+.tabbar-tips {
+  @apply flex items-center gap-2 p-3 mb-4 rounded-lg text-sm;
+  background-color: var(--el-color-info-light-9);
+  color: var(--el-text-color-regular);
+}
+
+.tabbar-tips .iconify {
+  color: var(--el-color-info);
+  flex-shrink: 0;
+}
+
+/* TabBar 已添加标签 */
+.item-type.tabbar-active {
+  background-color: var(--el-color-success-light-9);
+  color: var(--el-color-success);
 }
 
 /* 内容区域 */

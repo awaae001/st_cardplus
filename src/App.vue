@@ -1,47 +1,72 @@
 <template>
-  <div class="app-layout min-h-screen flex flex-col bg-(--el-bg-color-page)">
-    <!-- 顶部导航栏 -->
-    <AppHeader @toggle-drawer="drawerVisible = true" />
+  <div class="app-layout">
+    <!-- 桌面端布局：侧边栏 + 内容 -->
+    <template v-if="!isMobile">
+      <!-- 桌面端侧边栏 -->
+      <AppSidebar />
 
-    <!-- 面包屑导航 -->
-    <AppBreadcrumb />
+      <!-- 主内容区域 -->
+      <main
+        class="desktop-main"
+        :class="{ 'overflow-hidden': isOverflowHidden }"
+      >
+        <!-- 全局公告 Banner -->
+        <SystemBanner
+          v-if="route.name !== 'about'"
+          bannerId="newYearSurvey2026"
+          startDate="2026-01-01"
+          endDate="2026-03-01"
+          message="我们有一个新年调查，去填写一下？"
+          link="https://tally.so/r/kdeaLo"
+          linkText="填写调查"
+        />
+        <RouterView v-slot="{ Component, route: currentRoute }">
+          <transition
+            name="fade"
+            mode="out-in"
+          >
+            <component
+              :is="Component"
+              :key="currentRoute.path"
+            />
+          </transition>
+        </RouterView>
+      </main>
+    </template>
 
-    <!-- 移动端抽屉菜单 -->
-    <MobileDrawer
-      v-if="isMobile"
-      v-model="drawerVisible"
-    />
+    <!-- 移动端布局：内容 + 底部混合标签栏 -->
+    <template v-else>
+      <!-- 移动端抽屉菜单 -->
+      <MobileDrawer v-model="drawerVisible" />
 
-    <!-- 主内容区域 -->
-    <main
-      class="flex-1"
-      :class="[isOverflowHidden ? 'overflow-hidden' : 'overflow-auto', isMobile ? 'pb-mobile-safe' : '']"
-    >
-      <!-- 全局公告 Banner：About 页面有独立 Banner，避免重复 -->
-      <SystemBanner
-        v-if="route.name !== 'about'"
-        bannerId="newYearSurvey2026"
-        startDate="2026-01-01"
-        endDate="2026-03-01"
-        message="我们有一个新年调查，去填写一下？"
-        link="https://tally.so/r/kdeaLo"
-        linkText="填写调查"
-      />
-      <RouterView v-slot="{ Component, route: currentRoute }">
-        <transition
-          name="fade"
-          mode="out-in"
-        >
-          <component
-            :is="Component"
-            :key="currentRoute.path"
-          />
-        </transition>
-      </RouterView>
-    </main>
+      <!-- 主内容区域 -->
+      <main class="mobile-main">
+        <!-- 全局公告 Banner -->
+        <SystemBanner
+          v-if="route.name !== 'about'"
+          bannerId="newYearSurvey2026"
+          startDate="2026-01-01"
+          endDate="2026-03-01"
+          message="我们有一个新年调查，去填写一下？"
+          link="https://tally.so/r/kdeaLo"
+          linkText="填写调查"
+        />
+        <RouterView v-slot="{ Component, route: currentRoute }">
+          <transition
+            name="fade"
+            mode="out-in"
+          >
+            <component
+              :is="Component"
+              :key="currentRoute.path"
+            />
+          </transition>
+        </RouterView>
+      </main>
 
-    <!-- 移动端底部标签栏 -->
-    <MobileTabBar />
+      <!-- 移动端底部混合标签栏（logo + 导航 + 菜单按钮） -->
+      <MobileTabBar @toggle-drawer="drawerVisible = true" />
+    </template>
   </div>
 </template>
 
@@ -49,8 +74,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { RouterView, useRoute } from 'vue-router';
 
-import AppBreadcrumb from '@/components/layout/AppBreadcrumb.vue';
-import AppHeader from '@/components/layout/AppHeader.vue';
+import AppSidebar from '@/components/layout/AppSidebar.vue';
 import MobileDrawer from '@/components/layout/MobileDrawer.vue';
 import MobileTabBar from '@/components/layout/MobileTabBar.vue';
 import SystemBanner from '@/components/SystemBanner.vue';
@@ -139,9 +163,30 @@ onUnmounted(() => {
 <style scoped>
 @reference "tailwindcss";
 
-/* 移动端底部安全区域填充 */
-.pb-mobile-safe {
-  padding-bottom: calc(56px + env(safe-area-inset-bottom, 0));
+.app-layout {
+  @apply h-screen flex;
+  background: var(--el-bg-color-page);
+}
+
+/* 桌面端主内容区 */
+.desktop-main {
+  @apply flex-1 flex flex-col overflow-auto;
+  min-height: 0;
+  min-width: 0; /* 修复 flex 子元素宽度溢出问题 */
+  width: 0; /* 强制 flex-1 基于剩余空间计算宽度 */
+}
+
+/* 移动端布局改为垂直方向 */
+@media (max-width: 1023px) {
+  .app-layout {
+    @apply flex-col;
+  }
+}
+
+/* 移动端主内容区 */
+.mobile-main {
+  @apply flex-1 overflow-auto;
+  padding-bottom: calc(48px + env(safe-area-inset-bottom, 0)); /* 48px = 混合式 TabBar 高度 */
 }
 </style>
 

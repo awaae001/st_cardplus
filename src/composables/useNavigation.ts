@@ -5,7 +5,8 @@ import { useRoute, useRouter } from 'vue-router';
 import type { MenuItemConfig } from '@/config/menuConfig';
 import { getIconComponent } from '@/config/menuConfig';
 
-import { useDark, useToggle, useWindowSize } from '@vueuse/core';
+import { useDark, useToggle } from '@vueuse/core';
+import { useDevice } from './useDevice';
 
 // 处理后的菜单项类型（带有解析好的图标组件）
 export interface ProcessedMenuItem extends Omit<MenuItemConfig, 'icon'> {
@@ -18,12 +19,10 @@ export interface ProcessedMenuItem extends Omit<MenuItemConfig, 'icon'> {
 export interface NavigationContext {
   // 响应式状态
   isMobile: Ref<boolean>;
-  isNarrowScreen: Ref<boolean>;
   isDark: Ref<boolean>;
 
   // 处理后的菜单数据
   mainNavItems: Ref<ProcessedMenuItem[]>;
-  overflowItems: Ref<ProcessedMenuItem[]>;
   toolboxItem: Ref<ProcessedMenuItem | null>;
   tabBarItems: Ref<ProcessedMenuItem[]>;
   allMenuItems: Ref<ProcessedMenuItem[]>;
@@ -37,12 +36,6 @@ export interface NavigationContext {
 // Injection Key
 export const NavigationKey: InjectionKey<NavigationContext> = Symbol('navigation');
 
-// 顶栏最多显示的菜单项数量
-const MAX_VISIBLE_ITEMS = 6;
-
-// TabBar 优先显示的核心功能 ID
-const TAB_BAR_PRIORITY_IDS = ['home', 'cardmanager', 'cardinfo', 'world', 'toolbox'];
-
 /**
  * 提供导航上下文（在 App.vue 中调用）
  * @param menuItems 原始菜单配置项
@@ -51,10 +44,10 @@ export function provideNavigation(menuItems: Ref<MenuItemConfig[]>): NavigationC
   const router = useRouter();
   const route = useRoute();
 
-  // 响应式窗口尺寸
-  const { width } = useWindowSize();
-  const isMobile = computed(() => width.value < 1024);
-  const isNarrowScreen = computed(() => width.value >= 1024 && width.value <= 1200);
+  // 复用 useDevice 的断点判断
+  const { isMobileOrTablet } = useDevice();
+  // 导航上下文中的 isMobile 实际上指的是"非桌面端"（<1024px）
+  const isMobile = isMobileOrTablet;
 
   // 主题切换
   const isDark = useDark();
@@ -88,14 +81,8 @@ export function provideNavigation(menuItems: Ref<MenuItemConfig[]>): NavigationC
   // 所有处理后的菜单项
   const allMenuItems = computed(() => menuItems.value.map(processMenuItem));
 
-  // 常规菜单项（不含工具箱）
-  const regularMenuItems = computed(() => allMenuItems.value.filter((item) => item.visible && item.id !== 'toolbox'));
-
-  // 主要导航项（顶栏直接显示）
-  const mainNavItems = computed(() => regularMenuItems.value.slice(0, MAX_VISIBLE_ITEMS));
-
-  // 溢出项（放入更多菜单）
-  const overflowItems = computed(() => regularMenuItems.value.slice(MAX_VISIBLE_ITEMS));
+  // 主要导航项（不含工具箱，工具箱单独处理）
+  const mainNavItems = computed(() => allMenuItems.value.filter((item) => item.visible && item.id !== 'toolbox'));
 
   // 工具箱菜单项（始终显示）
   const toolboxItem = computed(() => {
@@ -103,12 +90,9 @@ export function provideNavigation(menuItems: Ref<MenuItemConfig[]>): NavigationC
     return item || null;
   });
 
-  // TabBar 显示的项目（最多5个核心功能）
+  // TabBar 显示的项目（根据 showInTabBar 配置过滤，按 order 排序）
   const tabBarItems = computed(() =>
-    allMenuItems.value
-      .filter((item) => item.visible && TAB_BAR_PRIORITY_IDS.includes(item.id))
-      .sort((a, b) => TAB_BAR_PRIORITY_IDS.indexOf(a.id) - TAB_BAR_PRIORITY_IDS.indexOf(b.id))
-      .slice(0, 5)
+    allMenuItems.value.filter((item) => item.visible && item.showInTabBar === true).sort((a, b) => a.order - b.order)
   );
 
   // 判断路由是否激活
@@ -127,10 +111,8 @@ export function provideNavigation(menuItems: Ref<MenuItemConfig[]>): NavigationC
 
   const context: NavigationContext = {
     isMobile,
-    isNarrowScreen,
     isDark,
     mainNavItems,
-    overflowItems,
     toolboxItem,
     tabBarItems,
     allMenuItems,

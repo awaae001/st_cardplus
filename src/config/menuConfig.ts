@@ -26,6 +26,7 @@ export interface MenuItemConfig {
   beta?: boolean;
   description?: string;
   fixed?: boolean;
+  showInTabBar?: boolean; // 是否在移动端 TabBar 中显示
 }
 
 // 工具箱固定工具接口
@@ -75,6 +76,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     icon: 'House',
     route: '/',
     fixed: true,
+    showInTabBar: false, // Logo 已可点击回首页，无需在 TabBar 显示
   },
   {
     id: 'cardmanager',
@@ -84,6 +86,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     title: '角色卡管理器',
     icon: 'Postcard',
     route: '/cardmanager',
+    showInTabBar: true, // 默认显示在 TabBar
   },
   {
     id: 'cardinfo',
@@ -93,6 +96,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     title: '角色信息',
     icon: 'EditPen',
     route: '/cardinfo',
+    showInTabBar: false,
   },
   {
     id: 'world',
@@ -102,6 +106,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     title: '世界地标',
     icon: 'Location',
     route: '/world',
+    showInTabBar: true, // 默认显示在 TabBar
   },
   {
     id: 'ejs-editor',
@@ -112,6 +117,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     icon: 'DataLine',
     route: '/ejs-editor',
     beta: true,
+    showInTabBar: false,
   },
   {
     id: 'worldbook',
@@ -122,6 +128,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     icon: 'Collection',
     route: '/worldbook',
     beta: true,
+    showInTabBar: false,
   },
   {
     id: 'regex-editor',
@@ -132,6 +139,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     icon: 'Tickets',
     route: '/regex-editor',
     beta: true,
+    showInTabBar: false,
   },
   {
     id: 'presetmanager',
@@ -142,6 +150,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     icon: 'DataLine',
     route: '/presetmanager',
     beta: true,
+    showInTabBar: false,
   },
   {
     id: 'toolbox',
@@ -152,6 +161,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     icon: 'Briefcase',
     route: '/toolbox',
     fixed: true,
+    showInTabBar: true, // 默认显示在 TabBar
   },
 ];
 
@@ -291,6 +301,7 @@ export const migrateMenuConfig = (oldConfig: any): SidebarConfig => {
         ...defaultItem,
         visible: oldItem.visible ?? defaultItem.visible,
         order: oldItem.order ?? defaultItem.order,
+        showInTabBar: oldItem.showInTabBar ?? defaultItem.showInTabBar,
       };
     }
     return defaultItem;
