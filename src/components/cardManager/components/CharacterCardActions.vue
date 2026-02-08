@@ -181,8 +181,8 @@
 </template>
 
 <script setup lang="ts">
-import { ElTooltip, ElUpload } from 'element-plus';
 import { Icon } from '@iconify/vue';
+import { ElTooltip, ElUpload } from 'element-plus';
 
 interface Props {
   context: 'list' | 'editor';
@@ -322,7 +322,7 @@ const getTooltipText = () => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
+  min-width: 36px;
   height: 36px;
   border: none;
   border-radius: 6px;
@@ -342,7 +342,7 @@ const getTooltipText = () => {
   }
 
   .character-card-editor-button {
-    width: 32px;
+    min-width: 32px;
     height: 32px;
     font-size: 14px;
   }

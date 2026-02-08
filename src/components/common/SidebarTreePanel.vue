@@ -47,8 +47,8 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, ref, watch } from 'vue';
 import { ElScrollbar, ElTree } from 'element-plus';
+import { nextTick, ref, watch } from 'vue';
 
 interface Props {
   title: string;
@@ -180,9 +180,9 @@ const handleNodeCollapse = (data: any) => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
+  min-width: 32px;
   height: 32px;
-  font-size: 16px;
+  font-size: 18px;
 }
 
 .sidebar-panel-scrollbar {
@@ -236,7 +236,7 @@ const handleNodeCollapse = (data: any) => {
 }
 
 .sidebar-tree-node-icon {
-  font-size: 16px;
+  font-size: 18px;
   flex-shrink: 0;
 }
 
@@ -267,7 +267,7 @@ const handleNodeCollapse = (data: any) => {
   cursor: pointer;
   color: var(--el-text-color-secondary);
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 18px;
   display: flex;
   align-items: center;
 }
@@ -289,7 +289,7 @@ const handleNodeCollapse = (data: any) => {
 
 .sidebar-tree-node-source-icon {
   margin-left: 8px;
-  font-size: 16px;
+  font-size: 18px;
   color: var(--el-text-color-secondary);
   flex-shrink: 0;
 }
