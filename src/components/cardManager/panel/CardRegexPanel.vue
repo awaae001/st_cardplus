@@ -650,6 +650,16 @@ defineExpose({
   justify-content: center;
 }
 
+@media (max-width: 1023px) {
+  .empty-actions {
+    flex-direction: column;
+  }
+
+  .empty-actions > .el-button + .el-button {
+    margin-left: 0;
+  }
+}
+
 .regex-editor-wrapper {
   flex: 1;
   overflow: hidden;

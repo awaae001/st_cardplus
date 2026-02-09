@@ -753,7 +753,7 @@ onUnmounted(() => {
 
 .tab-full-content {
   height: 100%;
-  overflow: hidden;
+  overflow: auto;
   display: flex;
   flex-direction: column;
 }
