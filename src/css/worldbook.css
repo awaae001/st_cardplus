@@ -392,26 +392,30 @@
 
 /* 移动端：为底部导航栏预留空间 */
 @media (max-width: 767px) {
-  .content-panel-header {
+  #pane-list > .content-panel-header {
+    flex-direction: row;
+  }
+
+  #pane-editor .content-panel-header {
     flex-direction: column;
     align-items: stretch;
     gap: 8px;
     padding: 8px 0;
   }
 
-  .content-panel-title {
+  #pane-editor .content-panel-title {
     justify-content: center;
     font-size: 16px;
     overflow: hidden;
   }
 
-  .content-panel-text-highlight {
+  #pane-editor .content-panel-text-highlight {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .worldbook-editor-buttons {
+  #pane-editor .worldbook-editor-buttons {
     justify-content: center;
   }
 

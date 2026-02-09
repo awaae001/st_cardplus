@@ -83,29 +83,29 @@
     v-if="context === 'editor'"
     class="worldbook-editor-buttons"
   >
-    <el-tooltip
-      content="复制当前条目 (到剪贴板)"
-      placement="bottom"
-      :show-arrow="false"
-      :offset="8"
-      :hide-after="0"
-    >
-      <button
-        @click="$emit('copy-entry')"
-        :disabled="!hasSelection"
-        class="btn-secondary-adv worldbook-editor-button"
-        aria-label="复制当前条目"
-      >
-        <Icon
-          icon="ph:copy-simple-duotone"
-          class="worldbook-editor-button-icon"
-        />
-      </button>
-    </el-tooltip>
     <div
       v-if="hasSelection"
       class="save-button-group"
     >
+      <el-tooltip
+        content="复制当前条目 (到剪贴板)"
+        placement="bottom"
+        :show-arrow="false"
+        :offset="8"
+        :hide-after="0"
+      >
+        <button
+          @click="$emit('copy-entry')"
+          :disabled="!hasSelection"
+          class="btn-secondary-adv worldbook-editor-button"
+          aria-label="复制当前条目"
+        >
+          <Icon
+            icon="ph:copy-simple-duotone"
+            class="worldbook-editor-button-icon"
+          />
+        </button>
+      </el-tooltip>
       <el-tooltip
         content="手动立即保存"
         placement="bottom"
@@ -159,32 +159,31 @@
           <span class="badge-text">{{ getBadgeText() }}</span>
         </div>
       </el-tooltip>
-    </div>
-    <el-tooltip
-      v-if="hasSelection"
-      content="删除当前条目"
-      placement="bottom"
-      :show-arrow="false"
-      :offset="8"
-      :hide-after="0"
-    >
-      <button
-        @click="$emit('delete-entry')"
-        class="btn-danger-adv worldbook-editor-button"
-        aria-label="删除当前条目"
+      <el-tooltip
+        content="删除当前条目"
+        placement="bottom"
+        :show-arrow="false"
+        :offset="8"
+        :hide-after="0"
       >
-        <Icon
-          icon="ph:trash-duotone"
-          class="worldbook-editor-button-icon-delete"
-        />
-      </button>
-    </el-tooltip>
+        <button
+          @click="$emit('delete-entry')"
+          class="btn-danger-adv worldbook-editor-button"
+          aria-label="删除当前条目"
+        >
+          <Icon
+            icon="ph:trash-duotone"
+            class="worldbook-editor-button-icon-delete"
+          />
+        </button>
+      </el-tooltip>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ElTooltip, ElUpload, ElDropdown, ElDropdownMenu, ElDropdownItem } from 'element-plus';
 import { Icon } from '@iconify/vue';
+import { ElDropdown, ElDropdownItem, ElDropdownMenu, ElTooltip, ElUpload } from 'element-plus';
 
 interface Props {
   context: 'list' | 'editor';
