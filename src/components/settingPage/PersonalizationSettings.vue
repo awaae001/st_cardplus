@@ -1,6 +1,5 @@
 <template>
   <div style="display: flex; flex-direction: column; gap: 16px">
-    <!-- 侧边栏默认展开 -->
     <div class="setting-card">
       <div class="setting-content">
         <div class="setting-header">
@@ -27,7 +26,6 @@
       </div>
     </div>
 
-    <!-- 允许页面滚动 -->
     <div class="setting-card">
       <div class="setting-content">
         <div class="setting-header">
@@ -54,7 +52,7 @@
       </div>
     </div>
 
-    <!-- 导航栏管理组件 -->
+    <!-- 导航栏管理 -->
     <SidebarManagement />
   </div>
 </template>
@@ -68,7 +66,6 @@ import SidebarManagement from './SidebarManagement.vue';
 
 const { allowBodyScroll, onAllowBodyScrollToggle } = usePersonalization();
 
-// 侧边栏展开设置（仅影响下次打开时的默认状态）
 const autoExpandSidebar = ref(false);
 
 onMounted(() => {
@@ -77,9 +74,8 @@ onMounted(() => {
 
 const onAutoExpandSidebarToggle = (value: boolean) => {
   setSetting('autoExpandSidebar', value);
-  // 仅保存设置，不实时改变当前侧边栏状态
 };
 </script>
 <style scoped>
-/* 使用全局 settings.css 中定义的通用样式 */
+/* 使用全局 settings.css 样式 */
 </style>

@@ -26,7 +26,7 @@ export interface MenuItemConfig {
   beta?: boolean;
   description?: string;
   fixed?: boolean;
-  showInTabBar?: boolean; // 是否在移动端 TabBar 中显示
+  showInTabBar?: boolean;
 }
 
 // 工具箱固定工具接口

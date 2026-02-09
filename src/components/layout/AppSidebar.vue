@@ -49,7 +49,7 @@
       </el-tooltip>
     </nav>
 
-    <!-- 底部固定项：工具箱、设置、关于、主题切换 -->
+    <!-- 底部固定项 -->
     <div class="sidebar-footer">
       <!-- 工具箱 -->
       <el-tooltip
@@ -160,16 +160,14 @@ const router = useRouter();
 
 const { mainNavItems, toolboxItem, isActive, isDark, toggleDark } = useNavigation();
 
-// 侧边栏展开状态（运行时状态，初始值从设置读取，仅在页面加载时读取一次）
+// 侧边栏展开状态
 const sidebarExpanded = ref(false);
 
-// 切换侧边栏展开状态（仅临时切换，不保存到设置）
 const toggleSidebar = () => {
   sidebarExpanded.value = !sidebarExpanded.value;
 };
 
 onMounted(() => {
-  // 从设置读取初始展开状态（仅在页面加载时读取一次）
   sidebarExpanded.value = getSetting('autoExpandSidebar');
 });
 
@@ -194,7 +192,7 @@ const navigateTo = (path: string) => {
   width: 200px;
 }
 
-/* Logo - 与导航项对齐 */
+/* Logo */
 .sidebar-logo {
   @apply flex items-center cursor-pointer mb-3 w-full justify-center;
   height: 40px;
@@ -223,12 +221,12 @@ const navigateTo = (path: string) => {
   margin-left: 8px;
 }
 
-/* 主导航区域 */
+/* 主导航 */
 .sidebar-nav {
   @apply flex flex-col gap-0.5 flex-1 w-full;
 }
 
-/* 导航项 - 收起状态居中 */
+/* 导航项 */
 .nav-item {
   @apply relative flex items-center justify-center rounded-lg transition-all duration-200 no-underline;
   width: 40px;
@@ -237,7 +235,6 @@ const navigateTo = (path: string) => {
   color: var(--el-text-color-secondary);
 }
 
-/* 导航项 - 展开状态 */
 .sidebar-expanded .nav-item {
   @apply justify-start px-2.5 py-2 w-full gap-3;
   height: auto;
@@ -278,12 +275,11 @@ const navigateTo = (path: string) => {
   background: var(--el-color-warning);
 }
 
-/* 底部区域 */
+/* 底部 */
 .sidebar-footer {
   @apply flex flex-col gap-1 mt-auto w-full;
 }
 
-/* 分隔线 */
 .sidebar-divider {
   @apply my-2 mx-auto;
   width: calc(100% - 16px);
@@ -291,14 +287,12 @@ const navigateTo = (path: string) => {
   background: var(--el-border-color-lighter);
 }
 
-/* 按钮样式 */
 .theme-toggle,
 .toggle-btn {
   @apply border-none cursor-pointer w-full;
   background: transparent;
 }
 
-/* 暗色模式适配 */
 :global(.dark) .app-sidebar {
   background: var(--el-bg-color);
 }

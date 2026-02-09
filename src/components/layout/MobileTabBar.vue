@@ -52,14 +52,12 @@ defineEmits<{
   'toggle-drawer': [];
 }>();
 
-// 使用导航上下文
 const { isMobile, tabBarItems, isActive } = useNavigation();
 </script>
 
 <style scoped>
 @reference "tailwindcss";
 
-/* 底部标签栏容器 */
 .mobile-tab-bar {
   @apply flex items-center fixed bottom-0 left-0 right-0 h-12 z-100;
   background: var(--el-bg-color);
@@ -76,12 +74,11 @@ const { isMobile, tabBarItems, isActive } = useNavigation();
   @apply w-7 h-7 rounded-lg object-contain;
 }
 
-/* 中间导航项容器 */
+/* 中间导航容器 */
 .tab-items {
   @apply flex items-center justify-center flex-1 h-full gap-1;
 }
 
-/* 标签项 */
 .tab-item {
   @apply flex flex-col items-center justify-center h-full px-3 no-underline gap-0.5 transition-all duration-200;
   color: var(--el-text-color-secondary);
@@ -99,12 +96,11 @@ const { isMobile, tabBarItems, isActive } = useNavigation();
   @apply scale-110;
 }
 
-/* 标签文字 */
 .tab-label {
   @apply text-[10px] whitespace-nowrap;
 }
 
-/* 右侧菜单按钮 */
+/* 右侧菜单 */
 .menu-btn {
   @apply flex items-center justify-center w-12 h-full shrink-0 border-none cursor-pointer;
   background: transparent;

@@ -1,8 +1,6 @@
 <template>
   <div class="sidebar-management">
-    <!-- 统一卡片容器 -->
     <div class="nav-card">
-      <!-- 卡片头部 -->
       <div class="nav-card-header">
         <div class="nav-card-title">
           <Icon
@@ -28,10 +26,9 @@
         </el-button>
       </div>
 
-      <!-- 说明文字 -->
       <p class="nav-card-description">拖拽排序导航菜单项，或使用开关控制显示/隐藏</p>
 
-      <!-- 标签页切换 -->
+      <!-- 标签栏 -->
       <div class="tab-container">
         <button
           @click="activeTab = 'visible'"
@@ -76,7 +73,7 @@
 
       <!-- 内容区域 -->
       <div class="nav-card-content">
-        <!-- 可见项目列表 -->
+        <!-- 导航栏 -->
         <div
           v-show="activeTab === 'visible'"
           class="menu-list"
@@ -166,7 +163,7 @@
           </div>
         </div>
 
-        <!-- 隐藏项目列表 -->
+        <!-- 工具箱 -->
         <div
           v-show="activeTab === 'hidden'"
           class="menu-list"
@@ -238,12 +235,11 @@
           </div>
         </div>
 
-        <!-- TabBar 快捷入口配置 -->
+        <!-- TabBar配置 -->
         <div
           v-show="activeTab === 'tabbar'"
           class="menu-list"
         >
-          <!-- 说明提示 -->
           <div class="tabbar-tips">
             <Icon
               icon="heroicons:information-circle"
@@ -327,14 +323,11 @@ import { ElMessage } from 'element-plus';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import draggable from 'vuedraggable';
 
-// 响应式数据
 const sidebarConfig = ref(getSidebarConfig());
 const activeTab = ref<'visible' | 'hidden' | 'tabbar'>('visible');
 
-// 本地可编辑的列表（用于 VueDraggable 双向绑定）
 const localVisibleItems = ref<MenuItemConfig[]>([]);
 
-// 计算属性
 const visibleItems = computed(() =>
   sidebarConfig.value.items.filter((item) => item.visible).sort((a, b) => a.order - b.order)
 );
@@ -343,14 +336,12 @@ const hiddenItems = computed(() =>
   sidebarConfig.value.items.filter((item) => !item.visible).sort((a, b) => a.order - b.order)
 );
 
-// TabBar 显示的项目（可见且 showInTabBar 为 true）
 const tabBarItems = computed(() =>
   sidebarConfig.value.items
     .filter((item) => item.visible && item.showInTabBar === true)
     .sort((a, b) => a.order - b.order)
 );
 
-// 同步 visibleItems 到 localVisibleItems
 watch(
   visibleItems,
   (newItems) => {
@@ -359,16 +350,13 @@ watch(
   { immediate: true }
 );
 
-// 图标名称转换
 const getIconName = (iconName: string): string => {
   return getIconifyIconName(iconName);
 };
 
-// 切换项目可见性
 const toggleItemVisibility = (itemId: string, visible: boolean) => {
   const item = sidebarConfig.value.items.find((i) => i.id === itemId);
 
-  // 检查是否为固定项目
   if (item?.fixed && !visible) {
     ElMessage.warning('该项目为固定项目，不能隐藏');
     return;
@@ -376,38 +364,28 @@ const toggleItemVisibility = (itemId: string, visible: boolean) => {
 
   updateMenuItemVisibility(itemId, visible);
 
-  // 重新获取配置
   sidebarConfig.value = getSidebarConfig();
 
-  // 如果是显示项目，需要重新排序
+  // 如果是导航栏，需要重新排序
   if (visible) {
     const updatedItem = sidebarConfig.value.items.find((i) => i.id === itemId);
     if (updatedItem) {
-      // 找到所有可见项目（包括固定和非固定），按 order 排序
-      const sortedVisibleItems = visibleItems.value
-        .filter((i) => i.id !== itemId) // 排除当前项目
-        .sort((a, b) => a.order - b.order);
+      const sortedVisibleItems = visibleItems.value.filter((i) => i.id !== itemId).sort((a, b) => a.order - b.order);
 
-      // 找到第一个固定项目的索引
       const firstFixedIndex = sortedVisibleItems.findIndex((i) => i.fixed);
 
       if (firstFixedIndex !== -1) {
-        // 找到第一个固定项目后面的位置（数组索引 + 1）
         const insertIndex = firstFixedIndex + 1;
 
-        // 获取插入位置前后的项目
         const prevItem = sortedVisibleItems[firstFixedIndex];
         const nextItem = sortedVisibleItems[insertIndex];
 
         if (nextItem) {
-          // 如果后面有项目，插入到两者之间
           updatedItem.order = (prevItem.order + nextItem.order) / 2;
         } else {
-          // 如果后面没有项目，插入到最后
           updatedItem.order = prevItem.order + 1;
         }
       } else {
-        // 如果没有固定项目，放到最后
         const maxVisibleOrder = Math.max(...sortedVisibleItems.map((i) => i.order), -1);
         updatedItem.order = maxVisibleOrder + 1;
       }
@@ -420,22 +398,17 @@ const toggleItemVisibility = (itemId: string, visible: boolean) => {
   ElMessage.success(visible ? '已添加到导航栏' : '已移至工具箱');
 };
 
-// 切换 TabBar 显示状态
 const toggleTabBarVisibility = (itemId: string, showInTabBar: boolean) => {
   updateMenuItemTabBar(itemId, showInTabBar);
 
-  // 重新获取配置
   sidebarConfig.value = getSidebarConfig();
 
-  // 触发配置变更事件，通知其他组件（如移动端 TabBar）更新
   window.dispatchEvent(new CustomEvent('sidebarConfigChange'));
 
   ElMessage.success(showInTabBar ? '已添加到移动端快捷入口' : '已从快捷入口移除');
 };
 
-// VueDraggable 相关方法
-
-// 检查是否允许移动（阻止固定项目被移动或被其他项目替换位置）
+// 检查是否允许移动
 const checkMove = (event: {
   draggedContext: { element: MenuItemConfig };
   relatedContext: { element?: MenuItemConfig };
@@ -443,12 +416,10 @@ const checkMove = (event: {
   const draggedItem = event.draggedContext.element;
   const relatedItem = event.relatedContext.element;
 
-  // 固定项目不能被拖拽
   if (draggedItem?.fixed) {
     return false;
   }
 
-  // 不能拖到固定项目的位置
   if (relatedItem?.fixed) {
     return false;
   }
@@ -458,31 +429,25 @@ const checkMove = (event: {
 
 // 拖拽结束时保存排序
 const handleDragEnd = () => {
-  // 分离固定项目和可移动项目
   const fixedItems = localVisibleItems.value.filter((item) => item.fixed);
   const movableItems = localVisibleItems.value.filter((item) => !item.fixed);
 
-  // 分离固定在开头和结尾的项目
   const fixedAtStart = fixedItems.filter((item) => item.id === 'home');
   const fixedAtEnd = fixedItems.filter((item) => item.id !== 'home');
 
-  // 重新构建完整的排序列表
   const finalOrder: MenuItemConfig[] = [];
   let orderIndex = 0;
 
-  // 固定在开头的项目
   fixedAtStart.forEach((item) => {
     item.order = orderIndex++;
     finalOrder.push(item);
   });
 
-  // 可移动项目
   movableItems.forEach((item) => {
     item.order = orderIndex++;
     finalOrder.push(item);
   });
 
-  // 固定在结尾的项目
   fixedAtEnd.forEach((item) => {
     item.order = orderIndex++;
     finalOrder.push(item);
@@ -493,25 +458,21 @@ const handleDragEnd = () => {
   ElMessage.success('排序已更新');
 };
 
-// 重置为默认配置
 const resetToDefault = () => {
   resetSidebarConfig();
   sidebarConfig.value = getSidebarConfig();
   ElMessage.success('已重置为默认配置');
 };
 
-// 监听导航栏配置变化
 const handleSidebarConfigChange = () => {
   sidebarConfig.value = getSidebarConfig();
 };
 
-// 组件挂载时刷新配置
 onMounted(() => {
   sidebarConfig.value = getSidebarConfig();
   window.addEventListener('sidebarConfigChange', handleSidebarConfigChange as EventListener);
 });
 
-// 组件卸载时移除事件监听
 onUnmounted(() => {
   window.removeEventListener('sidebarConfigChange', handleSidebarConfigChange as EventListener);
 });
@@ -520,14 +481,12 @@ onUnmounted(() => {
 <style scoped>
 @reference "tailwindcss";
 
-/* 统一卡片容器 */
 .nav-card {
   @apply rounded-lg border overflow-hidden;
   background-color: var(--el-bg-color-overlay);
   border-color: var(--el-border-color);
 }
 
-/* 卡片头部 */
 .nav-card-header {
   @apply flex items-center justify-between p-4 border-b;
   border-color: var(--el-border-color);
@@ -542,7 +501,6 @@ onUnmounted(() => {
   color: var(--el-color-primary);
 }
 
-/* 说明文字 */
 .nav-card-description {
   @apply px-4 py-2 text-sm m-0 border-b;
   color: var(--el-text-color-secondary);
@@ -550,21 +508,19 @@ onUnmounted(() => {
   border-color: var(--el-border-color-lighter);
 }
 
-/* 标签页容器 */
+/* 标签栏 */
 .tab-container {
   @apply flex border-b;
   border-color: var(--el-border-color);
 }
 
-/* 标签按钮 */
 .tab-button {
   @apply flex-1 flex items-center justify-center gap-2.5 px-3 py-3.5 text-sm font-medium transition-colors;
   color: var(--el-text-color-secondary);
   border-bottom: 2px solid transparent;
-  min-width: 0; /* 允许 flex 收缩 */
+  min-width: 0;
 }
 
-/* 移动端优化 - 减少文字，更紧凑 */
 @media (max-width: 480px) {
   .tab-button {
     @apply gap-1.5 px-2 py-3;
@@ -575,7 +531,7 @@ onUnmounted(() => {
   }
 }
 
-/* 超小屏幕 - 隐藏文字只显示图标 */
+/* 超小屏幕 */
 @media (max-width: 360px) {
   .tab-button .tab-text {
     @apply hidden;
@@ -597,12 +553,10 @@ onUnmounted(() => {
   background-color: var(--el-color-primary-light-9);
 }
 
-/* 标签文字 */
 .tab-text {
   @apply whitespace-nowrap;
 }
 
-/* 标签徽章 */
 .tab-badge {
   @apply inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-xs rounded-full text-white flex-shrink-0;
   background-color: var(--el-color-primary);
@@ -628,7 +582,6 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
-/* TabBar 已添加标签 */
 .item-type.tabbar-active {
   background-color: var(--el-color-success-light-9);
   color: var(--el-color-success);
@@ -646,7 +599,6 @@ onUnmounted(() => {
   min-height: 200px;
 }
 
-/* 菜单列表 */
 .menu-list {
   @apply flex flex-col gap-2 min-h-48;
 }
@@ -655,7 +607,6 @@ onUnmounted(() => {
   @apply flex flex-col gap-2;
 }
 
-/* 菜单项 */
 .menu-item {
   @apply relative flex items-center justify-between p-3 rounded-md cursor-default transition-all duration-200;
   background-color: var(--el-bg-color);
@@ -739,7 +690,6 @@ onUnmounted(() => {
   @apply flex items-center gap-2 shrink-0;
 }
 
-/* 拖拽手柄 */
 .drag-handle {
   @apply p-1 -m-1 cursor-grab;
   color: var(--el-text-color-secondary);
@@ -755,7 +705,6 @@ onUnmounted(() => {
   color: var(--el-text-color-disabled);
 }
 
-/* 移动端优化 */
 @media (max-width: 768px) {
   .drag-handle {
     @apply w-10 h-10 p-2.5 -m-2.5 flex items-center justify-center rounded transition-colors;
@@ -774,14 +723,13 @@ onUnmounted(() => {
     @apply gap-3;
   }
 
-  /* 移动端句柄图标加大 */
   .drag-handle :deep(svg) {
     width: 24px !important;
     height: 24px !important;
   }
 }
 
-/* 拖拽时句柄样式 - 移除背景色 */
+/* 拖拽时句柄样式 */
 .sortable-chosen .drag-handle:not(.disabled),
 .sortable-fallback .drag-handle:not(.disabled) {
   background-color: transparent !important;
@@ -819,7 +767,6 @@ onUnmounted(() => {
 }
 </style>
 
-<!-- 非 scoped 样式：用于 VueDraggable 动态元素 -->
 <style>
 /* VueDraggable 拖拽状态样式 */
 
@@ -863,7 +810,7 @@ onUnmounted(() => {
   display: none !important;
 }
 
-/* 被选中的元素（原位置） - 拖拽时隐藏 */
+/* 被选中的元素 - 拖拽时隐藏 */
 .sidebar-management .sortable-chosen {
   opacity: 0.3 !important;
   transform: scale(0.98);
@@ -871,7 +818,7 @@ onUnmounted(() => {
   box-shadow: none !important;
 }
 
-/* 跟随手指/鼠标移动的元素（forceFallback 模式） */
+/* 跟随手指/鼠标移动的元素 */
 .sortable-fallback {
   opacity: 1 !important;
   background-color: var(--el-bg-color) !important;

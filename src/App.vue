@@ -1,16 +1,13 @@
 <template>
   <div class="app-layout">
-    <!-- 桌面端布局：侧边栏 + 内容 -->
+    <!-- 桌面端 -->
     <template v-if="!isMobile">
-      <!-- 桌面端侧边栏 -->
       <AppSidebar />
 
-      <!-- 主内容区域 -->
       <main
         class="desktop-main"
         :class="{ 'overflow-hidden': isOverflowHidden }"
       >
-        <!-- 全局公告 Banner -->
         <SystemBanner
           v-if="route.name !== 'about'"
           bannerId="newYearSurvey2026"
@@ -34,14 +31,11 @@
       </main>
     </template>
 
-    <!-- 移动端布局：内容 + 底部混合标签栏 -->
+    <!-- 移动端 -->
     <template v-else>
-      <!-- 移动端抽屉菜单 -->
       <MobileDrawer v-model="drawerVisible" />
 
-      <!-- 主内容区域 -->
       <main class="mobile-main">
-        <!-- 全局公告 Banner -->
         <SystemBanner
           v-if="route.name !== 'about'"
           bannerId="newYearSurvey2026"
@@ -64,7 +58,6 @@
         </RouterView>
       </main>
 
-      <!-- 移动端底部混合标签栏（logo + 导航 + 菜单按钮） -->
       <MobileTabBar @toggle-drawer="drawerVisible = true" />
     </template>
   </div>
@@ -97,7 +90,7 @@ const { allowBodyScroll, sidebarConfig, refreshSidebarConfig } = usePersonalizat
 // Beta 功能开关
 const betaFeaturesEnabled = ref(false);
 
-// 动态生成菜单项（过滤 Beta 功能并排序）
+// 动态生成菜单项
 const mainMenuItems = computed(() => {
   return sidebarConfig.value.items
     .filter((item) => {
@@ -110,10 +103,8 @@ const mainMenuItems = computed(() => {
     .sort((a, b) => a.order - b.order);
 });
 
-// 提供导航上下文给所有子组件
 const { isMobile } = provideNavigation(mainMenuItems);
 
-// 抽屉状态
 const drawerVisible = ref(false);
 
 // 监听路由变化，控制溢出
@@ -168,27 +159,23 @@ onUnmounted(() => {
   background: var(--el-bg-color-page);
 }
 
-/* 桌面端主内容区 */
 .desktop-main {
   @apply flex-1 flex flex-col overflow-auto;
   min-height: 0;
-  min-width: 0; /* 修复 flex 子元素宽度溢出问题 */
-  width: 0; /* 强制 flex-1 基于剩余空间计算宽度 */
+  min-width: 0;
+  width: 0;
 }
 
-/* 禁止滚动时覆盖 overflow-auto */
 .desktop-main.overflow-hidden {
   @apply overflow-hidden;
 }
 
-/* 移动端布局改为垂直方向 */
 @media (max-width: 1023px) {
   .app-layout {
     @apply flex-col;
   }
 }
 
-/* 移动端主内容区 */
 .mobile-main {
   @apply flex-1 overflow-auto;
   padding-bottom: calc(48px + env(safe-area-inset-bottom, 0)); /* 48px = 混合式 TabBar 高度 */
@@ -198,7 +185,6 @@ onUnmounted(() => {
 <style>
 @reference "tailwindcss";
 
-/* 路由切换动画 */
 .fade-enter-active,
 .fade-leave-active {
   @apply transition-opacity duration-200 ease-out;

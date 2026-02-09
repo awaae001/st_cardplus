@@ -88,7 +88,7 @@ onUnmounted(() => {
     <div class="toolbox-container">
       <h1>工具箱</h1>
 
-      <!-- 固定工具区域 -->
+      <!-- 固定工具 -->
       <div class="section">
         <h2 class="section-title">工具</h2>
         <div class="tools-grid">
@@ -112,7 +112,7 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <!-- 来自导航栏的隐藏项目 -->
+      <!-- 来自导航栏的项目 -->
       <div
         v-if="hiddenSidebarItems.length > 0"
         class="section"
@@ -249,7 +249,6 @@ onUnmounted(() => {
   color: var(--el-text-color-secondary);
 }
 
-/* 响应式设计 */
 @media (max-width: 768px) {
   .toolbox-wrapper {
     @apply p-4;

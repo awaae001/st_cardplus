@@ -182,7 +182,7 @@ const handleNodeCollapse = (data: any) => {
   justify-content: center;
   min-width: 32px;
   height: 32px;
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .sidebar-panel-scrollbar {
@@ -236,7 +236,7 @@ const handleNodeCollapse = (data: any) => {
 }
 
 .sidebar-tree-node-icon {
-  font-size: 18px;
+  font-size: 16px;
   flex-shrink: 0;
 }
 
@@ -267,7 +267,7 @@ const handleNodeCollapse = (data: any) => {
   cursor: pointer;
   color: var(--el-text-color-secondary);
   border-radius: 4px;
-  font-size: 18px;
+  font-size: 14px;
   display: flex;
   align-items: center;
 }
@@ -289,7 +289,7 @@ const handleNodeCollapse = (data: any) => {
 
 .sidebar-tree-node-source-icon {
   margin-left: 8px;
-  font-size: 18px;
+  font-size: 16px;
   color: var(--el-text-color-secondary);
   flex-shrink: 0;
 }

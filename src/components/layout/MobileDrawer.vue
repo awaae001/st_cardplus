@@ -8,7 +8,7 @@ s
     class="mobile-drawer"
   >
     <div class="drawer-container">
-      <!-- 菜单区域 -->
+      <!-- 菜单 -->
       <div class="drawer-menu">
         <div
           v-for="item in allMenuItems"
@@ -30,7 +30,7 @@ s
         </div>
       </div>
 
-      <!-- 底部操作区 -->
+      <!-- 底部 -->
       <div class="drawer-footer">
         <div class="footer-actions">
           <div
@@ -68,13 +68,10 @@ import { useNavigation } from '@/composables/useNavigation';
 import { InfoFilled, Moon, Setting, Sunny } from '@element-plus/icons-vue';
 import { ElDrawer, ElIcon } from 'element-plus';
 
-// Model
 const visible = defineModel<boolean>({ default: false });
 
-// 使用导航上下文
 const { allMenuItems, isDark, toggleDark, isActive, navigateTo } = useNavigation();
 
-// 菜单点击
 const handleMenuClick = (path: string) => {
   navigateTo(path);
   visible.value = false;
@@ -84,13 +81,11 @@ const handleMenuClick = (path: string) => {
 <style scoped>
 @reference "tailwindcss";
 
-/* 抽屉容器 */
 .drawer-container {
   @apply flex flex-col h-full;
   background: var(--el-bg-color);
 }
 
-/* 菜单区域 */
 .drawer-menu {
   @apply flex-1 p-3 overflow-y-auto;
 }
@@ -118,14 +113,13 @@ const handleMenuClick = (path: string) => {
   @apply flex-1 text-[15px];
 }
 
-/* Beta 标签 */
 .beta-tag {
   @apply text-[10px] px-1.5 py-0.5 rounded font-medium;
   background: var(--el-color-warning-light-7);
   color: var(--el-color-warning-dark-2);
 }
 
-/* 底部区域 */
+/* 底部 */
 .drawer-footer {
   @apply p-4;
   border-top: 1px solid var(--el-border-color-lighter);
