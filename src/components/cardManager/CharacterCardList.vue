@@ -169,11 +169,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import { ElScrollbar, ElTooltip, ElTag } from 'element-plus';
-import { Icon } from '@iconify/vue';
-import CharacterCardActions from './components/CharacterCardActions.vue';
 import type { CharacterCardCollection } from '@/types/character-card-collection';
+import { Icon } from '@iconify/vue';
+import { ElScrollbar, ElTag, ElTooltip } from 'element-plus';
+import { computed } from 'vue';
+import CharacterCardActions from './components/CharacterCardActions.vue';
 
 interface Props {
   collection: CharacterCardCollection;

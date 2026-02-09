@@ -717,7 +717,12 @@ onUnmounted(() => {
 
 .bookmark-tabs :deep(.el-tabs__content) {
   height: 100%;
-  overflow: auto;
+  overflow: hidden;
+}
+
+.bookmark-tabs :deep(.el-tab-pane) {
+  height: 100%;
+  overflow: hidden;
 }
 
 .bookmark-tabs :deep(.el-tabs__header) {
@@ -748,7 +753,7 @@ onUnmounted(() => {
 
 .tab-full-content {
   height: 100%;
-  overflow: auto;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }

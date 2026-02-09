@@ -189,7 +189,7 @@
                   </el-tag>
                   <el-dropdown @command="handleMobileActionCommand">
                     <el-button size="small">
-                      <Icon icon="ph:dots-three-vertical-duotone" />
+                      <Icon icon="ph:dots-three-bold" />
                     </el-button>
                     <template #dropdown>
                       <el-dropdown-menu>
@@ -275,37 +275,35 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { Icon } from '@iconify/vue';
 import {
   ElButton,
-  ElEmpty,
-  ElTag,
-  ElTooltip,
   ElButtonGroup,
+  ElDropdown,
+  ElDropdownItem,
+  ElEmpty,
   ElMessage,
   ElMessageBox,
-  ElTabs,
   ElTabPane,
-  ElDropdown,
-  ElDropdownMenu,
-  ElDropdownItem,
+  ElTabs,
+  ElTag,
+  ElTooltip,
 } from 'element-plus';
-import { Icon } from '@iconify/vue';
-import { Splitpanes, Pane } from 'splitpanes';
+import { Pane, Splitpanes } from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
+import { computed, ref, watch } from 'vue';
 import '../../../css/worldbook.css';
 
-import type { CharacterCardV3 } from '@/types/character-card-v3';
-import type { CharacterBook } from '@/types/character-book';
-import type { WorldBook, WorldBookEntry, WorldBookCollection } from '@/types/types';
 import WorldBookEditor from '@/components/worldbook/WorldBookEditor.vue';
 import WorldBookList from '@/components/worldbook/WorldBookList.vue';
-import WorldBookSelectorDialog from '../components/WorldBookSelectorDialog.vue';
-import ConfirmDialog from '../components/ConfirmDialog.vue';
-import { worldBookService } from '@/database/worldBookService';
-import { useWorldBookEntry } from '@/composables/worldbook/useWorldBookEntry';
 import { useWorldBookDragDrop } from '@/composables/worldbook/useWorldBookDragDrop';
+import { useWorldBookEntry } from '@/composables/worldbook/useWorldBookEntry';
+import { worldBookService } from '@/database/worldBookService';
+import type { CharacterBook } from '@/types/character-book';
+import type { CharacterCardV3 } from '@/types/character-card-v3';
+import type { WorldBook, WorldBookCollection, WorldBookEntry } from '@/types/types';
 import { convertCharacterBookToWorldBook, convertWorldBookToCharacterBook } from '@/utils/worldBookConverter';
+import ConfirmDialog from '../components/ConfirmDialog.vue';
 
 // 移动端状态
 const mobileActiveTab = ref<'list' | 'editor'>('list');
@@ -860,6 +858,7 @@ defineExpose({
 
 .worldbook-mobile-tabs :deep(.el-tabs__content) {
   height: calc(100% - 48px);
+  padding: 0;
   overflow: hidden;
 }
 

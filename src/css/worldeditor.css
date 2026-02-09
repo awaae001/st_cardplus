@@ -25,11 +25,6 @@
   flex-direction: column;
 }
 
-.world-editor-tabs-mobile .el-tabs__content {
-  flex-grow: 1;
-  overflow-y: auto;
-}
-
 .world-editor-tab-pane {
   height: 100%;
 }

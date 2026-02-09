@@ -35,7 +35,11 @@
   </el-row>
 
   <el-row :gutter="20">
-    <el-col :span="8">
+    <el-col
+      :xs="12"
+      :sm="12"
+      :md="8"
+    >
       <el-form-item label="最小深度 (minDepth)">
         <el-input-number
           :model-value="modelValue.minDepth"
@@ -46,7 +50,11 @@
         />
       </el-form-item>
     </el-col>
-    <el-col :span="8">
+    <el-col
+      :xs="12"
+      :sm="12"
+      :md="8"
+    >
       <el-form-item label="最大深度 (maxDepth)">
         <el-input-number
           :model-value="modelValue.maxDepth"
