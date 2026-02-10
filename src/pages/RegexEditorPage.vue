@@ -13,8 +13,9 @@
       </div>
       <div class="toolbar-right">
         <el-button
+          v-if="!isMobileOrTablet"
           @click="toggleEditorPanel"
-          :icon="editorPanelVisible ? 'ArrowRightBold' : 'ArrowLeftBold'"
+          :icon="editorPanelVisible ? Hide : View"
           size="small"
         >
           {{ editorPanelVisible ? '隐藏测试器' : '显示测试器' }}
@@ -318,24 +319,24 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, nextTick, watch } from 'vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
-import { DocumentAdd, Download, Plus } from '@element-plus/icons-vue';
-import { Icon } from '@iconify/vue';
-import { Splitpanes, Pane } from 'splitpanes';
-import 'splitpanes/dist/splitpanes.css';
-import { useDevice } from '@/composables/useDevice';
-import { useRegexSimulator } from '@/composables/regex/useRegexSimulator';
 import { type SillyTavernRegexScript } from '@/composables/regex/types';
 import { useRegexCollection } from '@/composables/regex/useRegexCollection';
 import { useRegexDragDrop } from '@/composables/regex/useRegexDragDrop';
+import { useRegexSimulator } from '@/composables/regex/useRegexSimulator';
+import { useDevice } from '@/composables/useDevice';
+import { DocumentAdd, Download, Hide, Plus, View } from '@element-plus/icons-vue';
+import { Icon } from '@iconify/vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { Pane, Splitpanes } from 'splitpanes';
+import 'splitpanes/dist/splitpanes.css';
+import { computed, nextTick, ref, watch } from 'vue';
 
 // 组件导入
-import RegexScriptList from '@/components/regex/RegexScriptList.vue';
-import RegexEditorCore from '@/components/regex/RegexEditorCore.vue';
-import SmartRegexGenerator from '@/components/regex/Selector/SmartRegexGenerator.vue';
-import RegexSimulatorPanel from '@/components/regex/RegexSimulatorPanel.vue';
 import RegexAdvancedSettings from '@/components/regex/RegexAdvancedSettings.vue';
+import RegexEditorCore from '@/components/regex/RegexEditorCore.vue';
+import RegexScriptList from '@/components/regex/RegexScriptList.vue';
+import RegexSimulatorPanel from '@/components/regex/RegexSimulatorPanel.vue';
+import SmartRegexGenerator from '@/components/regex/Selector/SmartRegexGenerator.vue';
 
 const { isMobileOrTablet } = useDevice();
 const editorPanelVisible = ref(true);
@@ -680,7 +681,7 @@ watch(
 
 <style scoped>
 .regex-editor-page {
-  height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   background: var(--el-bg-color-page);

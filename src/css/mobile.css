@@ -14,21 +14,37 @@
   }
 
   /* 对话框适配 */
+  .el-overlay-dialog {
+    /* 禁止遮罩层容器滚动，防止触摸空白区域时弹窗上下滑动 */
+    overflow: hidden !important;
+  }
+
   .el-dialog {
     width: 95% !important;
     margin: 20px auto !important;
+    /* 使用 dvh 适配移动端动态视口高度，避免被系统导航栏遮挡 */
+    max-height: calc(100dvh - 40px);
+    display: flex;
+    flex-direction: column;
   }
 
   .el-dialog__header {
     padding: 12px 16px !important;
+    flex-shrink: 0;
   }
 
   .el-dialog__body {
     padding: 8px 16px !important;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
   }
 
   .el-dialog__footer {
     padding: 8px 16px 12px !important;
+    flex-shrink: 0;
   }
 
   /* 消息框适配 */
