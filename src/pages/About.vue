@@ -300,79 +300,163 @@ const isDevDomain = computed(() => {
 </script>
 
 <style scoped>
-@reference "tailwindcss";
-
 .about-page {
-  @apply p-4 md:p-6 mx-auto max-w-3xl space-y-4 w-full min-h-full;
+  padding: 1rem;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 48rem;
+  width: 100%;
+  min-height: 100%;
+}
+
+.about-page > * + * {
+  margin-top: 1rem;
 }
 
 /* 头部英雄卡片 */
 .hero-card {
-  @apply rounded p-6 md:p-8;
+  border-radius: 0.25rem;
+  padding: 1.5rem;
   background: linear-gradient(135deg, var(--el-color-primary-light-8) 0%, var(--el-color-primary-light-9) 100%);
   border: 1px solid var(--el-color-primary-light-7);
 }
 
 .hero-content {
-  @apply flex flex-col md:flex-row items-center gap-5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
 }
 
 .hero-logo {
-  @apply w-20 h-20 md:w-24 md:h-24 rounded shadow-lg;
+  width: 5rem;
+  height: 5rem;
+  border-radius: 0.25rem;
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -4px rgba(0, 0, 0, 0.1);
 }
 
 .hero-text {
-  @apply text-center md:text-left;
+  text-align: center;
 }
 
 .hero-title {
-  @apply text-2xl md:text-3xl font-bold m-0 flex items-center justify-center md:justify-start gap-2;
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   color: var(--el-text-color-primary);
 }
 
 .dev-badge {
-  @apply text-xs px-2 py-0.5 rounded-full font-medium;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-weight: 500;
   background: var(--el-color-warning);
   color: white;
 }
 
 .hero-description {
-  @apply text-base m-0 mt-2;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  margin: 0;
+  margin-top: 0.5rem;
   color: var(--el-text-color-secondary);
 }
 
 .hero-version {
-  @apply text-sm m-0 mt-2;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  margin: 0;
+  margin-top: 0.5rem;
   color: var(--el-text-color-regular);
 }
 
 .version-tag {
-  @apply ml-1 opacity-60;
+  margin-left: 0.25rem;
+  opacity: 0.6;
+}
+
+@media (min-width: 768px) {
+  .about-page {
+    padding: 1.5rem;
+  }
+
+  .hero-card {
+    padding: 2rem;
+  }
+
+  .hero-content {
+    flex-direction: row;
+  }
+
+  .hero-logo {
+    width: 6rem;
+    height: 6rem;
+  }
+
+  .hero-text {
+    text-align: left;
+  }
+
+  .hero-title {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+    justify-content: flex-start;
+  }
 }
 
 /* 链接卡片 */
 .links-card {
-  @apply rounded p-5;
+  border-radius: 0.25rem;
+  padding: 1.25rem;
   background: var(--el-bg-color);
   border: 1px solid var(--el-border-color-lighter);
 }
 
 .section-title {
-  @apply text-lg font-semibold m-0 mb-4;
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  font-weight: 600;
+  margin: 0;
+  margin-bottom: 1rem;
   color: var(--el-text-color-primary);
 }
 
 .links-grid {
-  @apply grid grid-cols-1 sm:grid-cols-2 gap-3;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .links-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .link-item {
-  @apply flex items-center gap-3 p-4 rounded-xl no-underline transition-all duration-200;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  text-decoration-line: none;
+  transition-property: all;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid var(--el-border-color-lighter);
 }
 
 .link-item:hover {
-  @apply transform -translate-y-0.5;
+  transform: translateY(-0.125rem);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
@@ -401,54 +485,85 @@ const isDevDomain = computed(() => {
 }
 
 .link-text {
-  @apply flex flex-col;
+  display: flex;
+  flex-direction: column;
 }
 
 .link-title {
-  @apply font-medium text-sm;
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
 }
 
 .link-desc {
-  @apply text-xs opacity-80;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  opacity: 0.8;
 }
 
 /* 更新日志卡片 */
 .changelog-card {
-  @apply rounded p-5;
+  border-radius: 0.25rem;
+  padding: 1.25rem;
   background: var(--el-bg-color);
   border: 1px solid var(--el-border-color-lighter);
 }
 
 .changelog-header {
-  @apply flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 640px) {
+  .changelog-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
 }
 
 .branch-selector {
-  @apply flex items-center gap-2;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .branch-label {
-  @apply text-sm;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
   color: var(--el-text-color-secondary);
 }
 
 .branch-select {
-  @apply w-40;
+  width: 10rem;
 }
 
 .commits-list {
-  @apply space-y-2 max-h-[50vh] overflow-y-auto pr-1;
+  max-height: 50vh;
+  overflow-y: auto;
+  padding-right: 0.25rem;
   min-height: 320px;
+}
+
+.commits-list > * + * {
+  margin-top: 0.5rem;
 }
 
 /* 加载骨架样式 */
 .commit-skeleton {
-  @apply p-3 rounded-lg space-y-2;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
   background: var(--el-fill-color-light);
 }
 
+.commit-skeleton > * + * {
+  margin-top: 0.5rem;
+}
+
 .skeleton-line {
-  @apply rounded;
+  border-radius: 0.25rem;
   background: linear-gradient(
     90deg,
     var(--el-fill-color) 25%,
@@ -460,11 +575,13 @@ const isDevDomain = computed(() => {
 }
 
 .skeleton-title {
-  @apply h-4 w-3/4;
+  height: 1rem;
+  width: 75%;
 }
 
 .skeleton-meta {
-  @apply h-3 w-1/3;
+  height: 0.75rem;
+  width: 33.333333%;
 }
 
 @keyframes skeleton-shimmer {
@@ -477,7 +594,12 @@ const isDevDomain = computed(() => {
 }
 
 .commit-item {
-  @apply p-3 rounded-lg cursor-pointer transition-colors;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition-property: color, background-color, border-color;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   background: var(--el-fill-color-light);
 }
 
@@ -486,21 +608,40 @@ const isDevDomain = computed(() => {
 }
 
 .commit-main {
-  @apply flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .commit-main {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
 }
 
 .commit-message {
-  @apply font-medium text-sm flex-1;
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  flex: 1 1 0%;
   color: var(--el-text-color-primary);
 }
 
 .commit-meta {
-  @apply flex items-center gap-3 text-xs;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
   color: var(--el-text-color-secondary);
 }
 
 .commit-hash {
-  @apply font-mono px-1.5 py-0.5 rounded;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
   background: var(--el-color-primary-light-9);
   color: var(--el-color-primary);
   text-decoration: none;
@@ -511,22 +652,41 @@ const isDevDomain = computed(() => {
 }
 
 .commit-date {
-  @apply whitespace-nowrap;
+  white-space: nowrap;
 }
 
 .commit-details {
-  @apply mt-3 p-3 rounded-lg;
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
   background: var(--el-bg-color);
   border: 1px solid var(--el-border-color-lighter);
 }
 
 .commit-details pre {
-  @apply m-0 text-xs whitespace-pre-wrap;
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  white-space: pre-wrap;
   color: var(--el-text-color-regular);
 }
 
 .load-more-btn {
-  @apply w-full mt-4 py-2.5 px-4 rounded-lg text-sm font-medium transition-all cursor-pointer flex items-center justify-center gap-2;
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.625rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  transition-property: all;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   background: var(--el-fill-color-light);
   color: var(--el-text-color-primary);
   border: 1px solid var(--el-border-color);
@@ -545,11 +705,21 @@ const isDevDomain = computed(() => {
 }
 
 .load-more-btn:disabled {
-  @apply opacity-50 cursor-not-allowed;
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .loading-icon {
-  @apply animate-spin;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* 展开动画 */

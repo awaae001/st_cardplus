@@ -479,21 +479,31 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-@reference "tailwindcss";
-
 .nav-card {
-  @apply rounded-lg border overflow-hidden;
+  border-radius: 0.5rem;
+  border-width: 1px;
+  border-style: solid;
+  overflow: hidden;
   background-color: var(--el-bg-color-overlay);
   border-color: var(--el-border-color);
 }
 
 .nav-card-header {
-  @apply flex items-center justify-between p-4 border-b;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid;
   border-color: var(--el-border-color);
 }
 
 .nav-card-title {
-  @apply flex items-center gap-2 text-base font-semibold;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 
@@ -502,7 +512,11 @@ onUnmounted(() => {
 }
 
 .nav-card-description {
-  @apply px-4 py-2 text-sm m-0 border-b;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  margin: 0;
+  border-bottom: 1px solid;
   color: var(--el-text-color-secondary);
   background-color: var(--el-fill-color-light);
   border-color: var(--el-border-color-lighter);
@@ -510,12 +524,24 @@ onUnmounted(() => {
 
 /* 标签栏 */
 .tab-container {
-  @apply flex border-b;
+  display: flex;
+  border-bottom: 1px solid;
   border-color: var(--el-border-color);
 }
 
 .tab-button {
-  @apply flex-1 flex items-center justify-center gap-2.5 px-3 py-3.5 text-sm font-medium transition-colors;
+  flex: 1 1 0%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  padding: 0.875rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  transition-property: color, background-color, border-color;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   color: var(--el-text-color-secondary);
   border-bottom: 2px solid transparent;
   min-width: 0;
@@ -523,22 +549,24 @@ onUnmounted(() => {
 
 @media (max-width: 480px) {
   .tab-button {
-    @apply gap-1.5 px-2 py-3;
+    gap: 0.375rem;
+    padding: 0.75rem 0.5rem;
   }
 
   .tab-button .tab-text {
-    @apply text-xs;
+    font-size: 0.75rem;
+    line-height: 1rem;
   }
 }
 
 /* 超小屏幕 */
 @media (max-width: 360px) {
   .tab-button .tab-text {
-    @apply hidden;
+    display: none;
   }
 
   .tab-button {
-    @apply gap-1;
+    gap: 0.25rem;
   }
 }
 
@@ -554,11 +582,22 @@ onUnmounted(() => {
 }
 
 .tab-text {
-  @apply whitespace-nowrap;
+  white-space: nowrap;
 }
 
 .tab-badge {
-  @apply inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-xs rounded-full text-white flex-shrink-0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding-left: 0.375rem;
+  padding-right: 0.375rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  border-radius: 9999px;
+  color: white;
+  flex-shrink: 0;
   background-color: var(--el-color-primary);
 }
 
@@ -572,7 +611,14 @@ onUnmounted(() => {
 
 /* TabBar 配置提示 */
 .tabbar-tips {
-  @apply flex items-center gap-2 p-3 mb-4 rounded-lg text-sm;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
   background-color: var(--el-color-info-light-9);
   color: var(--el-text-color-regular);
 }
@@ -589,26 +635,33 @@ onUnmounted(() => {
 
 /* 内容区域 */
 .nav-card-content {
-  @apply p-4;
+  padding: 1rem;
 }
 
 .menu-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  min-height: 200px;
-}
-
-.menu-list {
-  @apply flex flex-col gap-2 min-h-48;
+  gap: 0.5rem;
+  min-height: 12rem;
 }
 
 .menu-list-inner {
-  @apply flex flex-col gap-2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .menu-item {
-  @apply relative flex items-center justify-between p-3 rounded-md cursor-default transition-all duration-200;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  cursor: default;
+  transition-property: all;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   background-color: var(--el-bg-color);
   border: 1px solid var(--el-border-color-light);
 }
@@ -619,7 +672,7 @@ onUnmounted(() => {
 }
 
 .menu-item.hidden-item {
-  @apply opacity-70;
+  opacity: 0.7;
 }
 
 /* 固定项目样式 */
@@ -638,44 +691,63 @@ onUnmounted(() => {
 }
 
 .menu-item.is-fixed .item-title {
-  @apply font-semibold;
+  font-weight: 600;
   color: var(--el-color-warning-dark-2);
 }
 
 /* 项目内容 */
 .item-content {
-  @apply flex items-center gap-3 flex-1;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1 1 0%;
 }
 
 .item-icon {
-  @apply shrink-0;
+  flex-shrink: 0;
   color: var(--el-color-primary);
 }
 
 .item-info {
-  @apply flex flex-col gap-1 flex-1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1 1 0%;
 }
 
 .item-main-line {
-  @apply flex items-center gap-2;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .item-title {
-  @apply text-sm font-medium leading-none;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  line-height: 1;
   color: var(--el-text-color-primary);
 }
 
 .item-description {
-  @apply text-xs leading-snug;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  line-height: 1.375;
   color: var(--el-text-color-secondary);
 }
 
 .item-tags {
-  @apply flex gap-1.5 flex-wrap;
+  display: flex;
+  gap: 0.375rem;
+  flex-wrap: wrap;
 }
 
 .item-type {
-  @apply text-xs px-1 py-0.5 rounded w-fit;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  width: fit-content;
   color: var(--el-color-info);
   background-color: var(--el-color-info-light-9);
 }
@@ -687,27 +759,42 @@ onUnmounted(() => {
 
 /* 操作区域 */
 .item-actions {
-  @apply flex items-center gap-2 shrink-0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .drag-handle {
-  @apply p-1 -m-1 cursor-grab;
+  padding: 0.25rem;
+  margin: -0.25rem;
+  cursor: grab;
   color: var(--el-text-color-secondary);
   touch-action: none;
 }
 
 .drag-handle:active {
-  @apply cursor-grabbing;
+  cursor: grabbing;
 }
 
 .drag-handle.disabled {
-  @apply !cursor-not-allowed;
+  cursor: not-allowed !important;
   color: var(--el-text-color-disabled);
 }
 
 @media (max-width: 768px) {
   .drag-handle {
-    @apply w-10 h-10 p-2.5 -m-2.5 flex items-center justify-center rounded transition-colors;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0.625rem;
+    margin: -0.625rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.25rem;
+    transition-property: color, background-color, border-color;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .drag-handle:not(.disabled) {
@@ -720,7 +807,7 @@ onUnmounted(() => {
   }
 
   .item-actions {
-    @apply gap-3;
+    gap: 0.75rem;
   }
 
   .drag-handle :deep(svg) {
@@ -737,12 +824,20 @@ onUnmounted(() => {
 
 /* 空状态 */
 .empty-state {
-  @apply flex flex-col items-center justify-center py-8 text-center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+  text-align: center;
   color: var(--el-text-color-secondary);
 }
 
 .empty-state p {
-  @apply mt-2 text-sm;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
   margin-bottom: 0;
 }
 
@@ -754,16 +849,21 @@ onUnmounted(() => {
 .list-move,
 .list-enter-active,
 .list-leave-active {
-  @apply transition-all duration-300 ease-in-out;
+  transition-property: all;
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .list-enter-from,
 .list-leave-to {
-  @apply opacity-0 translate-x-8;
+  opacity: 0;
+  transform: translateX(2rem);
 }
 
 .list-leave-active {
-  @apply absolute left-0 right-0;
+  position: absolute;
+  left: 0;
+  right: 0;
 }
 </style>
 

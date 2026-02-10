@@ -56,10 +56,15 @@ const { isMobile, tabBarItems, isActive } = useNavigation();
 </script>
 
 <style scoped>
-@reference "tailwindcss";
-
 .mobile-tab-bar {
-  @apply flex items-center fixed bottom-0 left-0 right-0 h-12 z-100;
+  display: flex;
+  align-items: center;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3rem;
+  z-index: 100;
   background: var(--el-bg-color);
   border-top: 1px solid var(--el-border-color-lighter);
   padding-bottom: env(safe-area-inset-bottom, 0);
@@ -67,25 +72,49 @@ const { isMobile, tabBarItems, isActive } = useNavigation();
 
 /* 左侧 Logo */
 .tab-logo {
-  @apply flex items-center justify-center w-12 h-full shrink-0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 100%;
+  flex-shrink: 0;
 }
 
 .logo-img {
-  @apply w-7 h-7 rounded-lg object-contain;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.5rem;
+  object-fit: contain;
 }
 
 /* 中间导航容器 */
 .tab-items {
-  @apply flex items-center justify-center flex-1 h-full gap-1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 0%;
+  height: 100%;
+  gap: 0.25rem;
 }
 
 .tab-item {
-  @apply flex flex-col items-center justify-center h-full px-3 no-underline gap-0.5 transition-all duration-200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  text-decoration-line: none;
+  gap: 0.125rem;
+  transition-property: all;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   color: var(--el-text-color-secondary);
 }
 
 .tab-item:active {
-  @apply scale-95;
+  transform: scale(0.95);
 }
 
 .tab-item.active {
@@ -93,16 +122,24 @@ const { isMobile, tabBarItems, isActive } = useNavigation();
 }
 
 .tab-item.active .el-icon {
-  @apply scale-110;
+  transform: scale(1.1);
 }
 
 .tab-label {
-  @apply text-[10px] whitespace-nowrap;
+  font-size: 10px;
+  white-space: nowrap;
 }
 
 /* 右侧菜单 */
 .menu-btn {
-  @apply flex items-center justify-center w-12 h-full shrink-0 border-none cursor-pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 100%;
+  flex-shrink: 0;
+  border: none;
+  cursor: pointer;
   background: transparent;
   color: var(--el-text-color-secondary);
 }

@@ -157,77 +157,113 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-@reference "tailwindcss";
-
 .toolbox-wrapper {
-  @apply flex justify-center w-full p-5;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 1.25rem;
 }
 
 .toolbox-container {
-  @apply w-full max-w-6xl;
+  width: 100%;
+  max-width: 72rem;
 }
 
 .section {
-  @apply mb-10;
+  margin-bottom: 2.5rem;
 }
 
 .section-title {
-  @apply flex items-center gap-2 text-lg font-semibold mb-2;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
   color: var(--el-text-color-primary);
 }
 
 .section-description {
-  @apply text-sm mb-4;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  margin-bottom: 1rem;
   color: var(--el-text-color-secondary);
 }
 
 /* 固定工具样式 */
 .tools-grid {
-  @apply grid gap-5 mt-5;
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 1.25rem;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
 }
 
 .tool-card {
-  @apply cursor-pointer transition-transform duration-200;
+  cursor: pointer;
+  transition-property: transform;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .tool-card:hover {
-  @apply -translate-y-1.5;
+  transform: translateY(-0.375rem);
 }
 
 .card-content {
-  @apply flex flex-col items-center text-center p-5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.25rem;
 }
 
 .card-content h3 {
-  @apply my-2.5 text-base font-semibold;
+  margin-top: 0.625rem;
+  margin-bottom: 0.625rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 600;
 }
 
 .card-content p {
-  @apply m-0 leading-relaxed;
+  margin: 0;
+  line-height: 1.625;
   color: var(--el-text-color-secondary);
 }
 
 /* 隐藏项目小卡片样式 */
 .hidden-items-grid {
-  @apply grid gap-3;
+  display: grid;
+  gap: 0.75rem;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 }
 
 .hidden-item-card {
-  @apply flex items-center gap-3 py-3 px-4 rounded-lg cursor-pointer transition-all duration-200;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition-property: all;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   background-color: var(--el-bg-color-overlay);
   border: 1px dashed var(--el-color-info);
 }
 
 .hidden-item-card:hover {
-  @apply -translate-y-0.5 shadow-lg;
+  transform: translateY(-0.125rem);
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -4px rgba(0, 0, 0, 0.1);
   border-color: var(--el-color-primary);
   background-color: var(--el-color-primary-light-9);
 }
 
 .hidden-item-icon {
-  @apply shrink-0;
+  flex-shrink: 0;
   color: var(--el-color-info);
 }
 
@@ -236,34 +272,47 @@ onUnmounted(() => {
 }
 
 .hidden-item-info {
-  @apply flex flex-col gap-0.5 flex-1 min-w-0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  flex: 1 1 0%;
+  min-width: 0;
 }
 
 .hidden-item-title {
-  @apply text-sm font-medium leading-tight;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  line-height: 1.25;
   color: var(--el-text-color-primary);
 }
 
 .hidden-item-description {
-  @apply text-xs leading-tight truncate;
+  font-size: 0.75rem;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--el-text-color-secondary);
 }
 
 @media (max-width: 768px) {
   .toolbox-wrapper {
-    @apply p-4;
+    padding: 1rem;
   }
 
   .tools-grid {
-    @apply grid-cols-1 gap-4;
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
   .hidden-items-grid {
-    @apply grid-cols-1 gap-2;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
   }
 
   .hidden-item-card {
-    @apply py-2.5 px-3;
+    padding: 0.625rem 0.75rem;
   }
 }
 </style>

@@ -88,20 +88,28 @@ const dismissBanner = () => {
 </script>
 
 <style scoped>
-@reference "tailwindcss";
-
 .system-banner {
-  @apply flex flex-wrap items-center justify-center gap-3 px-4 py-2.5 text-sm;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
   background-color: #f0f8ff;
   color: #333;
 }
 
 .banner-message {
-  @apply text-center;
+  text-align: center;
 }
 
 .banner-actions {
-  @apply flex items-center gap-3 flex-shrink-0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
 }
 
 .banner-link {
@@ -114,7 +122,9 @@ const dismissBanner = () => {
 }
 
 .banner-dismiss {
-  @apply px-2 py-0.5 rounded cursor-pointer;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
   background: none;
   border: 1px solid #ccc;
 }
@@ -126,15 +136,20 @@ const dismissBanner = () => {
 /* 移动端优化 - 垂直堆叠 */
 @media (max-width: 640px) {
   .system-banner {
-    @apply flex-col gap-2 py-3;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
   }
 
   .banner-message {
-    @apply text-center w-full;
+    text-align: center;
+    width: 100%;
   }
 
   .banner-actions {
-    @apply w-full justify-center;
+    width: 100%;
+    justify-content: center;
   }
 }
 

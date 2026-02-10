@@ -175,10 +175,16 @@ const navigateTo = (path: string) => {
 </script>
 
 <style scoped>
-@reference "tailwindcss";
-
 .app-sidebar {
-  @apply flex flex-col items-center py-3 shrink-0 transition-all duration-300;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  flex-shrink: 0;
+  transition-property: all;
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   width: 52px;
   height: 100%;
   background: var(--el-bg-color);
@@ -186,26 +192,45 @@ const navigateTo = (path: string) => {
 }
 
 .app-sidebar.sidebar-expanded {
-  @apply items-start px-3;
+  align-items: flex-start;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
   width: 200px;
 }
 
 /* Logo */
 .sidebar-logo {
-  @apply flex items-center cursor-pointer mb-3 w-full justify-center;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin-bottom: 0.75rem;
+  width: 100%;
+  justify-content: center;
   height: 40px;
 }
 
 .sidebar-expanded .sidebar-logo {
-  @apply justify-start px-2.5;
+  justify-content: flex-start;
+  padding-left: 0.625rem;
+  padding-right: 0.625rem;
 }
 
 .logo-img {
-  @apply w-8 h-8 object-contain rounded-lg shrink-0;
+  width: 2rem;
+  height: 2rem;
+  object-fit: contain;
+  border-radius: 0.5rem;
+  flex-shrink: 0;
 }
 
 .logo-text {
-  @apply text-sm font-semibold whitespace-nowrap transition-all duration-300;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition-property: all;
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   color: var(--el-text-color-primary);
   opacity: 0;
   max-width: 0;
@@ -221,12 +246,24 @@ const navigateTo = (path: string) => {
 
 /* 主导航 */
 .sidebar-nav {
-  @apply flex flex-col gap-0.5 flex-1 w-full;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  flex: 1 1 0%;
+  width: 100%;
 }
 
 /* 导航项 */
 .nav-item {
-  @apply relative flex items-center justify-center rounded-lg transition-all duration-200 no-underline;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  transition-property: all;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration-line: none;
   width: 40px;
   height: 40px;
   margin: 0 auto;
@@ -234,7 +271,13 @@ const navigateTo = (path: string) => {
 }
 
 .sidebar-expanded .nav-item {
-  @apply justify-start px-2.5 py-2 w-full gap-3;
+  justify-content: flex-start;
+  padding-left: 0.625rem;
+  padding-right: 0.625rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  width: 100%;
+  gap: 0.75rem;
   height: auto;
   margin: 0;
 }
@@ -250,7 +293,12 @@ const navigateTo = (path: string) => {
 }
 
 .nav-text {
-  @apply text-sm whitespace-nowrap transition-all duration-300;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  white-space: nowrap;
+  transition-property: all;
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   opacity: 0;
   max-width: 0;
   overflow: hidden;
@@ -263,23 +311,43 @@ const navigateTo = (path: string) => {
 
 /* Beta 标记 */
 .beta-tag {
-  @apply text-[10px] px-1 py-px rounded font-medium leading-tight ml-auto;
+  font-size: 10px;
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+  padding-top: 1px;
+  padding-bottom: 1px;
+  border-radius: 0.25rem;
+  font-weight: 500;
+  line-height: 1.25;
+  margin-left: auto;
   background: var(--el-color-warning-light-7);
   color: var(--el-color-warning-dark-2);
 }
 
 .beta-dot {
-  @apply absolute top-1.5 right-1.5 w-2 h-2 rounded-full;
+  position: absolute;
+  top: 0.375rem;
+  right: 0.375rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
   background: var(--el-color-warning);
 }
 
 /* 底部 */
 .sidebar-footer {
-  @apply flex flex-col gap-1 mt-auto w-full;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: auto;
+  width: 100%;
 }
 
 .sidebar-divider {
-  @apply my-2 mx-auto;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  margin-left: auto;
+  margin-right: auto;
   width: calc(100% - 16px);
   height: 1px;
   background: var(--el-border-color-lighter);
@@ -287,7 +355,9 @@ const navigateTo = (path: string) => {
 
 .theme-toggle,
 .toggle-btn {
-  @apply border-none cursor-pointer w-full;
+  border: none;
+  cursor: pointer;
+  width: 100%;
   background: transparent;
 }
 

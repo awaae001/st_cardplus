@@ -43,19 +43,23 @@ const activeTab = ref('settings');
 </script>
 
 <style scoped>
-@reference "tailwindcss";
-
 .settings-page {
-  @apply w-full min-h-full p-5 max-w-[800px] mx-auto;
+  width: 100%;
+  min-height: 100%;
+  padding: 1.25rem;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Tabs 样式 */
 .settings-tabs {
-  @apply mt-0;
+  margin-top: 0;
 }
 
 :deep(.el-tabs__header) {
-  @apply mb-5 pb-0;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0;
   border-bottom: 2px solid var(--el-border-color-lighter);
 }
 
@@ -64,7 +68,10 @@ const activeTab = ref('settings');
 }
 
 :deep(.el-tabs__item) {
-  @apply text-base font-medium px-5 py-3;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 500;
+  padding: 0.75rem 1.25rem;
   color: var(--el-text-color-secondary);
   transition: all 0.2s ease;
 }
@@ -79,11 +86,12 @@ const activeTab = ref('settings');
 }
 
 :deep(.el-tabs__active-bar) {
-  @apply h-[3px] rounded-full;
+  height: 3px;
+  border-radius: 9999px;
   background: linear-gradient(90deg, var(--el-color-primary) 0%, var(--el-color-primary-light-3) 100%);
 }
 
 .tab-content {
-  @apply text-left;
+  text-align: left;
 }
 </style>

@@ -152,46 +152,49 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-@reference "tailwindcss";
-
 .app-layout {
-  @apply h-screen flex;
+  height: 100vh;
+  display: flex;
   background: var(--el-bg-color-page);
 }
 
 .desktop-main {
-  @apply flex-1 flex flex-col overflow-auto;
+  flex: 1 1 0%;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
   min-height: 0;
   min-width: 0;
   width: 0;
 }
 
 .desktop-main.overflow-hidden {
-  @apply overflow-hidden;
+  overflow: hidden;
 }
 
 @media (max-width: 1023px) {
   .app-layout {
-    @apply flex-col;
+    flex-direction: column;
   }
 }
 
 .mobile-main {
-  @apply flex-1 overflow-auto;
+  flex: 1 1 0%;
+  overflow: auto;
   padding-bottom: calc(48px + env(safe-area-inset-bottom, 0)); /* 48px = 混合式 TabBar 高度 */
 }
 </style>
 
 <style>
-@reference "tailwindcss";
-
 .fade-enter-active,
 .fade-leave-active {
-  @apply transition-opacity duration-200 ease-out;
+  transition-property: opacity;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
 }
 
 .fade-enter-from,
 .fade-leave-to {
-  @apply opacity-0;
+  opacity: 0;
 }
 </style>

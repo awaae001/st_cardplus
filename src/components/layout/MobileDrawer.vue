@@ -79,19 +79,30 @@ const handleMenuClick = (path: string) => {
 </script>
 
 <style scoped>
-@reference "tailwindcss";
-
 .drawer-container {
-  @apply flex flex-col h-full;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   background: var(--el-bg-color);
 }
 
 .drawer-menu {
-  @apply flex-1 p-3 overflow-y-auto;
+  flex: 1 1 0%;
+  padding: 0.75rem;
+  overflow-y: auto;
 }
 
 .menu-item {
-  @apply flex items-center gap-3 px-4 py-3.5 rounded-xl cursor-pointer mb-1 transition-all duration-200;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  margin-bottom: 0.25rem;
+  transition-property: all;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   color: var(--el-text-color-regular);
 }
 
@@ -101,7 +112,7 @@ const handleMenuClick = (path: string) => {
 }
 
 .menu-item:active {
-  @apply scale-98;
+  transform: scale(0.98);
 }
 
 .menu-item.active {
@@ -110,27 +121,41 @@ const handleMenuClick = (path: string) => {
 }
 
 .menu-text {
-  @apply flex-1 text-[15px];
+  flex: 1 1 0%;
+  font-size: 15px;
 }
 
 .beta-tag {
-  @apply text-[10px] px-1.5 py-0.5 rounded font-medium;
+  font-size: 10px;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-weight: 500;
   background: var(--el-color-warning-light-7);
   color: var(--el-color-warning-dark-2);
 }
 
 /* 底部 */
 .drawer-footer {
-  @apply p-4;
+  padding: 1rem;
   border-top: 1px solid var(--el-border-color-lighter);
 }
 
 .footer-actions {
-  @apply flex flex-col gap-2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .action-item {
-  @apply flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-200;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition-property: all;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   color: var(--el-text-color-secondary);
 }
 
@@ -140,6 +165,6 @@ const handleMenuClick = (path: string) => {
 }
 
 .action-item:active {
-  @apply scale-98;
+  transform: scale(0.98);
 }
 </style>

@@ -14,28 +14,41 @@
 <script setup lang="ts"></script>
 
 <style scoped>
-@reference "tailwindcss";
-
 .welcome-container {
-  @apply flex flex-col justify-center items-center mt-[16vh];
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 16vh;
 }
 
 .logo {
-  @apply w-30 rounded-2xl shadow-lg;
+  width: 7.5rem;
+  border-radius: 1rem;
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -4px rgba(0, 0, 0, 0.1);
 }
 
 .title {
-  @apply text-3xl font-bold mt-6 mb-2;
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
   color: var(--el-text-color-primary);
 }
 
 .subtitle {
-  @apply text-lg;
+  font-size: 1.125rem;
+  line-height: 1.75rem;
   color: var(--el-text-color-secondary);
 }
 
 .hint {
-  @apply text-base mt-4;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  margin-top: 1rem;
   color: var(--el-text-color-regular);
 }
 </style>
