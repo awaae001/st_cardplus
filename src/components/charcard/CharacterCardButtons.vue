@@ -1,6 +1,9 @@
 <template>
-  <div id="tiltleMain">
-    <h2>
+  <div
+    id="tiltleMain"
+    class="card-info-header-bar"
+  >
+    <h2 class="card-info-header-title">
       角色信息
       <span
         v-if="props.characterName"
@@ -9,70 +12,65 @@
         : {{ props.characterName }}
       </span>
     </h2>
-    <div class="btnSL">
-      <div class="btnSL2">
-        <el-button
-          type="success"
-          @click="loadCharacterCard"
-        >
-          <Icon
-            icon="material-symbols:folder-open-outline-sharp"
-            width="18"
-            height="18"
-            style="margin-right: 4px"
-          />
-          加载 json
-        </el-button>
-        <el-button
-          type="primary"
-          @click="saveCharacterCard"
-        >
-          <Icon
-            icon="material-symbols:file-save-outline"
-            width="18"
-            height="18"
-            style="margin-right: 4px"
-          />
-          保存 json
-        </el-button>
-        <el-button
-          plain
-          @click="resetForm"
-        >
-          <Icon
-            icon="material-symbols:refresh"
-            width="18"
-            height="18"
-            style="margin-right: 4px"
-          />
-          重置数据
-        </el-button>
-      </div>
-      <!-- <el-divider direction="vertical" border-style="dashed" /> -->
-      <div class="btnSL2">
-        <el-button
-          type="info"
-          @click="copyToClipboard"
-          title="复制到剪贴板"
-        >
-          <Icon
-            icon="material-symbols:content-copy-outline"
-            width="18"
-            height="18"
-          />
-        </el-button>
-        <el-button
-          type="warning"
-          @click="showImportDialog"
-          title="导入数据"
-        >
-          <Icon
-            icon="material-symbols:content-paste-go-rounded"
-            width="18"
-            height="18"
-          />
-        </el-button>
-      </div>
+    <div class="card-info-header-actions">
+      <el-button
+        type="success"
+        @click="loadCharacterCard"
+        title="加载 json"
+      >
+        <Icon
+          icon="material-symbols:folder-open-outline-sharp"
+          width="18"
+          height="18"
+        />
+        <span class="btn-label">加载</span>
+      </el-button>
+      <el-button
+        type="primary"
+        @click="saveCharacterCard"
+        title="保存 json"
+      >
+        <Icon
+          icon="material-symbols:file-save-outline"
+          width="18"
+          height="18"
+        />
+        <span class="btn-label">保存</span>
+      </el-button>
+      <el-button
+        plain
+        @click="resetForm"
+        title="重置数据"
+      >
+        <Icon
+          icon="material-symbols:refresh"
+          width="18"
+          height="18"
+        />
+        <span class="btn-label">重置</span>
+      </el-button>
+      <el-button
+        type="info"
+        @click="copyToClipboard"
+        title="复制到剪贴板"
+      >
+        <Icon
+          icon="material-symbols:content-copy-outline"
+          width="18"
+          height="18"
+        />
+      </el-button>
+      <el-button
+        type="warning"
+        @click="showImportDialog"
+        title="导入数据"
+      >
+        <Icon
+          icon="material-symbols:content-paste-go-rounded"
+          width="18"
+          height="18"
+        />
+      </el-button>
     </div>
   </div>
 </template>
@@ -139,40 +137,21 @@ const showImportDialog = () => {
 </script>
 
 <style scoped>
-/* 使用 Tailwind CSS 进行样式控制 */
-.section-container {
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.section-container > * {
-  flex: 1;
-  min-width: 100%;
-}
-
-.ps-text {
-  font-style: italic;
-  color: #373737;
-  font-weight: 300;
-}
-
-.title-Btn {
+.card-info-header-bar {
   display: flex;
-  flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
-.title-Btn-add {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-}
-
-#tiltleMain h1 {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
+/* 标题 */
+.card-info-header-title {
+  margin: 0;
+  font-size: 16px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .title-character-name {
@@ -180,35 +159,38 @@ const showImportDialog = () => {
   color: var(--el-color-primary);
 }
 
-#tiltleMain {
-  justify-content: space-between;
-}
-
-.btnSL {
+/* 按钮组 */
+.card-info-header-actions {
   display: flex;
-  align-items: flex-start;
-  flex-direction: column;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 4px;
 }
 
-.btnSL2 {
-  margin: 8px 4px 8px 0px;
-  display: flex;
+/* 移动端：隐藏按钮文字标签，仅显示图标 */
+.btn-label {
+  display: none;
 }
 
+/* 移动端：缩小按钮间距 */
+.card-info-header-actions :deep(.el-button) {
+  padding: 6px 8px;
+  margin-left: 0;
+}
+
+/* 桌面端：显示文字标签，恢复间距 */
 @media (min-width: 768px) {
-  #tiltleMain {
-    display: flex;
-    justify-content: space-between;
+  .card-info-header-title {
+    font-size: 18px;
   }
 
-  .btnSL {
-    display: flex;
-    align-items: center;
-    flex-direction: row;
+  .btn-label {
+    display: inline;
+    margin-left: 4px;
   }
 
-  .btnSL2 {
-    display: flex;
+  .card-info-header-actions :deep(.el-button) {
+    padding: 8px 16px;
   }
 }
 </style>

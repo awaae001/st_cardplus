@@ -392,7 +392,7 @@ defineExpose({
 .content-panel-body {
   background: var(--el-bg-color);
   border-radius: 4px;
-  padding: 16px;
+  padding: 12px;
 }
 
 /* 表单区块样式 - 统一 worldbook 风格 */

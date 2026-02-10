@@ -110,7 +110,7 @@
         <el-card class="draggable-card">
           <div class="drag-handle">
             <Icon
-              icon="material-symbols:drag-handle"
+              icon="material-symbols:drag-indicator"
               width="20"
               height="20"
             />
@@ -171,9 +171,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, toRefs } from 'vue';
-import { ElInput, ElButton, ElCard, ElMessageBox } from 'element-plus';
 import { Icon } from '@iconify/vue';
+import { ElButton, ElCard, ElInput, ElMessageBox } from 'element-plus';
+import { onMounted, ref, toRefs, watch } from 'vue';
 import draggable from 'vuedraggable';
 
 const props = defineProps({
@@ -460,6 +460,13 @@ watch(
   border: 1px solid var(--el-border-color-lighter);
 }
 
+/* 卡片内部输入框间距 */
+.draggable-card :deep(.el-card__body) {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .draggable-card:hover {
   border-color: var(--el-border-color-hover);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -467,8 +474,8 @@ watch(
 
 .drag-handle {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 6px;
+  right: 4px;
   cursor: grab;
   color: var(--el-text-color-placeholder);
   transition: color 0.2s;
