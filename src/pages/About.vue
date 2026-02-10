@@ -1,32 +1,22 @@
 <template>
   <div class="about-page">
-    <!-- 头部信息卡片 -->
+    <!-- 头部信息 -->
     <div class="hero-card">
-      <div class="hero-content">
-        <img
-          src="/image/logo.png"
-          alt="ST CardPlus Logo"
-          class="hero-logo"
-        />
-        <div class="hero-text">
-          <h1 class="hero-title">
-            ST CardPlus
-            <span
-              v-if="isDevDomain"
-              class="dev-badge"
-            >
-              DEV
-            </span>
-          </h1>
-          <p class="hero-description">SillyTavern 角色卡编辑工具</p>
-          <p class="hero-version">
-            版本：
-            <span v-if="appCommitCount === '1'">在线版_{{ appVersion }}</span>
-            <span v-else>dev_{{ appVersion }} ({{ appCommitCount }})</span>
-            <span class="version-tag">[0.1.13]</span>
-          </p>
-        </div>
-      </div>
+      <h1 class="hero-title">
+        ST CardPlus
+        <span
+          v-if="isDevDomain"
+          class="dev-badge"
+        >
+          DEV
+        </span>
+      </h1>
+      <p class="hero-description">SillyTavern 角色卡编辑工具</p>
+      <p class="hero-version">
+        <code v-if="appCommitCount === '1'">在线版_{{ appVersion }}</code>
+        <code v-else>dev_{{ appVersion }} ({{ appCommitCount }})</code>
+        <code class="version-tag">v0.1.13</code>
+      </p>
     </div>
 
     <!-- 公告横幅 -->
@@ -40,70 +30,70 @@
       :dismissible="false"
     />
 
-    <!-- 快速链接卡片 -->
+    <!-- 快速链接 -->
     <div class="links-card">
-      <h2 class="section-title">快速链接</h2>
-      <div class="links-grid">
+      <h2 class="section-title">链接</h2>
+      <div class="links-row">
         <a
           href="https://github.com/awaae001/st_cardplus"
           target="_blank"
-          class="link-item github"
+          class="link-item"
         >
           <Icon
             icon="mdi:github"
-            width="28"
-            height="28"
+            width="16"
+            height="16"
           />
-          <div class="link-text">
-            <span class="link-title">GitHub 仓库</span>
-            <span class="link-desc">查看源码与贡献</span>
-          </div>
+          <span>
+            GitHub
+            <small>查看源码与贡献</small>
+          </span>
         </a>
         <a
           href="https://discord.gg/KH6rHAGBXD"
           target="_blank"
-          class="link-item discord"
+          class="link-item"
         >
           <Icon
             icon="qlementine-icons:discord-fill-16"
-            width="28"
-            height="28"
+            width="16"
+            height="16"
           />
-          <div class="link-text">
-            <span class="link-title">Discord 频道</span>
-            <span class="link-desc">获取帮助与反馈</span>
-          </div>
+          <span>
+            Discord
+            <small>获取帮助与反馈</small>
+          </span>
         </a>
         <template v-if="isMainDomain">
           <a
             href="https://autopatchcn.yuanshen.com/client_app/download/launcher/20241225164539_9oyGHAOXvzP4uaBW/mihoyo/yuanshen_setup_202412201736.exe"
             target="_blank"
-            class="link-item pro"
+            class="link-item"
           >
             <Icon
               icon="material-symbols:key-vertical-outline"
-              width="28"
-              height="28"
+              width="16"
+              height="16"
             />
-            <div class="link-text">
-              <span class="link-title">解锁高级版</span>
-              <span class="link-desc">获取更多功能</span>
-            </div>
+            <span>
+              高级版
+              <small>解锁更多功能</small>
+            </span>
           </a>
           <a
             href="https://dev.st-cardplus-1kl.pages.dev/"
             target="_blank"
-            class="link-item dev-test"
+            class="link-item"
           >
             <Icon
               icon="material-symbols:build-circle-outline"
-              width="28"
-              height="28"
+              width="16"
+              height="16"
             />
-            <div class="link-text">
-              <span class="link-title">滚动测试版</span>
-              <span class="link-desc">抢先体验新功能</span>
-            </div>
+            <span>
+              测试版
+              <small>抢先体验新功能</small>
+            </span>
           </a>
         </template>
       </div>
@@ -313,32 +303,12 @@ const isDevDomain = computed(() => {
   margin-top: 1rem;
 }
 
-/* 头部英雄卡片 */
+/* 头部信息卡片 */
 .hero-card {
   border-radius: 0.25rem;
-  padding: 1.5rem;
-  background: linear-gradient(135deg, var(--el-color-primary-light-8) 0%, var(--el-color-primary-light-9) 100%);
-  border: 1px solid var(--el-color-primary-light-7);
-}
-
-.hero-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.25rem;
-}
-
-.hero-logo {
-  width: 5rem;
-  height: 5rem;
-  border-radius: 0.25rem;
-  box-shadow:
-    0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -4px rgba(0, 0, 0, 0.1);
-}
-
-.hero-text {
-  text-align: center;
+  padding: 1.25rem 1.5rem;
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color-lighter);
 }
 
 .hero-title {
@@ -348,191 +318,129 @@ const isDevDomain = computed(() => {
   margin: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 0.5rem;
   color: var(--el-text-color-primary);
 }
 
 .dev-badge {
-  font-size: 0.75rem;
-  line-height: 1rem;
-  padding: 0.125rem 0.5rem;
-  border-radius: 9999px;
-  font-weight: 500;
+  font-size: 0.625rem;
+  line-height: 1;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-weight: 600;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   background: var(--el-color-warning);
   color: white;
+  letter-spacing: 0.05em;
 }
 
 .hero-description {
-  font-size: 1rem;
+  font-size: 0.9rem;
   line-height: 1.5rem;
-  margin: 0;
-  margin-top: 0.5rem;
+  margin: 0.25rem 0 0;
   color: var(--el-text-color-secondary);
 }
 
 .hero-version {
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-  margin: 0;
-  margin-top: 0.5rem;
+  margin: 0.5rem 0 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.hero-version code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  background: var(--el-fill-color-light);
   color: var(--el-text-color-regular);
 }
 
-.version-tag {
-  margin-left: 0.25rem;
-  opacity: 0.6;
+.hero-version .version-tag {
+  background: var(--el-color-primary-light-9);
+  color: var(--el-color-primary);
 }
 
 @media (min-width: 768px) {
   .about-page {
     padding: 1.5rem;
   }
-
-  .hero-card {
-    padding: 2rem;
-  }
-
-  .hero-content {
-    flex-direction: row;
-  }
-
-  .hero-logo {
-    width: 6rem;
-    height: 6rem;
-  }
-
-  .hero-text {
-    text-align: left;
-  }
-
-  .hero-title {
-    font-size: 1.875rem;
-    line-height: 2.25rem;
-    justify-content: flex-start;
-  }
 }
 
-/* 链接卡片 */
+/* 链接区域 */
 .links-card {
   border-radius: 0.25rem;
-  padding: 1.25rem;
+  padding: 1rem 1.5rem;
   background: var(--el-bg-color);
   border: 1px solid var(--el-border-color-lighter);
 }
 
 .section-title {
-  font-size: 1.125rem;
-  line-height: 1.75rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
   font-weight: 600;
-  margin: 0;
-  margin-bottom: 1rem;
+  margin: 0 0 0.75rem;
   color: var(--el-text-color-primary);
 }
 
-.links-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.75rem;
-}
-
-@media (min-width: 640px) {
-  .links-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.links-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .link-item {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
-  border-radius: 0.75rem;
-  text-decoration-line: none;
-  transition-property: all;
-  transition-duration: 200ms;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid var(--el-border-color-lighter);
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
+  border: 1px solid var(--el-color-primary-light-7);
+  transition:
+    background 150ms ease,
+    border-color 150ms ease;
 }
 
 .link-item:hover {
-  transform: translateY(-0.125rem);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  background: var(--el-color-primary-light-8);
+  border-color: var(--el-color-primary-light-5);
 }
 
-.link-item.github {
-  background: linear-gradient(135deg, #24292e 0%, #444d56 100%);
-  color: white;
-  border-color: transparent;
+.link-item small {
+  opacity: 0.65;
+  font-weight: 400;
+  margin-left: 0.125rem;
 }
 
-.link-item.discord {
-  background: linear-gradient(135deg, #5865f2 0%, #7289da 100%);
-  color: white;
-  border-color: transparent;
-}
-
-.link-item.pro {
-  background: linear-gradient(135deg, #37b466 0%, #4ade80 100%);
-  color: white;
-  border-color: transparent;
-}
-
-.link-item.dev-test {
-  background: linear-gradient(135deg, #dac44c 0%, #f0e68c 100%);
-  color: #333;
-  border-color: transparent;
-}
-
-.link-text {
-  display: flex;
-  flex-direction: column;
-}
-
-.link-title {
-  font-weight: 500;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-}
-
-.link-desc {
-  font-size: 0.75rem;
-  line-height: 1rem;
-  opacity: 0.8;
-}
-
-/* 更新日志卡片 */
+/* 更新日志 */
 .changelog-card {
   border-radius: 0.25rem;
-  padding: 1.25rem;
+  padding: 1rem 1.5rem;
   background: var(--el-bg-color);
   border: 1px solid var(--el-border-color-lighter);
 }
 
 .changelog-header {
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-@media (min-width: 640px) {
-  .changelog-header {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .branch-selector {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-}
-
-.branch-label {
-  font-size: 0.875rem;
-  line-height: 1.25rem;
+  gap: 0.375rem;
+  font-size: 0.8rem;
   color: var(--el-text-color-secondary);
 }
 
@@ -543,45 +451,42 @@ const isDevDomain = computed(() => {
 .commits-list {
   max-height: 50vh;
   overflow-y: auto;
-  padding-right: 0.25rem;
-  min-height: 320px;
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
 }
 
-.commits-list > * + * {
-  margin-top: 0.5rem;
-}
-
-/* 加载骨架样式 */
+/* 骨架屏 */
 .commit-skeleton {
-  padding: 0.75rem;
-  border-radius: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.25rem;
   background: var(--el-fill-color-light);
-}
-
-.commit-skeleton > * + * {
-  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
 }
 
 .skeleton-line {
   border-radius: 0.25rem;
-  background: linear-gradient(
+  background: var(--el-fill-color);
+  animation: skeleton-shimmer 1.5s infinite;
+  background-size: 200% 100%;
+  background-image: linear-gradient(
     90deg,
     var(--el-fill-color) 25%,
     var(--el-fill-color-lighter) 50%,
     var(--el-fill-color) 75%
   );
-  background-size: 200% 100%;
-  animation: skeleton-shimmer 1.5s infinite;
 }
 
 .skeleton-title {
   height: 1rem;
   width: 75%;
 }
-
 .skeleton-meta {
   height: 0.75rem;
-  width: 33.333333%;
+  width: 33%;
 }
 
 @keyframes skeleton-shimmer {
@@ -593,13 +498,12 @@ const isDevDomain = computed(() => {
   }
 }
 
+/* 提交项 */
 .commit-item {
-  padding: 0.75rem;
-  border-radius: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.25rem;
   cursor: pointer;
-  transition-property: color, background-color, border-color;
-  transition-duration: 150ms;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background 150ms ease;
   background: var(--el-fill-color-light);
 }
 
@@ -609,22 +513,14 @@ const isDevDomain = computed(() => {
 
 .commit-main {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-@media (min-width: 640px) {
-  .commit-main {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.375rem;
 }
 
 .commit-message {
-  font-weight: 500;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
+  font-size: 0.85rem;
   flex: 1 1 0%;
   color: var(--el-text-color-primary);
 }
@@ -632,14 +528,13 @@ const isDevDomain = computed(() => {
 .commit-meta {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   font-size: 0.75rem;
-  line-height: 1rem;
   color: var(--el-text-color-secondary);
 }
 
 .commit-hash {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   padding: 0.125rem 0.375rem;
   border-radius: 0.25rem;
   background: var(--el-color-primary-light-9);
@@ -650,54 +545,46 @@ const isDevDomain = computed(() => {
 .commit-hash:hover {
   text-decoration: underline;
 }
-
 .commit-date {
   white-space: nowrap;
 }
 
 .commit-details {
-  margin-top: 0.75rem;
-  padding: 0.75rem;
-  border-radius: 0.5rem;
-  background: var(--el-bg-color);
-  border: 1px solid var(--el-border-color-lighter);
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.25rem;
+  background: var(--el-fill-color-lighter);
+  border-left: 2px solid var(--el-color-primary-light-7);
 }
 
 .commit-details pre {
   margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 0.75rem;
-  line-height: 1rem;
+  line-height: 1.25rem;
   white-space: pre-wrap;
   color: var(--el-text-color-regular);
 }
 
+/* 加载更多 */
 .load-more-btn {
   width: 100%;
-  margin-top: 1rem;
-  padding: 0.625rem 1rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-  font-weight: 500;
-  transition-property: all;
-  transition-duration: 150ms;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  margin-top: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.375rem;
   background: var(--el-fill-color-light);
   color: var(--el-text-color-primary);
   border: 1px solid var(--el-border-color);
+  transition: background 150ms ease;
 }
 
-.load-more-btn:hover:not(:disabled) {
-  background: var(--el-color-primary-light-9);
-  color: var(--el-color-primary);
-  border-color: var(--el-color-primary-light-7);
-}
-
+.load-more-btn:hover:not(:disabled),
 .load-more-btn.is-loading {
   background: var(--el-color-primary-light-9);
   color: var(--el-color-primary);
@@ -708,15 +595,11 @@ const isDevDomain = computed(() => {
   opacity: 0.5;
   cursor: not-allowed;
 }
-
 .loading-icon {
   animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
   to {
     transform: rotate(360deg);
   }
