@@ -1,10 +1,6 @@
 <template>
   <div class="settings-page">
-<<<<<<< HEAD
-    <!-- 现代 Tabs -->
-=======
     <!-- Tabs -->
->>>>>>> b859409 (fix: UI/UX 多项优化与移动端适配)
     <el-tabs
       v-model="activeTab"
       class="settings-tabs"

@@ -308,7 +308,7 @@ const isDevDomain = computed(() => {
 
 /* 头部英雄卡片 */
 .hero-card {
-  @apply rounded-2xl p-6 md:p-8;
+  @apply rounded p-6 md:p-8;
   background: linear-gradient(135deg, var(--el-color-primary-light-8) 0%, var(--el-color-primary-light-9) 100%);
   border: 1px solid var(--el-color-primary-light-7);
 }
@@ -318,7 +318,7 @@ const isDevDomain = computed(() => {
 }
 
 .hero-logo {
-  @apply w-20 h-20 md:w-24 md:h-24 rounded-2xl shadow-lg;
+  @apply w-20 h-20 md:w-24 md:h-24 rounded shadow-lg;
 }
 
 .hero-text {
@@ -352,7 +352,7 @@ const isDevDomain = computed(() => {
 
 /* 链接卡片 */
 .links-card {
-  @apply rounded-xl p-5;
+  @apply rounded p-5;
   background: var(--el-bg-color);
   border: 1px solid var(--el-border-color-lighter);
 }
@@ -414,7 +414,7 @@ const isDevDomain = computed(() => {
 
 /* 更新日志卡片 */
 .changelog-card {
-  @apply rounded-xl p-5;
+  @apply rounded p-5;
   background: var(--el-bg-color);
   border: 1px solid var(--el-border-color-lighter);
 }
