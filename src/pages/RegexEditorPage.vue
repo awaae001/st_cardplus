@@ -14,11 +14,11 @@
       <div class="toolbar-right">
         <el-button
           v-if="!isMobileOrTablet"
-          @click="toggleEditorPanel"
-          :icon="editorPanelVisible ? Hide : View"
+          @click="toggleTesterPanel"
+          :icon="testerPanelVisible ? Hide : View"
           size="small"
         >
-          {{ editorPanelVisible ? '隐藏测试器' : '显示测试器' }}
+          {{ testerPanelVisible ? '隐藏测试器' : '显示测试器' }}
         </el-button>
         <el-button-group>
           <el-button
@@ -159,13 +159,13 @@
       <!-- 桌面端布局 -->
       <splitpanes
         v-else
-        class="default-theme"
+        class="default-theme desktop-splitpanes"
         :horizontal="false"
       >
         <!-- 脚本列表侧边栏 -->
         <pane
           min-size="10"
-          size="15"
+          :size="15"
         >
           <RegexScriptList
             :collection="regexCollection"
@@ -185,9 +185,8 @@
         </pane>
 
         <pane
-          v-if="editorPanelVisible"
-          min-size="40"
-          size="60"
+          :min-size="testerPanelVisible ? 40 : 75"
+          :size="testerPanelVisible ? 60 : 85"
         >
           <div class="editor-panel">
             <div
@@ -268,8 +267,8 @@
 
         <!-- 模拟测试面板 -->
         <pane
-          min-size="25"
-          size="25"
+          :min-size="testerPanelVisible ? 15 : 0"
+          :size="testerPanelVisible ? 25 : 0"
         >
           <div class="simulator-panel">
             <div
@@ -339,7 +338,7 @@ import RegexSimulatorPanel from '@/components/regex/RegexSimulatorPanel.vue';
 import SmartRegexGenerator from '@/components/regex/Selector/SmartRegexGenerator.vue';
 
 const { isMobileOrTablet } = useDevice();
-const editorPanelVisible = ref(true);
+const testerPanelVisible = ref(true);
 const mobileActivePanel = ref('scripts');
 
 // 使用新的集合管理
@@ -413,8 +412,8 @@ function finishEditingName() {
 }
 
 // 工具栏操作
-function toggleEditorPanel() {
-  editorPanelVisible.value = !editorPanelVisible.value;
+function toggleTesterPanel() {
+  testerPanelVisible.value = !testerPanelVisible.value;
 }
 
 async function handleImportScript() {
@@ -835,6 +834,19 @@ watch(
 
 :deep(.splitpanes__splitter:hover:before) {
   opacity: 1;
+}
+
+/* 桌面端面板过渡动画 */
+.desktop-splitpanes :deep(.splitpanes__pane) {
+  transition: width 0.3s ease;
+}
+
+.desktop-splitpanes .simulator-panel {
+  min-width: 280px;
+}
+
+.desktop-splitpanes :deep(.splitpanes__pane) {
+  overflow: hidden;
 }
 
 /* 移动端样式 */

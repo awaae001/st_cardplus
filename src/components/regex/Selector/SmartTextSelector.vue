@@ -178,11 +178,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue';
-import { ElMessage } from 'element-plus';
-import { Delete, CopyDocument as CopyIcon } from '@element-plus/icons-vue';
-import { Icon } from '@iconify/vue';
 import { useSmartRegexGenerator, type TextSelection } from '@/composables/regex/useSmartRegexGenerator';
+import { CopyDocument as CopyIcon, Delete } from '@element-plus/icons-vue';
+import { Icon } from '@iconify/vue';
+import { ElMessage } from 'element-plus';
+import { computed, nextTick, ref } from 'vue';
 import TokenSelector from './TokenSelector.vue';
 
 const props = defineProps<{
@@ -439,13 +439,13 @@ const getToolDescription = (mode: string) => {
 
 .selector-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
   margin-bottom: 16px;
 }
 
 .selector-header h4 {
   margin: 0;
+  margin-bottom: 8px;
   color: var(--el-text-color-primary);
 }
 
