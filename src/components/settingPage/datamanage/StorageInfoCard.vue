@@ -72,9 +72,9 @@
 </template>
 
 <script setup lang="ts">
+import { useStorageInfo } from '@/composables/dataManagement/useStorageInfo';
 import { Icon } from '@iconify/vue';
 import { onMounted, ref } from 'vue';
-import { useStorageInfo } from '@/composables/dataManagement/useStorageInfo';
 
 const {
   indexedDBUsage,

@@ -585,7 +585,8 @@ const formatTime = (timeStr: string) => {
   .home-header {
     flex-direction: column;
     align-items: stretch;
-    gap: 12px;
+    gap: 8px;
+    padding: 12px 16px;
   }
 
   .home-title-section {
@@ -594,6 +595,17 @@ const formatTime = (timeStr: string) => {
 
   .home-actions {
     justify-content: center;
+    gap: 6px;
+  }
+
+  .home-actions :deep(.el-button) {
+    padding: 5px 10px;
+    font-size: 12px;
+    height: 28px;
+  }
+
+  .home-actions :deep(.el-button .el-icon) {
+    font-size: 14px;
   }
 
   .home-filters {

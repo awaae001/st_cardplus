@@ -236,7 +236,7 @@ const defaultSettings: AppSettings = {
   autoSaveInterval: 5,
   autoSaveDebounce: 1.5,
   useOldWorldEditor: false,
-  autoExpandSidebar: false,
+  autoExpandSidebar: true,
   allowBodyScroll: false,
   sidebarConfig: createDefaultSidebarConfig(),
 };

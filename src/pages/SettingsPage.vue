@@ -1,6 +1,10 @@
 <template>
   <div class="settings-page">
+<<<<<<< HEAD
     <!-- 现代 Tabs -->
+=======
+    <!-- Tabs -->
+>>>>>>> b859409 (fix: UI/UX 多项优化与移动端适配)
     <el-tabs
       v-model="activeTab"
       class="settings-tabs"
@@ -49,33 +53,9 @@ const activeTab = ref('settings');
   @apply w-full min-h-full p-5 max-w-[800px] mx-auto;
 }
 
-/* Hero 标题卡片 */
-.hero-card {
-  @apply flex items-center gap-4 p-5 rounded-xl mb-6;
-  background: linear-gradient(135deg, var(--el-color-primary-light-9) 0%, var(--el-color-primary-light-7) 100%);
-  border: 1px solid var(--el-color-primary-light-5);
-}
-
-.hero-icon {
-  @apply flex items-center justify-center w-14 h-14 rounded-xl;
-  background: var(--el-color-primary);
-  color: white;
-  box-shadow: 0 4px 12px rgba(var(--el-color-primary-rgb), 0.3);
-}
-
-.hero-content h1 {
-  @apply text-2xl font-bold m-0;
-  color: var(--el-text-color-primary);
-}
-
-.hero-content .subtitle {
-  @apply text-sm mt-1 m-0;
-  color: var(--el-text-color-secondary);
-}
-
-/* 现代 Tabs 样式 */
+/* Tabs 样式 */
 .settings-tabs {
-  @apply mt-4;
+  @apply mt-0;
 }
 
 :deep(.el-tabs__header) {
@@ -109,15 +89,5 @@ const activeTab = ref('settings');
 
 .tab-content {
   @apply text-left;
-}
-
-/* 暗色模式适配 */
-:global(.dark) .hero-card {
-  background: linear-gradient(135deg, rgba(64, 158, 255, 0.1) 0%, rgba(64, 158, 255, 0.05) 100%);
-  border-color: rgba(64, 158, 255, 0.2);
-}
-
-:global(.dark) .hero-icon {
-  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.2);
 }
 </style>

@@ -132,6 +132,18 @@
       </div>
 
       <div class="commits-list">
+        <!-- 加载骨架占位 -->
+        <template v-if="gitLogs.length === 0 && loading">
+          <div
+            v-for="i in 6"
+            :key="'skeleton-' + i"
+            class="commit-skeleton"
+          >
+            <div class="skeleton-line skeleton-title"></div>
+            <div class="skeleton-line skeleton-meta"></div>
+          </div>
+        </template>
+
         <div
           v-for="(log, index) in gitLogs"
           :key="index"
@@ -291,7 +303,7 @@ const isDevDomain = computed(() => {
 @reference "tailwindcss";
 
 .about-page {
-  @apply p-4 md:p-6 mx-auto max-w-3xl space-y-4;
+  @apply p-4 md:p-6 mx-auto max-w-3xl space-y-4 w-full min-h-full;
 }
 
 /* 头部英雄卡片 */
@@ -426,6 +438,42 @@ const isDevDomain = computed(() => {
 
 .commits-list {
   @apply space-y-2 max-h-[50vh] overflow-y-auto pr-1;
+  min-height: 320px;
+}
+
+/* 加载骨架样式 */
+.commit-skeleton {
+  @apply p-3 rounded-lg space-y-2;
+  background: var(--el-fill-color-light);
+}
+
+.skeleton-line {
+  @apply rounded;
+  background: linear-gradient(
+    90deg,
+    var(--el-fill-color) 25%,
+    var(--el-fill-color-lighter) 50%,
+    var(--el-fill-color) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite;
+}
+
+.skeleton-title {
+  @apply h-4 w-3/4;
+}
+
+.skeleton-meta {
+  @apply h-3 w-1/3;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .commit-item {

@@ -1,13 +1,35 @@
 /* 主容器 */
 .worldbook-container {
   background-color: var(--el-bg-color-page);
-  min-height: 100vh;
+  height: 100%;
   transition: background-color 0.3s;
 }
 
 /* 移动端布局 */
 .worldbook-mobile-layout {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.worldbook-tabs-mobile {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.worldbook-tabs-mobile .el-tabs__header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  flex-shrink: 0;
+  background: var(--el-bg-color);
+}
+
+.worldbook-tabs-mobile .el-tabs__content {
+  flex: 1;
+  overflow-y: auto;
 }
 
 .worldbook-desktop-layout {
@@ -419,14 +441,6 @@
     justify-content: center;
   }
 
-  .worldbook-editor-form {
-    padding-bottom: 20px;
-  }
-
-  .content-panel-body {
-    padding-bottom: 20px;
-  }
-
   .card-worldbook-panel .content-panel-body  {
     padding-bottom: 0;
   }
@@ -815,7 +829,7 @@
 }
 
 .advanced-options-hint {
-  margin-left: auto;
+  margin: auto 6px 0 auto;
   font-size: 12px;
   font-weight: 400;
   color: var(--el-text-color-placeholder);
