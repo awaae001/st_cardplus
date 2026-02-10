@@ -202,24 +202,24 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
-import { Splitpanes, Pane } from 'splitpanes';
-import 'splitpanes/dist/splitpanes.css';
-import { useDevice } from '@/composables/useDevice';
-import { usePresetStore, type PresetPrompt } from '@/composables/preset/usePresetStore';
-import { usePresetClipboard } from '@/composables/preset/usePresetClipboard';
-import { usePresetAutoSave } from '@/composables/preset/usePresetAutoSave';
-import PresetList from '@/components/preset/PresetList.vue';
 import PresetEditor, { type PresetEditorState, type PresetHeaderForm } from '@/components/preset/PresetEditor.vue';
-import { v4 as uuidv4 } from 'uuid';
-import { saveAs } from 'file-saver';
-import { cleanObject } from '@/utils/objectUtils';
-import { getSessionStorageItem, setSessionStorageValue } from '@/utils/localStorageUtils';
-import { defaultOpenAIPreset } from '@/types/openai-preset';
+import PresetList from '@/components/preset/PresetList.vue';
+import { usePresetAutoSave } from '@/composables/preset/usePresetAutoSave';
+import { usePresetClipboard } from '@/composables/preset/usePresetClipboard';
+import { usePresetStore, type PresetPrompt } from '@/composables/preset/usePresetStore';
 import { getPromptOrderIdentifiers, upsertPromptOrderEntry } from '@/composables/preset/utils/presetPromptOrder';
 import { resolvePromptIdentifier } from '@/composables/preset/utils/presetTree';
-import { Delete, ArrowUp, ArrowDown } from '@element-plus/icons-vue';
+import { useDevice } from '@/composables/useDevice';
+import { defaultOpenAIPreset } from '@/types/openai-preset';
+import { getSessionStorageItem, setSessionStorageValue } from '@/utils/localStorageUtils';
+import { cleanObject } from '@/utils/objectUtils';
+import { ArrowDown, ArrowUp, Delete } from '@element-plus/icons-vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { saveAs } from 'file-saver';
+import { Pane, Splitpanes } from 'splitpanes';
+import 'splitpanes/dist/splitpanes.css';
+import { v4 as uuidv4 } from 'uuid';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 const { isMobileOrTablet } = useDevice();
 const {
@@ -356,7 +356,11 @@ const dragDropHandlers = {
       return dropNode.data.isPreset && (type === 'prev' || type === 'next');
     }
     if (draggingNode.data.isPrompt) {
-      return dropNode.data.isPrompt && draggingNode.data.presetId === dropNode.data.presetId && (type === 'prev' || type === 'next');
+      return (
+        dropNode.data.isPrompt &&
+        draggingNode.data.presetId === dropNode.data.presetId &&
+        (type === 'prev' || type === 'next')
+      );
     }
     return false;
   },
@@ -716,10 +720,19 @@ onBeforeUnmount(() => {
   flex-direction: column;
 }
 
+.clipboard-panel .panel-header,
+.preview-panel .panel-header {
+  display: flex;
+  gap: 12px;
+  padding: 0 8px;
+  margin-bottom: 12px;
+}
+
 .right-panel-tabs {
   height: 100%;
   display: flex;
   flex-direction: column;
+  padding: 0 8px;
 }
 
 .right-panel-tabs :deep(.el-tabs__content) {
