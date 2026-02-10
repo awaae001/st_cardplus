@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { ElMessage, ElButton, ElInput, ElTable, ElTableColumn, ElMessageBox } from 'element-plus';
 import { Delete } from '@element-plus/icons-vue';
 import { Icon } from '@iconify/vue';
+import { ElButton, ElInput, ElMessage, ElMessageBox, ElTable, ElTableColumn } from 'element-plus';
+import { onMounted, ref } from 'vue';
 import { copyToClipboard } from '../../utils/clipboard';
 
 const inputJson = ref('');
@@ -97,7 +97,7 @@ const formatJson = () => {
           class="info-alert"
         />
       </div>
-      <div style="display: flex; align-items: center; gap: 16px">
+      <div class="json-header">
         <h3>JSON去除换行工具</h3>
         <div class="output-actions">
           <el-button
@@ -189,6 +189,12 @@ const formatJson = () => {
   margin: 0 auto;
 }
 
+.json-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .content-wrapper {
   display: flex;
   flex-direction: column;
@@ -247,6 +253,10 @@ const formatJson = () => {
 
 /* 响应式设计 - 移动端 */
 @media (max-width: 768px) {
+  .json-header {
+    flex-direction: column;
+  }
+
   .content-wrapper {
     flex-direction: column;
   }

@@ -21,7 +21,7 @@
         class="info-alert"
       />
     </div>
-    <h3>元数据分离器</h3>
+    <h3 style="margin-bottom: 10px">元数据分离器</h3>
     <el-card shadow="hover">
       <el-upload
         class="upload-demo"
@@ -80,11 +80,11 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
-import type { UploadFile } from 'element-plus';
-import { Icon } from '@iconify/vue';
-import { ElMessage } from 'element-plus';
 import { read } from '@/utils/pngCardMetadata';
+import { Icon } from '@iconify/vue';
+import type { UploadFile } from 'element-plus';
+import { ElMessage } from 'element-plus';
+import { ref } from 'vue';
 
 const imageUrl = ref('');
 const characterData = ref('');

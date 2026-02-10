@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import { v4 as uuidv4 } from 'uuid';
-import { convertCharacterBookToWorldBook, convertWorldBookToCharacterBook } from '../../utils/worldBookConverter';
+import { ref } from 'vue';
 import { cleanObject } from '../../utils/objectUtils';
+import { convertCharacterBookToWorldBook, convertWorldBookToCharacterBook } from '../../utils/worldBookConverter';
 
 const inputJson = ref('');
 const outputJson = ref('');
@@ -240,5 +240,43 @@ function downloadJson() {
   display: flex;
   gap: 10px;
   justify-content: center;
+}
+
+/* 响应式设计 - 移动端 */
+@media (max-width: 768px) {
+  .converter-container {
+    padding: 12px;
+  }
+
+  .converter-container h1 {
+    font-size: 1.3rem;
+    margin-bottom: 8px;
+  }
+
+  .converter-container > p {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .io-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .file-upload-area {
+    padding: 16px;
+  }
+
+  .button-group {
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .button-group .el-button {
+    width: 100%;
+    margin: 0;
+  }
 }
 </style>
