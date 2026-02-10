@@ -1,16 +1,5 @@
 <template>
   <div class="settings-page">
-    <!-- Hero 标题卡片 -->
-    <div class="hero-card">
-      <div class="hero-icon">
-        <el-icon :size="32"><Setting /></el-icon>
-      </div>
-      <div class="hero-content">
-        <h1>设置</h1>
-        <p class="subtitle">管理自己的自定义设置</p>
-      </div>
-    </div>
-
     <!-- 现代 Tabs -->
     <el-tabs
       v-model="activeTab"
@@ -48,7 +37,6 @@
 import AppSettings from '@/components/settingPage/AppSettings.vue';
 import DataManagement from '@/components/settingPage/DataManagement.vue';
 import PersonalizationSettings from '@/components/settingPage/PersonalizationSettings.vue';
-import { Setting } from '@element-plus/icons-vue';
 import { ref } from 'vue';
 
 const activeTab = ref('settings');

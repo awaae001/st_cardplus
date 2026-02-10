@@ -151,24 +151,22 @@
 
 <script setup lang="ts">
 import { useNavigation } from '@/composables/useNavigation';
-import { getSetting } from '@/utils/localStorageUtils';
+import { getSetting, setSetting } from '@/utils/localStorageUtils';
 import { DArrowLeft, DArrowRight, InfoFilled, Moon, Setting, Sunny } from '@element-plus/icons-vue';
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
-
 const { mainNavItems, toolboxItem, isActive, isDark, toggleDark } = useNavigation();
-
-// 侧边栏展开状态
-const sidebarExpanded = ref(false);
+const sidebarExpanded = ref(true);
 
 const toggleSidebar = () => {
   sidebarExpanded.value = !sidebarExpanded.value;
+  setSetting('autoExpandSidebar', sidebarExpanded.value);
 };
 
 onMounted(() => {
-  sidebarExpanded.value = getSetting('autoExpandSidebar');
+  sidebarExpanded.value = getSetting('autoExpandSidebar') ?? true;
 });
 
 const navigateTo = (path: string) => {
