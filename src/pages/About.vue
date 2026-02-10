@@ -122,47 +122,66 @@
       </div>
 
       <div class="commits-list">
-        <!-- 加载骨架占位 -->
-        <template v-if="gitLogs.length === 0 && loading">
-          <div
-            v-for="i in 6"
-            :key="'skeleton-' + i"
-            class="commit-skeleton"
-          >
-            <div class="skeleton-line skeleton-title"></div>
-            <div class="skeleton-line skeleton-meta"></div>
-          </div>
-        </template>
-
-        <div
-          v-for="(log, index) in gitLogs"
-          :key="index"
-          class="commit-item"
-          @click="log.expanded = !log.expanded"
+        <!-- 使用 el-skeleton 骨架屏：单行布局匹配 commit-item 结构 -->
+        <el-skeleton
+          :loading="gitLogs.length === 0 && loading"
+          animated
+          :count="10"
+          :throttle="{ initVal: true, leading: 300, trailing: 200 }"
+          style="display: flex; flex-direction: column; gap: 0.375rem"
         >
-          <div class="commit-main">
-            <span class="commit-message">{{ log.message }}</span>
-            <div class="commit-meta">
-              <a
-                :href="log.html_url"
-                target="_blank"
-                class="commit-hash"
-                @click.stop
-              >
-                {{ log.sha.substring(0, 7) }}
-              </a>
-              <span class="commit-date">{{ new Date(log.date).toLocaleDateString() }}</span>
+          <template #template>
+            <div class="commit-item commit-skeleton">
+              <div class="commit-main">
+                <el-skeleton-item
+                  variant="text"
+                  style="width: 60%; height: 0.85rem"
+                />
+                <div class="commit-meta">
+                  <el-skeleton-item
+                    variant="text"
+                    style="width: 3.5rem; height: 0.75rem"
+                  />
+                  <el-skeleton-item
+                    variant="text"
+                    style="width: 5rem; height: 0.75rem"
+                  />
+                </div>
+              </div>
             </div>
-          </div>
-          <transition name="expand">
+          </template>
+          <template #default>
             <div
-              v-if="log.expanded"
-              class="commit-details"
+              v-for="(log, index) in gitLogs"
+              :key="index"
+              class="commit-item"
+              @click="log.expanded = !log.expanded"
             >
-              <pre>{{ log.fullMessage }}</pre>
+              <div class="commit-main">
+                <span class="commit-message">{{ log.message }}</span>
+                <div class="commit-meta">
+                  <a
+                    :href="log.html_url"
+                    target="_blank"
+                    class="commit-hash"
+                    @click.stop
+                  >
+                    {{ log.sha.substring(0, 7) }}
+                  </a>
+                  <span class="commit-date">{{ new Date(log.date).toLocaleDateString() }}</span>
+                </div>
+              </div>
+              <transition name="expand">
+                <div
+                  v-if="log.expanded"
+                  class="commit-details"
+                >
+                  <pre>{{ log.fullMessage }}</pre>
+                </div>
+              </transition>
             </div>
-          </transition>
-        </div>
+          </template>
+        </el-skeleton>
       </div>
 
       <button
@@ -187,7 +206,7 @@
 <script setup lang="ts">
 import SystemBanner from '@/components/SystemBanner.vue';
 import { Icon } from '@iconify/vue';
-import { ElMessage, ElOption, ElSelect } from 'element-plus';
+import { ElMessage, ElOption, ElSelect, ElSkeleton, ElSkeletonItem } from 'element-plus';
 import { computed, onMounted, ref, watch } from 'vue';
 
 const appVersion = __APP_VERSION__;
@@ -195,7 +214,7 @@ const appCommitCount = __APP_COMMIT_COUNT__;
 const gitLogs = ref<any[]>([]);
 const page = ref(1);
 const hasMore = ref(true);
-const loading = ref(false);
+const loading = ref(true);
 const branches = ref<any[]>([]);
 const selectedBranch = ref('');
 
@@ -210,13 +229,20 @@ interface Commit {
   html_url: string;
 }
 
+const isMainDomain = computed(() => {
+  return window.location.hostname === 'cardplus.jiuci.top';
+});
+
+const isDevDomain = computed(() => {
+  return window.location.hostname === 'dev.st-cardplus-1kl.pages.dev';
+});
+
 const loadMore = async (isBranchChange = false) => {
   if ((!hasMore.value || loading.value) && !isBranchChange) return;
 
   loading.value = true;
   if (isBranchChange) {
     page.value = 1;
-    gitLogs.value = [];
     hasMore.value = true;
   }
 
@@ -243,7 +269,8 @@ const loadMore = async (isBranchChange = false) => {
       };
     });
 
-    gitLogs.value = [...gitLogs.value, ...newLogs];
+    // 分支切换时原子替换数据，加载更多时追加
+    gitLogs.value = isBranchChange ? newLogs : [...gitLogs.value, ...newLogs];
     page.value++;
 
     // 成功反馈
@@ -261,12 +288,12 @@ const loadMore = async (isBranchChange = false) => {
 const fetchBranches = async () => {
   try {
     const response = await fetch('https://api.github.com/repos/awaae001/st_cardplus/branches');
-    branches.value = await response.json();
-    if (branches.value.length > 0) {
-      selectedBranch.value = branches.value.find((b: any) => b.name === 'main')?.name || branches.value[0].name;
+    if (response.ok) {
+      branches.value = await response.json();
+      selectedBranch.value = isMainDomain.value ? 'main' : 'dev';
     }
   } catch (error) {
-    console.error('Failed to fetch branches:', error);
+    console.error('Error fetching branches:', error);
   }
 };
 
@@ -278,14 +305,6 @@ watch(selectedBranch, (newBranch) => {
   if (newBranch) {
     loadMore(true);
   }
-});
-
-const isMainDomain = computed(() => {
-  return window.location.hostname === 'cardplus.jiuci.top';
-});
-
-const isDevDomain = computed(() => {
-  return window.location.hostname === 'dev.st-cardplus-1kl.pages.dev';
 });
 </script>
 
@@ -459,43 +478,8 @@ const isDevDomain = computed(() => {
 
 /* 骨架屏 */
 .commit-skeleton {
-  padding: 0.625rem 0.75rem;
-  border-radius: 0.25rem;
-  background: var(--el-fill-color-light);
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-}
-
-.skeleton-line {
-  border-radius: 0.25rem;
-  background: var(--el-fill-color);
-  animation: skeleton-shimmer 1.5s infinite;
-  background-size: 200% 100%;
-  background-image: linear-gradient(
-    90deg,
-    var(--el-fill-color) 25%,
-    var(--el-fill-color-lighter) 50%,
-    var(--el-fill-color) 75%
-  );
-}
-
-.skeleton-title {
-  height: 1rem;
-  width: 75%;
-}
-.skeleton-meta {
-  height: 0.75rem;
-  width: 33%;
-}
-
-@keyframes skeleton-shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
+  cursor: default;
+  pointer-events: none;
 }
 
 /* 提交项 */

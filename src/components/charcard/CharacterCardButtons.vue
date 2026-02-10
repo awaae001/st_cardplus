@@ -144,6 +144,7 @@ const showImportDialog = () => {
   justify-content: space-between;
   gap: 8px;
   margin-bottom: 12px;
+  padding: 0 12px;
 }
 
 /* 标题 */
