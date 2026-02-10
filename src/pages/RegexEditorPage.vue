@@ -836,11 +836,6 @@ watch(
   opacity: 1;
 }
 
-/* 桌面端面板过渡动画 */
-.desktop-splitpanes :deep(.splitpanes__pane) {
-  transition: width 0.3s ease;
-}
-
 .desktop-splitpanes .simulator-panel {
   min-width: 280px;
 }
