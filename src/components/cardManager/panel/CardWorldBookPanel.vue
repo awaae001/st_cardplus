@@ -746,39 +746,13 @@ defineExpose({
 </script>
 
 <style scoped>
+@import '@/css/card-manager-panels.css';
+
 .card-worldbook-panel {
   height: 100%;
   display: flex;
   flex-direction: column;
   background: var(--el-bg-color);
-}
-
-.panel-notice {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  background: var(--el-color-primary-light-9);
-  border-bottom: 1px solid var(--el-color-primary-light-7);
-  color: var(--el-color-primary);
-  font-size: 14px;
-  flex-shrink: 0;
-}
-
-.panel-notice .iconify {
-  font-size: 18px;
-}
-
-.panel-notice span {
-  flex: 1;
-}
-
-.empty-state {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
 }
 
 .empty-description {
@@ -796,13 +770,6 @@ defineExpose({
   margin-top: 12px;
 }
 
-.empty-actions {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
 .worldbook-editor-wrapper {
   flex: 1;
   overflow: hidden;
@@ -815,16 +782,13 @@ defineExpose({
   overflow: hidden;
   height: 100%;
   min-height: 0;
-  /* 关键：允许 flex 子元素缩小 */
 }
 
-/* 桌面端布局 */
 .worldbook-layout-desktop {
   display: flex;
   flex-direction: column;
 }
 
-/* Splitpanes 容器样式修复 */
 .worldbook-layout-desktop :deep(.splitpanes) {
   height: 100%;
 }
@@ -909,78 +873,4 @@ defineExpose({
   min-height: 0;
 }
 
-.content-panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--el-border-color-light);
-  background: var(--el-fill-color-extra-light);
-  flex-shrink: 0;
-}
-
-.content-panel-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
-  margin: 0;
-}
-
-.content-panel-icon {
-  font-size: 18px;
-  color: var(--el-color-primary);
-}
-
-.content-panel-text-highlight {
-  color: var(--el-color-primary);
-}
-
-.editor-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.editor-empty-state {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* 移动端头部 */
-.content-panel-header-mobile {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--el-border-color-light);
-  background: var(--el-fill-color-extra-light);
-  flex-shrink: 0;
-}
-
-.content-panel-title-mobile {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
-  margin: 0;
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.editor-actions-mobile {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
 </style>
