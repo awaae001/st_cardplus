@@ -184,22 +184,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import type { CharacterCardCollection } from '@/types/character-card-collection';
+import { Delete, Download, FolderOpened, MoreFilled, Plus, Search } from '@element-plus/icons-vue';
+import { Icon } from '@iconify/vue';
 import {
   ElButton,
+  ElDropdown,
+  ElDropdownItem,
+  ElDropdownMenu,
   ElInput,
-  ElSelect,
   ElOption,
   ElScrollbar,
+  ElSelect,
   ElTag,
   ElTooltip,
-  ElDropdown,
-  ElDropdownMenu,
-  ElDropdownItem,
 } from 'element-plus';
-import { Plus, FolderOpened, Search, MoreFilled, Download, Delete } from '@element-plus/icons-vue';
-import { Icon } from '@iconify/vue';
-import type { CharacterCardCollection } from '@/types/character-card-collection';
+import { computed, ref } from 'vue';
 
 interface Props {
   collection: CharacterCardCollection;
@@ -430,6 +430,7 @@ const formatTime = (timeStr: string) => {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 16px;
+  padding-top: 4px;
   padding-bottom: 24px;
 }
 
@@ -584,7 +585,8 @@ const formatTime = (timeStr: string) => {
   .home-header {
     flex-direction: column;
     align-items: stretch;
-    gap: 12px;
+    gap: 8px;
+    padding: 12px 16px;
   }
 
   .home-title-section {
@@ -593,6 +595,17 @@ const formatTime = (timeStr: string) => {
 
   .home-actions {
     justify-content: center;
+    gap: 6px;
+  }
+
+  .home-actions :deep(.el-button) {
+    padding: 5px 10px;
+    font-size: 12px;
+    height: 28px;
+  }
+
+  .home-actions :deep(.el-button .el-icon) {
+    font-size: 14px;
   }
 
   .home-filters {

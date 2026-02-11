@@ -136,17 +136,17 @@
 </template>
 
 <script setup lang="ts">
-import { VueFlow, ConnectionMode } from '@vue-flow/core';
+import { useWorldGraphView } from '@/composables/worldeditor/useWorldGraphView';
+import type { EnhancedForce, EnhancedLandmark, EnhancedRegion, Project } from '@/types/world-editor';
+import { Icon } from '@iconify/vue';
 import { Background } from '@vue-flow/background';
 import { Controls } from '@vue-flow/controls';
-import { Icon } from '@iconify/vue';
-import type { Project, EnhancedLandmark, EnhancedForce, EnhancedRegion } from '@/types/world-editor';
-import { useWorldGraphView } from '@/composables/worldeditor/useWorldGraphView';
-import LandmarkNode from './graph/LandmarkNode.vue';
-import BridgeNode from './graph/BridgeNode.vue';
-import WorldGraphInspector from './graph/WorldGraphInspector.vue';
-import '@vue-flow/core/dist/style.css';
 import '@vue-flow/controls/dist/style.css';
+import { ConnectionMode, VueFlow } from '@vue-flow/core';
+import '@vue-flow/core/dist/style.css';
+import BridgeNode from './graph/BridgeNode.vue';
+import LandmarkNode from './graph/LandmarkNode.vue';
+import WorldGraphInspector from './graph/WorldGraphInspector.vue';
 
 interface Props {
   projects: Project[];
@@ -376,6 +376,33 @@ const {
 
   .graph-inspector {
     order: -1;
+  }
+}
+
+/* 移动端适配：弹窗约束在视口内 */
+@media screen and (max-width: 768px) {
+  .child-graph-popup {
+    position: fixed !important;
+    left: 8px !important;
+    top: auto !important;
+    bottom: 60px !important;
+    right: 8px !important;
+    width: auto !important;
+    max-height: 60vh;
+    z-index: 100 !important;
+    overflow: hidden;
+  }
+
+  .child-graph-popup > .child-graph-body > .child-graph-canvas {
+    height: calc(60vh - 100px) !important;
+  }
+
+  .child-graph-popup > .child-graph-resizer {
+    display: none;
+  }
+
+  .graph-canvas-hint {
+    display: none;
   }
 }
 </style>

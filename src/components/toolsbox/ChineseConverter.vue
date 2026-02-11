@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
 import { Icon } from '@iconify/vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { computed, ref } from 'vue';
 import {
   CONVERSION_OPTIONS,
   type ConversionConfig,
@@ -287,7 +287,7 @@ function getStatusText(status: FileItem['status']): string {
         <el-select
           v-model="selectedConfig"
           placeholder="请选择转换方向"
-          style="width: 300px"
+          class="config-select"
           :disabled="isConverting"
         >
           <el-option
@@ -663,27 +663,66 @@ function getStatusText(status: FileItem['status']): string {
   font-size: 14px;
 }
 
+.config-select {
+  width: 300px;
+}
+
 /* 响应式 */
 @media (max-width: 768px) {
+  .converter-container {
+    padding: 12px;
+  }
+
+  .header {
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .header h1 {
+    font-size: 1.3rem;
+    width: 100%;
+    order: 2;
+    margin: 0;
+  }
+
+  .back-button {
+    order: 1;
+  }
+
   .config-section {
-    padding: 15px;
+    padding: 12px;
   }
 
   .config-item {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+  }
+
+  .config-select {
+    width: 100%;
   }
 
   .upload-section {
     flex-direction: column;
   }
 
+  .upload-section .el-button {
+    width: 100%;
+    margin-left: 0;
+  }
+
   .action-section {
     flex-direction: column;
   }
 
-  .action-section button {
+  .action-section .el-button {
     width: 100%;
+    margin-left: 0;
+  }
+
+  .empty-placeholder {
+    padding: 40px 16px;
   }
 }
 </style>

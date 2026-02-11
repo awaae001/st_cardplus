@@ -13,7 +13,7 @@
         >
           <button
             @click="emit('add', 'landmark')"
-            class="btn-primary-adv action-button"
+            class="btn-adv btn-primary-adv action-button"
           >
             <Icon icon="ph:map-pin-duotone" />
           </button>
@@ -23,7 +23,7 @@
           placement="bottom-end"
           @command="handleAddCommand"
         >
-          <button class="btn-primary-adv action-button action-button-split">
+          <button class="btn-adv btn-primary-adv action-button action-button-split">
             <Icon icon="ph:caret-down-duotone" />
           </button>
           <template #dropdown>

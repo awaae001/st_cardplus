@@ -86,10 +86,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
 import { useEjsEditorStore } from '@/composables/ejs/ejsEditor';
 import type { VariableNode } from '@/types/ejs-editor';
-import { Plus, Delete, ArrowDown, ArrowRight } from '@element-plus/icons-vue';
+import { ArrowDown, ArrowRight, Delete, Plus } from '@element-plus/icons-vue';
+import { computed, ref, watch } from 'vue';
 
 interface Props {
   node: VariableNode;
@@ -154,43 +154,64 @@ function deleteNode() {
 .node-content {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   padding: 4px 0;
+  flex-wrap: wrap;
 }
+
 .expand-icon {
   cursor: pointer;
   color: var(--el-text-color-secondary);
+  flex-shrink: 0;
 }
 
 .node-main {
   display: flex;
   align-items: center;
   gap: 4px;
-  flex-grow: 1;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .node-key-input {
-  width: 120px;
+  width: 80px;
+  min-width: 60px;
+  flex-shrink: 1;
 }
+
 .node-value-input {
-  width: 100px;
+  width: 70px;
+  min-width: 50px;
+  flex-shrink: 1;
 }
+
 .node-desc-input {
-  flex-grow: 1;
+  flex: 1;
+  min-width: 80px;
 }
 
 .separator {
-  margin: 0 4px;
+  margin: 0 2px;
+  flex-shrink: 0;
 }
 
 .node-actions {
   display: flex;
   gap: 4px;
+  flex-shrink: 0;
 }
 
 .child-nodes {
-  margin-left: 24px;
+  margin-left: 20px;
   border-left: 1px dashed var(--el-border-color-lighter);
-  padding-left: 8px;
+  padding-left: 6px;
+}
+
+/* 移动端进一步缩减 */
+@media (max-width: 768px) {
+  .child-nodes {
+    margin-left: 16px;
+  }
 }
 </style>

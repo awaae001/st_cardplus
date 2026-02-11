@@ -1,13 +1,35 @@
 /* 主容器 */
 .worldbook-container {
   background-color: var(--el-bg-color-page);
-  min-height: 100vh;
+  height: 100%;
   transition: background-color 0.3s;
 }
 
 /* 移动端布局 */
 .worldbook-mobile-layout {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.worldbook-tabs-mobile {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.worldbook-tabs-mobile .el-tabs__header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  flex-shrink: 0;
+  background: var(--el-bg-color);
+}
+
+.worldbook-tabs-mobile .el-tabs__content {
+  flex: 1;
+  overflow-y: auto;
 }
 
 .worldbook-desktop-layout {
@@ -15,10 +37,6 @@
 }
 
 /* 标签页样式 */
-.worldbook-tabs-mobile :deep(.el-tabs__content) {
-  padding: 16px 0;
-}
-
 .worldbook-tab-label {
   display: flex;
   align-items: center;
@@ -75,83 +93,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-/* 按钮样式 */
-.btn-primary-adv {
-  background: #409eff;
-  border: 1px solid #409eff;
-  color: white;
-  border-radius: 4px;
-  padding: 8px 12px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.btn-primary-adv:hover {
-  background: #66b1ff;
-  border-color: #66b1ff;
-}
-
-.btn-secondary-adv {
-  background: #909399;
-  border: 1px solid #909399;
-  color: white;
-  border-radius: 4px;
-  padding: 8px 12px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.btn-secondary-adv:hover {
-  background: #a6a9ad;
-}
-
-.btn-success-adv {
-  background: #67c23a;
-  border: 1px solid #67c23a;
-  color: white;
-  border-radius: 4px;
-  padding: 8px 12px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.btn-success-adv:hover {
-  background: #85ce61;
-}
-
-.btn-warning-adv {
-  background: #e6a23c;
-  border: 1px solid #e6a23c;
-  color: white;
-  border-radius: 4px;
-  padding: 8px 12px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.btn-warning-adv:hover {
-  background: #ebb563;
-}
-
-.btn-danger-adv {
-  background: #f56c6c;
-  border: 1px solid #f56c6c;
-  color: white;
-  border-radius: 4px;
-  padding: 8px 12px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.btn-danger-adv:hover {
-  background: #f78989;
 }
 
 /* 禁用状态 */
@@ -386,17 +327,50 @@
 
 /* 表单样式 */
 .worldbook-editor-form {
-  padding: 16px;
+  padding: 0 12px 0px 12px;
 }
 
 .content-panel-body {
   background: var(--el-bg-color);
   border-radius: 4px;
-  border: 1px solid var(--el-border-color-lighter);
+}
+
+/* 移动端：为底部导航栏预留空间 */
+@media (max-width: 767px) {
+  #pane-list > .content-panel-header {
+    flex-direction: row;
+  }
+
+  #pane-editor .content-panel-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 8px 0;
+  }
+
+  #pane-editor .content-panel-title {
+    justify-content: center;
+    font-size: 16px;
+    overflow: hidden;
+  }
+
+  #pane-editor .content-panel-text-highlight {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #pane-editor .worldbook-editor-buttons {
+    justify-content: center;
+  }
+
+  .card-worldbook-panel .content-panel-body  {
+    padding-bottom: 0;
+  }
 }
 
 .form-section {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   padding: 16px;
   background: var(--el-fill-color-extra-light);
   border-radius: 4px;
@@ -406,6 +380,7 @@
 .form-section-title {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   font-size: 16px;
   font-weight: 600;
@@ -532,7 +507,7 @@
   .worldbook-desktop-layout {
     display: flex;
     gap: 16px;
-    height: calc(100vh - 32px);
+    height: 100vh;
   }
 
   .worldbook-desktop-panel-left {
@@ -550,7 +525,7 @@
     background: var(--el-bg-color);
     border-radius: 4px;
     border: 1px solid var(--el-border-color-lighter);
-    padding: 16px;
+    padding: 12px;
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -777,7 +752,7 @@
 }
 
 .advanced-options-hint {
-  margin-left: auto;
+  margin: auto 6px 0 auto;
   font-size: 12px;
   font-weight: 400;
   color: var(--el-text-color-placeholder);
@@ -841,4 +816,55 @@
   margin-left: auto;
   display: flex;
   gap: 8px;
+}
+
+@media (max-width: 767px) {
+  .entry-navigation-buttons {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .entry-navigation-buttons .el-button {
+    flex: 1;
+    max-width: 140px;
+  }
+
+  .form-section {
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+
+  .form-section-content {
+    gap: 12px;
+  }
+
+  .form-grid-3-col,
+  .form-grid-3-col-top-align,
+  .form-grid-3-col-end-align {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .form-grid-span-3 {
+    grid-column: span 1;
+  }
+
+  .worldbook-editor-form {
+    padding: 12px;
+  }
+
+  .form-flex-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .form-slider {
+    width: 100%;
+  }
+
+  .form-checkbox-nowrap {
+    white-space: normal;
+  }
 }

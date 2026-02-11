@@ -12,7 +12,7 @@
         >
           <button
             @click="emit('create-new')"
-            class="btn-success-adv character-card-list-add-button"
+            class="btn-adv btn-success-adv character-card-list-add-button"
             aria-label="创建新角色卡"
           >
             <Icon
@@ -30,7 +30,7 @@
         >
           <button
             @click="emit('save-current')"
-            class="btn-primary-adv character-card-list-add-button"
+            class="btn-adv btn-primary-adv character-card-list-add-button"
             aria-label="保存当前角色卡"
             :disabled="!hasCurrentCard"
           >
@@ -169,11 +169,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import { ElScrollbar, ElTooltip, ElTag } from 'element-plus';
-import { Icon } from '@iconify/vue';
-import CharacterCardActions from './components/CharacterCardActions.vue';
 import type { CharacterCardCollection } from '@/types/character-card-collection';
+import { Icon } from '@iconify/vue';
+import { ElScrollbar, ElTag, ElTooltip } from 'element-plus';
+import { computed } from 'vue';
+import CharacterCardActions from './components/CharacterCardActions.vue';
 
 interface Props {
   collection: CharacterCardCollection;

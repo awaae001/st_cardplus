@@ -47,8 +47,8 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, ref, watch } from 'vue';
 import { ElScrollbar, ElTree } from 'element-plus';
+import { nextTick, ref, watch } from 'vue';
 
 interface Props {
   title: string;
@@ -180,7 +180,7 @@ const handleNodeCollapse = (data: any) => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
+  min-width: 32px;
   height: 32px;
   font-size: 16px;
 }

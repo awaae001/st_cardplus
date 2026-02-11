@@ -81,7 +81,7 @@
                   :disabled="isUploading"
                 >
                   <Icon
-                    icon="ph:upload-duotone"
+                    icon="ph:file-image-duotone"
                     v-if="!isUploading"
                   />
                   <span class="button-text">{{ isUploading ? uploadProgress : '加载PNG' }}</span>
@@ -91,7 +91,7 @@
                   @click="handleSave"
                   size="small"
                 >
-                  <Icon icon="ph:export-duotone" />
+                  <Icon icon="ph:download-duotone" />
                   <span class="button-text">导出PNG</span>
                 </el-button>
               </div>
@@ -272,23 +272,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onUnmounted, watch } from 'vue';
-import { ElButton, ElMessage, ElTabs, ElTabPane, ElDivider } from 'element-plus';
 import { Icon } from '@iconify/vue';
+import { ElButton, ElDivider, ElMessage, ElTabPane, ElTabs } from 'element-plus';
+import { computed, onUnmounted, ref, watch } from 'vue';
 
-import CharacterCardActions from '@/components/cardManager/components/CharacterCardActions.vue';
-import CharacterCardTabs from '@/components/cardManager/components/CharacterCardTabs.vue';
-import CharacterCardHome from '@/components/cardManager/components/CharacterCardHome.vue';
 import CardEditor from '@/components/cardManager/CardEditor.vue';
-import CardWorldBookPanel from '@/components/cardManager/panel/CardWorldBookPanel.vue';
+import CharacterCardActions from '@/components/cardManager/components/CharacterCardActions.vue';
+import CharacterCardHome from '@/components/cardManager/components/CharacterCardHome.vue';
+import CharacterCardTabs from '@/components/cardManager/components/CharacterCardTabs.vue';
 import CardRegexPanel from '@/components/cardManager/panel/CardRegexPanel.vue';
+import CardWorldBookPanel from '@/components/cardManager/panel/CardWorldBookPanel.vue';
 
-import { useV3CharacterCard } from '@/composables/characterCard/useV3CharacterCard';
-import { useCharacterCardCollection } from '@/composables/characterCard/useCharacterCardCollection';
-import { useCardImport } from '@/composables/characterCard/useCardImport';
 import { useCardExport } from '@/composables/characterCard/useCardExport';
-import { useTabManager } from '@/composables/characterCard/useTabManager';
+import { useCardImport } from '@/composables/characterCard/useCardImport';
 import { useCharacterCardAutoSave, type AutoSaveMode } from '@/composables/characterCard/useCharacterCardAutoSave';
+import { useCharacterCardCollection } from '@/composables/characterCard/useCharacterCardCollection';
+import { useTabManager } from '@/composables/characterCard/useTabManager';
+import { useV3CharacterCard } from '@/composables/characterCard/useV3CharacterCard';
 import { getSetting } from '@/utils/localStorageUtils';
 
 const { characterData, isLoadingData, loadCharacter, resetCharacter } = useV3CharacterCard();
@@ -717,7 +717,12 @@ onUnmounted(() => {
 
 .bookmark-tabs :deep(.el-tabs__content) {
   height: 100%;
-  overflow: auto;
+  overflow: hidden;
+}
+
+.bookmark-tabs :deep(.el-tab-pane) {
+  height: 100%;
+  overflow: hidden;
 }
 
 .bookmark-tabs :deep(.el-tabs__header) {
@@ -757,11 +762,16 @@ onUnmounted(() => {
 @media (max-width: 768px) {
   .content-panel-header {
     height: auto;
-    padding: 10px 12px;
+    min-height: 48px;
+    padding: 8px 12px;
+    flex-wrap: wrap;
+    gap: 8px;
   }
 
   .content-panel-title {
-    font-size: 15px;
+    flex: 1 1 auto;
+    min-width: 120px;
+    font-size: 14px;
     gap: 6px;
   }
 
@@ -775,7 +785,15 @@ onUnmounted(() => {
   }
 
   .header-actions {
-    gap: 6px;
+    flex: 0 0 auto;
+    gap: 4px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .header-actions .el-button {
+    padding: 6px 8px;
+    min-width: 32px;
   }
 
   .button-text {
@@ -799,6 +817,31 @@ onUnmounted(() => {
 
   .bookmark-tab-text {
     font-size: 13px;
+  }
+}
+
+/* 超小屏幕进一步优化 */
+@media (max-width: 480px) {
+  .content-panel-header {
+    padding: 6px 10px;
+    gap: 6px;
+  }
+
+  .content-panel-title {
+    flex: 1 0 100%;
+    font-size: 13px;
+    justify-content: center;
+  }
+
+  .header-actions {
+    flex: 1 0 100%;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .header-actions .el-button {
+    padding: 5px 6px;
+    min-width: 28px;
   }
 }
 </style>

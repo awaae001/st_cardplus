@@ -13,8 +13,9 @@
       </div>
       <div class="toolbar-right">
         <el-button
+          v-if="!isMobileOrTablet"
           @click="toggleCenterPanel"
-          :icon="centerPanelVisible ? 'ArrowRightBold' : 'ArrowLeftBold'"
+          :icon="centerPanelVisible ? Hide : View"
           size="small"
         >
           {{ centerPanelVisible ? '隐藏编辑器' : '显示编辑器' }}
@@ -268,22 +269,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
-import { DocumentAdd, Download, RefreshLeft, RefreshRight, CopyDocument } from '@element-plus/icons-vue';
 import { useEjsEditorStore } from '@/composables/ejs/ejsEditor';
-import { saveAs } from 'file-saver';
-import { Splitpanes, Pane } from 'splitpanes';
-import 'splitpanes/dist/splitpanes.css';
 import { useDevice } from '@/composables/useDevice';
+import { CopyDocument, DocumentAdd, Download, Hide, RefreshLeft, RefreshRight, View } from '@element-plus/icons-vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { saveAs } from 'file-saver';
+import { Pane, Splitpanes } from 'splitpanes';
+import 'splitpanes/dist/splitpanes.css';
+import { onMounted, ref } from 'vue';
 
 // 组件导入
-import ProjectManager from '@/components/ejseditor/ProjectManager.vue';
-import VariablePanel from '@/components/ejseditor/VariablePanel.vue';
 import LogicBlockPanel from '@/components/ejseditor/LogicBlockPanel.vue';
-import TemplateEditor from '@/components/ejseditor/TemplateEditor.vue';
 import PreviewPanel from '@/components/ejseditor/PreviewPanel.vue';
+import ProjectManager from '@/components/ejseditor/ProjectManager.vue';
 import SimulationPanel from '@/components/ejseditor/SimulationPanel.vue';
+import TemplateEditor from '@/components/ejseditor/TemplateEditor.vue';
+import VariablePanel from '@/components/ejseditor/VariablePanel.vue';
 
 const store = useEjsEditorStore();
 const { isMobileOrTablet } = useDevice();
@@ -437,7 +438,7 @@ watch(
 
 <style scoped>
 .ejs-editor-page {
-  height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   background: var(--el-bg-color-page);
@@ -498,7 +499,7 @@ watch(
   flex-direction: column;
 }
 
-.center-panel .panel-header {
+.panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -508,7 +509,7 @@ watch(
   flex-shrink: 0; /* 防止压缩 */
 }
 
-.center-panel .panel-header h3 {
+.panel-header h3 {
   margin: 0;
   font-size: 16px;
   font-weight: 500;

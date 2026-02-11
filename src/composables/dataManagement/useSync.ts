@@ -417,26 +417,57 @@ export function useSync() {
       if (result.success && result.data) {
         const gists = result.data;
         if (gists.length === 0) {
-          ElMessage.info('未找到备份 Gist，请先推送数据或创建新 Gist');
+          ElMessage.info('未找到任何 Gist，您可以先推送创建一个新的');
           return;
         }
-        ElMessageBox.alert(
-          gists
-            .map(
-              (g: any) =>
-                `<div style="margin-bottom: 10px; padding: 8px; background: var(--el-fill-color-light); border-radius: 4px;">
-              <strong>ID:</strong> ${g.id}<br/>
-              <strong>描述:</strong> ${g.description}<br/>
-              <strong>更新:</strong> ${new Date(g.updated_at).toLocaleString('zh-CN')}
-            </div>`
-            )
-            .join(''),
-          '您的备份 Gists',
+
+        const gistOptions = gists
+          .map(
+            (g: any) =>
+              `<div style="margin-bottom: 10px; padding: 8px; background: var(--el-fill-color-light); border-radius: 4px; cursor: pointer;" onclick="this.querySelector('input').checked = true">
+                <label style="display: flex; align-items: center; width: 100%; cursor: pointer;">
+                  <input type="radio" name="gistSelection" value="${g.id}" style="margin-right: 10px;" ${
+                g.id === gistConfig.value.gistId ? 'checked' : ''
+              }>
+                  <div>
+                    <strong>ID:</strong> ${g.id}<br/>
+                    <strong>描述:</strong> ${g.description || '无描述'}<br/>
+                    <strong>更新:</strong> ${new Date(g.updated_at).toLocaleString('zh-CN')}
+                  </div>
+                </label>
+              </div>`
+          )
+          .join('');
+
+        ElMessageBox.confirm(
+          `<div class="gist-selection-container" style="max-height: 400px; overflow-y: auto;">${gistOptions}</div>`,
+          '选择一个 Gist 用于同步',
           {
             dangerouslyUseHTMLString: true,
-            confirmButtonText: '关闭',
+            confirmButtonText: '选定',
+            cancelButtonText: '取消',
+            beforeClose: (action, _instance, done) => {
+              if (action === 'confirm') {
+                const selectedRadio = document.querySelector(
+                  '.gist-selection-container input[name="gistSelection"]:checked'
+                );
+                if (selectedRadio) {
+                  const selectedGistId = (selectedRadio as HTMLInputElement).value;
+                  gistConfig.value.gistId = selectedGistId;
+                  ElMessage.success(`已选择 Gist: ${selectedGistId}`);
+                  done();
+                } else {
+                  ElMessage.warning('您没有选择任何 Gist');
+                  // Do not close the dialog
+                }
+              } else {
+                done();
+              }
+            },
           }
-        );
+        ).catch(() => {
+          ElMessage.info('已取消选择');
+        });
       } else {
         ElMessage.error(result.message);
       }

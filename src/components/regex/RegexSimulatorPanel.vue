@@ -68,6 +68,12 @@ const char = '{{char}}';
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
+
+@media (max-width: 767px) {
+  .macro-grid {
+    grid-template-columns: 1fr;
+  }
+}
 .result-controls {
   display: flex;
   justify-content: flex-end;

@@ -1,28 +1,31 @@
 <template>
   <div style="display: flex; flex-direction: column; gap: 16px">
-    <div class="app-settings">
-      <div class="setting-card">
-        <div class="setting-content">
-          <div class="setting-header">
-            <div class="setting-info">
-              <span class="setting-label">PC端侧边栏自动展开</span>
-              <Icon
-                icon="fluent:sidebar-search-20-regular"
-                width="20"
-                height="20"
-                :style="{ marginLeft: '8px', color: 'var(--el-color-primary)' }"
-              />
-            </div>
-            <el-switch
-              v-model="autoExpandSidebar"
-              @change="onAutoExpandSidebarToggle"
-              size="large"
+    <div class="setting-card">
+      <div class="setting-content">
+        <div class="setting-header">
+          <div class="setting-info">
+            <span class="setting-label">侧边栏默认展开</span>
+            <Icon
+              icon="ph:sidebar-simple"
+              width="20"
+              height="20"
+              :style="{ marginLeft: '8px', color: 'var(--el-color-primary)' }"
             />
           </div>
-          <p class="setting-description">在PC端，当侧边栏处于折叠状态时，鼠标移入时是否自动展开</p>
+          <el-switch
+            v-model="autoExpandSidebar"
+            @change="onAutoExpandSidebarToggle"
+            size="large"
+          />
         </div>
+        <p class="setting-description">
+          开启后，桌面端侧边栏将默认展开显示菜单文字
+          <br />
+          关闭后，侧边栏仅显示图标
+        </p>
       </div>
     </div>
+
     <div class="setting-card">
       <div class="setting-content">
         <div class="setting-header">
@@ -49,76 +52,30 @@
       </div>
     </div>
 
-    <!-- 侧边栏管理组件 -->
+    <!-- 导航栏管理 -->
     <SidebarManagement />
   </div>
 </template>
 
 <script setup lang="ts">
-import { Icon } from '@iconify/vue';
 import { usePersonalization } from '@/composables/usePersonalization';
+import { getSetting, setSetting } from '@/utils/localStorageUtils';
+import { Icon } from '@iconify/vue';
+import { onMounted, ref } from 'vue';
 import SidebarManagement from './SidebarManagement.vue';
 
-const { autoExpandSidebar, onAutoExpandSidebarToggle, allowBodyScroll, onAllowBodyScrollToggle } = usePersonalization();
+const { allowBodyScroll, onAllowBodyScrollToggle } = usePersonalization();
+
+const autoExpandSidebar = ref(false);
+
+onMounted(() => {
+  autoExpandSidebar.value = getSetting('autoExpandSidebar');
+});
+
+const onAutoExpandSidebarToggle = (value: boolean) => {
+  setSetting('autoExpandSidebar', value);
+};
 </script>
 <style scoped>
-.app-settings {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.setting-card {
-  background-color: var(--el-bg-color-overlay);
-  border: 1px solid var(--el-border-color);
-  border-radius: 8px;
-  padding: 16px;
-  transition: box-shadow 0.3s ease;
-}
-
-.setting-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.setting-content {
-  display: flex;
-  flex-direction: column;
-}
-
-.setting-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.setting-info {
-  display: flex;
-  align-items: center;
-}
-
-.setting-label {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
-}
-
-.setting-description {
-  font-size: 13px;
-  color: var(--el-text-color-secondary);
-  line-height: 1.5;
-  margin: 0;
-  text-align: left;
-}
-
-.interval-control {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.interval-unit {
-  font-size: 14px;
-  color: var(--el-text-color-secondary);
-}
+/* 使用全局 settings.css 样式 */
 </style>

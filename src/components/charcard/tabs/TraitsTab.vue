@@ -48,7 +48,7 @@
         <el-card class="draggable-card">
           <div class="drag-handle">
             <Icon
-              icon="material-symbols:drag-handle"
+              icon="material-symbols:drag-indicator"
               width="20"
               height="20"
             />
@@ -191,7 +191,7 @@
         <el-card class="draggable-card">
           <div class="drag-handle">
             <Icon
-              icon="material-symbols:drag-handle"
+              icon="material-symbols:drag-indicator"
               width="20"
               height="20"
             />
@@ -233,7 +233,7 @@
               <template #reference>
                 <el-button
                   title="删除此对话示例"
-                  style="margin-top: 4px; width: 100%"
+                  style="margin-top: 6px; width: 100%"
                 >
                   <Icon
                     icon="material-symbols:delete-outline"
@@ -331,7 +331,7 @@
         <el-card class="draggable-card">
           <div class="drag-handle">
             <Icon
-              icon="material-symbols:drag-handle"
+              icon="material-symbols:drag-indicator"
               width="20"
               height="20"
             />
@@ -346,7 +346,7 @@
             allow-create
             filterable
             default-first-option
-            style="margin-top: 1rem; width: 100%"
+            style="width: 100%"
           >
             <el-option
               label="主动"
@@ -399,9 +399,9 @@
 </template>
 
 <script setup lang="ts">
-import { toRefs } from 'vue';
-import { ElInput, ElButton, ElCard, ElDivider, ElPopconfirm } from 'element-plus';
 import { Icon } from '@iconify/vue';
+import { ElButton, ElCard, ElDivider, ElInput, ElPopconfirm } from 'element-plus';
+import { toRefs } from 'vue';
 import draggable from 'vuedraggable';
 
 const props = defineProps({
@@ -508,6 +508,13 @@ const removeBehaviorExample = (traitIndex: number, exampleIndex: number) => {
   border: 1px solid var(--el-border-color-lighter);
 }
 
+/* 卡片内部输入框间距 */
+.draggable-card :deep(.el-card__body) {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .draggable-card:hover {
   border-color: var(--el-border-color-hover);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -515,8 +522,8 @@ const removeBehaviorExample = (traitIndex: number, exampleIndex: number) => {
 
 .drag-handle {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 6px;
+  right: 4px;
   cursor: grab;
   color: var(--el-text-color-placeholder);
   transition: color 0.2s;

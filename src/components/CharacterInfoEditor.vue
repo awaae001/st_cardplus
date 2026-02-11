@@ -215,28 +215,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue';
+import { Icon } from '@iconify/vue';
 import {
-  ElScrollbar,
+  ElButton,
   ElForm,
   ElInput,
-  ElSelect,
-  ElOption,
   ElInputNumber,
-  ElTabs,
-  ElTabPane,
-  ElButton,
   ElMessageBox,
+  ElOption,
+  ElScrollbar,
+  ElSelect,
+  ElTabPane,
+  ElTabs,
 } from 'element-plus';
-import { Icon } from '@iconify/vue';
-import CharacterCardButtons from './charcard/CharacterCardButtons.vue';
-import AppearanceAndAttireTab from './charcard/tabs/AppearanceAndAttireTab.vue';
-import TraitsTab from './charcard/tabs/TraitsTab.vue';
-import DailyAndNotesTab from './charcard/tabs/DailyAndNotesTab.vue';
-import type { CharacterCard } from '../types/character';
+import { nextTick, ref, watch } from 'vue';
 import { useCardDataHandler } from '../composables/characterInfo/useCardDataHandler';
 import { useCardSections } from '../composables/characterInfo/useCardSections';
 import { useCharacterCardLifecycle } from '../composables/characterInfo/useCharacterCardLifecycle';
+import type { CharacterCard } from '../types/character';
+import CharacterCardButtons from './charcard/CharacterCardButtons.vue';
+import AppearanceAndAttireTab from './charcard/tabs/AppearanceAndAttireTab.vue';
+import DailyAndNotesTab from './charcard/tabs/DailyAndNotesTab.vue';
+import TraitsTab from './charcard/tabs/TraitsTab.vue';
 
 const props = defineProps<{
   character: CharacterCard;
@@ -392,8 +392,7 @@ defineExpose({
 .content-panel-body {
   background: var(--el-bg-color);
   border-radius: 4px;
-  border: 1px solid var(--el-border-color-lighter);
-  padding: 16px;
+  padding: 12px;
 }
 
 /* 表单区块样式 - 统一 worldbook 风格 */

@@ -33,136 +33,250 @@
       v-else
       class="regex-editor-wrapper"
     >
-      <Splitpanes class="default-theme">
-        <!-- 左侧：脚本列表 -->
-        <Pane
-          size="20"
-          min-size="15"
-          max-size="30"
-        >
-          <div class="scripts-list-panel">
-            <div class="scripts-list-header">
-              <div class="scripts-count">
-                <Icon icon="ph:list-bullets-duotone" />
-                共 {{ regexScripts.length }} 个脚本
-              </div>
-            </div>
-
-            <el-scrollbar
-              class="scripts-scrollbar"
-              max-height="calc(100vh - 250px)"
-            >
-              <div class="scripts-list">
-                <div
-                  v-for="(script, index) in regexScripts"
-                  :key="script.id"
-                  class="script-item"
-                  :class="{ 'is-active': selectedScriptIndex === index, 'is-disabled': script.disabled }"
-                  @click="selectScript(index)"
-                >
-                  <div class="script-item-content">
-                    <Icon
-                      :icon="script.disabled ? 'ph:prohibit-duotone' : 'ph:code-duotone'"
-                      class="script-icon"
-                    />
-                    <div class="script-info">
-                      <div class="script-name">{{ script.scriptName || `脚本 ${index + 1}` }}</div>
-                      <div class="script-find-regex">{{ truncateRegex(script.findRegex) }}</div>
-                    </div>
-                  </div>
-                  <el-button
-                    type="danger"
-                    size="small"
-                    text
-                    @click.stop="handleDeleteScript(index)"
-                  >
-                    <Icon icon="ph:trash-duotone" />
-                  </el-button>
+      <!-- 桌面端 -->
+      <div class="regex-layout regex-layout-desktop">
+        <Splitpanes class="default-theme">
+          <!-- 左侧：脚本列表 -->
+          <Pane
+            size="20"
+            min-size="15"
+            max-size="30"
+          >
+            <div class="scripts-list-panel">
+              <div class="scripts-list-header">
+                <div class="scripts-count">
+                  <Icon icon="ph:list-bullets-duotone" />
+                  共 {{ regexScripts.length }} 个脚本
                 </div>
               </div>
-            </el-scrollbar>
-          </div>
-        </Pane>
 
-        <!-- 右侧：脚本编辑器 -->
-        <Pane
-          size="80"
-          min-size="70"
-        >
-          <div class="script-editor-panel">
-            <div
-              v-if="selectedScriptIndex === null"
-              class="editor-empty-state"
-            >
-              <el-empty
-                description="请选择一个脚本进行编辑"
-                :image-size="100"
-              />
-            </div>
-            <div
-              v-else
-              class="editor-content"
-            >
-              <div class="content-panel-header">
-                <h2 class="content-panel-title">
-                  <Icon
-                    icon="ph:code-duotone"
-                    class="content-panel-icon"
-                  />
-                  编辑:
-                  <span class="content-panel-text-highlight">
-                    {{ currentScriptRequired.scriptName || '未命名脚本' }}
-                  </span>
-                </h2>
-                <div class="editor-actions">
-                  <el-button-group size="small">
+              <el-scrollbar class="scripts-scrollbar">
+                <div class="scripts-list">
+                  <div
+                    v-for="(script, index) in regexScripts"
+                    :key="script.id"
+                    class="script-item"
+                    :class="{ 'is-active': selectedScriptIndex === index, 'is-disabled': script.disabled }"
+                    @click="selectScript(index)"
+                  >
+                    <div class="script-item-content">
+                      <Icon
+                        :icon="script.disabled ? 'ph:prohibit-duotone' : 'ph:code-duotone'"
+                        class="script-icon"
+                      />
+                      <div class="script-info">
+                        <div class="script-name">{{ script.scriptName || `脚本 ${index + 1}` }}</div>
+                        <div class="script-find-regex">{{ truncateRegex(script.findRegex) }}</div>
+                      </div>
+                    </div>
                     <el-button
                       type="danger"
+                      size="small"
+                      text
+                      @click.stop="handleDeleteScript(index)"
+                    >
+                      <Icon icon="ph:trash-duotone" />
+                    </el-button>
+                  </div>
+                </div>
+              </el-scrollbar>
+            </div>
+          </Pane>
+
+          <!-- 右侧：脚本编辑器 -->
+          <Pane
+            size="80"
+            min-size="70"
+          >
+            <div class="script-editor-panel">
+              <div
+                v-if="selectedScriptIndex === null"
+                class="editor-empty-state"
+              >
+                <el-empty
+                  description="请选择一个脚本进行编辑"
+                  :image-size="100"
+                />
+              </div>
+              <div
+                v-else
+                class="editor-content"
+              >
+                <div class="content-panel-header">
+                  <h2 class="content-panel-title">
+                    <Icon
+                      icon="ph:code-duotone"
+                      class="content-panel-icon"
+                    />
+                    编辑:
+                    <span class="content-panel-text-highlight">
+                      {{ currentScriptRequired.scriptName || '未命名脚本' }}
+                    </span>
+                  </h2>
+                  <div class="editor-actions">
+                    <el-button-group size="small">
+                      <el-button
+                        type="danger"
+                        @click="handleDeleteScript(selectedScriptIndex)"
+                      >
+                        <Icon icon="ph:trash-duotone" />
+                        删除
+                      </el-button>
+                    </el-button-group>
+                  </div>
+                </div>
+
+                <el-scrollbar class="editor-scrollbar">
+                  <div class="editor-form">
+                    <el-form
+                      :model="currentScriptRequired"
+                      label-position="top"
+                    >
+                      <RegexEditorCore
+                        v-model:script-name="currentScriptRequired.scriptName"
+                        v-model:find-regex="currentScriptRequired.findRegex"
+                        v-model:replace-string="currentScriptRequired.replaceString"
+                        v-model:trim-strings="trimStringsText"
+                        v-model:substitute-regex="currentScriptRequired.substituteRegex"
+                      />
+
+                      <RegexAdvancedSettings v-model="currentScriptRequired" />
+
+                      <el-divider />
+
+                      <!-- 测试面板 -->
+                      <RegexSimulatorPanel
+                        v-model:test-string="testString"
+                        v-model:render-html="renderHtml"
+                        v-model:user-macro-value="userMacroValue"
+                        v-model:char-macro-value="charMacroValue"
+                        :simulated-result="simulatedResult"
+                      />
+                    </el-form>
+                  </div>
+                </el-scrollbar>
+              </div>
+            </div>
+          </Pane>
+        </Splitpanes>
+      </div>
+
+      <!-- 移动端：标签页布局 -->
+      <div class="regex-layout regex-layout-mobile">
+        <el-tabs
+          v-model="mobileActiveTab"
+          type="border-card"
+          class="regex-mobile-tabs"
+        >
+          <el-tab-pane
+            name="list"
+            label="脚本列表"
+          >
+            <div class="scripts-list-panel-mobile">
+              <el-scrollbar class="scripts-scrollbar">
+                <div class="scripts-list">
+                  <div
+                    v-for="(script, index) in regexScripts"
+                    :key="script.id"
+                    class="script-item-mobile"
+                    :class="{ 'is-active': selectedScriptIndex === index, 'is-disabled': script.disabled }"
+                    @click="handleMobileSelectScript(index)"
+                  >
+                    <div class="script-item-content">
+                      <Icon
+                        :icon="script.disabled ? 'ph:prohibit-duotone' : 'ph:code-duotone'"
+                        class="script-icon"
+                      />
+                      <div class="script-info">
+                        <div class="script-name">{{ script.scriptName || `脚本 ${index + 1}` }}</div>
+                        <div class="script-find-regex">{{ truncateRegex(script.findRegex, 40) }}</div>
+                      </div>
+                    </div>
+                    <el-button
+                      type="danger"
+                      size="small"
+                      text
+                      @click.stop="handleDeleteScript(index)"
+                    >
+                      <Icon icon="ph:trash-duotone" />
+                    </el-button>
+                  </div>
+                </div>
+              </el-scrollbar>
+            </div>
+          </el-tab-pane>
+          <el-tab-pane
+            name="editor"
+            :label="selectedScriptIndex !== null ? currentScriptRequired.scriptName || '编辑中' : '编辑器'"
+          >
+            <div class="script-editor-panel-mobile">
+              <div
+                v-if="selectedScriptIndex === null"
+                class="editor-empty-state"
+              >
+                <el-empty
+                  description="请从脚本列表中选择一个脚本"
+                  :image-size="80"
+                />
+              </div>
+              <div
+                v-else
+                class="editor-content-mobile"
+              >
+                <div class="content-panel-header-mobile">
+                  <h2 class="content-panel-title-mobile">
+                    <Icon
+                      icon="ph:code-duotone"
+                      class="content-panel-icon"
+                    />
+                    {{ currentScriptRequired.scriptName || '未命名脚本' }}
+                  </h2>
+                  <div class="editor-actions-mobile">
+                    <el-button
+                      type="danger"
+                      size="small"
                       @click="handleDeleteScript(selectedScriptIndex)"
                     >
                       <Icon icon="ph:trash-duotone" />
                       删除
                     </el-button>
-                  </el-button-group>
+                  </div>
                 </div>
+
+                <el-scrollbar class="editor-scrollbar-mobile">
+                  <div class="editor-form">
+                    <el-form
+                      :model="currentScriptRequired"
+                      label-position="top"
+                    >
+                      <RegexEditorCore
+                        v-model:script-name="currentScriptRequired.scriptName"
+                        v-model:find-regex="currentScriptRequired.findRegex"
+                        v-model:replace-string="currentScriptRequired.replaceString"
+                        v-model:trim-strings="trimStringsText"
+                        v-model:substitute-regex="currentScriptRequired.substituteRegex"
+                      />
+
+                      <RegexAdvancedSettings v-model="currentScriptRequired" />
+
+                      <el-divider />
+
+                      <!-- 测试面板 -->
+                      <RegexSimulatorPanel
+                        v-model:test-string="testString"
+                        v-model:render-html="renderHtml"
+                        v-model:user-macro-value="userMacroValue"
+                        v-model:char-macro-value="charMacroValue"
+                        :simulated-result="simulatedResult"
+                      />
+                    </el-form>
+                  </div>
+                </el-scrollbar>
               </div>
-
-              <el-scrollbar
-                class="editor-scrollbar"
-                max-height="calc(100vh - 280px)"
-              >
-                <div class="editor-form">
-                  <el-form
-                    :model="currentScriptRequired"
-                    label-position="top"
-                  >
-                    <RegexEditorCore
-                      v-model:script-name="currentScriptRequired.scriptName"
-                      v-model:find-regex="currentScriptRequired.findRegex"
-                      v-model:replace-string="currentScriptRequired.replaceString"
-                      v-model:trim-strings="trimStringsText"
-                      v-model:substitute-regex="currentScriptRequired.substituteRegex"
-                    />
-
-                    <RegexAdvancedSettings v-model="currentScriptRequired" />
-
-                    <el-divider />
-
-                    <!-- 测试面板 -->
-                    <RegexSimulatorPanel
-                      v-model:test-string="testString"
-                      v-model:render-html="renderHtml"
-                      v-model:user-macro-value="userMacroValue"
-                      v-model:char-macro-value="charMacroValue"
-                      :simulated-result="simulatedResult"
-                    />
-                  </el-form>
-                </div>
-              </el-scrollbar>
             </div>
-          </div>
-        </Pane>
-      </Splitpanes>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
     </div>
 
     <!-- 正则脚本选择对话框（从库添加） -->
@@ -191,6 +305,8 @@ import {
   ElMessage,
   ElMessageBox,
   ElScrollbar,
+  ElTabPane,
+  ElTabs,
 } from 'element-plus';
 import { Pane, Splitpanes } from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
@@ -221,6 +337,15 @@ const emit = defineEmits<Emits>();
 const showRegexSelector = ref(false);
 const showReplaceSelector = ref(false);
 const selectedScriptIndex = ref<number | null>(null);
+
+// 移动端状态
+const mobileActiveTab = ref<'list' | 'editor'>('list');
+
+// 移动端选择脚本
+const handleMobileSelectScript = (index: number) => {
+  selectedScriptIndex.value = index;
+  mobileActiveTab.value = 'editor';
+};
 
 // 正则脚本库管理
 const { handleImportFromCharacterCard } = useRegexCollection();
@@ -298,9 +423,9 @@ const selectScript = (index: number) => {
   selectedScriptIndex.value = index;
 };
 
-const truncateRegex = (regex: string) => {
-  if (regex.length > 40) {
-    return regex.substring(0, 40) + '...';
+const truncateRegex = (regex: string, maxLength: number = 40) => {
+  if (regex.length > maxLength) {
+    return regex.substring(0, maxLength) + '...';
   }
   return regex;
 };
@@ -483,6 +608,8 @@ defineExpose({
 </script>
 
 <style scoped>
+@import '@/css/card-manager-panels.css';
+
 .card-regex-panel {
   height: 100%;
   display: flex;
@@ -490,51 +617,142 @@ defineExpose({
   background: var(--el-bg-color);
 }
 
-.panel-notice {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  background: var(--el-color-primary-light-9);
-  border-bottom: 1px solid var(--el-color-primary-light-7);
-  color: var(--el-color-primary);
-  font-size: 14px;
-  flex-shrink: 0;
-}
+@media (max-width: 1023px) {
+  .empty-actions {
+    flex-direction: column;
+  }
 
-.panel-notice .iconify {
-  font-size: 18px;
-}
-
-.panel-notice span {
-  flex: 1;
-}
-
-.empty-state {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
-}
-
-.empty-actions {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  justify-content: center;
+  .empty-actions > .el-button + .el-button {
+    margin-left: 0;
+  }
 }
 
 .regex-editor-wrapper {
   flex: 1;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 布局容器 */
+.regex-layout {
+  flex: 1;
+  overflow: hidden;
+  height: 100%;
+  min-height: 0;
+}
+
+/* 桌面端布局 */
+.regex-layout-desktop {
+  display: flex;
+  flex-direction: column;
+}
+
+.regex-layout-mobile {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .regex-layout-desktop {
+    display: none;
+  }
+
+  .regex-layout-mobile {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+}
+
+.regex-editor-wrapper :deep(.splitpanes) {
+  height: 100%;
+}
+
+.regex-editor-wrapper :deep(.splitpanes__pane) {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 移动端标签页 */
+.regex-mobile-tabs {
+  height: 100%;
+}
+
+.regex-mobile-tabs :deep(.el-tabs__content) {
+  height: calc(100% - 48px);
+  overflow: hidden;
+}
+
+.regex-mobile-tabs :deep(.el-tab-pane) {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 移动端脚本列表面板 */
+.scripts-list-panel-mobile {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--el-bg-color);
+}
+
+/* 移动端脚本条目 */
+.script-item-mobile {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+  background: var(--el-fill-color-extra-light);
+  margin-bottom: 8px;
+}
+
+.script-item-mobile:hover {
+  background: var(--el-fill-color-light);
+  border-color: var(--el-border-color);
+}
+
+.script-item-mobile.is-active {
+  background: var(--el-color-primary-light-9);
+  border-color: var(--el-color-primary);
+}
+
+.script-item-mobile.is-disabled {
+  opacity: 0.6;
+}
+
+/* 移动端编辑器面板 */
+.script-editor-panel-mobile {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--el-bg-color);
+  overflow: hidden;
+}
+
+.editor-content-mobile {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.editor-scrollbar-mobile {
+  flex: 1;
+  min-height: 0;
 }
 
 .scripts-list-panel {
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 0;
   background: var(--el-bg-color);
+  overflow: hidden;
 }
 
 .scripts-list-header {
@@ -556,6 +774,7 @@ defineExpose({
 
 .scripts-scrollbar {
   flex: 1;
+  min-height: 0;
   padding: 8px;
 }
 
@@ -630,61 +849,24 @@ defineExpose({
 
 .script-editor-panel {
   height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   background: var(--el-bg-color);
-}
-
-.editor-empty-state {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  overflow: hidden;
 }
 
 .editor-content {
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-}
-
-.content-panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--el-border-color-light);
-  background: var(--el-fill-color-extra-light);
-  flex-shrink: 0;
-}
-
-.content-panel-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
-  margin: 0;
-}
-
-.content-panel-icon {
-  font-size: 18px;
-  color: var(--el-color-primary);
-}
-
-.content-panel-text-highlight {
-  color: var(--el-color-primary);
-}
-
-.editor-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  overflow: hidden;
 }
 
 .editor-scrollbar {
   flex: 1;
+  min-height: 0;
 }
 
 .editor-form {

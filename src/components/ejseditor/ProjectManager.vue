@@ -342,20 +342,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import { useEjsEditorStore } from '@/composables/ejs/ejsEditor';
 import {
-  Plus,
-  Setting,
   ArrowRight,
   CopyDocument,
   Delete,
-  Edit,
   Download,
-  Upload,
+  Edit,
   FolderOpened,
+  Plus,
+  Setting,
+  Upload,
 } from '@element-plus/icons-vue';
-import { useEjsEditorStore } from '@/composables/ejs/ejsEditor';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { computed, ref, watch } from 'vue';
 
 const store = useEjsEditorStore();
 const showProjectDialog = ref(false);
@@ -875,6 +875,12 @@ const handleExportWorkspace = () => {
 
   .scheme-actions {
     justify-content: flex-end;
+  }
+
+  /* 移动端去掉内部滚动约束，由 el-dialog__body 统一管理滚动 */
+  .project-management {
+    max-height: none;
+    overflow-y: visible;
   }
 }
 </style>

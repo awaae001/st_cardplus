@@ -15,6 +15,9 @@
           :animation="200"
           ghost-class="tab-ghost"
           :disabled="false"
+          :delay="200"
+          :delay-on-touch-only="true"
+          :touch-start-threshold="5"
           @end="handleDragEnd"
         >
           <template #item="{ element: tab }">
@@ -41,10 +44,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue';
-import { Icon } from '@iconify/vue';
-import draggable from 'vuedraggable';
 import type { Tab } from '@/composables/characterCard/useTabManager';
+import { Icon } from '@iconify/vue';
+import { nextTick, ref, watch } from 'vue';
+import draggable from 'vuedraggable';
 
 const props = defineProps<{
   tabs: Tab[];

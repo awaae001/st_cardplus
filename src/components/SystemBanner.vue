@@ -3,26 +3,30 @@
     v-if="showBanner"
     class="system-banner"
   >
-    <span>{{ bannerMessage }}</span>
-    <a
-      v-if="bannerLink"
-      :href="bannerLink"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      {{ bannerLinkText }}
-    </a>
-    <button
-      v-if="props.dismissible"
-      @click="dismissBanner"
-    >
-      不再显示
-    </button>
+    <span class="banner-message">{{ bannerMessage }}</span>
+    <div class="banner-actions">
+      <a
+        v-if="bannerLink"
+        :href="bannerLink"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="banner-link"
+      >
+        {{ bannerLinkText }}
+      </a>
+      <button
+        v-if="props.dismissible"
+        class="banner-dismiss"
+        @click="dismissBanner"
+      >
+        不再显示
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 
 const props = withDefaults(
   defineProps<{
@@ -85,26 +89,86 @@ const dismissBanner = () => {
 
 <style scoped>
 .system-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
   background-color: #f0f8ff;
   color: #333;
-  padding: 10px;
-  text-align: center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
 }
 
-.system-banner a {
+.banner-message {
+  text-align: center;
+}
+
+.banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.banner-link {
   color: #007bff;
   text-decoration: none;
 }
 
-.system-banner button {
+.banner-link:hover {
+  text-decoration: underline;
+}
+
+.banner-dismiss {
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
   background: none;
   border: 1px solid #ccc;
-  cursor: pointer;
-  padding: 2px 8px;
-  border-radius: 4px;
+}
+
+.banner-dismiss:hover {
+  background-color: #e9ecef;
+}
+
+/* 移动端优化 - 垂直堆叠 */
+@media (max-width: 640px) {
+  .system-banner {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .banner-message {
+    text-align: center;
+    width: 100%;
+  }
+
+  .banner-actions {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* 暗色模式 */
+:global(.dark) .system-banner {
+  background-color: #1a365d;
+  color: #e2e8f0;
+}
+
+:global(.dark) .banner-link {
+  color: #63b3ed;
+}
+
+:global(.dark) .banner-dismiss {
+  border-color: #4a5568;
+  color: #a0aec0;
+}
+
+:global(.dark) .banner-dismiss:hover {
+  background-color: #2d3748;
 }
 </style>

@@ -20,7 +20,7 @@
       >
         <button
           @click="emit('create-book')"
-          class="btn-primary-adv sidebar-header-button"
+          class="btn-adv btn-primary-adv sidebar-header-button"
           aria-label="创建新世界书"
         >
           <Icon icon="ph:plus-bold" />

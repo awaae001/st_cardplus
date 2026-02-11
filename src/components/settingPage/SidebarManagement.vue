@@ -1,125 +1,154 @@
 <template>
   <div class="sidebar-management">
-    <div class="setting-card">
-      <div class="setting-content">
-        <div class="setting-header">
-          <div class="setting-info">
-            <span class="setting-label">侧边栏管理</span>
-            <Icon
-              icon="fluent:sidebar-search-20-regular"
-              width="20"
-              height="20"
-              :style="{ marginLeft: '8px', color: 'var(--el-color-primary)' }"
-            />
-          </div>
-          <el-button
-            @click="resetToDefault"
-            size="small"
-            type="info"
-            plain
-          >
-            <Icon
-              icon="material-symbols:refresh"
-              width="16"
-              height="16"
-            />
-            重置默认
-          </el-button>
+    <div class="nav-card">
+      <div class="nav-card-header">
+        <div class="nav-card-title">
+          <Icon
+            icon="fluent:navigation-24-regular"
+            width="20"
+            height="20"
+            class="title-icon"
+          />
+          <span>导航栏管理</span>
         </div>
-        <p class="setting-description">拖拽排序侧边栏菜单项，或使用开关控制显示/隐藏</p>
-      </div>
-    </div>
-
-    <div class="menu-management">
-      <!-- 可见菜单项 -->
-      <div class="section-card">
-        <div class="section-header">
-          <h3>
-            <Icon
-              icon="heroicons:eye"
-              width="18"
-              height="18"
-            />
-            显示在侧边栏 ({{ visibleItems.length }})
-          </h3>
-          <span class="section-description">这些项目会显示在侧边栏中</span>
-        </div>
-
-        <div
-          class="menu-list"
-          ref="visibleListRef"
+        <el-button
+          @click="resetToDefault"
+          size="small"
+          type="info"
+          plain
         >
-          <TransitionGroup
-            name="list"
-            tag="div"
+          <Icon
+            icon="material-symbols:refresh"
+            width="16"
+            height="16"
+          />
+          重置默认
+        </el-button>
+      </div>
+
+      <p class="nav-card-description">拖拽排序导航菜单项，或使用开关控制显示/隐藏</p>
+
+      <!-- 标签栏 -->
+      <div class="tab-container">
+        <button
+          @click="activeTab = 'visible'"
+          class="tab-button"
+          :class="{ active: activeTab === 'visible' }"
+        >
+          <Icon
+            icon="heroicons:eye"
+            width="20"
+            height="20"
+          />
+          <span class="tab-text">导航栏</span>
+          <span class="tab-badge">{{ visibleItems.length }}</span>
+        </button>
+        <button
+          @click="activeTab = 'hidden'"
+          class="tab-button"
+          :class="{ active: activeTab === 'hidden' }"
+        >
+          <Icon
+            icon="heroicons:eye-slash"
+            width="20"
+            height="20"
+          />
+          <span class="tab-text">工具箱</span>
+          <span class="tab-badge hidden-badge">{{ hiddenItems.length }}</span>
+        </button>
+        <button
+          @click="activeTab = 'tabbar'"
+          class="tab-button"
+          :class="{ active: activeTab === 'tabbar' }"
+        >
+          <Icon
+            icon="heroicons:device-phone-mobile"
+            width="20"
+            height="20"
+          />
+          <span class="tab-text">快捷入口</span>
+          <span class="tab-badge tabbar-badge">{{ tabBarItems.length }}</span>
+        </button>
+      </div>
+
+      <!-- 内容区域 -->
+      <div class="nav-card-content">
+        <!-- 导航栏 -->
+        <div
+          v-show="activeTab === 'visible'"
+          class="menu-list"
+        >
+          <draggable
+            v-model="localVisibleItems"
+            item-key="id"
+            handle=".drag-handle"
+            :animation="150"
+            :move="checkMove"
+            ghost-class="sortable-ghost"
+            chosen-class="sortable-chosen"
+            drag-class="sortable-drag"
+            :force-fallback="true"
+            :fallback-class="'sortable-fallback'"
+            :fallback-on-body="true"
+            :touch-start-threshold="3"
+            @end="handleDragEnd"
           >
-            <div
-              v-for="item in visibleItems"
-              :key="item.id"
-              :data-item-id="item.id"
-              class="menu-item"
-              :class="{
-                'is-fixed': item.fixed,
-                'is-dragging': draggedItem?.id === item.id,
-                'drag-over-before': dragOverItem === item.id && insertPosition === 'before',
-                'drag-over-after': dragOverItem === item.id && insertPosition === 'after',
-              }"
-              draggable="true"
-              @dragstart="handleDragStart($event, item)"
-              @dragover="handleDragOver"
-              @drop="handleDrop($event, 'visible')"
-              @dragend="handleDragEnd"
-            >
-              <div class="item-content">
-                <Icon
-                  :icon="getIconName(item.icon)"
-                  width="20"
-                  height="20"
-                  class="item-icon"
-                />
-                <div class="item-info">
-                  <div class="item-main-line">
-                    <span class="item-title">{{ item.title }}</span>
-                    <div class="item-tags">
-                      <span
-                        v-if="item.type === 'tool'"
-                        class="item-type"
-                      >
-                        工具
-                      </span>
-                      <span
-                        v-if="item.beta"
-                        class="item-type beta"
-                      >
-                        测试版
-                      </span>
+            <template #item="{ element: item }">
+              <div
+                class="menu-item"
+                :class="{ 'is-fixed': item.fixed }"
+              >
+                <div class="item-content">
+                  <Icon
+                    :icon="getIconName(item.icon)"
+                    width="20"
+                    height="20"
+                    class="item-icon"
+                  />
+                  <div class="item-info">
+                    <div class="item-main-line">
+                      <span class="item-title">{{ item.title }}</span>
+                      <div class="item-tags">
+                        <span
+                          v-if="item.type === 'tool'"
+                          class="item-type"
+                        >
+                          工具
+                        </span>
+                        <span
+                          v-if="item.beta"
+                          class="item-type beta"
+                        >
+                          测试版
+                        </span>
+                      </div>
                     </div>
+                    <span
+                      v-if="item.description"
+                      class="item-description"
+                    >
+                      {{ item.description }}
+                    </span>
                   </div>
-                  <span
-                    v-if="item.description"
-                    class="item-description"
-                  >
-                    {{ item.description }}
-                  </span>
+                </div>
+                <div class="item-actions">
+                  <el-switch
+                    :model-value="true"
+                    :disabled="item.fixed"
+                    @change="toggleItemVisibility(item.id, false)"
+                    size="small"
+                  />
+                  <Icon
+                    icon="material-symbols:drag-indicator"
+                    width="20"
+                    height="20"
+                    class="drag-handle"
+                    :class="{ disabled: item.fixed }"
+                  />
                 </div>
               </div>
-              <div class="item-actions">
-                <el-switch
-                  :model-value="true"
-                  :disabled="item.fixed"
-                  @change="toggleItemVisibility(item.id, false)"
-                  size="small"
-                />
-                <Icon
-                  icon="material-symbols:drag-indicator"
-                  width="16"
-                  height="16"
-                  class="drag-handle"
-                  :class="{ disabled: item.fixed }"
-                />
-              </div>
-            </div>
-          </TransitionGroup>
+            </template>
+          </draggable>
 
           <div
             v-if="visibleItems.length === 0"
@@ -130,32 +159,20 @@
               width="32"
               height="32"
             />
-            <p>暂无显示项目</p>
+            <p>暂无导航栏项目</p>
           </div>
         </div>
-      </div>
 
-      <!-- 隐藏菜单项 -->
-      <div class="section-card">
-        <div class="section-header">
-          <h3>
-            <Icon
-              icon="heroicons:eye-slash"
-              width="18"
-              height="18"
-            />
-            隐藏项目 ({{ hiddenItems.length }})
-          </h3>
-          <span class="section-description">这些项目将显示在工具箱中</span>
-        </div>
-
+        <!-- 工具箱 -->
         <div
+          v-show="activeTab === 'hidden'"
           class="menu-list"
           ref="hiddenListRef"
         >
           <TransitionGroup
             name="list"
             tag="div"
+            class="menu-list-inner"
           >
             <div
               v-for="item in hiddenItems"
@@ -207,6 +224,74 @@
 
           <div
             v-if="hiddenItems.length === 0"
+            class="empty-state empty-state-success"
+          >
+            <Icon
+              icon="heroicons:check-circle"
+              width="32"
+              height="32"
+            />
+            <p>所有项目都已在导航栏中</p>
+          </div>
+        </div>
+
+        <!-- TabBar配置 -->
+        <div
+          v-show="activeTab === 'tabbar'"
+          class="menu-list"
+        >
+          <div class="tabbar-tips">
+            <Icon
+              icon="heroicons:information-circle"
+              width="20"
+              height="20"
+            />
+            <span>选择要在移动端底部快捷入口显示的项目（建议 3-4 个，避免过多导致拥挤）</span>
+          </div>
+
+          <TransitionGroup
+            name="list"
+            tag="div"
+            class="menu-list-inner"
+          >
+            <div
+              v-for="item in visibleItems"
+              :key="item.id"
+              class="menu-item tabbar-item"
+            >
+              <div class="item-content">
+                <Icon
+                  :icon="getIconName(item.icon)"
+                  width="20"
+                  height="20"
+                  class="item-icon"
+                />
+                <div class="item-info">
+                  <div class="item-main-line">
+                    <span class="item-title">{{ item.title }}</span>
+                    <div class="item-tags">
+                      <span
+                        v-if="item.showInTabBar"
+                        class="item-type tabbar-active"
+                      >
+                        已添加
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="item-actions">
+                <el-switch
+                  :model-value="item.showInTabBar === true"
+                  @change="toggleTabBarVisibility(item.id, $event as boolean)"
+                  size="small"
+                />
+              </div>
+            </div>
+          </TransitionGroup>
+
+          <div
+            v-if="visibleItems.length === 0"
             class="empty-state"
           >
             <Icon
@@ -214,7 +299,7 @@
               width="32"
               height="32"
             />
-            <p>暂无隐藏项目</p>
+            <p>没有可添加到快捷入口的项目</p>
           </div>
         </div>
       </div>
@@ -223,26 +308,26 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { Icon } from '@iconify/vue';
-import { ElMessage } from 'element-plus';
+import { getIconifyIconName } from '@/config/menuConfig';
 import {
   type MenuItemConfig,
   getSidebarConfig,
+  resetSidebarConfig,
   setSidebarConfig,
+  updateMenuItemTabBar,
   updateMenuItemVisibility,
   updateMenuItemsOrder,
-  resetSidebarConfig,
 } from '@/utils/localStorageUtils';
-import { getIconifyIconName } from '@/config/menuConfig';
+import { Icon } from '@iconify/vue';
+import { ElMessage } from 'element-plus';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import draggable from 'vuedraggable';
 
-// 响应式数据
 const sidebarConfig = ref(getSidebarConfig());
-const draggedItem = ref<MenuItemConfig | null>(null);
-const dragOverItem = ref<string | null>(null);
-const insertPosition = ref<'before' | 'after' | null>(null);
+const activeTab = ref<'visible' | 'hidden' | 'tabbar'>('visible');
 
-// 计算属性
+const localVisibleItems = ref<MenuItemConfig[]>([]);
+
 const visibleItems = computed(() =>
   sidebarConfig.value.items.filter((item) => item.visible).sort((a, b) => a.order - b.order)
 );
@@ -251,16 +336,27 @@ const hiddenItems = computed(() =>
   sidebarConfig.value.items.filter((item) => !item.visible).sort((a, b) => a.order - b.order)
 );
 
-// 图标名称转换
+const tabBarItems = computed(() =>
+  sidebarConfig.value.items
+    .filter((item) => item.visible && item.showInTabBar === true)
+    .sort((a, b) => a.order - b.order)
+);
+
+watch(
+  visibleItems,
+  (newItems) => {
+    localVisibleItems.value = [...newItems];
+  },
+  { immediate: true }
+);
+
 const getIconName = (iconName: string): string => {
   return getIconifyIconName(iconName);
 };
 
-// 切换项目可见性
 const toggleItemVisibility = (itemId: string, visible: boolean) => {
   const item = sidebarConfig.value.items.find((i) => i.id === itemId);
 
-  // 检查是否为固定项目
   if (item?.fixed && !visible) {
     ElMessage.warning('该项目为固定项目，不能隐藏');
     return;
@@ -268,38 +364,28 @@ const toggleItemVisibility = (itemId: string, visible: boolean) => {
 
   updateMenuItemVisibility(itemId, visible);
 
-  // 重新获取配置
   sidebarConfig.value = getSidebarConfig();
 
-  // 如果是显示项目，需要重新排序
+  // 如果是导航栏，需要重新排序
   if (visible) {
     const updatedItem = sidebarConfig.value.items.find((i) => i.id === itemId);
     if (updatedItem) {
-      // 找到所有可见项目（包括固定和非固定），按 order 排序
-      const sortedVisibleItems = visibleItems.value
-        .filter((i) => i.id !== itemId) // 排除当前项目
-        .sort((a, b) => a.order - b.order);
+      const sortedVisibleItems = visibleItems.value.filter((i) => i.id !== itemId).sort((a, b) => a.order - b.order);
 
-      // 找到第一个固定项目的索引
       const firstFixedIndex = sortedVisibleItems.findIndex((i) => i.fixed);
 
       if (firstFixedIndex !== -1) {
-        // 找到第一个固定项目后面的位置（数组索引 + 1）
         const insertIndex = firstFixedIndex + 1;
 
-        // 获取插入位置前后的项目
         const prevItem = sortedVisibleItems[firstFixedIndex];
         const nextItem = sortedVisibleItems[insertIndex];
 
         if (nextItem) {
-          // 如果后面有项目，插入到两者之间
           updatedItem.order = (prevItem.order + nextItem.order) / 2;
         } else {
-          // 如果后面没有项目，插入到最后
           updatedItem.order = prevItem.order + 1;
         }
       } else {
-        // 如果没有固定项目，放到最后
         const maxVisibleOrder = Math.max(...sortedVisibleItems.map((i) => i.order), -1);
         updatedItem.order = maxVisibleOrder + 1;
       }
@@ -309,224 +395,275 @@ const toggleItemVisibility = (itemId: string, visible: boolean) => {
     }
   }
 
-  ElMessage.success(visible ? '已添加到侧边栏' : '已移至工具箱');
+  ElMessage.success(visible ? '已添加到导航栏' : '已移至工具箱');
 };
 
-// 拖拽相关方法
-const handleDragStart = (event: DragEvent, item: MenuItemConfig) => {
-  // 固定项目不允许拖拽
-  if (item.fixed) {
-    event.preventDefault();
-    return;
-  }
+const toggleTabBarVisibility = (itemId: string, showInTabBar: boolean) => {
+  updateMenuItemTabBar(itemId, showInTabBar);
 
-  draggedItem.value = item;
-  if (event.dataTransfer) {
-    event.dataTransfer.effectAllowed = 'move';
-  }
-};
-
-const handleDragEnd = () => {
-  // 清除所有拖拽状态
-  draggedItem.value = null;
-  dragOverItem.value = null;
-  insertPosition.value = null;
-};
-
-const handleDragOver = (event: DragEvent) => {
-  event.preventDefault();
-  if (!draggedItem.value || event.dataTransfer) {
-    event.dataTransfer!.dropEffect = 'move';
-  }
-
-  // 获取当前悬停的元素
-  const target = event.target as HTMLElement;
-  const menuItem = target.closest('.menu-item');
-
-  if (menuItem) {
-    const itemId = menuItem.getAttribute('data-item-id');
-    if (itemId && itemId !== draggedItem.value?.id) {
-      // 计算鼠标相对于元素的位置
-      const rect = menuItem.getBoundingClientRect();
-      const midPoint = rect.top + rect.height / 2;
-      const mouseY = event.clientY;
-
-      dragOverItem.value = itemId;
-      insertPosition.value = mouseY < midPoint ? 'before' : 'after';
-    }
-  }
-};
-
-const handleDrop = (event: DragEvent, listType: 'visible' | 'hidden') => {
-  event.preventDefault();
-
-  if (!draggedItem.value) return;
-
-  const target = event.target as HTMLElement;
-  const dropItem = target.closest('.menu-item');
-
-  if (!dropItem) return;
-
-  const dropItemId = dropItem.getAttribute('data-item-id');
-  if (!dropItemId || dropItemId === draggedItem.value.id) return;
-
-  // 重新排序逻辑
-  const currentList = listType === 'visible' ? visibleItems.value : hiddenItems.value;
-  const draggedIndex = currentList.findIndex((item) => item.id === draggedItem.value!.id);
-  const dropIndex = currentList.findIndex((item) => item.id === dropItemId);
-
-  if (draggedIndex === -1 || dropIndex === -1) return;
-
-  // 创建新的排序
-  const newOrder = [...currentList];
-  const [draggedElement] = newOrder.splice(draggedIndex, 1);
-  newOrder.splice(dropIndex, 0, draggedElement);
-
-  // 更新order值
-  newOrder.forEach((item, index) => {
-    item.order = index;
-  });
-
-  updateMenuItemsOrder(newOrder);
   sidebarConfig.value = getSidebarConfig();
 
-  // 清除拖拽状态
-  draggedItem.value = null;
-  dragOverItem.value = null;
-  insertPosition.value = null;
+  window.dispatchEvent(new CustomEvent('sidebarConfigChange'));
+
+  ElMessage.success(showInTabBar ? '已添加到移动端快捷入口' : '已从快捷入口移除');
+};
+
+// 检查是否允许移动
+const checkMove = (event: {
+  draggedContext: { element: MenuItemConfig };
+  relatedContext: { element?: MenuItemConfig };
+}) => {
+  const draggedItem = event.draggedContext.element;
+  const relatedItem = event.relatedContext.element;
+
+  if (draggedItem?.fixed) {
+    return false;
+  }
+
+  if (relatedItem?.fixed) {
+    return false;
+  }
+
+  return true;
+};
+
+// 拖拽结束时保存排序
+const handleDragEnd = () => {
+  const fixedItems = localVisibleItems.value.filter((item) => item.fixed);
+  const movableItems = localVisibleItems.value.filter((item) => !item.fixed);
+
+  const fixedAtStart = fixedItems.filter((item) => item.id === 'home');
+  const fixedAtEnd = fixedItems.filter((item) => item.id !== 'home');
+
+  const finalOrder: MenuItemConfig[] = [];
+  let orderIndex = 0;
+
+  fixedAtStart.forEach((item) => {
+    item.order = orderIndex++;
+    finalOrder.push(item);
+  });
+
+  movableItems.forEach((item) => {
+    item.order = orderIndex++;
+    finalOrder.push(item);
+  });
+
+  fixedAtEnd.forEach((item) => {
+    item.order = orderIndex++;
+    finalOrder.push(item);
+  });
+
+  updateMenuItemsOrder(finalOrder);
+  sidebarConfig.value = getSidebarConfig();
   ElMessage.success('排序已更新');
 };
 
-// 重置为默认配置
 const resetToDefault = () => {
   resetSidebarConfig();
   sidebarConfig.value = getSidebarConfig();
   ElMessage.success('已重置为默认配置');
 };
 
-// 监听侧边栏配置变化
 const handleSidebarConfigChange = () => {
   sidebarConfig.value = getSidebarConfig();
 };
 
-// 组件挂载时刷新配置
 onMounted(() => {
   sidebarConfig.value = getSidebarConfig();
   window.addEventListener('sidebarConfigChange', handleSidebarConfigChange as EventListener);
 });
 
-// 组件卸载时移除事件监听
 onUnmounted(() => {
   window.removeEventListener('sidebarConfigChange', handleSidebarConfigChange as EventListener);
 });
 </script>
 
 <style scoped>
-.sidebar-management {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.setting-card {
+.nav-card {
+  border-radius: 0.5rem;
+  border-width: 1px;
+  border-style: solid;
+  overflow: hidden;
   background-color: var(--el-bg-color-overlay);
-  border: 1px solid var(--el-border-color);
-  border-radius: 8px;
-  padding: 16px;
-  transition: box-shadow 0.3s ease;
+  border-color: var(--el-border-color);
 }
 
-.setting-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.setting-content {
+.nav-card-header {
   display: flex;
-  flex-direction: column;
-}
-
-.setting-header {
-  display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
+  padding: 1rem;
+  border-bottom: 1px solid;
+  border-color: var(--el-border-color);
 }
 
-.setting-info {
+.nav-card-title {
   display: flex;
   align-items: center;
-}
-
-.setting-label {
-  font-size: 16px;
+  gap: 0.5rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
   font-weight: 600;
   color: var(--el-text-color-primary);
 }
 
-.setting-description {
-  font-size: 13px;
-  color: var(--el-text-color-secondary);
-  line-height: 1.5;
+.title-icon {
+  color: var(--el-color-primary);
+}
+
+.nav-card-description {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
   margin: 0;
-  text-align: left;
+  border-bottom: 1px solid;
+  color: var(--el-text-color-secondary);
+  background-color: var(--el-fill-color-light);
+  border-color: var(--el-border-color-lighter);
 }
 
-.menu-management {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: 1fr 1fr;
+/* 标签栏 */
+.tab-container {
+  display: flex;
+  border-bottom: 1px solid;
+  border-color: var(--el-border-color);
 }
 
-@media (max-width: 768px) {
-  .menu-management {
-    grid-template-columns: 1fr;
+.tab-button {
+  flex: 1 1 0%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  padding: 0.875rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  transition-property: color, background-color, border-color;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--el-text-color-secondary);
+  border-bottom: 2px solid transparent;
+  min-width: 0;
+}
+
+@media (max-width: 480px) {
+  .tab-button {
+    gap: 0.375rem;
+    padding: 0.75rem 0.5rem;
+  }
+
+  .tab-button .tab-text {
+    font-size: 0.75rem;
+    line-height: 1rem;
   }
 }
 
-.section-card {
-  background-color: var(--el-bg-color-overlay);
-  border: 1px solid var(--el-border-color);
-  border-radius: 8px;
-  padding: 16px;
+/* 超小屏幕 */
+@media (max-width: 360px) {
+  .tab-button .tab-text {
+    display: none;
+  }
+
+  .tab-button {
+    gap: 0.25rem;
+  }
 }
 
-.section-header {
-  margin-bottom: 16px;
+.tab-button:hover {
+  color: var(--el-text-color-primary);
+  background-color: var(--el-fill-color);
 }
 
-.section-header h3 {
+.tab-button.active {
+  color: var(--el-color-primary);
+  border-bottom-color: var(--el-color-primary);
+  background-color: var(--el-color-primary-light-9);
+}
+
+.tab-text {
+  white-space: nowrap;
+}
+
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding-left: 0.375rem;
+  padding-right: 0.375rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  border-radius: 9999px;
+  color: white;
+  flex-shrink: 0;
+  background-color: var(--el-color-primary);
+}
+
+.tab-badge.hidden-badge {
+  background-color: var(--el-text-color-disabled);
+}
+
+.tab-badge.tabbar-badge {
+  background-color: var(--el-color-success);
+}
+
+/* TabBar 配置提示 */
+.tabbar-tips {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
-  margin: 0 0 4px 0;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  background-color: var(--el-color-info-light-9);
+  color: var(--el-text-color-regular);
 }
 
-.section-description {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
+.tabbar-tips .iconify {
+  color: var(--el-color-info);
+  flex-shrink: 0;
+}
+
+.item-type.tabbar-active {
+  background-color: var(--el-color-success-light-9);
+  color: var(--el-color-success);
+}
+
+/* 内容区域 */
+.nav-card-content {
+  padding: 1rem;
 }
 
 .menu-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  min-height: 200px;
+  gap: 0.5rem;
+  min-height: 12rem;
+}
+
+.menu-list-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .menu-item {
-  position: relative; /* 为伪元素定位 */
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  cursor: default;
+  transition-property: all;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   background-color: var(--el-bg-color);
   border: 1px solid var(--el-border-color-light);
-  border-radius: 6px;
-  cursor: grab;
-  transition: all 0.2s ease;
 }
 
 .menu-item:hover {
@@ -534,15 +671,11 @@ onUnmounted(() => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.menu-item:active {
-  cursor: grabbing;
-}
-
 .menu-item.hidden-item {
   opacity: 0.7;
-  cursor: default;
 }
 
+/* 固定项目样式 */
 .menu-item.is-fixed {
   background-color: var(--el-color-warning-light-9);
   border-color: var(--el-color-warning-light-5);
@@ -558,93 +691,65 @@ onUnmounted(() => {
 }
 
 .menu-item.is-fixed .item-title {
-  color: var(--el-color-warning-dark-2);
   font-weight: 600;
+  color: var(--el-color-warning-dark-2);
 }
 
-/* 拖拽状态样式 */
-.menu-item.is-dragging {
-  opacity: 0.5;
-  transform: scale(0.95);
-  cursor: grabbing !important;
-}
-
-/* 拖拽目标指示器 */
-.menu-item.drag-over-before::before {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background-color: var(--el-color-primary);
-  border-radius: 2px;
-  z-index: 10;
-}
-
-.menu-item.drag-over-after::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background-color: var(--el-color-primary);
-  border-radius: 2px;
-  z-index: 10;
-}
-
+/* 项目内容 */
 .item-content {
   display: flex;
   align-items: center;
-  gap: 12px;
-  flex: 1;
+  gap: 0.75rem;
+  flex: 1 1 0%;
 }
 
 .item-icon {
-  color: var(--el-color-primary);
   flex-shrink: 0;
+  color: var(--el-color-primary);
 }
 
 .item-info {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  flex: 1;
+  gap: 0.25rem;
+  flex: 1 1 0%;
 }
 
 .item-main-line {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .item-title {
-  font-size: 14px;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
   font-weight: 500;
-  color: var(--el-text-color-primary);
   line-height: 1;
+  color: var(--el-text-color-primary);
 }
 
 .item-description {
-  font-size: 12px;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  line-height: 1.375;
   color: var(--el-text-color-secondary);
-  line-height: 1.3;
 }
 
 .item-tags {
   display: flex;
-  gap: 6px;
+  gap: 0.375rem;
   flex-wrap: wrap;
 }
 
 .item-type {
-  font-size: 11px;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  width: fit-content;
   color: var(--el-color-info);
   background-color: var(--el-color-info-light-9);
-  padding: 1px 4px;
-  border-radius: 3px;
-  width: fit-content;
 }
 
 .item-type.beta {
@@ -652,18 +757,19 @@ onUnmounted(() => {
   background-color: var(--el-color-warning-light-9);
 }
 
+/* 操作区域 */
 .item-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   flex-shrink: 0;
 }
 
 .drag-handle {
-  color: var(--el-text-color-secondary);
+  padding: 0.25rem;
+  margin: -0.25rem;
   cursor: grab;
-  padding: 4px;
-  margin: -4px;
+  color: var(--el-text-color-secondary);
   touch-action: none;
 }
 
@@ -672,62 +778,159 @@ onUnmounted(() => {
 }
 
 .drag-handle.disabled {
-  color: var(--el-text-color-disabled);
   cursor: not-allowed !important;
+  color: var(--el-text-color-disabled);
 }
 
-/* 移动端优化 */
 @media (max-width: 768px) {
   .drag-handle {
-    width: 24px;
-    height: 24px;
-    padding: 8px;
-    margin: -8px;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0.625rem;
+    margin: -0.625rem;
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: 0.25rem;
+    transition-property: color, background-color, border-color;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .drag-handle:not(.disabled) {
     color: var(--el-color-primary);
+    background-color: var(--el-color-primary-light-9);
+  }
+
+  .drag-handle:not(.disabled):active {
+    background-color: var(--el-color-primary-light-7);
   }
 
   .item-actions {
-    gap: 12px;
+    gap: 0.75rem;
+  }
+
+  .drag-handle :deep(svg) {
+    width: 24px !important;
+    height: 24px !important;
   }
 }
 
+/* 拖拽时句柄样式 */
+.sortable-chosen .drag-handle:not(.disabled),
+.sortable-fallback .drag-handle:not(.disabled) {
+  background-color: transparent !important;
+}
+
+/* 空状态 */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 32px;
-  color: var(--el-text-color-secondary);
+  padding-top: 2rem;
+  padding-bottom: 2rem;
   text-align: center;
+  color: var(--el-text-color-secondary);
 }
 
 .empty-state p {
-  margin: 8px 0 0 0;
-  font-size: 14px;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  margin-bottom: 0;
 }
 
-/* 动画效果 */
+.empty-state-success {
+  color: var(--el-color-success);
+}
+
+/* 列表动画 */
 .list-move,
 .list-enter-active,
 .list-leave-active {
-  transition: all 0.3s ease;
+  transition-property: all;
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .list-enter-from,
 .list-leave-to {
   opacity: 0;
-  transform: translateX(30px);
+  transform: translateX(2rem);
 }
 
 .list-leave-active {
   position: absolute;
-  right: 0;
   left: 0;
+  right: 0;
+}
+</style>
+
+<style>
+/* VueDraggable 拖拽状态样式 */
+
+/* 占位符（插入位置指示线） */
+.sidebar-management .sortable-ghost {
+  position: relative;
+  opacity: 1 !important;
+  height: 4px !important;
+  min-height: 4px !important;
+  max-height: 4px !important;
+  padding: 0 !important;
+  margin: 4px 0 !important;
+  border: none !important;
+  background: linear-gradient(90deg, var(--el-color-primary) 0%, var(--el-color-primary-light-3) 100%) !important;
+  border-radius: 2px !important;
+  overflow: hidden !important;
+  box-shadow: 0 0 8px var(--el-color-primary-light-5);
+}
+
+.sidebar-management .sortable-ghost::before,
+.sidebar-management .sortable-ghost::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  background-color: var(--el-color-primary);
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+
+.sidebar-management .sortable-ghost::before {
+  left: 0;
+}
+
+.sidebar-management .sortable-ghost::after {
+  right: 0;
+}
+
+.sidebar-management .sortable-ghost > * {
+  display: none !important;
+}
+
+/* 被选中的元素 - 拖拽时隐藏 */
+.sidebar-management .sortable-chosen {
+  opacity: 0.3 !important;
+  transform: scale(0.98);
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* 跟随手指/鼠标移动的元素 */
+.sortable-fallback {
+  opacity: 1 !important;
+  background-color: var(--el-bg-color) !important;
+  border: 2px solid var(--el-color-primary) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25) !important;
+  z-index: 9999 !important;
+  pointer-events: none;
+}
+
+/* 拖拽中的元素 */
+.sidebar-management .sortable-drag {
+  opacity: 0 !important;
 }
 </style>

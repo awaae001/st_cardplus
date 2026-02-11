@@ -21,7 +21,7 @@
       >
         <button
           @click="emit('create-category')"
-          class="btn-primary-adv sidebar-header-button"
+          class="btn-adv btn-primary-adv sidebar-header-button"
           aria-label="创建新类别"
         >
           <Icon icon="ph:plus-bold" />

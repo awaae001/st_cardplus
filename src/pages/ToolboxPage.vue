@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { Icon } from '@iconify/vue';
+import { getIconifyIconName, toolboxFixedTools } from '@/config/menuConfig';
 import { getHiddenMenuItems, type MenuItemConfig } from '@/utils/localStorageUtils';
-import { toolboxFixedTools, getIconifyIconName } from '@/config/menuConfig';
+import { Icon } from '@iconify/vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 
 // 工具箱项目类型
 interface ToolboxDisplayItem {
@@ -11,7 +11,7 @@ interface ToolboxDisplayItem {
   icon: string;
   description: string;
   route: string;
-  type: 'fixed' | 'hidden'; // fixed: 固定工具, hidden: 来自侧边栏的隐藏项目
+  type: 'fixed' | 'hidden'; // fixed: 固定工具, hidden: 来自导航栏的隐藏项目
   category?: string;
   isMainMenu?: boolean; // 是否为主菜单项
 }
@@ -32,7 +32,7 @@ const getFixedTools = (): ToolboxDisplayItem[] => {
   }));
 };
 
-// 获取来自侧边栏的隐藏项目（只包含非工具箱的主菜单项）
+// 获取来自导航栏的隐藏项目（只包含非工具箱的主菜单项）
 const getHiddenSidebarItems = (): ToolboxDisplayItem[] => {
   return hiddenMenuItems.value
     .filter((item) => {
@@ -44,7 +44,7 @@ const getHiddenSidebarItems = (): ToolboxDisplayItem[] => {
       id: item.id,
       title: item.title,
       icon: getIconifyIconName(item.icon),
-      description: item.description || '从侧边栏隐藏的菜单项',
+      description: item.description || '从导航栏隐藏的菜单项',
       route: item.route,
       type: 'hidden',
       isMainMenu: item.type === 'main',
@@ -68,7 +68,7 @@ const refreshHiddenItems = () => {
   hiddenMenuItems.value = getHiddenMenuItems();
 };
 
-// 监听侧边栏配置变化
+// 监听导航栏配置变化
 const handleSidebarConfigChange = () => {
   refreshHiddenItems();
 };
@@ -84,69 +84,71 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="toolbox-container">
-    <h1>工具箱</h1>
+  <div class="toolbox-wrapper">
+    <div class="toolbox-container">
+      <h1>工具箱</h1>
 
-    <!-- 固定工具区域 -->
-    <div class="section">
-      <h2 class="section-title">工具</h2>
-      <div class="tools-grid">
-        <el-card
-          v-for="tool in fixedTools"
-          :key="tool.id"
-          class="tool-card"
-          shadow="hover"
-          @click="$router.push(tool.route)"
-        >
-          <div class="card-content">
-            <Icon
-              :icon="tool.icon"
-              width="48"
-              height="48"
-            />
-            <h3>{{ tool.title }}</h3>
-            <p>{{ tool.description }}</p>
-          </div>
-        </el-card>
+      <!-- 固定工具 -->
+      <div class="section">
+        <h2 class="section-title">工具</h2>
+        <div class="tools-grid">
+          <el-card
+            v-for="tool in fixedTools"
+            :key="tool.id"
+            class="tool-card"
+            shadow="hover"
+            @click="$router.push(tool.route)"
+          >
+            <div class="card-content">
+              <Icon
+                :icon="tool.icon"
+                width="48"
+                height="48"
+              />
+              <h3>{{ tool.title }}</h3>
+              <p>{{ tool.description }}</p>
+            </div>
+          </el-card>
+        </div>
       </div>
-    </div>
 
-    <!-- 来自侧边栏的隐藏项目 -->
-    <div
-      v-if="hiddenSidebarItems.length > 0"
-      class="section"
-    >
-      <h2 class="section-title">
-        <Icon
-          icon="heroicons:eye-slash"
-          width="20"
-          height="20"
-        />
-        来自侧边栏 ({{ hiddenSidebarItems.length }})
-      </h2>
-      <p class="section-description">这些项目已从侧边栏隐藏，可在此快速访问</p>
-
-      <div class="hidden-items-grid">
-        <div
-          v-for="item in hiddenSidebarItems"
-          :key="item.id"
-          class="hidden-item-card"
-          @click="$router.push(item.route)"
-        >
+      <!-- 来自导航栏的项目 -->
+      <div
+        v-if="hiddenSidebarItems.length > 0"
+        class="section"
+      >
+        <h2 class="section-title">
           <Icon
-            :icon="item.icon"
-            width="24"
-            height="24"
-            class="hidden-item-icon"
+            icon="heroicons:eye-slash"
+            width="20"
+            height="20"
           />
-          <div class="hidden-item-info">
-            <span class="hidden-item-title">{{ item.title }}</span>
-            <span
-              v-if="item.description"
-              class="hidden-item-description"
-            >
-              {{ item.description }}
-            </span>
+          来自导航栏 ({{ hiddenSidebarItems.length }})
+        </h2>
+        <p class="section-description">这些项目已从导航栏隐藏，可在此快速访问</p>
+
+        <div class="hidden-items-grid">
+          <div
+            v-for="item in hiddenSidebarItems"
+            :key="item.id"
+            class="hidden-item-card"
+            @click="$router.push(item.route)"
+          >
+            <Icon
+              :icon="item.icon"
+              width="24"
+              height="24"
+              class="hidden-item-icon"
+            />
+            <div class="hidden-item-info">
+              <span class="hidden-item-title">{{ item.title }}</span>
+              <span
+                v-if="item.description"
+                class="hidden-item-description"
+              >
+                {{ item.description }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -155,47 +157,57 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+.toolbox-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 1.25rem;
+}
+
 .toolbox-container {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: 72rem;
 }
 
 .section {
-  margin-bottom: 40px;
+  margin-bottom: 2.5rem;
 }
 
 .section-title {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 18px;
+  gap: 0.5rem;
+  font-size: 1.125rem;
+  line-height: 1.75rem;
   font-weight: 600;
+  margin-bottom: 0.5rem;
   color: var(--el-text-color-primary);
-  margin: 0 0 8px 0;
 }
 
 .section-description {
-  font-size: 14px;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  margin-bottom: 1rem;
   color: var(--el-text-color-secondary);
-  margin: 0 0 16px 0;
 }
 
 /* 固定工具样式 */
 .tools-grid {
   display: grid;
+  gap: 1.25rem;
+  margin-top: 1.25rem;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
 }
 
 .tool-card {
   cursor: pointer;
-  transition: transform 0.2s;
+  transition-property: transform;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .tool-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-0.375rem);
 }
 
 .card-content {
@@ -203,50 +215,56 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 20px;
+  padding: 1.25rem;
 }
 
 .card-content h3 {
-  margin: 10px 0;
-  font-size: 16px;
+  margin-top: 0.625rem;
+  margin-bottom: 0.625rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
   font-weight: 600;
 }
 
 .card-content p {
-  color: var(--el-text-color-secondary);
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.625;
+  color: var(--el-text-color-secondary);
 }
 
 /* 隐藏项目小卡片样式 */
 .hidden-items-grid {
   display: grid;
+  gap: 0.75rem;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 12px;
 }
 
 .hidden-item-card {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition-property: all;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   background-color: var(--el-bg-color-overlay);
   border: 1px dashed var(--el-color-info);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
 }
 
 .hidden-item-card:hover {
+  transform: translateY(-0.125rem);
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -4px rgba(0, 0, 0, 0.1);
   border-color: var(--el-color-primary);
   background-color: var(--el-color-primary-light-9);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .hidden-item-icon {
-  color: var(--el-color-info);
   flex-shrink: 0;
+  color: var(--el-color-info);
 }
 
 .hidden-item-card:hover .hidden-item-icon {
@@ -256,45 +274,45 @@ onUnmounted(() => {
 .hidden-item-info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  flex: 1;
+  gap: 0.125rem;
+  flex: 1 1 0%;
   min-width: 0;
 }
 
 .hidden-item-title {
-  font-size: 14px;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
   font-weight: 500;
+  line-height: 1.25;
   color: var(--el-text-color-primary);
-  line-height: 1.2;
 }
 
 .hidden-item-description {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-  line-height: 1.3;
+  font-size: 0.75rem;
+  line-height: 1.25;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--el-text-color-secondary);
 }
 
-/* 响应式设计 */
 @media (max-width: 768px) {
-  .toolbox-container {
-    padding: 16px;
+  .toolbox-wrapper {
+    padding: 1rem;
   }
 
   .tools-grid {
     grid-template-columns: 1fr;
-    gap: 16px;
+    gap: 1rem;
   }
 
   .hidden-items-grid {
     grid-template-columns: 1fr;
-    gap: 8px;
+    gap: 0.5rem;
   }
 
   .hidden-item-card {
-    padding: 10px 12px;
+    padding: 0.625rem 0.75rem;
   }
 }
 </style>

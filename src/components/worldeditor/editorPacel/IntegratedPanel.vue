@@ -9,14 +9,15 @@
           :disabled="selectedItems.length === 0"
         >
           <Icon icon="ph:export-duotone" />
-          导出选中JSON ({{ selectedItems.length }})
+          <span class="btn-label">导出选中JSON</span>
+          ({{ selectedItems.length }})
         </el-button>
         <el-button
           type="success"
           @click="exportAllJSON"
         >
           <Icon icon="ph:file-text-duotone" />
-          导出全部JSON
+          <span class="btn-label">导出全部JSON</span>
         </el-button>
       </div>
     </div>
@@ -25,7 +26,10 @@
     <div class="selection-section">
       <el-row :gutter="16">
         <!-- 地标选择 -->
-        <el-col :span="8">
+        <el-col
+          :xs="24"
+          :sm="8"
+        >
           <el-card>
             <template #header>
               <div class="card-header">
@@ -97,7 +101,10 @@
         </el-col>
 
         <!-- 势力选择 -->
-        <el-col :span="8">
+        <el-col
+          :xs="24"
+          :sm="8"
+        >
           <el-card>
             <template #header>
               <div class="card-header">
@@ -158,7 +165,10 @@
         </el-col>
 
         <!-- 区域选择 -->
-        <el-col :span="8">
+        <el-col
+          :xs="24"
+          :sm="8"
+        >
           <el-card>
             <template #header>
               <div class="card-header">
@@ -253,19 +263,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { ElCard, ElButton, ElRow, ElCol, ElCheckbox, ElMessage, ElSwitch } from 'element-plus';
-import { Icon } from '@iconify/vue';
 import type {
-  Project,
-  EnhancedLandmark,
   EnhancedForce,
+  EnhancedLandmark,
   EnhancedRegion,
+  Project,
   ProjectIntegration,
 } from '@/types/world-editor';
 import { cleanObject, removeEmptyFields } from '@/utils/objectUtils';
-import { getLandmarkTypeLabel } from '@/utils/worldeditor/landmarkMeta';
 import { getParentLandmarkId } from '@/utils/worldeditor/landmarkHierarchy';
+import { getLandmarkTypeLabel } from '@/utils/worldeditor/landmarkMeta';
+import { Icon } from '@iconify/vue';
+import { ElButton, ElCard, ElCheckbox, ElCol, ElMessage, ElRow, ElSwitch } from 'element-plus';
+import { computed, ref } from 'vue';
 
 interface Props {
   integration: ProjectIntegration;
@@ -540,13 +550,13 @@ const exportAllJSON = async () => {
 
 <style scoped>
 .integrated-panel {
-  padding: 16px;
+  padding: 12px;
   max-width: 100%;
   height: 100%;
   overflow-y: auto;
 }
 
-.panel-header {
+.integrated-panel > .panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -555,20 +565,20 @@ const exportAllJSON = async () => {
   border-bottom: 1px solid var(--el-border-color);
 }
 
-.panel-title {
+.integrated-panel > .panel-header > .panel-title {
   font-size: 20px;
   font-weight: 600;
   margin: 0;
   color: var(--el-text-color-primary);
 }
 
-.header-actions {
+.integrated-panel > .panel-header > .header-actions {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
 }
 
-.selection-section {
+.integrated-panel > .selection-section {
   margin-bottom: 24px;
 }
 
@@ -579,6 +589,11 @@ const exportAllJSON = async () => {
   font-weight: 600;
 }
 
+.card-header > .header-actions-small {
+  display: flex;
+  gap: 8px;
+}
+
 .preview-actions {
   display: flex;
   align-items: center;
@@ -586,21 +601,16 @@ const exportAllJSON = async () => {
   flex-wrap: wrap;
 }
 
-.preview-filter {
+.preview-actions > .preview-filter {
   display: flex;
   align-items: center;
   gap: 8px;
   font-weight: 500;
 }
 
-.preview-filter-label {
+.preview-actions > .preview-filter > .preview-filter-label {
   font-size: 12px;
   color: var(--el-text-color-secondary);
-}
-
-.header-actions-small {
-  display: flex;
-  gap: 8px;
 }
 
 .selection-list {
@@ -609,7 +619,7 @@ const exportAllJSON = async () => {
   padding: 8px 0;
 }
 
-.selection-item {
+.selection-list > .selection-item {
   display: flex;
   align-items: flex-start;
   gap: 12px;
@@ -621,67 +631,67 @@ const exportAllJSON = async () => {
   margin-bottom: 8px;
 }
 
-.selection-item:hover {
+.selection-list > .selection-item:hover {
   border-color: var(--el-color-primary-light-5);
   background-color: var(--el-color-primary-light-9);
 }
 
-.selection-item.selected {
+.selection-list > .selection-item.selected {
   border-color: var(--el-color-primary);
   background-color: var(--el-color-primary-light-8);
 }
 
-.item-content {
+.selection-item > .item-content {
   display: flex;
   align-items: flex-start;
   gap: 12px;
   flex: 1;
 }
 
-.item-icon {
+.item-content > .item-icon {
   font-size: 20px;
   margin-top: 2px;
   flex-shrink: 0;
 }
 
-.landmark-icon {
+.item-content > .item-icon.landmark-icon {
   color: var(--el-color-primary);
 }
 
-.force-icon {
+.item-content > .item-icon.force-icon {
   color: var(--el-color-success);
 }
 
-.region-icon {
+.item-content > .item-icon.region-icon {
   color: var(--el-color-warning);
 }
 
-.item-info {
+.item-content > .item-info {
   flex: 1;
   min-width: 0;
 }
 
-.item-name {
+.item-info > .item-name {
   font-weight: 600;
   font-size: 14px;
   color: var(--el-text-color-primary);
   margin-bottom: 4px;
 }
 
-.item-meta {
+.item-info > .item-meta {
   font-size: 12px;
   color: var(--el-text-color-secondary);
   margin-bottom: 6px;
 }
 
-.item-description {
+.item-info > .item-description {
   font-size: 13px;
   color: var(--el-text-color-regular);
   line-height: 1.4;
   word-break: break-word;
 }
 
-.item-relations {
+.item-info > .item-relations {
   font-size: 12px;
   color: var(--el-text-color-secondary);
   margin-top: 6px;
@@ -690,14 +700,14 @@ const exportAllJSON = async () => {
   gap: 8px;
 }
 
-.empty-message {
+.selection-list > .empty-message {
   text-align: center;
   color: var(--el-text-color-placeholder);
   font-size: 14px;
   padding: 40px 20px;
 }
 
-.preview-section {
+.integrated-panel > .preview-section {
   margin-top: 24px;
 }
 
@@ -706,7 +716,7 @@ const exportAllJSON = async () => {
   overflow-y: auto;
 }
 
-.preview-text {
+.preview-content > .preview-text {
   white-space: pre-wrap;
   font-family: 'SF Mono', Monaco, Menlo, 'Roboto Mono', 'Ubuntu Mono', monospace;
   font-size: 13px;
@@ -718,38 +728,75 @@ const exportAllJSON = async () => {
   border: 1px solid var(--el-border-color-light);
 }
 
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .panel-header {
+/* 移动端适配 */
+@media screen and (max-width: 768px) {
+  .integrated-panel {
+    padding: 6px;
+  }
+
+  .integrated-panel > .panel-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
   }
 
-  .header-actions {
+  .integrated-panel > .panel-header > .panel-title {
+    font-size: 16px;
+  }
+
+  .integrated-panel > .panel-header > .header-actions {
     width: 100%;
-    justify-content: flex-start;
-  }
-
-  .selection-section .el-row {
-    margin: 0;
-  }
-
-  .selection-section .el-col {
-    margin-bottom: 16px;
-  }
-
-  .selection-list {
-    max-height: 300px;
-  }
-
-  .item-content {
-    flex-direction: column;
     gap: 8px;
   }
 
-  .item-icon {
-    align-self: flex-start;
+  .integrated-panel > .panel-header > .header-actions .btn-label {
+    display: none;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .integrated-panel > .selection-section :deep(.el-col) {
+    margin-bottom: 12px;
+  }
+
+  .integrated-panel > .selection-section :deep(.el-col:last-child) {
+    margin-bottom: 0;
+  }
+
+  .selection-list {
+    max-height: 250px;
+  }
+
+  .selection-list > .selection-item {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .selection-item > .item-content {
+    gap: 8px;
+  }
+
+  .item-info > .item-name {
+    font-size: 13px;
+  }
+
+  .item-info > .item-meta {
+    font-size: 11px;
+  }
+
+  .item-info > .item-description {
+    font-size: 12px;
+  }
+
+  .preview-content > .preview-text {
+    padding: 10px;
+    font-size: 12px;
   }
 }
 </style>

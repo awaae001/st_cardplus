@@ -192,11 +192,11 @@
 </template>
 
 <script setup lang="ts">
-import { QuestionFilled, VideoPlay, Delete } from '@element-plus/icons-vue';
-import { ref, computed } from 'vue';
 import { useEjsEditorStore } from '@/composables/ejs/ejsEditor';
 import { useDevice } from '@/composables/useDevice';
-import type { Stage, Condition, ConditionGroup } from '@/types/ejs-editor';
+import type { Condition, ConditionGroup, Stage } from '@/types/ejs-editor';
+import { Delete, QuestionFilled, VideoPlay } from '@element-plus/icons-vue';
+import { computed, ref } from 'vue';
 
 const store = useEjsEditorStore();
 const { isMobile } = useDevice();
@@ -493,7 +493,12 @@ function isStageMatched(stage: Stage): boolean {
   background-color: var(--el-bg-color-page);
 }
 
-.empty-result,
+.empty-result {
+  display: flex;
+  padding: 20px;
+  text-align: center;
+}
+
 .no-result {
   height: 100px;
   display: flex;
@@ -608,6 +613,13 @@ function isStageMatched(stage: Stage): boolean {
   flex: 1;
 }
 
+.empty-state {
+  padding: 16px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
+
 /* 移动端样式优化 */
 @media (max-width: 768px) {
   .simulation-panel {
@@ -620,7 +632,7 @@ function isStageMatched(stage: Stage): boolean {
   }
 
   .mobile-header {
-    flex-direction: column;
+    justify-content: center;
     align-items: center;
     gap: 6px;
   }
@@ -685,11 +697,6 @@ function isStageMatched(stage: Stage): boolean {
 
   .result-content pre {
     font-size: 11px;
-  }
-
-  .empty-state {
-    padding: 16px;
-    text-align: center;
   }
 }
 

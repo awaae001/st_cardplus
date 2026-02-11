@@ -1,121 +1,15 @@
 <template>
-  <div>
-    <el-container class="layout-container">
-      <!-- Mobile Drawer -->
-      <el-drawer
-        v-if="isMobile"
-        v-model="drawerVisible"
-        direction="ltr"
-        :with-header="false"
-        size="250px"
-      >
-        <el-menu
-          :router="true"
-          @select="drawerVisible = false"
-          class="sidebar-menu"
-        >
-          <template
-            v-for="item in mainMenuItems"
-            :key="item.index"
-          >
-            <el-menu-item
-              v-if="!item.beta || betaFeaturesEnabled"
-              :index="item.index"
-            >
-              <el-icon>
-                <component :is="item.icon" />
-              </el-icon>
-              <span>{{ item.title }}</span>
-            </el-menu-item>
-          </template>
-          <div class="grow"></div>
-          <div
-            class="custom-menu-item theme-toggle-item"
-            @click="toggleDark()"
-          >
-            <el-icon class="theme-icon">
-              <Moon v-if="!isDark" />
-              <Sunny v-else />
-            </el-icon>
-            <span>{{ isDark ? '浅色模式' : '暗黑模式' }}</span>
-          </div>
-          <el-menu-item index="/about">
-            <el-icon>
-              <InfoFilled />
-            </el-icon>
-            <span>设置与关于</span>
-          </el-menu-item>
-        </el-menu>
-      </el-drawer>
+  <div class="app-layout">
+    <!-- 桌面端 -->
+    <template v-if="!isMobile">
+      <AppSidebar />
 
-      <!-- PC Sidebar -->
-      <el-aside
-        v-else
-        :width="sidebarWidth"
-        class="sidebar-transition"
-        @mouseenter="handleMouseEnter"
-        @mouseleave="handleMouseLeave"
-      >
-        <el-menu
-          :collapse="isCollapse"
-          :router="true"
-          class="sidebar-menu"
-        >
-          <template
-            v-for="item in mainMenuItems"
-            :key="item.index"
-          >
-            <el-menu-item
-              v-if="!item.beta || betaFeaturesEnabled"
-              :index="item.index"
-            >
-              <el-icon>
-                <component :is="item.icon" />
-              </el-icon>
-              <span>{{ item.title }}</span>
-            </el-menu-item>
-          </template>
-          <div class="grow"></div>
-          <el-divider />
-          <div
-            class="custom-menu-item theme-toggle-item"
-            @click="toggleDark()"
-          >
-            <el-icon class="theme-icon">
-              <Moon v-if="!isDark" />
-              <Sunny v-else />
-            </el-icon>
-            <span>{{ isDark ? '浅色模式' : '暗黑模式' }}</span>
-          </div>
-          <el-menu-item index="/about">
-            <el-icon>
-              <InfoFilled />
-            </el-icon>
-            <span>设置与关于</span>
-          </el-menu-item>
-          <div
-            class="custom-menu-item sidebar-toggle-item"
-            @click="toggleSidebar"
-          >
-            <el-icon>
-              <IconMenu />
-            </el-icon>
-            <span>{{ !isCollapse ? '收起侧边栏' : '展开侧边栏' }}</span>
-          </div>
-        </el-menu>
-      </el-aside>
-      <el-button
-        v-if="isMobile"
-        class="toggle-button"
-        @click="toggleSidebar"
-        :icon="IconMenu"
-        circle
-      />
-      <el-main
-        class="content-container"
+      <main
+        class="desktop-main"
         :class="{ 'overflow-hidden': isOverflowHidden }"
       >
         <SystemBanner
+          v-if="route.name !== 'about'"
           bannerId="newYearSurvey2026"
           startDate="2026-01-01"
           endDate="2026-03-01"
@@ -123,87 +17,97 @@
           link="https://tally.so/r/kdeaLo"
           linkText="填写调查"
         />
-        <RouterView v-slot="{ Component, route }">
+        <RouterView v-slot="{ Component, route: currentRoute }">
           <transition
             name="fade"
             mode="out-in"
           >
             <component
               :is="Component"
-              :key="route.path"
+              :key="currentRoute.path"
             />
           </transition>
         </RouterView>
-      </el-main>
-    </el-container>
+      </main>
+    </template>
+
+    <!-- 移动端 -->
+    <template v-else>
+      <MobileDrawer v-model="drawerVisible" />
+
+      <main class="mobile-main">
+        <SystemBanner
+          v-if="route.name !== 'about'"
+          bannerId="newYearSurvey2026"
+          startDate="2026-01-01"
+          endDate="2026-03-01"
+          message="我们有一个新年调查，去填写一下？"
+          link="https://tally.so/r/kdeaLo"
+          linkText="填写调查"
+        />
+        <RouterView v-slot="{ Component, route: currentRoute }">
+          <transition
+            name="fade"
+            mode="out-in"
+          >
+            <component
+              :is="Component"
+              :key="currentRoute.path"
+            />
+          </transition>
+        </RouterView>
+      </main>
+
+      <MobileTabBar @toggle-drawer="drawerVisible = true" />
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { RouterView } from 'vue-router';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { RouterView, useRoute } from 'vue-router';
+
+import AppSidebar from '@/components/layout/AppSidebar.vue';
+import MobileDrawer from '@/components/layout/MobileDrawer.vue';
+import MobileTabBar from '@/components/layout/MobileTabBar.vue';
 import SystemBanner from '@/components/SystemBanner.vue';
-import { Menu as IconMenu, Moon, Sunny, InfoFilled } from '@element-plus/icons-vue';
-import { ElContainer, ElAside, ElMain, ElMenu, ElMenuItem, ElIcon, ElButton, ElDrawer, ElDivider } from 'element-plus';
-import { useRoute } from 'vue-router';
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
-import { useDark, useToggle, useWindowSize } from '@vueuse/core';
-import { getSetting } from '@/utils/localStorageUtils';
-import { getIconComponent } from '@/config/menuConfig';
+
+import { provideNavigation } from '@/composables/useNavigation';
 import { provideOverflowControl } from '@/composables/useOverflowControl';
 import { usePersonalization } from '@/composables/usePersonalization';
 
+import { getSetting } from '@/utils/localStorageUtils';
+
+// 溢出控制
 const { isOverflowHidden, setOverflowHidden } = provideOverflowControl();
+
+// 路由
 const route = useRoute();
-const isDark = useDark();
-const toggleDark = useToggle(isDark);
-const { width } = useWindowSize();
-const isCollapse = ref(false);
-const userToggledCollapse = ref(false); // 新增：用于跟踪用户手动折叠的状态
-const { autoExpandSidebar, allowBodyScroll, sidebarConfig, refreshSidebarConfig } = usePersonalization();
 
-// 动态生成菜单项 - 响应式更新
+// 个性化设置
+const { allowBodyScroll, sidebarConfig, refreshSidebarConfig } = usePersonalization();
+
+// Beta 功能开关
+const betaFeaturesEnabled = ref(false);
+
+// 动态生成菜单项
 const mainMenuItems = computed(() => {
-  // 依赖响应式的 sidebarConfig，配置变化时自动更新
-  const visibleItems = sidebarConfig.value.items.filter((item) => item.visible).sort((a, b) => a.order - b.order);
-
-  return visibleItems.map((item) => ({
-    index: item.route,
-    icon: getIconComponent(item.icon),
-    title: item.title,
-    beta: item.beta || false,
-  }));
+  return sidebarConfig.value.items
+    .filter((item) => {
+      // 必须是可见的
+      if (!item.visible) return false;
+      // 如果是 beta 功能，需要检查开关状态
+      if (item.beta && !betaFeaturesEnabled.value) return false;
+      return true;
+    })
+    .sort((a, b) => a.order - b.order);
 });
 
-const sidebarWidth = computed(() => (isCollapse.value ? '64px' : '200px'));
+const { isMobile } = provideNavigation(mainMenuItems);
+
 const drawerVisible = ref(false);
-const isMobile = computed(() => width.value < 1024);
-const toggleSidebar = () => {
-  if (isMobile.value) {
-    drawerVisible.value = !drawerVisible.value;
-  } else {
-    userToggledCollapse.value = !userToggledCollapse.value;
-    isCollapse.value = userToggledCollapse.value;
-  }
-};
 
-// 新增：处理鼠标移入事件
-const handleMouseEnter = () => {
-  if (userToggledCollapse.value && !isMobile.value && autoExpandSidebar.value) {
-    isCollapse.value = false;
-  }
-};
-
-// 新增：处理鼠标移出事件
-const handleMouseLeave = () => {
-  if (userToggledCollapse.value && !isMobile.value && autoExpandSidebar.value) {
-    isCollapse.value = true;
-  }
-};
-const betaFeaturesEnabled = ref(false);
-const handleBetaFeaturesToggle = (event: CustomEvent) => {
-  betaFeaturesEnabled.value = event.detail;
-};
-
+// 监听路由变化，控制溢出
 watch(
   [() => route.path, isMobile],
   ([newPath, mobile]) => {
@@ -225,19 +129,20 @@ watch(
   { immediate: true }
 );
 
-// 监听侧边栏配置变化的自定义事件
+// 事件处理
+const handleBetaFeaturesToggle = (event: CustomEvent) => {
+  betaFeaturesEnabled.value = event.detail;
+};
+
 const handleSidebarConfigChange = () => {
   refreshSidebarConfig();
 };
 
 onMounted(() => {
   betaFeaturesEnabled.value = getSetting('betaFeaturesEnabled');
-  refreshSidebarConfig(); // 刷新侧边栏配置
+  refreshSidebarConfig();
   window.addEventListener('betaFeaturesToggle', handleBetaFeaturesToggle as EventListener);
   window.addEventListener('sidebarConfigChange', handleSidebarConfigChange as EventListener);
-  const initialCollapse = isMobile.value;
-  isCollapse.value = initialCollapse;
-  userToggledCollapse.value = initialCollapse;
 });
 
 onUnmounted(() => {
@@ -247,156 +152,45 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.layout-container {
-  width: 100vw;
+.app-layout {
   height: 100vh;
+  display: flex;
+  background: var(--el-bg-color-page);
 }
 
-.sidebar-transition {
-  transition: width 0.3s ease;
-  background-color: var(--el-bg-color);
+.desktop-main {
+  flex: 1 1 0%;
   display: flex;
   flex-direction: column;
-  position: relative;
-  overflow-x: hidden;
+  overflow: auto;
+  min-height: 0;
+  min-width: 0;
+  width: 0;
 }
 
-.sidebar-menu {
-  flex-grow: 1;
-  border-right: none;
-  display: flex;
-  flex-direction: column;
-}
-
-.sidebar-menu .el-menu-item {
-  display: flex;
-  align-items: center;
-}
-
-.sidebar-menu .el-menu-item > span {
-  margin-left: 10px;
-}
-
-.sidebar-menu .flex-grow {
-  flex-grow: 1;
-}
-
-.content-container {
-  padding: 8px;
-  position: relative;
-  padding-top: 60px;
-  margin-top: -54px;
-  /* overflow: auto; */
-}
-
-.content-container.overflow-hidden {
+.desktop-main.overflow-hidden {
   overflow: hidden;
 }
 
-.toggle-button {
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  z-index: 1001;
+@media (max-width: 1023px) {
+  .app-layout {
+    flex-direction: column;
+  }
 }
 
-.sidebar-toggle-button {
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
-}
-
-/* 自定义菜单项样式 */
-.custom-menu-item {
-  display: flex;
-  align-items: center;
-  height: 56px;
-  padding: 0 20px;
-  cursor: pointer;
-  color: var(--el-text-color-primary);
-  font-size: 14px;
-  line-height: 56px;
-  position: relative;
-  transition: all 0.3s ease;
-  border-radius: 0;
-  box-sizing: border-box;
-  /* margin-left: 5px; */
-}
-
-.custom-menu-item:hover {
-  background-color: var(--el-menu-hover-bg-color);
-  color: var(--el-menu-hover-text-color);
-}
-
-.custom-menu-item:active {
-  background-color: var(--el-menu-active-color);
-}
-
-.custom-menu-item .el-icon {
-  margin-right: 10px;
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 7px;
-}
-
-.custom-menu-item span {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  flex: 1;
-  margin-left: 5px;
-}
-
-/* 折叠状态下的样式调整 */
-.el-menu--collapse .custom-menu-item {
-  padding: 0 20px;
-  justify-content: center;
-  margin-left: 0px;
-}
-
-.el-menu--collapse .custom-menu-item .el-icon {
-  margin-right: 0;
-}
-
-.el-menu--collapse .custom-menu-item span {
-  display: none;
-}
-
-/* 主题切换按钮样式 */
-.theme-toggle-item {
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.theme-toggle-item:hover {
-  background-color: var(--el-fill-color-light);
-  transform: scale(1.02);
-}
-
-.theme-toggle-item:active {
-  transform: scale(0.98);
-}
-
-.theme-icon {
-  transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-}
-
-.theme-toggle-item:hover .theme-icon {
-  transform: rotate(180deg);
+.mobile-main {
+  flex: 1 1 0%;
+  overflow: auto;
+  padding-bottom: calc(48px + env(safe-area-inset-bottom, 0)); /* 48px = 混合式 TabBar 高度 */
 }
 </style>
 
 <style>
-/* 路由切换动画 */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.2s ease;
+  transition-property: opacity;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
 }
 
 .fade-enter-from,

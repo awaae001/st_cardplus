@@ -50,7 +50,7 @@ export const getAppSettings = (models: AppSettingsModels, handlers: AppSettingsH
       label: '显示测试版功能',
       icon: 'material-symbols:experiment-outline',
       iconColor: 'var(--el-color-warning)',
-      description: '开启后将在侧边栏显示测试版功能，包括 EJS 模板编辑器和世界书功能 ',
+      description: '开启后将在导航栏显示测试版功能，包括 EJS 模板编辑器和世界书功能 ',
       type: 'switch',
       model: models.betaFeaturesEnabled,
       handler: handlers.onBetaFeaturesToggle,

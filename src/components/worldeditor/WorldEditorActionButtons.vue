@@ -9,9 +9,9 @@
           icon="material-symbols:folder-open-outline-sharp"
           width="18"
           height="18"
-          style="margin-right: 4px"
+          class="btn-icon"
         />
-        导入 JSON
+        <span class="btn-label">导入 JSON</span>
       </el-button>
       <el-button
         type="primary"
@@ -21,12 +21,10 @@
           icon="material-symbols:file-save-outline"
           width="18"
           height="18"
-          style="margin-right: 4px"
+          class="btn-icon"
         />
-        导出 JSON
+        <span class="btn-label">导出 JSON</span>
       </el-button>
-    </div>
-    <div class="button-group">
       <el-button
         type="info"
         @click="emit('copyToClipboard')"
@@ -100,8 +98,23 @@ const showImportDialog = () => {
   gap: 8px;
 }
 
-.button-group {
+.action-buttons-container > .button-group {
   display: flex;
   gap: 8px;
+}
+
+.action-buttons-container > .button-group .btn-icon {
+  margin-right: 4px;
+}
+
+/* 移动端适配 */
+@media screen and (max-width: 768px) {
+  .action-buttons-container > .button-group .btn-label {
+    display: none;
+  }
+
+  .action-buttons-container > .button-group .btn-icon {
+    margin-right: 0;
+  }
 }
 </style>

@@ -193,11 +193,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
-import { ElMessage } from 'element-plus';
-import { CopyDocument, RefreshRight, DocumentChecked, CircleCheck, View } from '@element-plus/icons-vue';
 import { useEjsEditorStore } from '@/composables/ejs/ejsEditor';
 import { useDevice } from '@/composables/useDevice';
+import { CircleCheck, CopyDocument, DocumentChecked, RefreshRight, View } from '@element-plus/icons-vue';
+import { ElMessage } from 'element-plus';
+import { computed, ref, watch } from 'vue';
 
 const store = useEjsEditorStore();
 const { isMobile } = useDevice();
@@ -498,18 +498,15 @@ function formatTimestamp(timestamp: number): string {
   }
 
   .mobile-quick-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-wrap: wrap;
     gap: 8px;
+    justify-content: center;
   }
 
   .mobile-quick-actions .action-button {
-    width: 100%;
-    justify-self: stretch;
-  }
-
-  .mobile-quick-actions .action-button:last-child {
-    grid-column: 1 / -1;
+    flex: 1;
+    min-width: 0;
   }
 
   .code-content {

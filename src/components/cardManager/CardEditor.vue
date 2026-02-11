@@ -83,14 +83,14 @@
 </template>
 
 <script setup lang="ts">
-import { ElCollapseTransition } from 'element-plus';
-import { Icon } from '@iconify/vue';
-import BasicInfoPanel from '@/components/cardManager/main/BasicInfoPanel.vue';
-import ImagePanel from '@/components/cardManager/main/ImagePanel.vue';
-import GreetingsPanel from '@/components/cardManager/main/GreetingsPanel.vue';
-import InfoDisplayPanel from '@/components/cardManager/main/InfoDisplayPanel.vue';
 import AdvancedInfoPanel from '@/components/cardManager/main/AdvancedInfoPanel.vue';
+import BasicInfoPanel from '@/components/cardManager/main/BasicInfoPanel.vue';
+import GreetingsPanel from '@/components/cardManager/main/GreetingsPanel.vue';
+import ImagePanel from '@/components/cardManager/main/ImagePanel.vue';
+import InfoDisplayPanel from '@/components/cardManager/main/InfoDisplayPanel.vue';
 import type { CharacterCardV3 } from '@/types/character-card-v3';
+import { Icon } from '@iconify/vue';
+import { ElCollapseTransition } from 'element-plus';
 
 const props = defineProps<{
   character: CharacterCardV3;
@@ -111,11 +111,11 @@ const toggleAdvancedOptions = () => {
 
 <style scoped>
 .card-editor-form {
-  padding: 16px;
+  padding: 12px;
 }
 
 .form-section {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   padding: 16px;
   background: var(--el-fill-color-extra-light);
   border-radius: 4px;
@@ -188,7 +188,7 @@ const toggleAdvancedOptions = () => {
 }
 
 .advanced-options-hint {
-  margin-left: auto;
+  margin: auto 6px 0 auto;
   font-size: 12px;
   font-weight: 400;
   color: var(--el-text-color-placeholder);

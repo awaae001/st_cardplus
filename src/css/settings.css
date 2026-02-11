@@ -1,0 +1,79 @@
+/*
+ * 设置页面通用样式
+ */
+
+/* 设置容器 */
+.app-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* 设置卡片 */
+.setting-card {
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  transition-property: box-shadow;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: var(--el-bg-color-overlay);
+  border: 1px solid var(--el-border-color);
+}
+
+.setting-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* 设置内容区 */
+.setting-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* 设置头部 */
+.setting-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* 设置信息区 */
+.setting-info {
+  display: flex;
+  align-items: center;
+}
+
+/* 设置标签 */
+.setting-label {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+/* 设置描述 */
+.setting-description {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  line-height: 1.5;
+  margin: 0;
+  text-align: left;
+  color: var(--el-text-color-secondary);
+}
+
+/* 数字输入控件 */
+.interval-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* 单位文字 */
+.interval-unit {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: var(--el-text-color-secondary);
+}

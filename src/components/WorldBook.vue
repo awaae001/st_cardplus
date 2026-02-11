@@ -37,7 +37,7 @@
             >
               <button
                 @click="() => addNewEntry()"
-                class="btn-primary-adv worldbook-add-button"
+                class="btn-adv btn-primary-adv worldbook-add-button"
                 aria-label="新增条目"
                 :disabled="!activeBook"
               >
@@ -204,21 +204,21 @@
 </template>
 
 <script setup lang="ts">
-import { ElTabs, ElTabPane, ElTooltip, ElMessage } from 'element-plus';
 import { Icon } from '@iconify/vue';
-import '../css/worldbook.css';
-import { Splitpanes, Pane } from 'splitpanes';
+import { ElMessage, ElTabPane, ElTabs, ElTooltip } from 'element-plus';
+import { Pane, Splitpanes } from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
+import '../css/worldbook.css';
 
+import { useWorldBookCollection } from '../composables/worldbook/useWorldBookCollection';
+import { useWorldBookDragDrop } from '../composables/worldbook/useWorldBookDragDrop';
+import { useWorldBookEntry } from '../composables/worldbook/useWorldBookEntry';
+import type { WorldBookEntry } from '../types/types';
 import WorldBookActions from './worldbook/WorldBookActions.vue';
 import WorldBookEditor from './worldbook/WorldBookEditor.vue';
 import WorldBookList from './worldbook/WorldBookList.vue';
-import { useWorldBookCollection } from '../composables/worldbook/useWorldBookCollection';
-import { useWorldBookEntry } from '../composables/worldbook/useWorldBookEntry';
-import { useWorldBookDragDrop } from '../composables/worldbook/useWorldBookDragDrop';
-import type { WorldBookEntry } from '../types/types';
 
-import { computed, nextTick, ref, onMounted, onUnmounted } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
 
 const sidebarPaneRef = ref(null);
 const sidebarWidth = ref(0);

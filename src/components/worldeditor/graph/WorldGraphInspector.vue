@@ -99,13 +99,13 @@
 </template>
 
 <script setup lang="ts">
-import type { CSSProperties } from 'vue';
-import { Icon } from '@iconify/vue';
-import { ElInput, ElButton, ElSelect, ElOption, ElInputNumber } from 'element-plus';
 import type { EnhancedLandmark, EnhancedRegion } from '@/types/world-editor';
-import type { LandmarkNodeForce } from '@/types/worldeditor/worldGraphNodes';
 import { LandmarkType } from '@/types/world-editor';
+import type { LandmarkNodeForce } from '@/types/worldeditor/worldGraphNodes';
 import { getLandmarkTypeLabel } from '@/utils/worldeditor/landmarkMeta';
+import { Icon } from '@iconify/vue';
+import { ElButton, ElInput, ElInputNumber, ElOption, ElSelect } from 'element-plus';
+import type { CSSProperties } from 'vue';
 import RegionSelect from '../RegionSelect.vue';
 
 const props = defineProps<{

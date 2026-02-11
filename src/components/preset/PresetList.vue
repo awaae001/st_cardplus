@@ -21,7 +21,7 @@
       >
         <button
           @click="$emit('create-preset')"
-          class="btn-primary-adv sidebar-header-button"
+          class="btn-adv btn-primary-adv sidebar-header-button"
           aria-label="创建新预设"
         >
           <Icon icon="ph:plus-bold" />
@@ -36,7 +36,7 @@
       >
         <button
           @click="$emit('create-blank')"
-          class="btn-secondary-adv sidebar-header-button"
+          class="btn-adv btn-secondary-adv sidebar-header-button"
           aria-label="新建空白模板"
         >
           <Icon icon="ph:file-dashed-duotone" />
@@ -150,7 +150,7 @@
           :hide-after="0"
         >
           <button
-            class="btn-success-adv preset-bottom-button-text"
+            class="btn-adv btn-success-adv preset-bottom-button-text"
             @click="$emit('export-preset')"
           >
             <Icon
@@ -176,7 +176,7 @@
             :show-file-list="false"
             accept=".json"
           >
-            <button class="btn-warning-adv preset-bottom-button-text">
+            <button class="btn-adv btn-warning-adv preset-bottom-button-text">
               <Icon
                 icon="ph:file-text-duotone"
                 width="16"

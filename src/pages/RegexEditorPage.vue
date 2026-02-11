@@ -13,11 +13,12 @@
       </div>
       <div class="toolbar-right">
         <el-button
-          @click="toggleEditorPanel"
-          :icon="editorPanelVisible ? 'ArrowRightBold' : 'ArrowLeftBold'"
+          v-if="!isMobileOrTablet"
+          @click="toggleTesterPanel"
+          :icon="testerPanelVisible ? Hide : View"
           size="small"
         >
-          {{ editorPanelVisible ? '隐藏测试器' : '显示测试器' }}
+          {{ testerPanelVisible ? '隐藏测试器' : '显示测试器' }}
         </el-button>
         <el-button-group>
           <el-button
@@ -158,13 +159,13 @@
       <!-- 桌面端布局 -->
       <splitpanes
         v-else
-        class="default-theme"
+        class="default-theme desktop-splitpanes"
         :horizontal="false"
       >
         <!-- 脚本列表侧边栏 -->
         <pane
           min-size="10"
-          size="15"
+          :size="15"
         >
           <RegexScriptList
             :collection="regexCollection"
@@ -184,9 +185,8 @@
         </pane>
 
         <pane
-          v-if="editorPanelVisible"
-          min-size="40"
-          size="60"
+          :min-size="testerPanelVisible ? 40 : 75"
+          :size="testerPanelVisible ? 60 : 85"
         >
           <div class="editor-panel">
             <div
@@ -267,8 +267,8 @@
 
         <!-- 模拟测试面板 -->
         <pane
-          min-size="25"
-          size="25"
+          :min-size="testerPanelVisible ? 15 : 0"
+          :size="testerPanelVisible ? 25 : 0"
         >
           <div class="simulator-panel">
             <div
@@ -318,27 +318,27 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, nextTick, watch } from 'vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
-import { DocumentAdd, Download, Plus } from '@element-plus/icons-vue';
-import { Icon } from '@iconify/vue';
-import { Splitpanes, Pane } from 'splitpanes';
-import 'splitpanes/dist/splitpanes.css';
-import { useDevice } from '@/composables/useDevice';
-import { useRegexSimulator } from '@/composables/regex/useRegexSimulator';
 import { type SillyTavernRegexScript } from '@/composables/regex/types';
 import { useRegexCollection } from '@/composables/regex/useRegexCollection';
 import { useRegexDragDrop } from '@/composables/regex/useRegexDragDrop';
+import { useRegexSimulator } from '@/composables/regex/useRegexSimulator';
+import { useDevice } from '@/composables/useDevice';
+import { DocumentAdd, Download, Hide, Plus, View } from '@element-plus/icons-vue';
+import { Icon } from '@iconify/vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { Pane, Splitpanes } from 'splitpanes';
+import 'splitpanes/dist/splitpanes.css';
+import { computed, nextTick, ref, watch } from 'vue';
 
 // 组件导入
-import RegexScriptList from '@/components/regex/RegexScriptList.vue';
-import RegexEditorCore from '@/components/regex/RegexEditorCore.vue';
-import SmartRegexGenerator from '@/components/regex/Selector/SmartRegexGenerator.vue';
-import RegexSimulatorPanel from '@/components/regex/RegexSimulatorPanel.vue';
 import RegexAdvancedSettings from '@/components/regex/RegexAdvancedSettings.vue';
+import RegexEditorCore from '@/components/regex/RegexEditorCore.vue';
+import RegexScriptList from '@/components/regex/RegexScriptList.vue';
+import RegexSimulatorPanel from '@/components/regex/RegexSimulatorPanel.vue';
+import SmartRegexGenerator from '@/components/regex/Selector/SmartRegexGenerator.vue';
 
 const { isMobileOrTablet } = useDevice();
-const editorPanelVisible = ref(true);
+const testerPanelVisible = ref(true);
 const mobileActivePanel = ref('scripts');
 
 // 使用新的集合管理
@@ -412,8 +412,8 @@ function finishEditingName() {
 }
 
 // 工具栏操作
-function toggleEditorPanel() {
-  editorPanelVisible.value = !editorPanelVisible.value;
+function toggleTesterPanel() {
+  testerPanelVisible.value = !testerPanelVisible.value;
 }
 
 async function handleImportScript() {
@@ -680,7 +680,7 @@ watch(
 
 <style scoped>
 .regex-editor-page {
-  height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   background: var(--el-bg-color-page);
@@ -834,6 +834,14 @@ watch(
 
 :deep(.splitpanes__splitter:hover:before) {
   opacity: 1;
+}
+
+.desktop-splitpanes .simulator-panel {
+  min-width: 280px;
+}
+
+.desktop-splitpanes :deep(.splitpanes__pane) {
+  overflow: hidden;
 }
 
 /* 移动端样式 */

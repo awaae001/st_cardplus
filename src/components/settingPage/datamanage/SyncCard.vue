@@ -176,9 +176,9 @@
 </template>
 
 <script setup lang="ts">
+import { syncInjectionKey } from '@/composables/dataManagement/useSync';
 import { Icon } from '@iconify/vue';
 import { computed, inject } from 'vue';
-import { syncInjectionKey } from '@/composables/dataManagement/useSync';
 
 const sync = inject(syncInjectionKey);
 if (!sync) {
@@ -222,7 +222,8 @@ const pullButtonText = computed(() => {
 .sync-provider-selector {
   display: flex;
   align-items: center;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 12px 16px;
   margin-bottom: 16px;
 }
 
@@ -258,9 +259,21 @@ const pullButtonText = computed(() => {
 
 .sync-action-buttons {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 10px;
   margin-top: 16px;
+}
+
+@media (max-width: 480px) {
+  .sync-action-buttons {
+    flex-direction: column;
+  }
+
+  .sync-action-buttons .el-button {
+    width: 100%;
+    margin-left: 0 !important;
+  }
 }
 
 .sync-progress {

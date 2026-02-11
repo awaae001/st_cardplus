@@ -66,19 +66,19 @@
 
 <script setup lang="ts">
 import type {
-  Project,
-  EnhancedLandmark,
   EnhancedForce,
+  EnhancedLandmark,
   EnhancedRegion,
+  Project,
   ProjectIntegration,
 } from '@/types/world-editor';
-import ProjectEditor from './ProjectEditor.vue';
-import LandmarkEditor from './editorPacel/LandmarkEditor.vue';
-import ForceEditor from './editorPacel/ForceEditor.vue';
-import RegionEditor from './editorPacel/RegionEditor.vue';
-import IntegratedPanel from './editorPacel/IntegratedPanel.vue';
-import WorldEditorActionButtons from './WorldEditorActionButtons.vue';
 import { ElMessage } from 'element-plus';
+import ForceEditor from './editorPacel/ForceEditor.vue';
+import IntegratedPanel from './editorPacel/IntegratedPanel.vue';
+import LandmarkEditor from './editorPacel/LandmarkEditor.vue';
+import RegionEditor from './editorPacel/RegionEditor.vue';
+import ProjectEditor from './ProjectEditor.vue';
+import WorldEditorActionButtons from './WorldEditorActionButtons.vue';
 
 interface Props {
   selectedItem: Project | EnhancedLandmark | EnhancedForce | EnhancedRegion | ProjectIntegration | null;
@@ -269,20 +269,13 @@ const getCurrentProject = (integration: ProjectIntegration): Project | null => {
 </script>
 
 <style scoped>
-.page-title {
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0;
-  color: var(--el-text-color-primary);
-}
-
 .world-editor-main-panel {
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
-.editor-header {
+.world-editor-main-panel > .editor-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -291,13 +284,22 @@ const getCurrentProject = (integration: ProjectIntegration): Project | null => {
   border-bottom: 1px solid var(--el-border-color);
 }
 
-.editor-content {
+.world-editor-main-panel > .editor-header > .page-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  white-space: nowrap;
+  color: var(--el-text-color-primary);
+}
+
+.world-editor-main-panel > .editor-content {
   flex: 1;
   min-height: 0;
   overflow: hidden;
 }
 
-.editor-placeholder {
+.world-editor-main-panel > .editor-placeholder,
+.world-editor-main-panel > .editor-content > .editor-placeholder {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -308,5 +310,20 @@ const getCurrentProject = (integration: ProjectIntegration): Project | null => {
   text-align: center;
   padding: 20px;
   box-sizing: border-box;
+}
+
+/* 移动端适配 */
+@media screen and (max-width: 768px) {
+  .world-editor-main-panel > .editor-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+  }
+
+  .world-editor-main-panel > .editor-header > .page-title {
+    font-size: 15px;
+  }
 }
 </style>

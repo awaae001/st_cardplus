@@ -1,5 +1,15 @@
+import {
+  Briefcase,
+  Collection,
+  DataLine,
+  EditPen,
+  House,
+  Location,
+  Postcard,
+  Tickets,
+  Tools,
+} from '@element-plus/icons-vue';
 import { markRaw } from 'vue';
-import { House, EditPen, Location, Postcard, Tools, DataLine, Collection, Tickets } from '@element-plus/icons-vue';
 
 // 菜单项类型
 export type MenuItemType = 'main' | 'tool';
@@ -16,6 +26,7 @@ export interface MenuItemConfig {
   beta?: boolean;
   description?: string;
   fixed?: boolean;
+  showInTabBar?: boolean;
 }
 
 // 工具箱固定工具接口
@@ -38,6 +49,7 @@ export const iconMap = {
   DataLine: markRaw(DataLine),
   Collection: markRaw(Collection),
   Tickets: markRaw(Tickets),
+  Briefcase: markRaw(Briefcase),
 };
 
 // Iconify 图标映射
@@ -50,6 +62,7 @@ export const iconifyIconMap: Record<string, string> = {
   DataLine: 'ep:data-line',
   Collection: 'ep:collection',
   Tickets: 'ep:tickets',
+  Briefcase: 'ep:briefcase',
 };
 
 // 主菜单项配置
@@ -63,6 +76,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     icon: 'House',
     route: '/',
     fixed: true,
+    showInTabBar: false, // Logo 已可点击回首页，无需在 TabBar 显示
   },
   {
     id: 'cardmanager',
@@ -72,6 +86,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     title: '角色卡管理器',
     icon: 'Postcard',
     route: '/cardmanager',
+    showInTabBar: true, // 默认显示在 TabBar
   },
   {
     id: 'cardinfo',
@@ -81,6 +96,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     title: '角色信息',
     icon: 'EditPen',
     route: '/cardinfo',
+    showInTabBar: false,
   },
   {
     id: 'world',
@@ -90,6 +106,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     title: '世界地标',
     icon: 'Location',
     route: '/world',
+    showInTabBar: true, // 默认显示在 TabBar
   },
   {
     id: 'ejs-editor',
@@ -100,6 +117,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     icon: 'DataLine',
     route: '/ejs-editor',
     beta: true,
+    showInTabBar: false,
   },
   {
     id: 'worldbook',
@@ -110,6 +128,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     icon: 'Collection',
     route: '/worldbook',
     beta: true,
+    showInTabBar: false,
   },
   {
     id: 'regex-editor',
@@ -120,6 +139,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     icon: 'Tickets',
     route: '/regex-editor',
     beta: true,
+    showInTabBar: false,
   },
   {
     id: 'presetmanager',
@@ -130,6 +150,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     icon: 'DataLine',
     route: '/presetmanager',
     beta: true,
+    showInTabBar: false,
   },
   {
     id: 'toolbox',
@@ -137,9 +158,10 @@ export const mainMenuItems: MenuItemConfig[] = [
     visible: true,
     order: 8,
     title: '工具箱',
-    icon: 'Tools',
+    icon: 'Briefcase',
     route: '/toolbox',
     fixed: true,
+    showInTabBar: true, // 默认显示在 TabBar
   },
 ];
 
@@ -187,7 +209,7 @@ export const toolboxToolItems: MenuItemConfig[] = [
   },
 ];
 
-// 工具箱固定工具配置（不会出现在侧边栏中的固定工具）
+// 工具箱固定工具配置（不会出现在导航栏中的固定工具）
 export const toolboxFixedTools: ToolboxToolConfig[] = [
   {
     id: 'json-formatter',
@@ -238,13 +260,13 @@ export const getIconifyIconName = (iconName: string): string => {
   return iconifyIconMap[iconName] || iconName;
 };
 
-// 侧边栏配置接口
+// 导航栏配置接口
 export interface SidebarConfig {
   items: MenuItemConfig[];
   lastUpdated: number;
 }
 
-// 创建默认侧边栏配置
+// 创建默认导航栏配置
 export const createDefaultSidebarConfig = (): SidebarConfig => ({
   items: getAllDefaultMenuItems(),
   lastUpdated: Date.now(),
@@ -279,6 +301,7 @@ export const migrateMenuConfig = (oldConfig: any): SidebarConfig => {
         ...defaultItem,
         visible: oldItem.visible ?? defaultItem.visible,
         order: oldItem.order ?? defaultItem.order,
+        showInTabBar: oldItem.showInTabBar ?? defaultItem.showInTabBar,
       };
     }
     return defaultItem;

@@ -14,7 +14,7 @@
       placeholder="/pattern/flags"
     />
   </el-form-item>
-  <el-form-item label="查找字符串宏替换模式">
+  <el-form-item>
     <el-select
       :model-value="substituteRegex"
       @update:model-value="$emit('update:substituteRegex', $event)"
@@ -34,35 +34,37 @@
       />
     </el-select>
     <template #label>
-      <span>查找字符串宏替换模式</span>
-      <el-tooltip
-        placement="top"
-        effect="dark"
-      >
-        <template #content>
-          <div style="max-width: 300px">
-            <p>
-              <strong>NONE (0):</strong>
-              不对查找字符串进行宏替换
-            </p>
-            <p>
-              <strong>RAW (1):</strong>
-              替换 {{ '{{' }}user}} 等宏，但不转义特殊字符
-            </p>
-            <p>
-              <strong>ESCAPED (2):</strong>
-              替换宏并转义正则特殊字符，适合匹配字面文本
-            </p>
-          </div>
-        </template>
-        <Icon
-          icon="ph:question-duotone"
-          style="margin-left: 4px; cursor: help"
-        />
-      </el-tooltip>
+      <span class="label-with-tip">
+        <span>查找字符串宏替换模式</span>
+        <el-tooltip
+          placement="top"
+          effect="dark"
+        >
+          <template #content>
+            <div style="max-width: 300px">
+              <p>
+                <strong>NONE (0):</strong>
+                不对查找字符串进行宏替换
+              </p>
+              <p>
+                <strong>RAW (1):</strong>
+                替换 {{ '{{' }}user}} 等宏，但不转义特殊字符
+              </p>
+              <p>
+                <strong>ESCAPED (2):</strong>
+                替换宏并转义正则特殊字符，适合匹配字面文本
+              </p>
+            </div>
+          </template>
+          <Icon
+            icon="ph:question-duotone"
+            style="margin-left: 4px; cursor: help"
+          />
+        </el-tooltip>
+      </span>
     </template>
   </el-form-item>
-  <el-form-item label="替换 (replaceString)">
+  <el-form-item>
     <el-input
       :model-value="replaceString"
       @update:model-value="$emit('update:replaceString', $event)"
@@ -71,43 +73,45 @@
       placeholder="Hello, $1! 或 Hello, $<name>!"
     />
     <template #label>
-      <span>替换 (replaceString)</span>
-      <el-tooltip
-        placement="top"
-        effect="dark"
-      >
-        <template #content>
-          <div style="max-width: 300px">
-            <p>支持以下替换语法：</p>
-            <p>
-              •
-              <strong>$0</strong>
-              或
-              <strong>{{ '{{' }}match}}</strong>
-              - 完整匹配
-            </p>
-            <p>
-              •
-              <strong>$1, $2, ...</strong>
-              - 数字捕获组
-            </p>
-            <p>
-              •
-              <strong>$&lt;name&gt;</strong>
-              - 命名捕获组
-            </p>
-            <p>
-              •
-              <strong>{{ '{{' }}user}}, {{ '{{' }}char}}</strong>
-              - 宏变量
-            </p>
-          </div>
-        </template>
-        <Icon
-          icon="ph:question-duotone"
-          style="margin-left: 4px; cursor: help"
-        />
-      </el-tooltip>
+      <span class="label-with-tip">
+        <span>替换 (replaceString)</span>
+        <el-tooltip
+          placement="top"
+          effect="dark"
+        >
+          <template #content>
+            <div style="max-width: 300px">
+              <p>支持以下替换语法：</p>
+              <p>
+                •
+                <strong>$0</strong>
+                或
+                <strong>{{ '{{' }}match}}</strong>
+                - 完整匹配
+              </p>
+              <p>
+                •
+                <strong>$1, $2, ...</strong>
+                - 数字捕获组
+              </p>
+              <p>
+                •
+                <strong>$&lt;name&gt;</strong>
+                - 命名捕获组
+              </p>
+              <p>
+                •
+                <strong>{{ '{{' }}user}}, {{ '{{' }}char}}</strong>
+                - 宏变量
+              </p>
+            </div>
+          </template>
+          <Icon
+            icon="ph:question-duotone"
+            style="margin-left: 4px; cursor: help"
+          />
+        </el-tooltip>
+      </span>
     </template>
   </el-form-item>
   <el-form-item label="移除字符 (trimStrings)">
@@ -146,3 +150,10 @@ defineEmits([
   'update:substituteRegex',
 ]);
 </script>
+
+<style scoped>
+.label-with-tip {
+  display: inline-flex;
+  align-items: center;
+}
+</style>

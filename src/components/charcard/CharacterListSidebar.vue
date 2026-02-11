@@ -17,7 +17,7 @@
       >
         <button
           @click="triggerFileInput"
-          class="btn-primary-adv sidebar-header-button"
+          class="btn-adv btn-primary-adv sidebar-header-button"
         >
           <Icon icon="ph:upload-simple-bold" />
         </button>
@@ -28,7 +28,7 @@
       >
         <button
           @click="emit('create')"
-          class="btn-primary-adv sidebar-header-button"
+          class="btn-adv btn-primary-adv sidebar-header-button"
         >
           <Icon icon="ph:plus-bold" />
         </button>
