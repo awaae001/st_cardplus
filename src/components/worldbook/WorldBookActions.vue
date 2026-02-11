@@ -18,7 +18,7 @@
           :show-file-list="false"
           accept=".json"
         >
-          <button class="btn-primary-adv worldbook-bottom-button-text worldbook-primary-import">
+          <button class="btn-adv btn-primary-adv worldbook-bottom-button-text worldbook-primary-import">
             <Icon
               icon="ph:book-open-duotone"
               width="16"
@@ -36,7 +36,7 @@
         @command="handleListCommand"
       >
         <button
-          class="btn-primary-adv worldbook-bottom-button-text worldbook-action-dropdown"
+          class="btn-adv btn-primary-adv worldbook-bottom-button-text worldbook-action-dropdown"
           aria-label="更多操作"
         >
           <Icon
@@ -97,7 +97,7 @@
         <button
           @click="$emit('copy-entry')"
           :disabled="!hasSelection"
-          class="btn-secondary-adv worldbook-editor-button"
+          class="btn-adv btn-secondary-adv worldbook-editor-button"
           aria-label="复制当前条目"
         >
           <Icon
@@ -115,7 +115,7 @@
       >
         <button
           @click="$emit('save-entry')"
-          class="btn-primary-adv worldbook-editor-button"
+          class="btn-adv btn-primary-adv worldbook-editor-button"
           aria-label="保存当前条目"
         >
           <Icon
@@ -168,7 +168,7 @@
       >
         <button
           @click="$emit('delete-entry')"
-          class="btn-danger-adv worldbook-editor-button"
+          class="btn-adv btn-danger-adv worldbook-editor-button"
           aria-label="删除当前条目"
         >
           <Icon

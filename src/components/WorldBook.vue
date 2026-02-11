@@ -37,7 +37,7 @@
             >
               <button
                 @click="() => addNewEntry()"
-                class="btn-primary-adv worldbook-add-button"
+                class="btn-adv btn-primary-adv worldbook-add-button"
                 aria-label="新增条目"
                 :disabled="!activeBook"
               >

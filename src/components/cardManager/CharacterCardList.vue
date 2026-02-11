@@ -12,7 +12,7 @@
         >
           <button
             @click="emit('create-new')"
-            class="btn-success-adv character-card-list-add-button"
+            class="btn-adv btn-success-adv character-card-list-add-button"
             aria-label="创建新角色卡"
           >
             <Icon
@@ -30,7 +30,7 @@
         >
           <button
             @click="emit('save-current')"
-            class="btn-primary-adv character-card-list-add-button"
+            class="btn-adv btn-primary-adv character-card-list-add-button"
             aria-label="保存当前角色卡"
             :disabled="!hasCurrentCard"
           >

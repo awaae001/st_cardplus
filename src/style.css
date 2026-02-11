@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import './css/settings.css';
+@import './css/buttons-adv.css';
 
 /* 主题切换过渡效果 - View Transitions API */
 ::view-transition-old(root),

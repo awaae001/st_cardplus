@@ -16,7 +16,7 @@
         :show-file-list="false"
         accept=".json"
       >
-        <button class="btn-primary-adv character-card-action-button-text">
+        <button class="btn-adv btn-primary-adv character-card-action-button-text">
           <Icon
             icon="ph:upload-duotone"
             width="16"
@@ -38,7 +38,7 @@
     >
       <button
         @click="$emit('export-all')"
-        class="btn-success-adv character-card-action-button-text"
+        class="btn-adv btn-success-adv character-card-action-button-text"
       >
         <Icon
           icon="ph:export-duotone"
@@ -62,7 +62,7 @@
     >
       <button
         @click="$emit('clear-all')"
-        class="btn-danger-adv character-card-action-button-text"
+        class="btn-adv btn-danger-adv character-card-action-button-text"
       >
         <Icon
           icon="ph:trash-simple-duotone"
@@ -94,7 +94,7 @@
       >
         <button
           @click="$emit('update-card')"
-          class="btn-primary-adv character-card-editor-button"
+          class="btn-adv btn-primary-adv character-card-editor-button"
           aria-label="更新当前角色卡"
         >
           <Icon
@@ -149,7 +149,7 @@
     >
       <button
         @click="$emit('save-as-new')"
-        class="btn-secondary-adv character-card-editor-button"
+        class="btn-adv btn-secondary-adv character-card-editor-button"
         aria-label="另存为新角色卡"
       >
         <Icon
@@ -168,7 +168,7 @@
     >
       <button
         @click="$emit('export-current')"
-        class="btn-success-adv character-card-editor-button"
+        class="btn-adv btn-success-adv character-card-editor-button"
         aria-label="导出当前角色卡"
       >
         <Icon
@@ -378,62 +378,6 @@ const getTooltipText = () => {
     padding: 4px 6px;
     font-size: 11px;
   }
-}
-
-/* 按钮样式变体 */
-.btn-primary-adv {
-  background-color: var(--el-color-primary);
-  color: white;
-  border: 1px solid var(--el-color-primary);
-}
-
-.btn-primary-adv:hover {
-  background-color: var(--el-color-primary-light-3);
-  border-color: var(--el-color-primary-light-3);
-}
-
-.btn-secondary-adv {
-  background-color: var(--el-color-info);
-  color: white;
-  border: 1px solid var(--el-color-info);
-}
-
-.btn-secondary-adv:hover {
-  background-color: var(--el-color-info-light-3);
-  border-color: var(--el-color-info-light-3);
-}
-
-.btn-success-adv {
-  background-color: var(--el-color-success);
-  color: white;
-  border: 1px solid var(--el-color-success);
-}
-
-.btn-success-adv:hover {
-  background-color: var(--el-color-success-light-3);
-  border-color: var(--el-color-success-light-3);
-}
-
-.btn-warning-adv {
-  background-color: var(--el-color-warning);
-  color: white;
-  border: 1px solid var(--el-color-warning);
-}
-
-.btn-warning-adv:hover {
-  background-color: var(--el-color-warning-light-3);
-  border-color: var(--el-color-warning-light-3);
-}
-
-.btn-danger-adv {
-  background-color: var(--el-color-danger);
-  color: white;
-  border: 1px solid var(--el-color-danger);
-}
-
-.btn-danger-adv:hover {
-  background-color: var(--el-color-danger-light-3);
-  border-color: var(--el-color-danger-light-3);
 }
 
 /* Upload 组件内部按钮样式重置 */
