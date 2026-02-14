@@ -243,7 +243,6 @@ onUnmounted(() => {
   }
 });
 
-// Manage the collection of world books
 const {
   worldBookCollection,
   activeBookId,
@@ -261,7 +260,6 @@ const {
   handleDeleteEntry,
 } = useWorldBookCollection();
 
-// Manage entries of the active world book
 const {
   selectedEntry,
   editableEntry,
@@ -370,7 +368,6 @@ const allKeywords = computed((): string[] => {
   return [...new Set(allKeys.filter((key: string) => key))] as string[]; // 过滤掉空字符串或null/undefined
 });
 
-// Manage drag and drop logic, must be after other composables
 const dragDropHandlers = useWorldBookDragDrop(
   worldBookCollection,
   moveEntryBetweenBooks,

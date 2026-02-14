@@ -440,7 +440,6 @@ defineEmits([
 
 const { form } = toRefs(props);
 
-// Personality Traits
 const addDialogueExample = (traitIndex: number) => {
   form.value.traits[traitIndex].dialogueExamples.push('');
 };
@@ -456,7 +455,6 @@ const removeBehaviorExample = (traitIndex: number, exampleIndex: number) => {
 </script>
 
 <style scoped>
-/* Styles from CharacterCardEditor.vue can be copied here if needed */
 .form-section {
   margin-bottom: 24px;
   padding: 16px;
@@ -508,7 +506,6 @@ const removeBehaviorExample = (traitIndex: number, exampleIndex: number) => {
   border: 1px solid var(--el-border-color-lighter);
 }
 
-/* 卡片内部输入框间距 */
 .draggable-card :deep(.el-card__body) {
   display: flex;
   flex-direction: column;

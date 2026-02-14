@@ -1,6 +1,5 @@
 <template>
   <div class="stage-editor">
-    <!-- 阶段名称 -->
     <div class="form-item">
       <label>阶段名称</label>
       <el-input
@@ -10,7 +9,6 @@
       />
     </div>
 
-    <!-- 条件设置 -->
     <div class="form-item">
       <label>触发条件</label>
       <div class="condition-groups-container">
@@ -165,7 +163,6 @@
       </div>
     </div>
 
-    <!-- 内容编辑 -->
     <div class="form-item">
       <label>
         阶段内容
@@ -187,7 +184,6 @@
       />
     </div>
 
-    <!-- 预览当前阶段 -->
     <div class="form-item">
       <label>内容预览</label>
       <div class="content-preview">
@@ -213,7 +209,6 @@ const store = useEjsEditorStore();
 const { isMobile } = useDevice();
 const localContent = ref(props.stage.content);
 
-// 当外部stage内容变化时，同步到本地
 watch(
   () => props.stage.content,
   (newVal) => {
@@ -223,7 +218,6 @@ watch(
   }
 );
 
-// 使用防抖更新store中的内容
 let debounceTimer: NodeJS.Timeout;
 watch(localContent, (newValue) => {
   clearTimeout(debounceTimer);

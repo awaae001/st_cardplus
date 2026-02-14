@@ -3,6 +3,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { defaultOpenAIPreset, defaultPromptOrder } from '@/types/openai-preset';
 import { presetService } from '@/database/presetService';
 import type { StoredPresetFile } from '@/database/db';
+import { nowIso } from '@/utils/datetime';
 import {
   buildPromptOrderListFromIdentifiers,
   getPromptOrderIdentifiers,
@@ -80,7 +81,7 @@ export function usePresetStore() {
   const loadPresets = async () => {
     const loaded = await presetService.getAllPresets();
     if (loaded.length === 0) {
-      const now = new Date().toISOString();
+      const now = nowIso();
       const preset: StoredPresetFile = {
         id: presetService.createPresetId(),
         name: '默认预设',
@@ -130,7 +131,7 @@ export function usePresetStore() {
         inputErrorMessage: '名称不能为空',
       });
       const { value: name } = result as { value: string };
-      const now = new Date().toISOString();
+      const now = nowIso();
       const order = presets.value.length;
       const preset: StoredPresetFile = {
         id: presetService.createPresetId(),
@@ -161,7 +162,7 @@ export function usePresetStore() {
         inputErrorMessage: '名称不能为空',
       });
       const { value: name } = result as { value: string };
-      const now = new Date().toISOString();
+      const now = nowIso();
       const order = presets.value.length;
       const data = presetService.createDefaultPresetData(defaultOpenAIPreset) as any;
       const identifiers = getDefaultOrderIdentifiers();
@@ -205,7 +206,7 @@ export function usePresetStore() {
       });
       const { value: name } = result as { value: string };
       preset.name = name;
-      preset.updatedAt = new Date().toISOString();
+      preset.updatedAt = nowIso();
       await presetService.updatePreset(preset);
       ElMessage.success('预设已重命名');
     } catch (error) {
@@ -237,7 +238,7 @@ export function usePresetStore() {
   const addPrompt = async (presetId: string) => {
     const preset = presets.value.find((p) => p.id === presetId);
     if (!preset) return;
-    const now = new Date().toISOString();
+    const now = nowIso();
     const prompts = (preset.data.prompts as PresetPrompt[]) || [];
     const newPrompt: PresetPrompt = {
       identifier: presetService.createPresetId(),
@@ -268,12 +269,12 @@ export function usePresetStore() {
       order: typeof prompt.order === 'number' ? prompt.order : startOrder + index,
     }));
     preset.data.prompts = [...prompts, ...normalized] as any;
-    preset.updatedAt = new Date().toISOString();
+    preset.updatedAt = nowIso();
     await presetService.updatePreset(preset);
   };
 
   const importPreset = async (presetName: string, data: Record<string, any>) => {
-    const now = new Date().toISOString();
+    const now = nowIso();
     const order = presets.value.length;
     const prompts = Array.isArray(data.prompts) ? data.prompts : [];
     const normalizedPrompts = prompts.map((prompt: PresetPrompt, index: number) => ({
@@ -299,7 +300,7 @@ export function usePresetStore() {
   };
 
   const reorderPresets = async (orderedIds: string[]) => {
-    const now = new Date().toISOString();
+    const now = nowIso();
     const updated = orderedIds
       .map((id, index) => {
         const preset = presets.value.find((p) => p.id === id);
@@ -340,7 +341,7 @@ export function usePresetStore() {
             }))
         : buildPromptOrderList(reordered);
     preset.data.prompt_order = upsertPromptOrderEntry(preset.data.prompt_order, orderList);
-    preset.updatedAt = new Date().toISOString();
+    preset.updatedAt = nowIso();
     await presetService.updatePreset(preset);
   };
 
@@ -355,7 +356,7 @@ export function usePresetStore() {
     cloned.name = `${source.name || '条目'} - 副本`;
     const updatedPrompts = [...prompts, cloned];
     preset.data.prompts = updatedPrompts as any;
-    preset.updatedAt = new Date().toISOString();
+    preset.updatedAt = nowIso();
     await presetService.updatePreset(preset);
     ElMessage.success('条目已复制');
     selected.value = { type: 'prompt', promptIndex: updatedPrompts.length - 1 };
@@ -383,7 +384,7 @@ export function usePresetStore() {
         const { next, removed } = removePromptOrderIdentifier(preset.data.prompt_order, identifier);
         if (removed) {
           preset.data.prompt_order = next as any;
-          preset.updatedAt = new Date().toISOString();
+          preset.updatedAt = nowIso();
           await presetService.updatePreset(preset);
           ElMessage.success('条目已移至未插入');
           return;
@@ -391,7 +392,7 @@ export function usePresetStore() {
       }
       const updatedPrompts = prompts.filter((_, idx) => idx !== promptIndex);
       preset.data.prompts = updatedPrompts as any;
-      preset.updatedAt = new Date().toISOString();
+      preset.updatedAt = nowIso();
       await presetService.updatePreset(preset);
       ElMessage.success('条目已删除');
       selected.value = { type: 'header' };
@@ -406,7 +407,7 @@ export function usePresetStore() {
     if (!activePreset.value) return;
     const prompts = (activePreset.value.data.prompts as PresetPrompt[]) || [];
     activePreset.value.data = { ...header, prompts } as any;
-    activePreset.value.updatedAt = new Date().toISOString();
+    activePreset.value.updatedAt = nowIso();
     await presetService.updatePreset(activePreset.value);
   };
 
@@ -417,7 +418,7 @@ export function usePresetStore() {
     const nextPrompts = [...prompts];
     nextPrompts[promptIndex] = updatedPrompt;
     activePreset.value.data.prompts = nextPrompts as any;
-    activePreset.value.updatedAt = new Date().toISOString();
+    activePreset.value.updatedAt = nowIso();
     await presetService.updatePreset(activePreset.value);
   };
 
@@ -427,7 +428,7 @@ export function usePresetStore() {
     const prompts = (preset.data.prompts as PresetPrompt[]) || [];
     const orderList = buildPromptOrderListFromIdentifiers(identifiers, prompts as any, preset.data.prompt_order);
     preset.data.prompt_order = upsertPromptOrderEntry(preset.data.prompt_order, orderList);
-    preset.updatedAt = new Date().toISOString();
+    preset.updatedAt = nowIso();
     await presetService.updatePreset(preset);
   };
 

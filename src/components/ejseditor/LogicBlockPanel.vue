@@ -104,7 +104,6 @@ const activeBlockIds = ref<string[]>([]);
 const editingBlockId = ref<string | null>(null);
 
 onMounted(() => {
-  // Expand the first block by default
   if (store.logicBlocks.length > 0) {
     activeBlockIds.value = [store.logicBlocks[0].id];
   }
@@ -130,7 +129,6 @@ async function removeBlock(blockId: string) {
     store.removeLogicBlock(blockId);
     ElMessage.success('逻辑块已删除');
   } catch {
-    // User cancelled
   }
 }
 </script>

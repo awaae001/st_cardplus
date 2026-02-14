@@ -1,8 +1,6 @@
 <template>
   <div class="card-manager-container">
-    <!-- 统一的标签页布局 -->
     <div class="card-manager-layout">
-      <!-- 顶部标签栏 -->
       <CharacterCardTabs
         :tabs="tabs"
         :active-tab-id="activeTabId"
@@ -11,9 +9,7 @@
         @reorder-tabs="handleTabReorder"
       />
 
-      <!-- 内容区域 -->
       <div class="tab-content-area">
-        <!-- 主页 -->
         <div
           v-if="currentTab?.type === 'home'"
           class="tab-content-panel"
@@ -31,7 +27,6 @@
           />
         </div>
 
-        <!-- 角色卡编辑器 -->
         <div
           v-else-if="currentTab?.type === 'character-card'"
           class="tab-content-panel"
@@ -95,7 +90,6 @@
                   <span class="button-text">导出PNG</span>
                 </el-button>
               </div>
-              <!-- 世界书操作按钮 -->
               <div
                 class="header-actions"
                 v-else-if="rightEditorTab === 'worldbook'"
@@ -127,7 +121,6 @@
                   </el-button>
                 </el-tooltip>
               </div>
-              <!-- 正则面板操作按钮 -->
               <div
                 class="header-actions"
                 v-else-if="rightEditorTab === 'regex'"
@@ -293,7 +286,6 @@ import { getSetting } from '@/utils/localStorageUtils';
 
 const { characterData, isLoadingData, loadCharacter, resetCharacter } = useV3CharacterCard();
 
-// 标签页管理
 const {
   tabs,
   activeTabId,
@@ -306,7 +298,6 @@ const {
   getActiveTab,
 } = useTabManager();
 
-// 角色卡集合管理
 const {
   characterCardCollection,
   activeCardId,
@@ -325,10 +316,8 @@ const {
   handleCreateNewCard: handleCreateNewCardFromCollection,
 } = useCharacterCardCollection();
 
-// 自动保存模式
 const autoSaveMode = ref<AutoSaveMode>('watch');
 
-// 自动保存逻辑
 const {
   saveStatus,
   manualSave,
@@ -341,12 +330,10 @@ const {
   isLoadingData,
   autoSaveMode,
   onSave: async (cardId, data) => {
-    // 自动保存时跳过本地更新，避免触发响应式循环
     await handleUpdateCard(cardId, data, true, true); // silent = true, skipLocalUpdate = true
   },
 });
 
-// 切换自动保存模式
 const toggleAutoSaveMode = () => {
   const modes: AutoSaveMode[] = ['auto', 'watch', 'manual'];
   const currentIndex = modes.indexOf(autoSaveMode.value);
@@ -364,7 +351,6 @@ const toggleAutoSaveMode = () => {
   ElMessage.info(messages[autoSaveMode.value]);
 };
 
-// UI 状态
 const activeTab = ref('editor');
 const rightEditorTab = ref<'card' | 'worldbook' | 'regex'>('card');
 const headerTitle = computed(() => {
@@ -379,7 +365,6 @@ const headerIcon = computed(() => {
 });
 const advancedOptionsVisible = ref(false);
 
-// 标签页相关计算属性
 const currentTab = computed(() => getActiveTab());
 const currentCardInTab = computed(() => {
   const tab = currentTab.value;
@@ -389,7 +374,6 @@ const currentCardInTab = computed(() => {
   return null;
 });
 
-// 图片处理
 const characterImageFile = ref<File | null>(null);
 const handleImageUpdate = (file: File) => {
   characterImageFile.value = file;
@@ -401,7 +385,6 @@ const imagePreviewUrl = computed(() => {
   return undefined;
 });
 
-// 文件导入与导出
 const { isUploading, uploadProgress, triggerFileInput, handleFileSelected } = useCardImport((card) => {
   loadCharacter(card);
   activeTab.value = 'editor';
@@ -409,7 +392,6 @@ const { isUploading, uploadProgress, triggerFileInput, handleFileSelected } = us
 }, handleImageUpdate);
 const { handleSave } = useCardExport(characterData, characterImageFile);
 
-// 角色卡内正则变更后触发手动保存
 const handleRegexChanged = async () => {
   if (activeCard.value && activeCardId.value) {
     try {
@@ -423,29 +405,22 @@ const handleRegexChanged = async () => {
   }
 };
 
-// 监听 activeCardId 的变化,自动加载或重置编辑器
-// 注意：只监听 activeCardId，不监听 activeCard，避免因 activeCard 对象变化导致循环
 watch(
   [isLoading, activeCardId],
   ([loading, cardId], [, prevCardId]) => {
-    // 等待数据加载完成
     if (loading) return;
 
-    // activeCardId 发生变化
     if (cardId !== prevCardId) {
       if (cardId) {
-        // 有新的活动卡片 ID,从 collection 中获取并加载
         const card = characterCardCollection.value.cards[cardId];
         if (card) {
           loadCharacter(card);
           characterImageFile.value = null;
-          // 加载完成后，更新自动保存的快照
           setTimeout(() => {
             updateSavedSnapshot();
           }, 100);
         }
       } else {
-        // 没有活动卡片(删除后或清空后),重置编辑器
         resetCharacter();
         characterImageFile.value = null;
         resetSaveState();
@@ -455,7 +430,6 @@ watch(
   { immediate: true }
 );
 
-// --- 角色卡管理事件处理 ---
 const handleSaveCurrentAsNew = async () => {
   await handleSaveCurrentCard(characterData.value);
 };
@@ -485,7 +459,6 @@ const handleCreateNewCard = async () => {
       loadCharacter(newCard);
       activeTab.value = 'editor';
       rightEditorTab.value = 'card';
-      // 在新的标签页系统中打开
       openCharacterCardTab(cardId, newCard.name || '未命名角色');
     }
   }
@@ -504,7 +477,6 @@ const handleOpenCardFromHome = (cardId: string, cardName: string) => {
 const handleTabSwitch = (tabId: string) => {
   switchToTab(tabId);
 
-  // 如果切换到角色卡标签页，加载对应的角色卡
   const tab = tabs.value.find((t) => t.id === tabId);
   if (tab?.type === 'character-card' && tab.cardId) {
     const card = characterCardCollection.value.cards[tab.cardId];
@@ -520,20 +492,16 @@ const handleTabSwitch = (tabId: string) => {
   }
 };
 
-// 关闭标签页
 const handleTabClose = (tabId: string) => {
   closeTab(tabId);
 };
 
-// 重新排序标签页
 const handleTabReorder = (newTabs: any[]) => {
   reorderTabs(newTabs);
 };
 
-// 重命名角色卡（同时更新标签页标题）
 const handleRenameCard = async (cardId: string) => {
   await handleRenameCardOriginal(cardId);
-  // 更新标签页标题
   const card = characterCardCollection.value.cards[cardId];
   if (card) {
     updateTabLabel(cardId, card.name || '未命名角色');
@@ -557,49 +525,39 @@ const handleWorldBookChanged = async () => {
   }
 };
 
-// 世界书面板引用
 const worldbookPanelRef = ref<InstanceType<typeof CardWorldBookPanel>>();
 
-// 添加世界书到数据库
 const handleAddWorldBookToDB = () => {
   worldbookPanelRef.value?.handleAddToDB();
 };
 
-// 从数据库替换世界书
 const handleReplaceWorldBookFromDB = () => {
   worldbookPanelRef.value?.handleReplaceFromDB();
 };
 
-// 正则面板引用
 const regexPanelRef = ref<InstanceType<typeof CardRegexPanel>>();
 
-// 计算属性：是否有正则脚本
 const hasRegexScripts = computed(() => {
   const scripts = characterData.value.data.extensions?.regex_scripts;
   return scripts && scripts.length > 0;
 });
 
-// 创建新正则脚本
 const handleRegexCreateNew = () => {
   regexPanelRef.value?.handleCreateNew();
 };
 
-// 从正则库添加脚本
 const handleRegexAddFromLibrary = () => {
   regexPanelRef.value?.handleAddFromLibrary();
 };
 
-// 发送到正则编辑器（副本）
 const handleRegexSendToEditor = () => {
   regexPanelRef.value?.handleSendToRegexEditor();
 };
 
-// 从正则编辑器替换
 const handleRegexReplaceFromEditor = () => {
   regexPanelRef.value?.handleReplaceFromRegexEditor();
 };
 
-// 清理资源
 onUnmounted(() => {
   if (imagePreviewUrl.value) {
     URL.revokeObjectURL(imagePreviewUrl.value);
@@ -609,7 +567,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* 容器样式 */
 .card-manager-container {
   display: flex;
   flex-direction: column;
@@ -617,7 +574,6 @@ onUnmounted(() => {
   background-color: var(--el-bg-color-page);
 }
 
-/* 统一的布局 */
 .card-manager-layout {
   display: flex;
   flex-direction: column;
@@ -662,7 +618,6 @@ onUnmounted(() => {
   background-color: var(--el-bg-color);
 }
 
-/* 内容面板头部 */
 .content-panel-header {
   display: flex;
   justify-content: space-between;
@@ -706,8 +661,6 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
-/* 编辑器内容 */
-/* 右侧书签式标签页样式 */
 .bookmark-tabs {
   flex: 1;
   min-height: 0;
@@ -758,7 +711,6 @@ onUnmounted(() => {
   flex-direction: column;
 }
 
-/* 移动端响应式调整 */
 @media (max-width: 768px) {
   .content-panel-header {
     height: auto;
@@ -781,7 +733,6 @@ onUnmounted(() => {
 
   .content-panel-text-highlight {
     display: none;
-    /* 移动端隐藏角色名/世界书名 */
   }
 
   .header-actions {
@@ -798,10 +749,8 @@ onUnmounted(() => {
 
   .button-text {
     display: none;
-    /* 移动端隐藏按钮文字，只显示图标 */
   }
 
-  /* 移动端书签样式调整 */
   .bookmark-tabs :deep(.el-tabs__nav-wrap) {
     padding: 4px 0;
   }
@@ -820,7 +769,6 @@ onUnmounted(() => {
   }
 }
 
-/* 超小屏幕进一步优化 */
 @media (max-width: 480px) {
   .content-panel-header {
     padding: 6px 10px;

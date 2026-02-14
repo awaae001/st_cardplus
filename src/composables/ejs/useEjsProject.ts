@@ -1,6 +1,7 @@
 import { computed, type Ref } from 'vue';
 import type { Project, LogicBlock, StageScheme, EditorError } from '@/types/ejs-editor';
 import { ElMessage } from 'element-plus';
+import { nowIso, formatDateTime } from '@/utils/datetime';
 
 export function useEjsProject(
   projects: Ref<Project[]>,
@@ -47,8 +48,8 @@ export function useEjsProject(
       name,
       yamlInput: copyFromCurrent ? yamlInput.value : '',
       logicBlocks: copyFromCurrent ? JSON.parse(JSON.stringify(logicBlocks.value)) : [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: nowIso(),
+      updatedAt: nowIso(),
     };
 
     projects.value.push(newProject);
@@ -75,7 +76,7 @@ export function useEjsProject(
       project.yamlInput = yamlInput.value;
       project.logicBlocks = JSON.parse(JSON.stringify(logicBlocks.value));
       project.currentSchemeId = currentSchemeId.value;
-      project.updatedAt = new Date().toISOString();
+      project.updatedAt = nowIso();
       saveCurrentSchemeState();
     }
   }
@@ -122,7 +123,7 @@ export function useEjsProject(
     const project = projects.value.find((p) => p.id === projectId);
     if (project) {
       project.name = newName;
-      project.updatedAt = new Date().toISOString();
+      project.updatedAt = nowIso();
     }
   }
 
@@ -144,15 +145,15 @@ export function useEjsProject(
   }
 
   function importAsNewProject(config: any, name?: string) {
-    const projectName = name || `导入项目_${new Date().toLocaleString()}`;
+    const projectName = name || `导入项目_${formatDateTime(nowIso())}`;
 
     const newProject: Project = {
       id: `project_${Date.now()}`,
       name: projectName,
       yamlInput: config.yamlInput || '',
       logicBlocks: convertLegacyData(config),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: nowIso(),
+      updatedAt: nowIso(),
     };
 
     projects.value.push(newProject);
@@ -164,7 +165,7 @@ export function useEjsProject(
     return {
       yamlInput: yamlInput.value,
       logicBlocks: logicBlocks.value,
-      timestamp: new Date().toISOString(),
+      timestamp: nowIso(),
     };
   }
 
@@ -177,7 +178,7 @@ export function useEjsProject(
         if (project) {
           project.yamlInput = config.yamlInput || '';
           project.logicBlocks = importedLogicBlocks;
-          project.updatedAt = new Date().toISOString();
+          project.updatedAt = nowIso();
           loadProjectState(project);
         }
       } else {
@@ -245,7 +246,7 @@ export function useEjsProject(
       projects: projects.value,
       currentProjectId: currentProjectId.value,
       version: 1,
-      exportedAt: new Date().toISOString(),
+      exportedAt: nowIso(),
     };
 
     const workspaceJson = JSON.stringify(workspace, null, 2);
@@ -253,7 +254,7 @@ export function useEjsProject(
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `ejs-workspace-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `ejs-workspace-backup-${nowIso().slice(0, 10)}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

@@ -3,6 +3,7 @@ import type { StoredCharacterCard } from './db';
 import type { CharacterCardV3 } from '../types/character-card-v3';
 import { estimateEncodedSize, sanitizeForIndexedDB } from './utils';
 import { getSessionStorageItem, setSessionStorageItem, removeSessionStorageItem } from '@/utils/localStorageUtils';
+import { nowIso } from '@/utils/datetime';
 
 // 重新导出 StoredCharacterCard 类型供外部使用
 export type { StoredCharacterCard };
@@ -115,7 +116,7 @@ export const characterCardService = {
       metadata?: Record<string, any>;
     } = {}
   ): StoredCharacterCard {
-    const now = new Date().toISOString();
+    const now = nowIso();
 
     return {
       id,

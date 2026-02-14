@@ -191,7 +191,6 @@ defineEmits(['addAttire', 'removeAttire', 'exportAttires', 'update:attires']);
 
 const { form } = toRefs(props);
 
-// Appearance Features
 interface AppearanceField {
   key: string;
   label: string;
@@ -285,7 +284,6 @@ const addCustomField = async () => {
       }
     }
   } catch (error) {
-    // User cancelled
   }
 };
 
@@ -311,7 +309,6 @@ watch(
 </script>
 
 <style scoped>
-/* 主容器样式 - 采用 worldbook 设计语言 */
 .character-card-editor-scrollbar {
   height: 100vh;
 }
@@ -323,7 +320,6 @@ watch(
   padding: 16px;
 }
 
-/* 表单区块样式 - 统一 worldbook 风格 */
 .character-card-editor-form .form-section {
   margin-bottom: 24px;
   padding: 16px;
@@ -357,7 +353,6 @@ watch(
   display: block;
 }
 
-/* 响应式布局 - 统一 worldbook 网格系统 */
 .form-row-responsive {
   display: flex;
   flex-direction: column;
@@ -388,7 +383,6 @@ watch(
   line-height: 1.4;
 }
 
-/* 信息提示框样式优化 */
 .whatYouwant {
   display: flex;
   align-items: center;
@@ -399,7 +393,6 @@ watch(
   border: 1px solid var(--el-color-primary-light-7);
 }
 
-/* 自定义字段容器 */
 #appearance-form,
 #routine-form {
   display: grid;
@@ -431,7 +424,6 @@ watch(
   justify-content: center;
 }
 
-/* 标题按钮组合样式 */
 .title-Btn-add {
   display: flex;
   align-items: center;
@@ -440,7 +432,6 @@ watch(
   gap: 8px;
 }
 
-/* 卡片网格布局 */
 .form-grid-4-col {
   display: grid;
   grid-template-columns: 1fr;
@@ -453,14 +444,12 @@ watch(
   }
 }
 
-/* 拖拽卡片样式优化 */
 .draggable-card {
   position: relative;
   transition: all 0.2s;
   border: 1px solid var(--el-border-color-lighter);
 }
 
-/* 卡片内部输入框间距 */
 .draggable-card :deep(.el-card__body) {
   display: flex;
   flex-direction: column;
@@ -494,7 +483,6 @@ watch(
   cursor: grabbing;
 }
 
-/* 拖拽状态样式 */
 .ghost {
   opacity: 0.3;
   background-color: var(--el-color-primary-light-8);
@@ -508,7 +496,6 @@ watch(
   border-color: var(--el-color-primary) !important;
 }
 
-/* 桌面端优化 */
 @media (min-width: 1200px) {
   .form-grid-4-col {
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));

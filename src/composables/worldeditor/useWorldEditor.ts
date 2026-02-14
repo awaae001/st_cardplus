@@ -9,6 +9,7 @@ import type {
 import { LandmarkType, ImportanceLevel, ForceType, PowerLevel } from '@/types/world-editor';
 import { v4 as uuidv4 } from 'uuid';
 import { saveToLocalStorage, loadFromLocalStorage } from '@/utils/localStorageUtils';
+import { nowIso } from '@/utils/datetime';
 import { pickRandomRegionColor } from '@/utils/worldeditor/regionColors';
 import { normalizeLandmarkHierarchy, removeLandmarkFromHierarchy } from '@/utils/worldeditor/landmarkHierarchy';
 import { removeLandmarkLinksForIds } from '@/composables/worldeditor/worldGraphLinks';
@@ -92,8 +93,8 @@ export function useWorldEditor() {
     roadConnections: [],
     resources: [],
     notes: '',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: nowIso(),
+    updatedAt: nowIso(),
     version: 1,
   });
 
@@ -104,8 +105,8 @@ export function useWorldEditor() {
     description: '',
     color: pickRandomRegionColor(),
     notes: '',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: nowIso(),
+    updatedAt: nowIso(),
     version: 1,
   });
 
@@ -138,8 +139,8 @@ export function useWorldEditor() {
     timeline: [],
     tags: [],
     notes: '',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: nowIso(),
+    updatedAt: nowIso(),
     version: 1,
   });
 
@@ -225,8 +226,8 @@ export function useWorldEditor() {
         parentLandmarkIds: [],
         childLandmarkIds: [],
         position: landmarkItem.position ? { ...landmarkItem.position } : undefined,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: nowIso(),
+        updatedAt: nowIso(),
       };
       landmarks.value.unshift(newLandmark);
       selectedItem.value = newLandmark;
@@ -236,8 +237,8 @@ export function useWorldEditor() {
         ...forceItem,
         id: uuidv4(),
         name: `${forceItem.name} (复制)`,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: nowIso(),
+        updatedAt: nowIso(),
       };
       forces.value.unshift(newForce);
       selectedItem.value = newForce;
@@ -247,8 +248,8 @@ export function useWorldEditor() {
         ...regionItem,
         id: uuidv4(),
         name: `${regionItem.name} (复制)`,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: nowIso(),
+        updatedAt: nowIso(),
       };
       regions.value.unshift(newRegion);
       selectedItem.value = newRegion;
@@ -259,14 +260,14 @@ export function useWorldEditor() {
     if (editingProject) {
       const index = projects.value.findIndex((p) => p.id === editingProject.id);
       if (index !== -1) {
-        projects.value[index] = { ...projects.value[index], ...projectData, updatedAt: new Date().toISOString() };
+        projects.value[index] = { ...projects.value[index], ...projectData, updatedAt: nowIso() };
       }
     } else {
       const newProject = {
         ...projectData,
         id: uuidv4(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: nowIso(),
+        updatedAt: nowIso(),
       };
       projects.value.unshift(newProject);
       selectedItem.value = newProject;

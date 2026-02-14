@@ -169,6 +169,7 @@
 </template>
 
 <script setup lang="ts">
+import { formatDate, now, toDateSafe } from '@/utils/datetime';
 import type { CharacterCardCollection } from '@/types/character-card-collection';
 import { Icon } from '@iconify/vue';
 import { ElScrollbar, ElTag, ElTooltip } from 'element-plus';
@@ -204,24 +205,23 @@ const handleCardClick = (cardId: string) => {
 };
 
 const formatTime = (timeStr: string) => {
-  try {
-    const date = new Date(timeStr);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) {
-      return '今天';
-    } else if (diffDays === 1) {
-      return '昨天';
-    } else if (diffDays < 7) {
-      return `${diffDays}天前`;
-    } else {
-      return date.toLocaleDateString();
-    }
-  } catch {
+  const date = toDateSafe(timeStr);
+  if (!date) {
     return '未知时间';
   }
+
+  const diffMs = now().getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays <= 0) {
+    return '今天';
+  } else if (diffDays === 1) {
+    return '昨天';
+  } else if (diffDays < 7) {
+    return `${diffDays}天前`;
+  }
+
+  return formatDate(date);
 };
 </script>
 

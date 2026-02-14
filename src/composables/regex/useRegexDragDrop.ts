@@ -2,6 +2,7 @@ import type { Ref } from 'vue';
 import type { RegexScriptCollection, SillyTavernRegexScript } from './types';
 import type { NodeDropType } from 'element-plus/es/components/tree/src/tree.type';
 import { ElMessage } from 'element-plus';
+import { nowIso } from '@/utils/datetime';
 
 export function useRegexDragDrop(
   regexCollection: Ref<RegexScriptCollection>,
@@ -66,7 +67,7 @@ export function useRegexDragDrop(
       // 更新所有类别的 order
       allCategories.forEach((category, index) => {
         category.order = index;
-        category.updatedAt = new Date().toISOString();
+        category.updatedAt = nowIso();
       });
 
       ElMessage.success('类别顺序已更新');

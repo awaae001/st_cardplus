@@ -177,7 +177,6 @@ import { removeLandmarkLinksForIds } from '@/composables/worldeditor/worldGraphL
 const activeTab = ref('list');
 const graphProjectId = ref<string | null>(null);
 
-// Core Logic
 const {
   projects,
   landmarks,
@@ -219,7 +218,6 @@ const handleOpenGraph = (projectId: string) => {
   activeTab.value = 'editor';
 };
 
-// UI Logic
 const {
   isModalVisible,
   editingProject,
@@ -228,13 +226,10 @@ const {
   handleModalSubmit,
 } = useWorldEditorUI(handleProjectSubmit);
 
-// Drag and Drop Logic
 const dragDropHandlers = useDragAndDrop(landmarks, forces, regions);
 
-// History Management
 const { canUndo, canRedo, add, undo, redo } = useHistory('world-editor-history');
 
-// Event Handlers
 const handleAdd = (type: 'project' | 'landmark' | 'force' | 'region') => {
   if (type === 'project') {
     handleAddProject();
@@ -245,10 +240,8 @@ const handleAdd = (type: 'project' | 'landmark' | 'force' | 'region') => {
 
 const handleEdit = (item: Project | EnhancedLandmark | EnhancedForce | EnhancedRegion | ProjectIntegration) => {
   if ('createdAt' in item && !('projectId' in item)) {
-    // Is a Project
     handleEditProject(item as Project);
   } else {
-    // Selecting is the "edit" action for landmarks, forces, and integration
     handleSelection(item);
   }
 };
@@ -309,13 +302,10 @@ const handleUndo = () => {
     !updateEntity(regions.value, restoredState)
   ) {
     if ('importance' in restoredState) {
-      // is landmark
       landmarks.value.push(restoredState as EnhancedLandmark);
     } else if ('power' in restoredState) {
-      // is force
       forces.value.push(restoredState as EnhancedForce);
     } else {
-      // is force
       regions.value.push(restoredState as EnhancedRegion);
     }
     selectedItem.value = restoredState;
@@ -341,7 +331,6 @@ const handleRedo = () => {
   }
 };
 
-// Watch for changes in the selected item to add to history
 watch(
   () => (selectedItem.value ? JSON.stringify(selectedItem.value) : ''),
   (newJson, oldJson) => {

@@ -31,9 +31,7 @@ interface DatabaseRegistry {
   label: string; // 用户可读名称，如 '世界书'
 }
 
-// 延迟加载数据库服务，避免循环依赖
 async function getRegisteredDatabases(): Promise<DatabaseRegistry[]> {
-  // 在函数内部动态导入，避免模块加载时的循环依赖
   const [{ worldBookService }, { characterCardService }, { presetService }] = await Promise.all([
     import('./worldBookService'),
     import('./characterCardService'),
@@ -95,7 +93,6 @@ export async function importAllDatabases(data: Record<string, any>): Promise<voi
       try {
         const parsed = JSON.parse(data[key]);
         await service.importDatabase(parsed);
-        // 从数据对象中移除，以防被错误地写入 localStorage
         delete data[key];
       } catch (error) {
         console.error(`导入${label}数据失败:`, error);
@@ -111,8 +108,6 @@ export async function importAllDatabases(data: Record<string, any>): Promise<voi
  */
 export function sanitizeForIndexedDB<T>(obj: T): T {
   try {
-    // 使用 JSON.stringify/parse 自动移除函数和 Symbol
-    // 这也会打破循环引用
     return JSON.parse(JSON.stringify(obj));
   } catch (error) {
     console.error('Failed to sanitize object for IndexedDB:', error);

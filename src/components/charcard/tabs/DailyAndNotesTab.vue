@@ -103,7 +103,6 @@ defineEmits(['update:form-likes', 'update:form-dislikes', 'update:notes']);
 
 const { form } = toRefs(props);
 
-// Daily Routine
 interface RoutineField {
   key: string;
   label: string;
@@ -185,7 +184,6 @@ const addCustomRoutineField = async () => {
       }
     }
   } catch (error) {
-    // User cancelled
   }
 };
 
@@ -211,7 +209,6 @@ watch(
 </script>
 
 <style scoped>
-/* Styles from CharacterCardEditor.vue can be copied here if needed */
 .form-section {
   margin-bottom: 24px;
   padding: 16px;

@@ -130,7 +130,6 @@ const store = useEjsEditorStore();
 const { isMobile } = useDevice();
 const expandedStageId = ref<string[]>([]);
 
-// Use a local ref for draggable to work correctly with props
 const localStages = ref([...props.logicBlock.stages]);
 watch(
   () => props.logicBlock.stages,
@@ -172,7 +171,6 @@ async function removeStage(stageId: string) {
       expandedStageId.value.splice(index, 1);
     }
   } catch {
-    // User cancelled
   }
 }
 

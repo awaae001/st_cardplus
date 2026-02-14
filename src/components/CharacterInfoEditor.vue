@@ -33,11 +33,6 @@
                 />
               </div>
             </div>
-            <!-- <div class="form-group-responsive">
-                <label class="form-label">日文名</label>
-                <el-input v-model="form.japaneseName" disabled placeholder="逻辑未处理" />
-              </div>
-            </div> -->
             <div class="form-row-responsive">
               <div class="form-group-responsive">
                 <label class="form-label">性别</label>
@@ -247,30 +242,22 @@ const emit = defineEmits<{
 }>();
 
 const activeTab = ref('appearance');
-const characterFormRef = ref<InstanceType<typeof ElForm> | null>(null);
-
 const form = ref(JSON.parse(JSON.stringify(props.character)));
-
-// 防止循环更新的标志
 let isUpdatingFromProps = false;
 
-// 监听props变化，同步到本地form
 watch(
   () => props.character,
   (newCharacter) => {
     if (newCharacter && newCharacter.id !== form.value.id) {
-      // 只在角色ID不同时才更新，避免循环更新
       isUpdatingFromProps = true;
       form.value = JSON.parse(JSON.stringify(newCharacter)); // 深度克隆
       nextTick(() => {
         isUpdatingFromProps = false;
       });
     } else if (newCharacter && newCharacter.id === form.value.id) {
-      // 相同角色但数据不同，可能是外部更新，需要同步（但要避免覆盖用户正在编辑的内容）
       const currentFormJson = JSON.stringify(form.value);
       const newCharacterJson = JSON.stringify(newCharacter);
       if (currentFormJson !== newCharacterJson) {
-        // 检查是否有实质性差异，如果有则更新
         isUpdatingFromProps = true;
         form.value = JSON.parse(JSON.stringify(newCharacter));
         nextTick(() => {
@@ -282,20 +269,16 @@ watch(
   { deep: true, immediate: true }
 );
 
-// 监听本地form变化，同步到父组件
 watch(
   form,
   (updatedCharacter) => {
     if (!isUpdatingFromProps) {
-      // 检查 ID 是否存在，如果不存在则从 props 恢复
       if (!updatedCharacter.id && props.character?.id) {
         console.warn('CharacterInfoEditor: form 缺少 ID，从 props 恢复');
         updatedCharacter.id = props.character.id;
       }
 
-      // 验证 ID 存在后再发送更新
       if (updatedCharacter.id) {
-        // 立即同步到父组件，避免时序问题
         emit('update:character', JSON.parse(JSON.stringify(updatedCharacter))); // 深度克隆
       } else {
         console.error('CharacterInfoEditor: 无法更新角色，缺少 ID');
@@ -325,7 +308,6 @@ const {
 
 useCharacterCardLifecycle(form, processLoadedData);
 
-// MBTI Validation
 const isValidMBTI = (mbti: string) => {
   return mbti.toLowerCase() === 'none' || /^[EI][SN][TF][JP]$/i.test(mbti);
 };
@@ -384,7 +366,6 @@ defineExpose({
 </script>
 
 <style scoped>
-/* 主容器样式 */
 .character-card-editor-scrollbar {
   height: 100vh;
 }
@@ -395,7 +376,6 @@ defineExpose({
   padding: 12px;
 }
 
-/* 表单区块样式 - 统一 worldbook 风格 */
 .character-card-editor-form .form-section {
   margin-bottom: 24px;
   padding: 16px;
@@ -429,7 +409,6 @@ defineExpose({
   display: block;
 }
 
-/* 响应式布局 - 统一 worldbook 网格系统 */
 .form-row-responsive {
   display: flex;
   flex-direction: column;
@@ -460,7 +439,6 @@ defineExpose({
   line-height: 1.4;
 }
 
-/* 标签页样式优化 */
 .settings-tabs {
   margin-top: 20px;
 }

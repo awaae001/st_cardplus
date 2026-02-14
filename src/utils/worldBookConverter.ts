@@ -1,5 +1,6 @@
 import type { WorldBook, WorldBookEntry } from '../types/types';
 import type { CharacterBook, CharacterBookEntry } from '../types/character-book';
+import { nowIso } from './datetime';
 
 // 完整的 world_info_position 定义
 export const world_info_position = {
@@ -235,7 +236,7 @@ function normalizeWorldEntryLike(input: any, index: number): WorldBookEntry {
  * @returns 转换后的 WorldBook 对象
  */
 export function convertCharacterBookToWorldBook(charBook: CharacterBook, worldBookId: string): WorldBook {
-  const now = new Date().toISOString();
+  const now = nowIso();
 
   const worldBook: WorldBook = {
     id: worldBookId,

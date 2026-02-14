@@ -1,6 +1,5 @@
 <template>
   <div class="project-manager">
-    <!-- 项目选择和基本操作 -->
     <div class="project-selector">
       <div class="selector-section">
         <label class="selector-label">当前项目</label>
@@ -19,7 +18,7 @@
           >
             <div class="project-option">
               <span class="project-name">{{ project.name }}</span>
-              <span class="project-date">{{ formatDate(project.updatedAt) }}</span>
+              <span class="project-date">{{ formatDateTime(project.updatedAt) }}</span>
             </div>
           </el-option>
         </el-select>
@@ -49,7 +48,6 @@
       </div>
     </div>
 
-    <!-- 当前项目信息显示 -->
     <div
       v-if="store.currentProject"
       class="project-info"
@@ -64,12 +62,11 @@
         </el-tag>
       </div>
       <div class="project-meta">
-        <span>创建于: {{ formatDate(store.currentProject.createdAt) }}</span>
-        <span>更新于: {{ formatDate(store.currentProject.updatedAt) }}</span>
+        <span>创建于: {{ formatDateTime(store.currentProject.createdAt) }}</span>
+        <span>更新于: {{ formatDateTime(store.currentProject.updatedAt) }}</span>
       </div>
     </div>
 
-    <!-- 阶段方案管理 -->
     <div
       v-if="store.currentProject"
       class="stage-scheme-section"
@@ -106,7 +103,6 @@
         v-show="showSchemePanel"
         class="scheme-content"
       >
-        <!-- 快速操作 -->
         <div class="scheme-quick-actions">
           <el-button
             :icon="Plus"
@@ -119,7 +115,6 @@
           </el-button>
         </div>
 
-        <!-- 方案列表 -->
         <div
           v-if="store.currentProjectSchemes.length > 0"
           class="scheme-list"
@@ -185,7 +180,6 @@
       </div>
     </div>
 
-    <!-- 项目管理对话框 -->
     <el-dialog
       v-model="showProjectDialog"
       title="项目管理"
@@ -193,7 +187,6 @@
       :close-on-click-modal="false"
     >
       <div class="project-management">
-        <!-- 当前项目编辑 -->
         <div
           v-if="store.currentProject"
           class="current-project-edit"
@@ -211,10 +204,10 @@
               />
             </el-form-item>
             <el-form-item label="创建时间">
-              <span>{{ formatDate(store.currentProject.createdAt) }}</span>
+              <span>{{ formatDateTime(store.currentProject.createdAt) }}</span>
             </el-form-item>
             <el-form-item label="更新时间">
-              <span>{{ formatDate(store.currentProject.updatedAt) }}</span>
+              <span>{{ formatDateTime(store.currentProject.updatedAt) }}</span>
             </el-form-item>
             <el-form-item label="项目操作">
               <el-button-group>
@@ -263,7 +256,6 @@
 
         <el-divider />
 
-        <!-- 所有项目列表 -->
         <div class="all-projects">
           <h5>所有项目</h5>
           <el-table
@@ -294,7 +286,7 @@
               width="120"
             >
               <template #default="scope">
-                {{ formatDate(scope.row.createdAt) }}
+                {{ formatDateTime(scope.row.createdAt) }}
               </template>
             </el-table-column>
             <el-table-column
@@ -303,7 +295,7 @@
               width="120"
             >
               <template #default="scope">
-                {{ formatDate(scope.row.updatedAt) }}
+                {{ formatDateTime(scope.row.updatedAt) }}
               </template>
             </el-table-column>
             <el-table-column
@@ -343,6 +335,7 @@
 
 <script setup lang="ts">
 import { useEjsEditorStore } from '@/composables/ejs/ejsEditor';
+import { formatDateTime } from '@/utils/datetime';
 import {
   ArrowRight,
   CopyDocument,
@@ -366,12 +359,10 @@ const totalStagesCount = computed(() => {
   return store.logicBlocks.reduce((total, block) => total + block.stages.length, 0);
 });
 
-// 当前项目编辑表单
 const currentProjectForm = ref({
   name: '',
 });
 
-// 监听当前项目变化，更新表单
 watch(
   () => store.currentProject,
   (project) => {
@@ -382,29 +373,14 @@ watch(
   { immediate: true }
 );
 
-// 格式化日期
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
-
-// 处理项目切换
 function handleProjectChange(projectId: string) {
   if (projectId && projectId !== store.currentProjectId) {
     handleSwitchProject(projectId);
   }
 }
 
-// 创建新项目
 async function handleCreateProject() {
   try {
-    // 询问项目名称
     const projectNameResult = await ElMessageBox.prompt('请输入新项目的名称', '新建项目', {
       inputPlaceholder: '项目名称...',
       inputValidator: (value) => {
@@ -422,7 +398,6 @@ async function handleCreateProject() {
     if (projectName) {
       let copyFromCurrent = false;
 
-      // 如果当前有内容，询问是否复制
       if (totalStagesCount.value > 0 || store.yamlInput.trim()) {
         try {
           await ElMessageBox.confirm('是否复制当前项目的内容到新项目？', '创建选项', {
@@ -445,11 +420,9 @@ async function handleCreateProject() {
       ElMessage.success('项目创建成功');
     }
   } catch {
-    // 用户取消
   }
 }
 
-// 切换项目
 async function handleSwitchProject(projectId: string) {
   try {
     await ElMessageBox.confirm('切换项目会保存当前项目的更改，确定继续吗？', '确认切换项目', {
@@ -459,16 +432,13 @@ async function handleSwitchProject(projectId: string) {
     store.switchProject(projectId);
     ElMessage.success('项目切换成功');
   } catch {
-    // 用户取消
   }
 }
 
-// 重命名当前项目
 function handleRenameCurrentProject() {
   if (store.currentProject && currentProjectForm.value.name !== store.currentProject.name) {
     const newName = currentProjectForm.value.name.trim();
     if (newName) {
-      // 检查名称是否重复
       const isDuplicate = store.projects.some((p) => p.id !== store.currentProjectId && p.name === newName);
 
       if (isDuplicate) {
@@ -485,7 +455,6 @@ function handleRenameCurrentProject() {
   }
 }
 
-// 删除当前项目
 async function handleDeleteCurrentProject() {
   if (!store.currentProject) return;
 
@@ -498,11 +467,9 @@ async function handleDeleteCurrentProject() {
     ElMessage.success('项目已删除');
     showProjectDialog.value = false;
   } catch {
-    // 用户取消
   }
 }
 
-// 删除指定项目
 async function handleDeleteProject(projectId: string) {
   const project = store.projects.find((p) => p.id === projectId);
   if (!project) return;
@@ -515,13 +482,10 @@ async function handleDeleteProject(projectId: string) {
     store.deleteProject(projectId);
     ElMessage.success('项目已删除');
   } catch {
-    // 用户取消
   }
 }
 
-//  阶段方案管理方法
 
-// 处理方案切换
 async function handleSchemeChange(schemeId: string) {
   if (schemeId === store.currentSchemeId) return;
 
@@ -533,11 +497,9 @@ async function handleSchemeChange(schemeId: string) {
     store.switchStageScheme(schemeId);
     ElMessage.success('方案切换成功');
   } catch {
-    // 用户取消
   }
 }
 
-// 保存当前为新方案
 async function handleSaveCurrentAsScheme() {
   try {
     const schemeNameResult = await ElMessageBox.prompt('请输入方案名称', '保存方案', {
@@ -558,16 +520,13 @@ async function handleSaveCurrentAsScheme() {
       const newSchemeId = store.saveCurrentAsNewScheme(schemeName.trim());
       if (newSchemeId) {
         ElMessage.success('方案保存成功');
-        // 切换到新创建的方案
         store.switchStageScheme(newSchemeId);
       }
     }
   } catch {
-    // 用户取消
   }
 }
 
-// 重命名方案
 async function handleRenameScheme(schemeId: string) {
   const scheme = store.currentProjectSchemes.find((s) => s.id === schemeId);
   if (!scheme) return;
@@ -596,11 +555,9 @@ async function handleRenameScheme(schemeId: string) {
       ElMessage.success('方案重命名成功');
     }
   } catch {
-    // 用户取消
   }
 }
 
-// 复制方案
 async function handleCopyScheme(schemeId: string) {
   const scheme = store.currentProjectSchemes.find((s) => s.id === schemeId);
   if (!scheme) return;
@@ -628,11 +585,9 @@ async function handleCopyScheme(schemeId: string) {
       }
     }
   } catch {
-    // 用户取消
   }
 }
 
-// 删除方案
 async function handleDeleteScheme(schemeId: string) {
   const scheme = store.currentProjectSchemes.find((s) => s.id === schemeId);
   if (!scheme) return;
@@ -645,7 +600,6 @@ async function handleDeleteScheme(schemeId: string) {
     store.deleteStageScheme(schemeId);
     ElMessage.success('方案已删除');
   } catch {
-    // 用户取消
   }
 }
 const handleImport = () => {
@@ -759,7 +713,6 @@ const handleExportWorkspace = () => {
   gap: 8px;
 }
 
-/* 阶段方案管理样式 */
 .stage-scheme-section {
   border: 1px solid var(--el-border-color-lighter);
   border-radius: 6px;
@@ -860,7 +813,6 @@ const handleExportWorkspace = () => {
   padding: 20px 0;
 }
 
-/* 响应式调整 */
 @media (max-width: 768px) {
   .project-meta {
     flex-direction: column;
@@ -877,7 +829,6 @@ const handleExportWorkspace = () => {
     justify-content: flex-end;
   }
 
-  /* 移动端去掉内部滚动约束，由 el-dialog__body 统一管理滚动 */
   .project-management {
     max-height: none;
     overflow-y: visible;

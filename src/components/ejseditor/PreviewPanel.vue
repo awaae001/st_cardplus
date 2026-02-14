@@ -1,7 +1,6 @@
 <template>
   <div class="preview-panel">
     <div class="panel-content">
-      <!-- 预览头部 -->
       <div
         class="preview-header"
         :class="{ 'mobile-header': isMobile }"
@@ -29,7 +28,6 @@
         </div>
       </div>
 
-      <!-- 生成统计 -->
       <div
         v-if="store.previewCode"
         class="stats-bar"
@@ -54,7 +52,6 @@
         </el-tag>
       </div>
 
-      <!-- 错误提示 -->
       <div
         v-if="ejsErrors.length > 0"
         class="error-section"
@@ -69,7 +66,6 @@
         />
       </div>
 
-      <!-- 代码预览区 -->
       <div class="code-preview">
         <div
           v-if="!store.previewCode"
@@ -91,7 +87,6 @@
         </div>
       </div>
 
-      <!-- 快速操作 -->
       <div
         v-if="store.previewCode"
         class="quick-actions"
@@ -150,7 +145,6 @@
         </template>
       </div>
 
-      <!-- 模板信息 -->
       <div
         v-if="store.previewCode"
         class="template-info"
@@ -169,7 +163,6 @@
       </div>
     </div>
 
-    <!-- 全屏预览对话框 -->
     <el-dialog
       v-model="previewDialogVisible"
       title="代码预览"
@@ -194,6 +187,7 @@
 
 <script setup lang="ts">
 import { useEjsEditorStore } from '@/composables/ejs/ejsEditor';
+import { formatDateTime } from '@/utils/datetime';
 import { useDevice } from '@/composables/useDevice';
 import { CircleCheck, CopyDocument, DocumentChecked, RefreshRight, View } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
@@ -204,7 +198,6 @@ const { isMobile } = useDevice();
 const previewDialogVisible = ref(false);
 const lastGeneratedTime = ref(Date.now());
 
-// 计算属性
 const lineCount = computed(() => {
   return store.previewCode ? store.previewCode.split('\n').length : 0;
 });
@@ -222,7 +215,6 @@ const totalStagesCount = computed(() => {
   return store.logicBlocks.reduce((total, block) => total + block.stages.length, 0);
 });
 
-// 监听预览代码变化，更新生成时间
 watch(
   () => store.previewCode,
   () => {
@@ -232,7 +224,6 @@ watch(
   }
 );
 
-// 方法
 async function copyCode() {
   if (!store.previewCode) {
     ElMessage.warning('没有可复制的代码');
@@ -251,7 +242,6 @@ function formatCode() {
   if (!store.previewCode) return;
 
   try {
-    // 简单的格式化处理
     let formatted = store.previewCode
       .replace(/<%_\s*/g, '<%_ ')
       .replace(/\s*_%>/g, ' _%>')
@@ -269,18 +259,15 @@ function validateSyntax() {
   if (!store.previewCode) return;
 
   try {
-    // 基本的语法检查
     const errors = [];
     const lines = store.previewCode.split('\n');
 
     let ejsBlockCount = 0;
     lines.forEach((line, index) => {
-      // 检查 EJS 标签匹配
       const openTags = (line.match(/<%/g) || []).length;
       const closeTags = (line.match(/%>/g) || []).length;
       ejsBlockCount += openTags - closeTags;
 
-      // 检查基本语法错误
       if (line.includes('<%') && !line.includes('%>') && !lines[index + 1]?.includes('%>')) {
         errors.push(`第 ${index + 1} 行: EJS 标签可能未正确闭合`);
       }
@@ -307,7 +294,7 @@ function showPreviewDialog() {
 }
 
 function formatTimestamp(timestamp: number): string {
-  return new Date(timestamp).toLocaleString('zh-CN', {
+  return formatDateTime(timestamp, 'zh-CN', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -460,7 +447,6 @@ function formatTimestamp(timestamp: number): string {
   line-height: 1.6;
 }
 
-/* 移动端样式优化 */
 @media (max-width: 768px) {
   .preview-panel {
     padding: 8px 12px;
@@ -523,7 +509,6 @@ function formatTimestamp(timestamp: number): string {
   }
 }
 
-/* 平板端优化 */
 @media (min-width: 769px) and (max-width: 1024px) {
   .panel-content {
     padding: 12px;
@@ -534,7 +519,6 @@ function formatTimestamp(timestamp: number): string {
   }
 }
 
-/* 暗色模式适配 */
 @media (prefers-color-scheme: dark) {
   .code-content {
     background-color: #1e1e1e;

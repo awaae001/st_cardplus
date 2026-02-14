@@ -4,6 +4,7 @@ import { Icon } from '@iconify/vue';
 import { ElButton, ElInput, ElMessage, ElMessageBox, ElTable, ElTableColumn } from 'element-plus';
 import { onMounted, ref } from 'vue';
 import { copyToClipboard } from '../../utils/clipboard';
+import { formatDateTime, nowIso } from '@/utils/datetime';
 
 const inputJson = ref('');
 const outputJson = ref('');
@@ -24,7 +25,7 @@ const saveToHistory = () => {
   const newRecord = {
     id: Date.now().toString(),
     json: outputJson.value,
-    date: new Date().toLocaleString(),
+    date: formatDateTime(nowIso()),
   };
 
   historyRecords.value = [newRecord, ...historyRecords.value].slice(0, 10);

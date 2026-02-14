@@ -118,10 +118,8 @@ interface Emits {
 const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
-// 本地状态管理，确保数据独立性
 const localNotes = ref<Note[]>([]);
 
-// 4位数字ID生成器 (1000-9999)
 const generateNoteId = (): number => {
   const existingIds = new Set(localNotes.value.map((note) => note.id));
   let newId: number;
@@ -131,12 +129,10 @@ const generateNoteId = (): number => {
   return newId;
 };
 
-// 深度克隆函数
 const deepClone = <T,>(obj: T): T => {
   return JSON.parse(JSON.stringify(obj));
 };
 
-// 监听props变化，深度克隆到本地状态
 watch(
   () => props.notes,
   (newNotes) => {
@@ -145,17 +141,14 @@ watch(
   { deep: true, immediate: true }
 );
 
-// 发送更新事件到父组件
 const emitUpdate = () => {
   emit('update:notes', deepClone(localNotes.value));
 };
 
-// 根据ID查找备注索引
 const findNoteIndex = (id: number): number => {
   return localNotes.value.findIndex((note) => note.id === id);
 };
 
-// 添加新备注
 const handleAddNote = () => {
   const newNote: Note = {
     id: generateNoteId(),
@@ -166,7 +159,6 @@ const handleAddNote = () => {
   emitUpdate();
 };
 
-// 删除备注
 const handleRemoveNote = (id: number) => {
   const index = findNoteIndex(id);
   if (index !== -1) {
@@ -175,7 +167,6 @@ const handleRemoveNote = (id: number) => {
   }
 };
 
-// 更新备注名称
 const handleUpdateNoteName = (id: number, value: string) => {
   const index = findNoteIndex(id);
   if (index !== -1) {
@@ -184,7 +175,6 @@ const handleUpdateNoteName = (id: number, value: string) => {
   }
 };
 
-// 更新备注数据项
 const handleUpdateNoteData = (id: number, dataIndex: number, value: string) => {
   const index = findNoteIndex(id);
   if (index !== -1 && localNotes.value[index].data[dataIndex] !== undefined) {
@@ -193,7 +183,6 @@ const handleUpdateNoteData = (id: number, dataIndex: number, value: string) => {
   }
 };
 
-// 添加备注数据项
 const handleAddNoteDataItem = (id: number) => {
   const index = findNoteIndex(id);
   if (index !== -1) {
@@ -202,7 +191,6 @@ const handleAddNoteDataItem = (id: number) => {
   }
 };
 
-// 删除备注数据项
 const handleRemoveNoteDataItem = (id: number, dataIndex: number) => {
   const index = findNoteIndex(id);
   if (index !== -1 && localNotes.value[index].data[dataIndex] !== undefined) {
@@ -211,7 +199,6 @@ const handleRemoveNoteDataItem = (id: number, dataIndex: number) => {
   }
 };
 
-// 处理拖拽重排
 const handleNotesReorder = (newNotes: Note[]) => {
   localNotes.value = deepClone(newNotes);
   emitUpdate();
@@ -284,7 +271,6 @@ const handleNotesReorder = (newNotes: Note[]) => {
   border: 1px solid var(--el-border-color-lighter);
 }
 
-/* 卡片内部输入框间距 */
 .draggable-card :deep(.el-card__body) {
   display: flex;
   flex-direction: column;
