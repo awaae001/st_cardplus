@@ -77,7 +77,7 @@ import { getSetting } from '@/utils/localStorageUtils';
 
 const { isOverflowHidden, setOverflowHidden } = provideOverflowControl();
 const route = useRoute();
-const { allowBodyScroll, sidebarConfig, refreshSidebarConfig } = usePersonalization();
+const { sidebarConfig, refreshSidebarConfig } = usePersonalization();
 const betaFeaturesEnabled = ref(false);
 const drawerVisible = ref(false);
 
@@ -97,10 +97,6 @@ watch(
   [() => route.path, isMobile],
   ([newPath, mobile]) => {
     if (mobile) {
-      setOverflowHidden(false);
-      return;
-    }
-    if (allowBodyScroll.value) {
       setOverflowHidden(false);
       return;
     }

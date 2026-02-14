@@ -431,7 +431,6 @@ const checkMove = (event: {
 const handleDragEnd = () => {
   const fixedItems = localVisibleItems.value.filter((item) => item.fixed);
   const movableItems = localVisibleItems.value.filter((item) => !item.fixed);
-
   const fixedAtStart = fixedItems.filter((item) => item.id === 'home');
   const fixedAtEnd = fixedItems.filter((item) => item.id !== 'home');
 

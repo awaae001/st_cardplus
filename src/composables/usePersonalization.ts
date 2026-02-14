@@ -9,7 +9,6 @@ import { ElMessageBox } from 'element-plus';
 import { onMounted, ref } from 'vue';
 
 export function usePersonalization() {
-  const allowBodyScroll = ref(false);
   const useOldWorldEditor = ref(false);
   const sidebarConfig = ref<SidebarConfig>(getSidebarConfig());
 
@@ -24,7 +23,6 @@ export function usePersonalization() {
     });
   };
 
-  const onAllowBodyScrollToggle = createReloadConfirm((value) => setSetting('allowBodyScroll', value));
   const onUseOldWorldEditorToggle = createReloadConfirm((value) => setSetting('useOldWorldEditor', value));
 
   // 导航栏配置相关方法
@@ -38,14 +36,11 @@ export function usePersonalization() {
   };
 
   onMounted(() => {
-    allowBodyScroll.value = getSetting('allowBodyScroll');
     useOldWorldEditor.value = getSetting('useOldWorldEditor');
     refreshSidebarConfig();
   });
 
   return {
-    allowBodyScroll,
-    onAllowBodyScrollToggle,
     useOldWorldEditor,
     onUseOldWorldEditorToggle,
     sidebarConfig,
