@@ -172,7 +172,8 @@
 
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
-import { ElButton, ElCard, ElInput, ElMessageBox } from 'element-plus';
+import { ElButton, ElCard, ElInput } from 'element-plus';
+import { useBatchCustomFieldPrompt } from '@/composables/characterInfo/useBatchCustomFieldPrompt';
 import { onMounted, ref, toRefs, watch } from 'vue';
 import draggable from 'vuedraggable';
 
@@ -190,6 +191,7 @@ const props = defineProps({
 defineEmits(['addAttire', 'removeAttire', 'exportAttires', 'update:attires']);
 
 const { form } = toRefs(props);
+const { addFieldsByPrompt } = useBatchCustomFieldPrompt();
 
 interface AppearanceField {
   key: string;
@@ -236,55 +238,20 @@ const updateFormField = (key: string, value: string) => {
 };
 
 const addCustomField = async () => {
-  try {
-    const result = await ElMessageBox.prompt(
-      '<b>请输入自定义字段，每行一个字段</b><br>格式为"字段名:字段描述"<br>例如:<br>纹身:淡青色纹身，一条小龙<br>右腿:断掉的右腿，只有裤腿在晃荡',
-      '添加自定义字段',
-      {
-        confirmButtonText: '确认',
-        cancelButtonText: '取消',
-        inputType: 'textarea',
-        inputPlaceholder: '字段名:字段描述',
-        inputValidator: (value) => {
-          if (!value) return true;
-          const lines = value.split('\n').filter((line: string) => line.trim());
-          for (const line of lines) {
-            if (!line.includes(':')) {
-              return `格式错误: "${line}"每行必须包含冒号(:)分隔字段名和描述`;
-            }
-          }
-          return true;
-        },
-        dangerouslyUseHTMLString: true,
-      }
-    );
-    const { value: inputText } = result as { value: string };
-    if (inputText) {
-      const lines = inputText.split('\n').filter((line: string) => line.trim());
-      let addedCount = 0;
-      for (const line of lines) {
-        const [fieldName, ...fieldValueParts] = line.split(':');
-        const trimmedName = fieldName.trim();
-        const fieldValue = fieldValueParts.join(':').trim();
-        if (!trimmedName) continue;
-        const keyExists = Object.keys(form.value.appearance).includes(trimmedName);
-        const labelExists = Object.values(standardFieldsMap).includes(trimmedName);
-        if (keyExists || labelExists) {
-          ElMessageBox.alert(`字段 "${trimmedName}" 已存在或为预设字段，请使用其他名称 `, '提示', {
-            confirmButtonText: '确定',
-          });
-          continue;
-        }
-        form.value.appearance[trimmedName] = fieldValue;
-        addedCount++;
-      }
-      if (addedCount > 0) {
-        syncFields();
-        ElMessageBox.alert(`成功添加 ${addedCount} 个自定义字段`, '成功', { confirmButtonText: '确定' });
-      }
-    }
-  } catch (error) {
-  }
+  await addFieldsByPrompt({
+    promptMessage: '请输入自定义字段，每行一个。格式: 字段名:字段描述（示例: 纹身:淡青色纹身，一条小龙）',
+    promptTitle: '添加自定义字段',
+    inputPlaceholder: '字段名:字段描述',
+    lineFormat: '字段名:字段描述',
+    successItemName: '自定义字段',
+    errorMessage: '添加自定义字段失败，请稍后重试',
+    getFields: () => form.value.appearance,
+    setFields: (fields) => {
+      form.value.appearance = fields;
+    },
+    reservedLabels: Object.values(standardFieldsMap),
+    onAdded: syncFields,
+  });
 };
 
 const removeField = (index: number) => {
