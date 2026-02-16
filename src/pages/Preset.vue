@@ -424,8 +424,11 @@ const handleExportPreset = () => {
   }
   const filename = `${activePreset.value.name || 'preset'}.json`;
   const prompts = (activePreset.value.data.prompts as Record<string, any>[]) || [];
-  const orderList = buildSidebarOrder(prompts);
-  const promptOrder = upsertPromptOrderEntry(activePreset.value.data.prompt_order, orderList);
+  const existingOrder = getPromptOrderIdentifiers(activePreset.value.data.prompt_order);
+  const promptOrder =
+    existingOrder.length > 0
+      ? JSON.parse(JSON.stringify(activePreset.value.data.prompt_order))
+      : upsertPromptOrderEntry(activePreset.value.data.prompt_order, buildFallbackPromptOrder(prompts));
   const exportData = {
     ...activePreset.value.data,
     prompt_order: promptOrder,
@@ -468,9 +471,8 @@ const sortPrompts = (prompts: Record<string, any>[]) => {
     });
 };
 
-const buildSidebarOrder = (prompts: Record<string, any>[]) => {
-  const items = sortPrompts(prompts);
-  return items.map(({ prompt, index }) => ({
+const buildFallbackPromptOrder = (prompts: Record<string, any>[]) => {
+  return prompts.map((prompt, index) => ({
     identifier: prompt.identifier ?? `prompt-${index}`,
     enabled: typeof prompt.enabled === 'boolean' ? prompt.enabled : true,
   }));
