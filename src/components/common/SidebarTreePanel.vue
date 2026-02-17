@@ -6,6 +6,12 @@
         <slot name="header-actions" />
       </div>
     </div>
+    <div
+      v-if="$slots['header-extra']"
+      class="sidebar-panel-header-extra"
+    >
+      <slot name="header-extra" />
+    </div>
 
     <el-scrollbar class="sidebar-panel-scrollbar">
       <el-tree
@@ -19,6 +25,7 @@
         :highlight-current="highlightCurrent"
         :expand-on-click-node="expandOnClickNode"
         :draggable="draggable"
+        :filter-node-method="filterNodeMethod"
         :allow-drag="allowDrag"
         :allow-drop="allowDrop"
         class="sidebar-tree"
@@ -65,6 +72,8 @@ interface Props {
   allowDrag?: (draggingNode: any) => boolean;
   allowDrop?: (draggingNode: any, dropNode: any, type: AllowDropType) => boolean;
   handleNodeDrop?: (draggingNode: any, dropNode: any, type: ActualNodeDropType) => boolean;
+  filterNodeMethod?: (value: string, data: any, node: any) => boolean;
+  filterValue?: string;
   autoExpandFirst?: boolean;
   defaultExpandedKeys?: Array<string | number>;
 }
@@ -75,6 +84,7 @@ const props = withDefaults(defineProps<Props>(), {
   highlightCurrent: true,
   expandOnClickNode: false,
   draggable: false,
+  filterValue: '',
   autoExpandFirst: false,
   defaultExpandedKeys: () => [],
 });
@@ -106,6 +116,13 @@ watch(
     }
   },
   { immediate: true }
+);
+
+watch(
+  () => props.filterValue,
+  (value) => {
+    treeRef.value?.filter(value || '');
+  }
 );
 
 const handleNodeDrop = async (draggingNode: any, dropNode: any, dropType: ActualNodeDropType) => {
@@ -177,6 +194,11 @@ const handleNodeCollapse = (data: any) => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+.sidebar-panel-header-extra {
+  border-bottom: 1px solid var(--el-border-color-light);
+  flex-shrink: 0;
 }
 
 .sidebar-header-button {
