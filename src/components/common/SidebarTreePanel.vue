@@ -49,6 +49,9 @@
 <script setup lang="ts">
 import { ElScrollbar, ElTree } from 'element-plus';
 import { nextTick, ref, watch } from 'vue';
+import type { AllowDropType, NodeDropType } from 'element-plus/es/components/tree/src/tree.type';
+
+type ActualNodeDropType = Exclude<NodeDropType, 'none'>;
 
 interface Props {
   title: string;
@@ -60,8 +63,8 @@ interface Props {
   expandOnClickNode?: boolean;
   draggable?: boolean;
   allowDrag?: (draggingNode: any) => boolean;
-  allowDrop?: (draggingNode: any, dropNode: any, type: any) => boolean;
-  handleNodeDrop?: (draggingNode: any, dropNode: any, type: any) => boolean;
+  allowDrop?: (draggingNode: any, dropNode: any, type: AllowDropType) => boolean;
+  handleNodeDrop?: (draggingNode: any, dropNode: any, type: ActualNodeDropType) => boolean;
   autoExpandFirst?: boolean;
   defaultExpandedKeys?: Array<string | number>;
 }
@@ -105,7 +108,7 @@ watch(
   { immediate: true }
 );
 
-const handleNodeDrop = async (draggingNode: any, dropNode: any, dropType: any) => {
+const handleNodeDrop = async (draggingNode: any, dropNode: any, dropType: ActualNodeDropType) => {
   if (!props.handleNodeDrop) return;
 
   if (treeRef.value) {

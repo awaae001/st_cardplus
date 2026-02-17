@@ -1,8 +1,10 @@
 import type { Ref } from 'vue';
 import type { RegexScriptCollection, SillyTavernRegexScript } from './types';
-import type { NodeDropType } from 'element-plus/es/components/tree/src/tree.type';
+import type { AllowDropType, NodeDropType } from 'element-plus/es/components/tree/src/tree.type';
 import { ElMessage } from 'element-plus';
 import { nowIso } from '@/utils/datetime';
+
+type ActualNodeDropType = Exclude<NodeDropType, 'none'>;
 
 export function useRegexDragDrop(
   regexCollection: Ref<RegexScriptCollection>,
@@ -15,11 +17,10 @@ export function useRegexDragDrop(
   updateCategoryScripts: (categoryId: string, scripts: SillyTavernRegexScript[]) => void
 ) {
   const allowDrag = (): boolean => {
-    // 允许拖动所有项目
     return true;
   };
 
-  const allowDrop = (draggingNode: any, dropNode: any, type: NodeDropType): boolean => {
+  const allowDrop = (draggingNode: any, dropNode: any, type: AllowDropType): boolean => {
     const isDraggingCategory = !draggingNode.data.isScript;
     const isDropTargetCategory = !dropNode.data.isScript;
 
@@ -27,18 +28,15 @@ export function useRegexDragDrop(
       // 如果拖动的是类别，只允许在其他类别前后放置
       return isDropTargetCategory && type !== 'inner';
     } else {
-      // 如果拖动的是脚本
       if (isDropTargetCategory) {
-        // 允许将脚本放入类别
         return type === 'inner';
       } else {
-        // 允许在其他脚本前后放置
         return type !== 'inner';
       }
     }
   };
 
-  const handleNodeDrop = (draggingNode: any, dropNode: any, dropType: NodeDropType): boolean => {
+  const handleNodeDrop = (draggingNode: any, dropNode: any, dropType: ActualNodeDropType): boolean => {
     const isDraggingCategory = !draggingNode.data.isScript;
 
     if (isDraggingCategory) {
@@ -121,21 +119,13 @@ export function useRegexDragDrop(
         const [movedScript] = newScripts.splice(oldIndex, 1);
         const adjustedInsertIndex = oldIndex < insertIndex ? insertIndex - 1 : insertIndex;
         newScripts.splice(adjustedInsertIndex, 0, movedScript);
-
         updateCategoryScripts(fromCategoryId, newScripts);
-        ElMessage.success(`脚本顺序已更新`);
       } else {
-        ElMessage.error('排序失败：找不到原始脚本');
         return false;
       }
     } else {
       // 跨类别移动
-      const success = moveScriptBetweenCategories(scriptId, fromCategoryId, toCategoryId, insertIndex);
-      if (success) {
-        ElMessage.success(`脚本已移至 "${toCategory.name}"`);
-      } else {
-        return false;
-      }
+     moveScriptBetweenCategories(scriptId, fromCategoryId, toCategoryId, insertIndex);
     }
 
     return true;

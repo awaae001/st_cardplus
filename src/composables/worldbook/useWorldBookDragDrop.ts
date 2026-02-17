@@ -1,7 +1,9 @@
 import type { Ref } from 'vue';
 import type { WorldBookCollection, WorldBookEntry } from '../../types/types';
-import type { NodeDropType } from 'element-plus/es/components/tree/src/tree.type';
+import type { AllowDropType, NodeDropType } from 'element-plus/es/components/tree/src/tree.type';
 import { ElMessage } from 'element-plus';
+
+type ActualNodeDropType = Exclude<NodeDropType, 'none'>;
 
 export function useWorldBookDragDrop(
   worldBookCollection: Ref<WorldBookCollection>,
@@ -20,7 +22,7 @@ export function useWorldBookDragDrop(
     return true;
   };
 
-  const allowDrop = (draggingNode: any, dropNode: any, type: NodeDropType): boolean => {
+  const allowDrop = (draggingNode: any, dropNode: any, type: AllowDropType): boolean => {
     const isDraggingBook = !draggingNode.data.isEntry;
     const isDropTargetBook = !dropNode.data.isEntry;
 
@@ -39,7 +41,7 @@ export function useWorldBookDragDrop(
     }
   };
 
-  const handleNodeDrop = (draggingNode: any, dropNode: any, dropType: NodeDropType): boolean => {
+  const handleNodeDrop = (draggingNode: any, dropNode: any, dropType: ActualNodeDropType): boolean => {
     const isDraggingBook = !draggingNode.data.isEntry;
 
     if (isDraggingBook) {

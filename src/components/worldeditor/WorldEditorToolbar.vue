@@ -228,6 +228,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue';
 import { ElScrollbar, ElTooltip, ElTree, ElInput, ElDropdown, ElDropdownMenu, ElDropdownItem } from 'element-plus';
+import type { AllowDropType, NodeDropType } from 'element-plus/es/components/tree/src/tree.type';
 import { Icon } from '@iconify/vue';
 import { Search } from '@element-plus/icons-vue';
 import type {
@@ -241,6 +242,7 @@ import { getLandmarkTypeIcon } from '@/utils/worldeditor/landmarkMeta';
 import { getParentLandmarkId } from '@/utils/worldeditor/landmarkHierarchy';
 
 type SelectableItem = Project | EnhancedLandmark | EnhancedForce | EnhancedRegion | ProjectIntegration;
+type ActualNodeDropType = Exclude<NodeDropType, 'none'>;
 
 interface Props {
   projects: Project[];
@@ -252,8 +254,13 @@ interface Props {
   canRedo: boolean;
   dragDropHandlers: {
     allowDrag: (draggingNode: any) => boolean;
-    allowDrop: (draggingNode: any, dropNode: any, type: any) => boolean;
-    handleNodeDrop: (draggingNode: any, dropNode: any, type: any, treeRef: any) => boolean;
+    allowDrop: (draggingNode: any, dropNode: any, type: AllowDropType) => boolean;
+    handleNodeDrop: (
+      draggingNode: any,
+      dropNode: any,
+      type: ActualNodeDropType,
+      treeRef: InstanceType<typeof ElTree> | null
+    ) => boolean;
   };
 }
 
@@ -466,7 +473,7 @@ const handleNodeClick = (data: any) => {
   }
 };
 
-const handleNodeDrop = (draggingNode: any, dropNode: any, dropType: any) => {
+const handleNodeDrop = (draggingNode: any, dropNode: any, dropType: ActualNodeDropType) => {
   if (props.dragDropHandlers.handleNodeDrop(draggingNode, dropNode, dropType, treeRef.value)) {
     emit('node-drop');
   }

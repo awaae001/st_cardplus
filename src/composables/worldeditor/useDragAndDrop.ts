@@ -1,6 +1,9 @@
 import type { Ref } from 'vue';
 import type { EnhancedLandmark, EnhancedForce, EnhancedRegion } from '@/types/world-editor';
+import type { AllowDropType, NodeDropType } from 'element-plus/es/components/tree/src/tree.type';
 import { collectDescendantIds, setLandmarkParent } from '@/utils/worldeditor/landmarkHierarchy';
+
+type ActualNodeDropType = Exclude<NodeDropType, 'none'>;
 
 export function useDragAndDrop(
   landmarks: Ref<EnhancedLandmark[]>,
@@ -12,7 +15,7 @@ export function useDragAndDrop(
     return type === 'landmark' || type === 'force' || type === 'region';
   };
 
-  const allowDrop = (draggingNode: any, dropNode: any, type: any) => {
+  const allowDrop = (draggingNode: any, dropNode: any, type: AllowDropType) => {
     const draggedType = draggingNode.data.type;
     const dropType = dropNode.data.type;
     const dropIsCategory = !dropNode.data.isEntry;
@@ -31,7 +34,7 @@ export function useDragAndDrop(
       if (dropParentType === 'project') return true;
     }
 
-    if (draggedType === dropType && (type === 'prev' || type === 'next' || type === 'before' || type === 'after')) {
+    if (draggedType === dropType && (type === 'prev' || type === 'next')) {
       return true;
     }
 
@@ -46,7 +49,7 @@ export function useDragAndDrop(
     return false;
   };
 
-  const handleNodeDrop = (draggingNode: any, dropNode: any, dropType: any): boolean => {
+  const handleNodeDrop = (draggingNode: any, dropNode: any, dropType: ActualNodeDropType): boolean => {
     const draggedItem = draggingNode.data.raw;
     const dropItemRaw = dropNode.data.raw;
 
@@ -56,7 +59,6 @@ export function useDragAndDrop(
       const fromIndex = list.findIndex((item) => item.id === draggedItem.id);
       if (fromIndex === -1) return false;
 
-      const normalizedDropType = dropType === 'prev' ? 'before' : dropType === 'next' ? 'after' : dropType;
       const parentNodeData = dropNode.parent?.data;
       const dropParentLandmarkId = parentNodeData?.type === 'landmark' ? (parentNodeData.id as string) : null;
 
@@ -65,7 +67,7 @@ export function useDragAndDrop(
 
       if (dropNode.data.type === 'landmark') {
         newProjectId = dropItemRaw.projectId;
-        newParentId = normalizedDropType === 'inner' ? dropItemRaw.id : dropParentLandmarkId;
+        newParentId = dropType === 'inner' ? dropItemRaw.id : dropParentLandmarkId;
       } else if (dropNode.data.type === 'project') {
         newProjectId = dropNode.data.id;
         newParentId = null;
@@ -96,7 +98,7 @@ export function useDragAndDrop(
 
       setLandmarkParent(list, draggedItem.id, newParentId);
 
-      if (normalizedDropType === 'inner') {
+      if (dropType === 'inner') {
         return true;
       }
 
@@ -106,13 +108,11 @@ export function useDragAndDrop(
         return true;
       }
 
-      if (dropType === 'inner' || !('projectId' in dropItemRaw)) return false;
-
       const toIndex = list.findIndex((item) => item.id === dropItemRaw.id);
       if (toIndex === -1) return false;
 
       const [item] = list.splice(fromIndex, 1);
-      const insertIndex = dropType === 'before' || dropType === 'prev' ? toIndex : toIndex + 1;
+      const insertIndex = dropType === 'before' ? toIndex : toIndex + 1;
       list.splice(insertIndex, 0, item);
       return true;
     } else if ('power' in draggedItem) {
@@ -143,7 +143,7 @@ export function useDragAndDrop(
       if (toIndex === -1) return false;
 
       const [item] = list.splice(fromIndex, 1);
-      const insertIndex = dropType === 'before' || dropType === 'prev' ? toIndex : toIndex + 1;
+      const insertIndex = dropType === 'before' ? toIndex : toIndex + 1;
       list.splice(insertIndex, 0, item);
       return true;
     } else {
@@ -174,7 +174,7 @@ export function useDragAndDrop(
       if (toIndex === -1) return false;
 
       const [item] = list.splice(fromIndex, 1);
-      const insertIndex = dropType === 'before' || dropType === 'prev' ? toIndex : toIndex + 1;
+      const insertIndex = dropType === 'before' ? toIndex : toIndex + 1;
       list.splice(insertIndex, 0, item);
       return true;
     }

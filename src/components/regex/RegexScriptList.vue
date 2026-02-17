@@ -156,6 +156,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { ElTooltip } from 'element-plus';
+import type { AllowDropType, NodeDropType } from 'element-plus/es/components/tree/src/tree.type';
 import { Icon } from '@iconify/vue';
 import SidebarTreePanel from '../common/SidebarTreePanel.vue';
 import type { RegexScriptCollection, SillyTavernRegexScript } from '@/composables/regex/types';
@@ -166,8 +167,8 @@ interface Props {
   selectedScript: SillyTavernRegexScript | null;
   dragDropHandlers: {
     allowDrag: (draggingNode: any) => boolean;
-    allowDrop: (draggingNode: any, dropNode: any, type: any) => boolean;
-    handleNodeDrop: (draggingNode: any, dropNode: any, type: any) => boolean;
+    allowDrop: (draggingNode: any, dropNode: any, type: AllowDropType) => boolean;
+    handleNodeDrop: (draggingNode: any, dropNode: any, type: Exclude<NodeDropType, 'none'>) => boolean;
   };
 }
 

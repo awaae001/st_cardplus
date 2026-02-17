@@ -215,6 +215,7 @@ import { getSessionStorageItem, setSessionStorageValue } from '@/utils/localStor
 import { cleanObject } from '@/utils/objectUtils';
 import { ArrowDown, ArrowUp, Delete } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import type { AllowDropType } from 'element-plus/es/components/tree/src/tree.type';
 import { saveAs } from 'file-saver';
 import { Pane, Splitpanes } from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
@@ -323,23 +324,34 @@ const getNodeIdentifier = (nodeData: any) => {
   return resolvePromptIdentifier(raw, nodeData.promptIndex ?? 0);
 };
 
-const moveIdentifier = (list: string[], fromId: string, toId: string, type: 'prev' | 'next') => {
+type PresetDropType = 'before' | 'after';
+
+const getInsertIndexAfterRemoval = (
+  fromIndex: number,
+  toIndex: number,
+  type: PresetDropType
+) => {
+  const normalizedToIndex = fromIndex < toIndex ? toIndex - 1 : toIndex;
+  return type === 'before' ? normalizedToIndex : normalizedToIndex + 1;
+};
+
+const moveIdentifier = (list: string[], fromId: string, toId: string, type: PresetDropType) => {
   const next = list.slice();
   const fromIndex = next.indexOf(fromId);
   const toIndex = next.indexOf(toId);
   if (fromIndex === -1 || toIndex === -1) return next;
   next.splice(fromIndex, 1);
-  const insertIndex = type === 'prev' ? toIndex : toIndex + 1;
+  const insertIndex = getInsertIndexAfterRemoval(fromIndex, toIndex, type);
   next.splice(insertIndex, 0, fromId);
   return next;
 };
 
-const insertBeforeOrAfter = (list: string[], id: string, anchorId: string, type: 'prev' | 'next') => {
+const insertBeforeOrAfter = (list: string[], id: string, anchorId: string, type: PresetDropType) => {
   if (list.includes(id)) return list;
   const next = list.slice();
   const anchorIndex = next.indexOf(anchorId);
   if (anchorIndex === -1) return next;
-  const insertIndex = type === 'prev' ? anchorIndex : anchorIndex + 1;
+  const insertIndex = type === 'before' ? anchorIndex : anchorIndex + 1;
   next.splice(insertIndex, 0, id);
   return next;
 };
@@ -350,7 +362,7 @@ const dragDropHandlers = {
   allowDrag: (draggingNode: any) => {
     return Boolean(draggingNode?.data?.isPreset || draggingNode?.data?.isPrompt);
   },
-  allowDrop: (draggingNode: any, dropNode: any, type: any) => {
+  allowDrop: (draggingNode: any, dropNode: any, type: AllowDropType) => {
     if (!draggingNode?.data || !dropNode?.data) return false;
     if (draggingNode.data.isPreset) {
       return dropNode.data.isPreset && (type === 'prev' || type === 'next');
@@ -364,7 +376,7 @@ const dragDropHandlers = {
     }
     return false;
   },
-  handleNodeDrop: (draggingNode: any, dropNode: any, type: any) => {
+  handleNodeDrop: (draggingNode: any, dropNode: any, type: PresetDropType) => {
     if (!draggingNode?.data || !dropNode?.data) return false;
     if (draggingNode.data.isPreset) {
       const currentOrder = presets.value
@@ -375,7 +387,7 @@ const dragDropHandlers = {
       const toIndex = currentOrder.indexOf(dropNode.data.id);
       if (fromIndex === -1 || toIndex === -1) return false;
       currentOrder.splice(fromIndex, 1);
-      const insertIndex = type === 'prev' ? toIndex : toIndex + 1;
+      const insertIndex = getInsertIndexAfterRemoval(fromIndex, toIndex, type);
       currentOrder.splice(insertIndex, 0, draggingNode.data.id);
       reorderPresets(currentOrder);
       return true;
