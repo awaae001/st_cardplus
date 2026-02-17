@@ -70,6 +70,7 @@
             :create-region="createRegion"
             :projects="projects"
             @update:selected-item="handleSelectionFromChild"
+            @create-project="handleCreateProjectFromPanel"
           />
         </el-tab-pane>
       </el-tabs>
@@ -127,6 +128,7 @@
               :create-region="createRegion"
               :projects="projects"
               @update:selected-item="handleSelectionFromChild"
+              @create-project="handleCreateProjectFromPanel"
             />
           </div>
         </Pane>
@@ -224,6 +226,10 @@ const handleAdd = (type: 'project' | 'landmark' | 'force' | 'region') => {
   } else {
     handleAddEntity(type);
   }
+};
+
+const handleCreateProjectFromPanel = () => {
+  handleAddProject();
 };
 
 const handleEdit = (item: Project | EnhancedLandmark | EnhancedForce | EnhancedRegion | ProjectIntegration) => {

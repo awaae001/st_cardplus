@@ -90,7 +90,7 @@ export default defineConfig({
       },
       external: [], // 确保不排除 Vue
     },
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 4096,
     sourcemap: false,
     terserOptions: {
       compress: {
@@ -99,5 +99,4 @@ export default defineConfig({
       },
     },
   },
-  assetsInclude: ['src/image/**/*']
 });
