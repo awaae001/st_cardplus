@@ -55,13 +55,6 @@ const orderPromptsByIdentifiers = (prompts: PresetPrompt[], identifiers: string[
   return ordered;
 };
 
-  const buildPromptOrderList = (prompts: PresetPrompt[]) => {
-    return prompts.map((prompt, index) => ({
-      identifier: prompt.identifier ?? `prompt-${index}`,
-      enabled: typeof prompt.enabled === 'boolean' ? prompt.enabled : true,
-    }));
-  };
-
 export function usePresetStore() {
   const presets = ref<StoredPresetFile[]>([]);
   const activePresetId = ref<string | null>(null);
@@ -77,6 +70,20 @@ export function usePresetStore() {
     const index = selected.value.promptIndex ?? -1;
     return activePrompts.value[index] || null;
   });
+
+  const persistPreset = async (preset: StoredPresetFile) => {
+    preset.updatedAt = nowIso();
+    await presetService.updatePreset(preset);
+  };
+
+  const withPresetById = async <T>(
+    presetId: string,
+    mutator: (preset: StoredPresetFile) => Promise<T> | T
+  ): Promise<T | undefined> => {
+    const preset = presets.value.find((p) => p.id === presetId);
+    if (!preset) return undefined;
+    return await mutator(preset);
+  };
 
   const loadPresets = async () => {
     const loaded = await presetService.getAllPresets();
@@ -206,8 +213,7 @@ export function usePresetStore() {
       });
       const { value: name } = result as { value: string };
       preset.name = name;
-      preset.updatedAt = nowIso();
-      await presetService.updatePreset(preset);
+      await persistPreset(preset);
       ElMessage.success('预设已重命名');
     } catch (error) {
       if (error !== 'cancel' && error !== 'close') {
@@ -236,41 +242,24 @@ export function usePresetStore() {
   };
 
   const addPrompt = async (presetId: string) => {
-    const preset = presets.value.find((p) => p.id === presetId);
-    if (!preset) return;
-    const now = nowIso();
-    const prompts = (preset.data.prompts as PresetPrompt[]) || [];
-    const newPrompt: PresetPrompt = {
-      identifier: presetService.createPresetId(),
-      name: '新条目',
-      role: 'user',
-      content: '',
-      system_prompt: false,
-      marker: false,
-      enabled: true,
-      order: prompts.length,
-    };
-    const updatedPrompts = [...prompts, newPrompt];
-    preset.data.prompts = updatedPrompts as any;
-    preset.updatedAt = now;
-    await presetService.updatePreset(preset);
-    ElMessage.success('条目已创建');
-    selected.value = { type: 'prompt', promptIndex: updatedPrompts.length - 1 };
-  };
-
-  const addPrompts = async (presetId: string, incoming: PresetPrompt[]) => {
-    const preset = presets.value.find((p) => p.id === presetId);
-    if (!preset) return;
-    const prompts = (preset.data.prompts as PresetPrompt[]) || [];
-    const startOrder = prompts.length;
-    const normalized = incoming.map((prompt, index) => ({
-      ...prompt,
-      identifier: prompt.identifier || presetService.createPresetId(),
-      order: typeof prompt.order === 'number' ? prompt.order : startOrder + index,
-    }));
-    preset.data.prompts = [...prompts, ...normalized] as any;
-    preset.updatedAt = nowIso();
-    await presetService.updatePreset(preset);
+    await withPresetById(presetId, async (preset) => {
+      const prompts = (preset.data.prompts as PresetPrompt[]) || [];
+      const newPrompt: PresetPrompt = {
+        identifier: presetService.createPresetId(),
+        name: '新条目',
+        role: 'user',
+        content: '',
+        system_prompt: false,
+        marker: false,
+        enabled: true,
+        order: prompts.length,
+      };
+      const updatedPrompts = [...prompts, newPrompt];
+      preset.data.prompts = updatedPrompts as any;
+      await persistPreset(preset);
+      ElMessage.success('条目已创建');
+      selected.value = { type: 'prompt', promptIndex: updatedPrompts.length - 1 };
+    });
   };
 
   const importPreset = async (presetName: string, data: Record<string, any>) => {
@@ -320,95 +309,66 @@ export function usePresetStore() {
     );
   };
 
-  const reorderPrompts = async (presetId: string, orderedIndices: number[]) => {
-    const preset = presets.value.find((p) => p.id === presetId);
-    if (!preset) return;
-    const prompts = (preset.data.prompts as PresetPrompt[]) || [];
-    const reordered = orderedIndices.map((index) => prompts[index]).filter(Boolean);
-    reordered.forEach((prompt, index) => {
-      prompt.order = index;
-    });
-    preset.data.prompts = reordered as any;
-    const orderIdentifiers = getPromptOrderIdentifiers(preset.data.prompt_order);
-    const orderSet = new Set(orderIdentifiers);
-    const orderList =
-      orderIdentifiers.length > 0
-        ? reordered
-            .filter((prompt) => typeof prompt.identifier === 'string' && orderSet.has(prompt.identifier))
-            .map((prompt) => ({
-              identifier: prompt.identifier as string,
-              enabled: typeof prompt.enabled === 'boolean' ? prompt.enabled : true,
-            }))
-        : buildPromptOrderList(reordered);
-    preset.data.prompt_order = upsertPromptOrderEntry(preset.data.prompt_order, orderList);
-    preset.updatedAt = nowIso();
-    await presetService.updatePreset(preset);
-  };
-
   const duplicatePrompt = async (presetId: string, promptIndex: number) => {
-    const preset = presets.value.find((p) => p.id === presetId);
-    if (!preset) return;
-    const prompts = (preset.data.prompts as PresetPrompt[]) || [];
-    const source = prompts[promptIndex];
-    if (!source) return;
-    const cloned = JSON.parse(JSON.stringify(source)) as PresetPrompt;
-    cloned.identifier = presetService.createPresetId();
-    cloned.name = `${source.name || '条目'} - 副本`;
-    const updatedPrompts = [...prompts, cloned];
-    preset.data.prompts = updatedPrompts as any;
-    preset.updatedAt = nowIso();
-    await presetService.updatePreset(preset);
-    ElMessage.success('条目已复制');
-    selected.value = { type: 'prompt', promptIndex: updatedPrompts.length - 1 };
+    await withPresetById(presetId, async (preset) => {
+      const prompts = (preset.data.prompts as PresetPrompt[]) || [];
+      const source = prompts[promptIndex];
+      if (!source) return;
+      const cloned = JSON.parse(JSON.stringify(source)) as PresetPrompt;
+      cloned.identifier = presetService.createPresetId();
+      cloned.name = `${source.name || '条目'} - 副本`;
+      const updatedPrompts = [...prompts, cloned];
+      preset.data.prompts = updatedPrompts as any;
+      await persistPreset(preset);
+      ElMessage.success('条目已复制');
+      selected.value = { type: 'prompt', promptIndex: updatedPrompts.length - 1 };
+    });
   };
 
   const removePrompt = async (presetId: string, promptIndex: number) => {
-    const preset = presets.value.find((p) => p.id === presetId);
-    if (!preset) return;
-    const prompts = (preset.data.prompts as PresetPrompt[]) || [];
-    const target = prompts[promptIndex];
-    if (!target) return;
-    const identifier = typeof target.identifier === 'string' ? target.identifier : '';
-    const inOrder = identifier ? getPromptOrderIdentifiers(preset.data.prompt_order).includes(identifier) : false;
-    try {
-      const actionText = inOrder ? '移除' : '删除';
-      const description = inOrder
-        ? `确定移除条目 "${target.name || target.identifier || '未命名'}" 并移至未插入吗？`
-        : `确定删除条目 "${target.name || target.identifier || '未命名'}" 吗？`;
-      await ElMessageBox.confirm(description, '删除条目', {
-        confirmButtonText: actionText,
-        cancelButtonText: '取消',
-        type: 'warning',
-      });
-      if (inOrder && identifier) {
-        const { next, removed } = removePromptOrderIdentifier(preset.data.prompt_order, identifier);
-        if (removed) {
-          preset.data.prompt_order = next as any;
-          preset.updatedAt = nowIso();
-          await presetService.updatePreset(preset);
-          ElMessage.success('条目已移至未插入');
-          return;
+    await withPresetById(presetId, async (preset) => {
+      const prompts = (preset.data.prompts as PresetPrompt[]) || [];
+      const target = prompts[promptIndex];
+      if (!target) return;
+      const identifier = typeof target.identifier === 'string' ? target.identifier : '';
+      const inOrder = identifier ? getPromptOrderIdentifiers(preset.data.prompt_order).includes(identifier) : false;
+      try {
+        const actionText = inOrder ? '移除' : '删除';
+        const description = inOrder
+          ? `确定移除条目 "${target.name || target.identifier || '未命名'}" 并移至未插入吗？`
+          : `确定删除条目 "${target.name || target.identifier || '未命名'}" 吗？`;
+        await ElMessageBox.confirm(description, '删除条目', {
+          confirmButtonText: actionText,
+          cancelButtonText: '取消',
+          type: 'warning',
+        });
+        if (inOrder && identifier) {
+          const { next, removed } = removePromptOrderIdentifier(preset.data.prompt_order, identifier);
+          if (removed) {
+            preset.data.prompt_order = next as any;
+            await persistPreset(preset);
+            ElMessage.success('条目已移至未插入');
+            return;
+          }
+        }
+        const updatedPrompts = prompts.filter((_, idx) => idx !== promptIndex);
+        preset.data.prompts = updatedPrompts as any;
+        await persistPreset(preset);
+        ElMessage.success('条目已删除');
+        selected.value = { type: 'header' };
+      } catch (error) {
+        if (error !== 'cancel' && error !== 'close') {
+          ElMessage.info('已取消删除');
         }
       }
-      const updatedPrompts = prompts.filter((_, idx) => idx !== promptIndex);
-      preset.data.prompts = updatedPrompts as any;
-      preset.updatedAt = nowIso();
-      await presetService.updatePreset(preset);
-      ElMessage.success('条目已删除');
-      selected.value = { type: 'header' };
-    } catch (error) {
-      if (error !== 'cancel' && error !== 'close') {
-        ElMessage.info('已取消删除');
-      }
-    }
+    });
   };
 
   const updateHeader = async (header: Record<string, any>) => {
     if (!activePreset.value) return;
     const prompts = (activePreset.value.data.prompts as PresetPrompt[]) || [];
     activePreset.value.data = { ...header, prompts } as any;
-    activePreset.value.updatedAt = nowIso();
-    await presetService.updatePreset(activePreset.value);
+    await persistPreset(activePreset.value);
   };
 
   const updatePrompt = async (promptIndex: number, updatedPrompt: PresetPrompt) => {
@@ -418,18 +378,16 @@ export function usePresetStore() {
     const nextPrompts = [...prompts];
     nextPrompts[promptIndex] = updatedPrompt;
     activePreset.value.data.prompts = nextPrompts as any;
-    activePreset.value.updatedAt = nowIso();
-    await presetService.updatePreset(activePreset.value);
+    await persistPreset(activePreset.value);
   };
 
   const updatePromptOrder = async (presetId: string, identifiers: string[]) => {
-    const preset = presets.value.find((p) => p.id === presetId);
-    if (!preset) return;
-    const prompts = (preset.data.prompts as PresetPrompt[]) || [];
-    const orderList = buildPromptOrderListFromIdentifiers(identifiers, prompts as any, preset.data.prompt_order);
-    preset.data.prompt_order = upsertPromptOrderEntry(preset.data.prompt_order, orderList);
-    preset.updatedAt = nowIso();
-    await presetService.updatePreset(preset);
+    await withPresetById(presetId, async (preset) => {
+      const prompts = (preset.data.prompts as PresetPrompt[]) || [];
+      const orderList = buildPromptOrderListFromIdentifiers(identifiers, prompts as any, preset.data.prompt_order);
+      preset.data.prompt_order = upsertPromptOrderEntry(preset.data.prompt_order, orderList);
+      await persistPreset(preset);
+    });
   };
 
   return {
@@ -448,10 +406,8 @@ export function usePresetStore() {
     renamePreset,
     removePreset,
     addPrompt,
-    addPrompts,
     importPreset,
     reorderPresets,
-    reorderPrompts,
     duplicatePrompt,
     removePrompt,
     updateHeader,

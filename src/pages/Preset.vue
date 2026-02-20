@@ -207,7 +207,13 @@ import PresetList from '@/components/preset/PresetList.vue';
 import { usePresetAutoSave } from '@/composables/preset/usePresetAutoSave';
 import { usePresetClipboard } from '@/composables/preset/usePresetClipboard';
 import { usePresetStore, type PresetPrompt } from '@/composables/preset/usePresetStore';
-import { getPromptOrderIdentifiers, upsertPromptOrderEntry } from '@/composables/preset/utils/presetPromptOrder';
+import {
+  buildPromptOrderList,
+  getPromptOrderIdentifiers,
+  getPromptOrderList,
+  PROMPT_ORDER_CHARACTER_ID,
+  upsertPromptOrderEntry,
+} from '@/composables/preset/utils/presetPromptOrder';
 import { resolvePromptIdentifier } from '@/composables/preset/utils/presetTree';
 import { useDevice } from '@/composables/useDevice';
 import { defaultOpenAIPreset } from '@/types/openai-preset';
@@ -215,7 +221,7 @@ import { getSessionStorageItem, setSessionStorageValue } from '@/utils/localStor
 import { cleanObject } from '@/utils/objectUtils';
 import { ArrowDown, ArrowUp, Delete } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import type { AllowDropType } from 'element-plus/es/components/tree/src/tree.type';
+import type { AllowDropType, NodeDropType } from 'element-plus/es/components/tree/src/tree.type';
 import { saveAs } from 'file-saver';
 import { Pane, Splitpanes } from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
@@ -260,6 +266,7 @@ const activeEditorTab = ref<'header' | 'prompt'>('header');
 const rightPanelTab = ref<'clipboard' | 'preview'>('clipboard');
 const BETA_NOTICE_KEY = 'preset-editor-beta-notice-session-v1';
 const isLoadingData = ref(false);
+// 上游约定：prompt_order 的目标 character_id 固定为 100001
 const normalizeNumber = (value: any, fallback: number) => {
   const num = Number(value);
   return Number.isFinite(num) ? num : fallback;
@@ -376,8 +383,9 @@ const dragDropHandlers = {
     }
     return false;
   },
-  handleNodeDrop: (draggingNode: any, dropNode: any, type: PresetDropType) => {
+  handleNodeDrop: (draggingNode: any, dropNode: any, type: Exclude<NodeDropType, 'none'>) => {
     if (!draggingNode?.data || !dropNode?.data) return false;
+    if (type === 'inner') return false;
     if (draggingNode.data.isPreset) {
       const currentOrder = presets.value
         .slice()
@@ -440,7 +448,7 @@ const handleExportPreset = () => {
   const promptOrder =
     existingOrder.length > 0
       ? JSON.parse(JSON.stringify(activePreset.value.data.prompt_order))
-      : upsertPromptOrderEntry(activePreset.value.data.prompt_order, buildFallbackPromptOrder(prompts));
+      : upsertPromptOrderEntry(activePreset.value.data.prompt_order, buildPromptOrderList(prompts));
   const exportData = {
     ...activePreset.value.data,
     prompt_order: promptOrder,
@@ -465,42 +473,31 @@ const handleImportPreset = async (file: File) => {
   }
 };
 
-const sortPrompts = (prompts: Record<string, any>[]) => {
-  return prompts
-    .map((prompt, index) => ({
-      prompt,
-      index,
-      order: typeof prompt.order === 'number' ? prompt.order : null,
-      identifier: typeof prompt.identifier === 'string' ? prompt.identifier : null,
-    }))
-    .sort((a, b) => {
-      if (a.order !== null && b.order !== null) return a.order - b.order;
-      if (a.order !== null) return -1;
-      if (b.order !== null) return 1;
-      const aId = a.identifier ?? String(a.index);
-      const bId = b.identifier ?? String(b.index);
-      return aId.localeCompare(bId);
-    });
-};
-
-const buildFallbackPromptOrder = (prompts: Record<string, any>[]) => {
-  return prompts.map((prompt, index) => ({
-    identifier: prompt.identifier ?? `prompt-${index}`,
-    enabled: typeof prompt.enabled === 'boolean' ? prompt.enabled : true,
-  }));
-};
-
 const previewPrompts = computed(() => {
   if (!activePreset.value) return [];
   const prompts = (activePreset.value.data.prompts as Record<string, any>[]) || [];
-  return sortPrompts(prompts)
-    .map(({ prompt, index }) => {
-      const enabled = typeof prompt.enabled === 'boolean' ? prompt.enabled : true;
+  const promptByIdentifier = new Map<string, { prompt: Record<string, any>; index: number }>();
+  prompts.forEach((prompt, index) => {
+    if (typeof prompt?.identifier === 'string' && prompt.identifier.trim() && !promptByIdentifier.has(prompt.identifier)) {
+      promptByIdentifier.set(prompt.identifier, { prompt, index });
+    }
+  });
+
+  const promptOrderList = getPromptOrderList(activePreset.value.data.prompt_order, PROMPT_ORDER_CHARACTER_ID);
+
+  return promptOrderList
+    .map((item) => {
+      const identifier = item.identifier;
+      if (!identifier) return null;
+      const enabled = item.enabled;
       if (!enabled) return null;
+      const matched = promptByIdentifier.get(identifier);
+      if (!matched) return null;
+      const { prompt, index } = matched;
       const title = prompt.name || prompt.identifier || `条目 ${index + 1}`;
       const content = prompt.content || '';
       return {
-        key: prompt.identifier ?? `prompt-${index}`,
+        key: identifier,
         text: `---： ${title}\n${content}`,
       };
     })
