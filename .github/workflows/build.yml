@@ -17,17 +17,17 @@ jobs:
     - name: Setup pnpm
       uses: pnpm/action-setup@v3
       with:
-        version: 8
+        version: 10
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'pnpm'
         cache-dependency-path: pnpm-lock.yaml
 
     - name: Install dependencies
-      run: pnpm install
+      run: pnpm install --frozen-lockfile
 
     - name: Run type check
       run: pnpm type-check
@@ -45,17 +45,17 @@ jobs:
     - name: Setup pnpm
       uses: pnpm/action-setup@v3
       with:
-        version: 8
+        version: 10
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'pnpm'
         cache-dependency-path: pnpm-lock.yaml
 
     - name: Install dependencies
-      run: pnpm install
+      run: pnpm install --frozen-lockfile
 
     - name: Build web version
       run: pnpm build
@@ -79,20 +79,17 @@ jobs:
     - name: Setup pnpm
       uses: pnpm/action-setup@v3
       with:
-        version: 8
+        version: 10
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'pnpm'
         cache-dependency-path: pnpm-lock.yaml
 
     - name: Install dependencies
-      run: pnpm install
-
-    - name: Install Electron dependencies
-      run: pnpm install --production=false
+      run: pnpm install --frozen-lockfile
 
     - name: Build Windows app
       run: pnpm build:electron
