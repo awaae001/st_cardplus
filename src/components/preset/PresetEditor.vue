@@ -353,11 +353,18 @@
               class="mb-2"
             />
             <el-form-item label="条目名称">
-              <el-input
-                v-model="localEditorState.promptName"
-                placeholder="请输入条目名称"
-                :disabled="isFullyLocked"
-              />
+              <div class="prompt-name-row">
+                <el-input
+                  v-model="localEditorState.promptName"
+                  placeholder="请输入条目名称"
+                  :disabled="isFullyLocked"
+                />
+                <el-switch
+                  v-model="localEditorState.promptEnabled"
+                  active-text="激活"
+                  :disabled="isFullyLocked"
+                />
+              </div>
             </el-form-item>
             <el-form-item label="提示词内容">
               <el-input
@@ -368,188 +375,190 @@
                 :placeholder="contentPlaceholder"
               />
             </el-form-item>
-            <el-form-item label="开关">
-              <div class="switch-row">
-                <el-tag type="info">system_prompt: {{ localEditorState.promptSystem ? 'true' : 'false' }}</el-tag>
-                <el-switch
-                  v-model="localEditorState.promptMarker"
-                  active-text="marker"
-                  :disabled="isFullyLocked"
-                />
-                <el-switch
-                  v-model="localEditorState.promptEnabled"
-                  active-text="enabled"
-                  :disabled="isFullyLocked"
-                />
-              </div>
-            </el-form-item>
-            <div class="grid grid-cols-1 gap-x-4 md:grid-cols-2 xl:grid-cols-4">
-              <el-form-item label="Role">
-                <el-select
-                  v-model="localEditorState.promptRole"
-                  placeholder="角色"
-                  :disabled="isFullyLocked"
-                >
-                  <el-option
-                    label="系统（system）"
-                    value="system"
-                  />
-                  <el-option
-                    label="用户（user）"
-                    value="user"
-                  />
-                  <el-option
-                    label="助手（assistant）"
-                    value="assistant"
-                  />
-                </el-select>
-              </el-form-item>
-              <el-form-item>
-                <template #label>
-                  <span class="inline-flex items-center gap-1.5">
-                    注入位置
-                    <el-tooltip
-                      content="injection_position"
-                      placement="top"
-                      :show-arrow="false"
+            <el-collapse v-model="promptAdvancedPanels">
+              <el-collapse-item
+                title="高级选项"
+                name="advanced"
+              >
+                <el-form-item label="开关">
+                  <div class="switch-row">
+                    <el-tag type="info">system_prompt: {{ localEditorState.promptSystem ? 'true' : 'false' }}</el-tag>
+                    <el-switch
+                      v-model="localEditorState.promptMarker"
+                      active-text="marker"
+                      :disabled="isFullyLocked"
+                    />
+                  </div>
+                </el-form-item>
+                <div class="grid grid-cols-1 gap-x-4 md:grid-cols-2 xl:grid-cols-4">
+                  <el-form-item label="Role">
+                    <el-select
+                      v-model="localEditorState.promptRole"
+                      placeholder="角色"
+                      :disabled="isFullyLocked"
                     >
-                      <span
-                        class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-(--el-fill-color-light) text-(--el-text-color-secondary) text-xs leading-none"
-                      >
-                        ?
+                      <el-option
+                        label="系统（system）"
+                        value="system"
+                      />
+                      <el-option
+                        label="用户（user）"
+                        value="user"
+                      />
+                      <el-option
+                        label="助手（assistant）"
+                        value="assistant"
+                      />
+                    </el-select>
+                  </el-form-item>
+                  <el-form-item>
+                    <template #label>
+                      <span class="inline-flex items-center gap-1.5">
+                        注入位置
+                        <el-tooltip
+                          content="injection_position"
+                          placement="top"
+                          :show-arrow="false"
+                        >
+                          <span
+                            class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-(--el-fill-color-light) text-(--el-text-color-secondary) text-xs leading-none"
+                          >
+                            ?
+                          </span>
+                        </el-tooltip>
                       </span>
-                    </el-tooltip>
-                  </span>
-                </template>
-                <el-select
-                  v-model="extraFields.injection_position"
-                  :disabled="isFullyLocked"
-                  placeholder="请选择"
-                >
-                  <el-option
-                    :label="'0（相对）'"
-                    :value="0"
-                  />
-                  <el-option
-                    :label="'1（聊天中）'"
-                    :value="1"
-                  />
-                </el-select>
-              </el-form-item>
-              <el-form-item>
-                <template #label>
-                  <span class="inline-flex items-center gap-1.5">
-                    注入深度
-                    <el-tooltip
-                      content="injection_depth"
-                      placement="top"
-                      :show-arrow="false"
+                    </template>
+                    <el-select
+                      v-model="extraFields.injection_position"
+                      :disabled="isFullyLocked"
+                      placeholder="请选择"
                     >
-                      <span
-                        class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-(--el-fill-color-light) text-(--el-text-color-secondary) text-xs leading-none"
-                      >
-                        ?
+                      <el-option
+                        :label="'0（相对）'"
+                        :value="0"
+                      />
+                      <el-option
+                        :label="'1（聊天中）'"
+                        :value="1"
+                      />
+                    </el-select>
+                  </el-form-item>
+                  <el-form-item>
+                    <template #label>
+                      <span class="inline-flex items-center gap-1.5">
+                        注入深度
+                        <el-tooltip
+                          content="injection_depth"
+                          placement="top"
+                          :show-arrow="false"
+                        >
+                          <span
+                            class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-(--el-fill-color-light) text-(--el-text-color-secondary) text-xs leading-none"
+                          >
+                            ?
+                          </span>
+                        </el-tooltip>
                       </span>
-                    </el-tooltip>
-                  </span>
-                </template>
-                <el-input-number
-                  v-model="extraFields.injection_depth"
-                  :min="0"
-                  :disabled="isFullyLocked || extraFields.injection_position !== 1"
-                  controls-position="right"
-                  placeholder="仅在位置为 1 时生效"
-                />
-              </el-form-item>
-              <el-form-item>
-                <template #label>
-                  <span class="inline-flex items-center gap-1.5">
-                    注入顺序
-                    <el-tooltip
-                      content="injection_order"
-                      placement="top"
-                      :show-arrow="false"
-                    >
-                      <span
-                        class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-(--el-fill-color-light) text-(--el-text-color-secondary) text-xs leading-none"
-                      >
-                        ?
+                    </template>
+                    <el-input-number
+                      v-model="extraFields.injection_depth"
+                      :min="0"
+                      :disabled="isFullyLocked || extraFields.injection_position !== 1"
+                      controls-position="right"
+                      placeholder="仅在位置为 1 时生效"
+                    />
+                  </el-form-item>
+                  <el-form-item>
+                    <template #label>
+                      <span class="inline-flex items-center gap-1.5">
+                        注入顺序
+                        <el-tooltip
+                          content="injection_order"
+                          placement="top"
+                          :show-arrow="false"
+                        >
+                          <span
+                            class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-(--el-fill-color-light) text-(--el-text-color-secondary) text-xs leading-none"
+                          >
+                            ?
+                          </span>
+                        </el-tooltip>
                       </span>
-                    </el-tooltip>
-                  </span>
-                </template>
-                <el-input-number
-                  v-model="extraFields.injection_order"
-                  :min="0"
-                  :disabled="isFullyLocked || extraFields.injection_position !== 1"
-                  controls-position="right"
-                  placeholder="仅在位置为 1 时生效"
-                />
-              </el-form-item>
-              <el-form-item>
-                <template #label>
-                  <span class="inline-flex items-center gap-1.5">
-                    禁止覆盖
-                    <el-tooltip
-                      content="forbid_overrides"
-                      placement="top"
-                      :show-arrow="false"
-                    >
-                      <span
-                        class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-(--el-fill-color-light) text-(--el-text-color-secondary) text-xs leading-none"
-                      >
-                        ?
+                    </template>
+                    <el-input-number
+                      v-model="extraFields.injection_order"
+                      :min="0"
+                      :disabled="isFullyLocked || extraFields.injection_position !== 1"
+                      controls-position="right"
+                      placeholder="仅在位置为 1 时生效"
+                    />
+                  </el-form-item>
+                  <el-form-item>
+                    <template #label>
+                      <span class="inline-flex items-center gap-1.5">
+                        禁止覆盖
+                        <el-tooltip
+                          content="forbid_overrides"
+                          placement="top"
+                          :show-arrow="false"
+                        >
+                          <span
+                            class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-(--el-fill-color-light) text-(--el-text-color-secondary) text-xs leading-none"
+                          >
+                            ?
+                          </span>
+                        </el-tooltip>
                       </span>
-                    </el-tooltip>
-                  </span>
-                </template>
-                <el-switch
-                  v-model="extraFields.forbid_overrides"
-                  :disabled="isFullyLocked"
-                />
-              </el-form-item>
-              <el-form-item class="col-span-1 md:col-span-2 xl:col-span-4">
-                <template #label>
-                  <span class="inline-flex items-center gap-1.5">
-                    触发器列表
-                    <el-tooltip
-                      content="injection_trigger"
-                      placement="top"
-                      :show-arrow="false"
-                    >
-                      <span
-                        class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-(--el-fill-color-light) text-(--el-text-color-secondary) text-xs leading-none"
-                      >
-                        ?
+                    </template>
+                    <el-switch
+                      v-model="extraFields.forbid_overrides"
+                      :disabled="isFullyLocked"
+                    />
+                  </el-form-item>
+                  <el-form-item class="col-span-1 md:col-span-2 xl:col-span-4">
+                    <template #label>
+                      <span class="inline-flex items-center gap-1.5">
+                        触发器列表
+                        <el-tooltip
+                          content="injection_trigger"
+                          placement="top"
+                          :show-arrow="false"
+                        >
+                          <span
+                            class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-(--el-fill-color-light) text-(--el-text-color-secondary) text-xs leading-none"
+                          >
+                            ?
+                          </span>
+                        </el-tooltip>
                       </span>
-                    </el-tooltip>
-                  </span>
-                </template>
-                <el-input
-                  v-model="injectionTriggerText"
-                  type="textarea"
-                  :rows="4"
-                  placeholder="每行一个触发词"
-                  :readonly="isFullyLocked"
-                />
-              </el-form-item>
-            </div>
-            <div class="grid grid-cols-1 gap-x-4 md:grid-cols-2">
-              <el-form-item label="排序 order">
-                <el-input-number
-                  v-model="localEditorState.promptOrder"
-                  :min="0"
-                  disabled
-                />
-              </el-form-item>
-              <el-form-item label="Identifier">
-                <el-input
-                  v-model="localEditorState.promptIdentifier"
-                  placeholder="identifier"
-                  disabled
-                />
-              </el-form-item>
-            </div>
+                    </template>
+                    <el-input
+                      v-model="injectionTriggerText"
+                      type="textarea"
+                      :rows="4"
+                      placeholder="每行一个触发词"
+                      :readonly="isFullyLocked"
+                    />
+                  </el-form-item>
+                </div>
+                <div class="grid grid-cols-1 gap-x-4 md:grid-cols-2">
+                  <el-form-item label="排序 order">
+                    <el-input-number
+                      v-model="localEditorState.promptOrder"
+                      :min="0"
+                      disabled
+                    />
+                  </el-form-item>
+                  <el-form-item label="Identifier">
+                    <el-input
+                      v-model="localEditorState.promptIdentifier"
+                      placeholder="identifier"
+                      disabled
+                    />
+                  </el-form-item>
+                </div>
+              </el-collapse-item>
+            </el-collapse>
           </el-form>
         </el-tab-pane>
       </el-tabs>
@@ -734,6 +743,8 @@ const contentPlaceholder = computed(() => {
   if (fullyLockedIdentifiers.has(id)) return '此条目已锁定，不支持编辑';
   return '在此编辑提示词内容';
 });
+
+const promptAdvancedPanels = ref<string[]>([]);
 
 const extraFields = reactive({
   injection_position: 0,
@@ -958,6 +969,22 @@ watch(
 .switch-row {
   display: flex;
   gap: 16px;
+}
+
+.prompt-name-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.prompt-name-row :deep(.el-input) {
+  flex: 1;
+  min-width: 0;
+}
+
+.prompt-name-row :deep(.el-switch) {
+  margin-left: auto;
 }
 
 .grid :deep(.el-form-item) {
