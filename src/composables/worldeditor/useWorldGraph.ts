@@ -11,7 +11,7 @@ import {
 } from '@vue-flow/core';
 import type { Project, EnhancedLandmark, EnhancedForce, EnhancedRegion, RoadConnection } from '@/types/world-editor';
 import type { LandmarkNodeData, LandmarkNodeForce } from '@/types/worldeditor/worldGraphNodes';
-import { linkLandmarks, unlinkLandmarks } from '@/composables/worldeditor/worldGraphLinks';
+import { linkLandmarks, recalculateRoadConnectionLengths, unlinkLandmarks } from '@/composables/worldeditor/worldGraphLinks';
 
 export interface WorldGraphProps {
   projects: Project[];
@@ -41,6 +41,11 @@ interface WorldGraphState {
   clearSelection: () => void;
 }
 
+interface RemovableEdgeData {
+  onRemove?: (edgeId: string) => void;
+  roadLength?: number;
+}
+
 export const useWorldGraph = (props: WorldGraphProps, options?: WorldGraphOptions): WorldGraphState => {
   const nodes = ref<Node[]>([]);
   const edges = ref<Edge[]>([]);
@@ -48,9 +53,12 @@ export const useWorldGraph = (props: WorldGraphProps, options?: WorldGraphOption
 
   const RemovableEdge = (edgeProps: EdgeProps) => {
     const [edgePath, labelX, labelY] = getBezierPath(edgeProps);
+    const edgeData = (edgeProps.data || {}) as RemovableEdgeData;
+    const roadLength =
+      typeof edgeData.roadLength === 'number' && Number.isFinite(edgeData.roadLength) ? edgeData.roadLength : null;
     const onRemove = (event: MouseEvent) => {
       event.stopPropagation();
-      const remove = edgeProps.data?.onRemove as undefined | ((edgeId: string) => void);
+      const remove = edgeData.onRemove;
       remove?.(edgeProps.id);
     };
 
@@ -71,6 +79,23 @@ export const useWorldGraph = (props: WorldGraphProps, options?: WorldGraphOption
               },
             },
             [
+              roadLength !== null
+                ? h(
+                    'span',
+                    {
+                      class: 'edge-length-label',
+                      style: {
+                        fontSize: '11px',
+                        color: '#334155',
+                        background: '#fff',
+                        border: '1px solid #cbd5e1',
+                        borderRadius: '999px',
+                        padding: '1px 6px',
+                      },
+                    },
+                    `${roadLength}`
+                  )
+                : null,
               h(
                 'button',
                 {
@@ -229,6 +254,7 @@ export const useWorldGraph = (props: WorldGraphProps, options?: WorldGraphOption
       const fallbackConnection = targetLandmark ? getRoadConnection(targetLandmark, source) : null;
       const sourceHandle = connection?.handle ?? fallbackConnection?.targetHandle;
       const targetHandle = connection?.targetHandle ?? fallbackConnection?.handle;
+      const roadLength = connection?.length ?? fallbackConnection?.length;
 
       edgeList.push({
         id: `edge-${key}`,
@@ -239,6 +265,7 @@ export const useWorldGraph = (props: WorldGraphProps, options?: WorldGraphOption
         type: 'removable',
         data: {
           onRemove: removeEdgeById,
+          roadLength,
         },
       });
     };
@@ -258,6 +285,7 @@ export const useWorldGraph = (props: WorldGraphProps, options?: WorldGraphOption
     [projectLandmarks, projectForces],
     () => {
       buildNodes();
+      recalculateRoadConnectionLengths(projectLandmarksAll.value);
       buildEdges();
     },
     { deep: true, immediate: true }
@@ -331,6 +359,8 @@ export const useWorldGraph = (props: WorldGraphProps, options?: WorldGraphOption
     if (target) {
       target.position = { x: resolvedNode.position.x, y: resolvedNode.position.y };
       recalcRelativePositions();
+      recalculateRoadConnectionLengths(projectLandmarksAll.value);
+      buildEdges();
     }
   };
 
@@ -343,6 +373,7 @@ export const useWorldGraph = (props: WorldGraphProps, options?: WorldGraphOption
     const targetHandle = params.targetHandle ?? undefined;
 
     linkLandmarks(projectLandmarks.value, source, target, sourceHandle, targetHandle);
+    recalculateRoadConnectionLengths(projectLandmarksAll.value);
     buildEdges();
   };
 

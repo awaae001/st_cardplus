@@ -364,6 +364,12 @@ const {
   pointer-events: all;
 }
 
+:deep(.edge-label) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 :deep(.edge-remove-button:hover) {
   color: var(--el-color-danger);
   border-color: var(--el-color-danger);

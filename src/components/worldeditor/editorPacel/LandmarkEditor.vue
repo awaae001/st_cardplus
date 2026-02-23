@@ -491,7 +491,7 @@ import { LandmarkType } from '@/types/world-editor';
 import { getLandmarkTypeLabel } from '@/utils/worldeditor/landmarkMeta';
 import { useValidation } from '@/composables/worldeditor/useValidation';
 import { collectDescendantIds, getParentLandmarkId, setLandmarkParent } from '@/utils/worldeditor/landmarkHierarchy';
-import { unlinkLandmarks } from '@/composables/worldeditor/worldGraphLinks';
+import { getRoadConnectionLength, unlinkLandmarks } from '@/composables/worldeditor/worldGraphLinks';
 import RegionSelect from '../RegionSelect.vue';
 import '@/css/worldbook.css';
 
@@ -631,7 +631,9 @@ const roadLinkOptions = computed(() => {
     if (!match || match.projectId !== props.landmark!.projectId) {
       return { id, name: `未知地标 (${id})`, missing: true };
     }
-    return { id: match.id, name: match.name, missing: false };
+    const distance = getRoadConnectionLength(props.landmark!, match);
+    const distanceText = distance === undefined ? '未计算' : String(distance);
+    return { id: match.id, name: `${match.name} (长度: ${distanceText})`, missing: false };
   });
 });
 

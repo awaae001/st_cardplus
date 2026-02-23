@@ -295,6 +295,7 @@ export const useWorldGraphView = (props: WorldGraphProps, options?: WorldGraphVi
           type: 'removable',
           data: {
             onRemove: () => removeBridgeConnection(child.id, externalId),
+            roadLength: childConn?.length,
           },
         });
       });

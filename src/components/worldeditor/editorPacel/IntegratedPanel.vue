@@ -234,15 +234,25 @@
       class="preview-section"
       v-if="selectedItems.length > 0"
     >
+      <el-card class="preview-config-card">
+        <div class="preview-config-row">
+          <span class="preview-config-label">长度单位</span>
+          <el-input
+            v-model="lengthUnit"
+            placeholder="长度单位"
+            class="preview-config-input"
+          />
+          <div class="preview-config-toggle">
+            <span class="preview-config-label">过滤空字段</span>
+            <el-switch v-model="filterEmptyFields" />
+          </div>
+        </div>
+      </el-card>
       <el-card>
         <template #header>
           <div class="card-header">
             <span>JSON预览</span>
             <div class="preview-actions">
-              <div class="preview-filter">
-                <span class="preview-filter-label">过滤空字段</span>
-                <el-switch v-model="filterEmptyFields" />
-              </div>
               <el-button
                 type="primary"
                 size="small"
@@ -270,11 +280,12 @@ import type {
   Project,
   ProjectIntegration,
 } from '@/types/world-editor';
+import { getRoadConnectionLength } from '@/composables/worldeditor/worldGraphLinks';
 import { cleanObject, removeEmptyFields } from '@/utils/objectUtils';
 import { getParentLandmarkId } from '@/utils/worldeditor/landmarkHierarchy';
 import { getLandmarkTypeLabel } from '@/utils/worldeditor/landmarkMeta';
 import { Icon } from '@iconify/vue';
-import { ElButton, ElCard, ElCheckbox, ElCol, ElMessage, ElRow, ElSwitch } from 'element-plus';
+import { ElButton, ElCard, ElCheckbox, ElCol, ElInput, ElMessage, ElRow, ElSwitch } from 'element-plus';
 import { computed, ref } from 'vue';
 
 interface Props {
@@ -292,6 +303,7 @@ const selectedLandmarks = ref<string[]>([]);
 const selectedForces = ref<string[]>([]);
 const selectedRegions = ref<string[]>([]);
 const filterEmptyFields = ref(true);
+const lengthUnit = ref('KM');
 
 // 计算当前项目的地标和势力
 const projectLandmarks = computed(() => {
@@ -417,6 +429,14 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce | EnhancedRegion)
     const list = Array.isArray(value) ? value : [value];
     return list.map((id) => idToName(id, map || new Map()));
   };
+  const toRoadLinkLabelList = (landmark: EnhancedLandmark) =>
+    (landmark.roadConnections || []).map((conn) => {
+      const targetName = idToName(conn.targetId, landmarkIdToNameMap);
+      const targetLandmark = props.landmarks.find((item) => item.id === conn.targetId);
+      const resolvedLength = targetLandmark ? getRoadConnectionLength(landmark, targetLandmark) : undefined;
+      const lengthText = resolvedLength === undefined ? '未计算' : `${resolvedLength} ${lengthUnit.value}`;
+      return `${targetName} (长度: ${lengthText})`;
+    });
 
   const landmarks = items
     .filter((item): item is EnhancedLandmark => 'importance' in item)
@@ -447,7 +467,7 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce | EnhancedRegion)
         includes: childNames.length > 0 ? childNames : undefined,
         // 将关联ID转换为名称
         controllingForces: landmark.controllingForces?.map((id) => idToName(id, forceIdToNameMap)),
-        relatedLandmarks: landmark.relatedLandmarks?.map((id) => idToName(id, landmarkIdToNameMap)),
+        relatedLandmarks: toRoadLinkLabelList(landmark),
         climate: landmark.climate,
         terrain: landmark.terrain,
         population: landmark.population,
@@ -582,6 +602,32 @@ const exportAllJSON = async () => {
   margin-bottom: 24px;
 }
 
+.preview-config-card {
+  margin-bottom: 12px;
+}
+
+.preview-config-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.preview-config-label {
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
+  white-space: nowrap;
+}
+
+.preview-config-input {
+  max-width: 180px;
+}
+
+.preview-config-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -599,18 +645,6 @@ const exportAllJSON = async () => {
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
-}
-
-.preview-actions > .preview-filter {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-}
-
-.preview-actions > .preview-filter > .preview-filter-label {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
 }
 
 .selection-list {
@@ -712,11 +746,37 @@ const exportAllJSON = async () => {
 }
 
 .preview-content {
-  max-height: 300px;
-  overflow-y: auto;
+  height: 300px;
+  min-height: 180px;
+  min-width: 260px;
+  max-width: 100%;
+  resize: both;
+  overflow: auto;
+  border-radius: 6px;
+  border: 1px solid var(--el-border-color-light);
+  background-color: var(--el-fill-color-light);
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.preview-content::-webkit-resizer {
+  background: linear-gradient(
+    135deg,
+    transparent 45%,
+    var(--el-border-color) 45%,
+    var(--el-border-color) 55%,
+    transparent 55%
+  );
+}
+
+.preview-content:focus-within {
+  border-color: var(--el-color-primary-light-5);
 }
 
 .preview-content > .preview-text {
+  min-height: 100%;
+  box-sizing: border-box;
+  margin: 0;
   white-space: pre-wrap;
   font-family: 'SF Mono', Monaco, Menlo, 'Roboto Mono', 'Ubuntu Mono', monospace;
   font-size: 13px;
@@ -725,7 +785,8 @@ const exportAllJSON = async () => {
   background-color: var(--el-fill-color-light);
   padding: 16px;
   border-radius: 6px;
-  border: 1px solid var(--el-border-color-light);
+  border: none;
+  overflow-y: auto;
 }
 
 /* 移动端适配 */
