@@ -47,7 +47,11 @@
     <template #node="{ node, data }">
       <div
         class="sidebar-tree-node"
-        :class="{ 'is-header': data.isHeader, 'is-disabled': data.isPrompt && data.enabled === false }"
+        :class="{
+          'is-header': data.isHeader,
+          'is-disabled': data.isPrompt && data.enabled === false,
+          'is-multi-selected': isMultiSelected(data),
+        }"
       >
         <div class="sidebar-tree-node-main">
           <Icon
@@ -212,6 +216,7 @@ interface Props {
   activePresetId: string | null;
   selectedPromptIndex: number | null;
   selectedIsHeader: boolean;
+  multiSelectedNodeKeys?: string[];
   dragDropHandlers: {
     allowDrag: (draggingNode: any) => boolean;
     allowDrop: (draggingNode: any, dropNode: any, type: AllowDropType) => boolean;
@@ -219,12 +224,15 @@ interface Props {
   };
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  multiSelectedNodeKeys: () => [],
+});
 
 const emit = defineEmits<{
   (e: 'select-preset', id: string): void;
   (e: 'select-header', id: string): void;
   (e: 'select-prompt', presetId: string, promptIndex: number): void;
+  (e: 'toggle-node-selection', data: any, additive: boolean): void;
   (e: 'create-preset'): void;
   (e: 'create-blank'): void;
   (e: 'rename-preset', id: string): void;
@@ -258,8 +266,11 @@ const currentNodeKey = computed(() => {
   return props.activePresetId;
 });
 
-const handleNodeClick = (data: any) => {
+const handleNodeClick = (data: any, context?: { event?: MouseEvent }) => {
   if (data.isGroup) return;
+  const event = context?.event;
+  const additive = Boolean(event && (event.ctrlKey || event.metaKey));
+  emit('toggle-node-selection', data, additive);
   if (data.isHeader) {
     emit('select-header', data.presetId);
   } else if (data.isPrompt) {
@@ -267,6 +278,12 @@ const handleNodeClick = (data: any) => {
   } else {
     emit('select-preset', data.id);
   }
+};
+
+const isMultiSelected = (data: any) => {
+  const nodeKey = data?.nodeKey;
+  if (!nodeKey) return false;
+  return props.multiSelectedNodeKeys.includes(nodeKey);
 };
 
 const handleImportPreset = (file: File): boolean => {
@@ -321,5 +338,15 @@ const isProtectedPrompt = (prompt: Record<string, any> | undefined) => {
 .sidebar-tree-node.is-disabled .sidebar-tree-node-icon {
   color: var(--el-text-color-disabled);
   opacity: 0.65;
+}
+
+.sidebar-tree-node.is-multi-selected {
+  background: color-mix(in srgb, var(--el-color-primary) 14%, transparent);
+  border-radius: 8px;
+}
+
+.sidebar-tree-node.is-multi-selected .sidebar-tree-node-label,
+.sidebar-tree-node.is-multi-selected .sidebar-tree-node-icon {
+  color: var(--el-color-primary);
 }
 </style>

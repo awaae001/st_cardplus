@@ -90,7 +90,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{
-  (e: 'node-click', data: any): void;
+  (e: 'node-click', data: any, context?: { node: any; component: any; event: MouseEvent | undefined }): void;
 }>();
 
 const treeRef = ref<InstanceType<typeof ElTree> | null>(null);
@@ -144,8 +144,8 @@ const handleNodeDrop = async (draggingNode: any, dropNode: any, dropType: Actual
   }
 };
 
-const handleNodeClick = (data: any) => {
-  emit('node-click', data);
+const handleNodeClick = (data: any, node: any, component: any, event: MouseEvent) => {
+  emit('node-click', data, { node, component, event });
 };
 
 const handleNodeExpand = (data: any) => {
