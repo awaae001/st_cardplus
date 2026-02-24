@@ -8,10 +8,91 @@
     <h1 class="title">欢迎使用 ST CardPlus</h1>
     <p class="subtitle">你今天要创造些什么？</p>
     <p class="hint">请从顶部导航栏选择要编辑的内容</p>
+
+    <div class="did-you-know-card">
+      <div class="did-you-know-head">
+        <div class="did-you-know-title">
+          你知道吗
+          <el-icon class="did-you-know-title-icon"><QuestionFilled /></el-icon>
+        </div>
+        <el-button
+          size="small"
+          text
+          class="did-you-know-next-btn"
+          aria-label="下一条提示"
+          title="下一条提示"
+          @click="pickRandomTip"
+        >
+          下一个
+        </el-button>
+      </div>
+      <p class="did-you-know-text">{{ randomTip }}</p>
+    </div>
   </div>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { QuestionFilled } from '@element-plus/icons-vue';
+import { onActivated, onMounted, ref } from 'vue';
+
+const defaultDidYouKnowTips = ['提示加载失败，请点击“下一个”重试。'];
+const didYouKnowUrl = '/did-you-know.json';
+const didYouKnowTips = ref<string[]>([...defaultDidYouKnowTips]);
+const randomTip = ref('');
+
+const normalizeTips = (input: unknown): string[] => {
+  if (Array.isArray(input)) {
+    return input.map((item) => String(item).trim()).filter(Boolean);
+  }
+  if (input && typeof input === 'object' && 'tips' in input && Array.isArray((input as { tips: unknown[] }).tips)) {
+    return (input as { tips: unknown[] }).tips.map((item) => String(item).trim()).filter(Boolean);
+  }
+  return [];
+};
+
+const loadRemoteTips = async () => {
+  if (!didYouKnowUrl) return;
+  try {
+    const response = await fetch(didYouKnowUrl, { cache: 'no-store' });
+    if (!response.ok) return;
+    const data = await response.json();
+    const remoteTips = normalizeTips(data);
+    if (remoteTips.length > 0) {
+      didYouKnowTips.value = remoteTips;
+    }
+  } catch {
+    didYouKnowTips.value = [...defaultDidYouKnowTips];
+  }
+};
+
+const pickRandomTip = () => {
+  if (didYouKnowTips.value.length === 0) {
+    randomTip.value = '';
+    return;
+  }
+
+  if (didYouKnowTips.value.length === 1) {
+    randomTip.value = didYouKnowTips.value[0];
+    return;
+  }
+
+  let index = Math.floor(Math.random() * didYouKnowTips.value.length);
+  while (didYouKnowTips.value[index] === randomTip.value) {
+    index = Math.floor(Math.random() * didYouKnowTips.value.length);
+  }
+  randomTip.value = didYouKnowTips.value[index];
+};
+
+onMounted(async () => {
+  pickRandomTip();
+  await loadRemoteTips();
+  pickRandomTip();
+});
+
+onActivated(() => {
+  pickRandomTip();
+});
+</script>
 
 <style scoped>
 .welcome-container {
@@ -50,5 +131,45 @@
   line-height: 1.5rem;
   margin-top: 1rem;
   color: var(--el-text-color-regular);
+}
+
+.did-you-know-card {
+  margin-top: 1.75rem;
+  width: min(90vw, 40rem);
+  padding: 0.9rem 1rem;
+  border-radius: 0.8rem;
+  background: var(--el-fill-color-extra-light);
+  border: 1px solid var(--el-border-color-light);
+}
+
+.did-you-know-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--el-color-warning-dark-2);
+}
+
+.did-you-know-title-icon {
+  font-size: 0.95rem;
+}
+
+.did-you-know-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+
+.did-you-know-text {
+  margin: 0;
+  color: var(--el-text-color-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.did-you-know-next-btn {
+  color: var(--el-text-color-secondary);
 }
 </style>

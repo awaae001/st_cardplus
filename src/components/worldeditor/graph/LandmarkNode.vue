@@ -156,8 +156,7 @@ const formatPopulation = (value?: number) => {
 
 <style scoped>
 .landmark-node {
-  min-width: 180px;
-  max-width: 220px;
+  width: 180px;
   background: #ffffff;
   border: 1px solid #dfe3ea;
   border-radius: 10px;
@@ -170,8 +169,7 @@ const formatPopulation = (value?: number) => {
 }
 
 .landmark-node.is-large {
-  min-width: 240px;
-  max-width: 280px;
+  width: 240px;
   padding: 14px 16px;
 }
 
@@ -299,10 +297,11 @@ const formatPopulation = (value?: number) => {
 }
 
 .landmark-handle {
-  width: 10px;
-  height: 10px;
-  background: #2563eb;
-  border: 2px solid #ffffff;
+  width: 8px;
+  height: 8px;
+  background: #60a5fa;
+  border: 1px solid #ffffff;
+  opacity: 0.7;
 }
 
 .landmark-region-tail {

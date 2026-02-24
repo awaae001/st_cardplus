@@ -88,8 +88,9 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted, toRefs } from 'vue';
-import { ElInput, ElButton, ElMessageBox } from 'element-plus';
+import { ElInput, ElButton } from 'element-plus';
 import { Icon } from '@iconify/vue';
+import { useBatchCustomFieldPrompt } from '@/composables/characterInfo/useBatchCustomFieldPrompt';
 import CharacterNotes from '../CharacterNotes.vue';
 
 const props = defineProps({
@@ -102,8 +103,8 @@ const props = defineProps({
 defineEmits(['update:form-likes', 'update:form-dislikes', 'update:notes']);
 
 const { form } = toRefs(props);
+const { addFieldsByPrompt } = useBatchCustomFieldPrompt();
 
-// Daily Routine
 interface RoutineField {
   key: string;
   label: string;
@@ -137,56 +138,20 @@ const updateRoutineFormField = (key: string, value: string) => {
 };
 
 const addCustomRoutineField = async () => {
-  try {
-    const result = await ElMessageBox.prompt(
-      '<b>请输入自定义作息，每行一个</b><br>格式为 "时间段:作息内容"<br>例如:<br>午休:在办公室沙发上睡一小时',
-      '添加自定义作息',
-      {
-        confirmButtonText: '确认',
-        cancelButtonText: '取消',
-        inputType: 'textarea',
-        inputPlaceholder: '时间段:作息内容',
-        inputValidator: (value) => {
-          if (!value) return true;
-          const lines = value.split('\n').filter((line: string) => line.trim());
-          for (const line of lines) {
-            if (!line.includes(':')) {
-              return `格式错误: "${line}" 每行必须包含冒号(:)分隔时间段和内容`;
-            }
-          }
-          return true;
-        },
-        dangerouslyUseHTMLString: true,
-      }
-    );
-    const { value: inputText } = result as { value: string };
-    if (inputText) {
-      const lines = inputText.split('\n').filter((line: string) => line.trim());
-      let addedCount = 0;
-      for (const line of lines) {
-        const [fieldName, ...fieldValueParts] = line.split(':');
-        const trimmedName = fieldName.trim();
-        const fieldValue = fieldValueParts.join(':').trim();
-        if (!trimmedName) continue;
-        const keyExists = Object.keys(form.value.dailyRoutine).includes(trimmedName);
-        const labelExists = Object.values(standardRoutineFieldsMap).includes(trimmedName);
-        if (keyExists || labelExists) {
-          ElMessageBox.alert(`字段 "${trimmedName}" 已存在或为预设字段，请使用其他名称 `, '提示', {
-            confirmButtonText: '确定',
-          });
-          continue;
-        }
-        form.value.dailyRoutine[trimmedName] = fieldValue;
-        addedCount++;
-      }
-      if (addedCount > 0) {
-        syncRoutineFields();
-        ElMessageBox.alert(`成功添加 ${addedCount} 个自定义作息`, '成功', { confirmButtonText: '确定' });
-      }
-    }
-  } catch (error) {
-    // User cancelled
-  }
+  await addFieldsByPrompt({
+    promptMessage: '请输入自定义作息，每行一个。格式: 时间段:作息内容（示例: 午休:在办公室沙发上睡一小时）',
+    promptTitle: '添加自定义作息',
+    inputPlaceholder: '时间段:作息内容',
+    lineFormat: '时间段:作息内容',
+    successItemName: '自定义作息',
+    errorMessage: '添加自定义作息失败，请稍后重试',
+    getFields: () => form.value.dailyRoutine,
+    setFields: (fields) => {
+      form.value.dailyRoutine = fields;
+    },
+    reservedLabels: Object.values(standardRoutineFieldsMap),
+    onAdded: syncRoutineFields,
+  });
 };
 
 const removeRoutineField = (index: number) => {
@@ -211,7 +176,6 @@ watch(
 </script>
 
 <style scoped>
-/* Styles from CharacterCardEditor.vue can be copied here if needed */
 .form-section {
   margin-bottom: 24px;
   padding: 16px;

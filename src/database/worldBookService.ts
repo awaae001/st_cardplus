@@ -5,6 +5,7 @@ import { convertCharacterBookToWorldBook } from '../utils/worldBookConverter';
 import { estimateEncodedSize } from './utils';
 import { v4 as uuidv4 } from 'uuid';
 import { getSessionStorageItem, setSessionStorageItem, removeSessionStorageItem } from '@/utils/localStorageUtils';
+import { nowIso } from '@/utils/datetime';
 
 export interface WorldBookExport {
   books: StoredWorldBook[];
@@ -270,7 +271,7 @@ export const worldBookService = {
     characterBook: CharacterBook,
     characterName: string
   ): Promise<void> {
-    const now = new Date().toISOString();
+    const now = nowIso();
 
     // 使用转换工具将 CharacterBook 转换为 WorldBook
     const worldBook = convertCharacterBookToWorldBook(characterBook, bookId);
@@ -324,7 +325,7 @@ export const worldBookService = {
       ...existingBook,
       sourceCharacterId: undefined,
       sourceCharacterName: undefined,
-      updatedAt: new Date().toISOString(),
+      updatedAt: nowIso(),
     };
 
     await db.books.put(updatedBook);
@@ -343,7 +344,7 @@ export const worldBookService = {
     characterName: string
   ): Promise<string> {
     const newBookId = uuidv4();
-    const now = new Date().toISOString();
+    const now = nowIso();
 
     // 使用转换工具将 CharacterBook 转换为 WorldBook
     const worldBook = convertCharacterBookToWorldBook(characterBook, newBookId);

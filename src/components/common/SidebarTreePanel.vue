@@ -6,6 +6,12 @@
         <slot name="header-actions" />
       </div>
     </div>
+    <div
+      v-if="$slots['header-extra']"
+      class="sidebar-panel-header-extra"
+    >
+      <slot name="header-extra" />
+    </div>
 
     <el-scrollbar class="sidebar-panel-scrollbar">
       <el-tree
@@ -19,6 +25,7 @@
         :highlight-current="highlightCurrent"
         :expand-on-click-node="expandOnClickNode"
         :draggable="draggable"
+        :filter-node-method="filterNodeMethod"
         :allow-drag="allowDrag"
         :allow-drop="allowDrop"
         class="sidebar-tree"
@@ -49,6 +56,9 @@
 <script setup lang="ts">
 import { ElScrollbar, ElTree } from 'element-plus';
 import { nextTick, ref, watch } from 'vue';
+import type { AllowDropType, NodeDropType } from 'element-plus/es/components/tree/src/tree.type';
+
+type ActualNodeDropType = Exclude<NodeDropType, 'none'>;
 
 interface Props {
   title: string;
@@ -60,8 +70,10 @@ interface Props {
   expandOnClickNode?: boolean;
   draggable?: boolean;
   allowDrag?: (draggingNode: any) => boolean;
-  allowDrop?: (draggingNode: any, dropNode: any, type: any) => boolean;
-  handleNodeDrop?: (draggingNode: any, dropNode: any, type: any) => boolean;
+  allowDrop?: (draggingNode: any, dropNode: any, type: AllowDropType) => boolean;
+  handleNodeDrop?: (draggingNode: any, dropNode: any, type: ActualNodeDropType) => boolean;
+  filterNodeMethod?: (value: string, data: any, node: any) => boolean;
+  filterValue?: string;
   autoExpandFirst?: boolean;
   defaultExpandedKeys?: Array<string | number>;
 }
@@ -72,12 +84,13 @@ const props = withDefaults(defineProps<Props>(), {
   highlightCurrent: true,
   expandOnClickNode: false,
   draggable: false,
+  filterValue: '',
   autoExpandFirst: false,
   defaultExpandedKeys: () => [],
 });
 
 const emit = defineEmits<{
-  (e: 'node-click', data: any): void;
+  (e: 'node-click', data: any, context?: { node: any; component: any; event: MouseEvent | undefined }): void;
 }>();
 
 const treeRef = ref<InstanceType<typeof ElTree> | null>(null);
@@ -105,7 +118,14 @@ watch(
   { immediate: true }
 );
 
-const handleNodeDrop = async (draggingNode: any, dropNode: any, dropType: any) => {
+watch(
+  () => props.filterValue,
+  (value) => {
+    treeRef.value?.filter(value || '');
+  }
+);
+
+const handleNodeDrop = async (draggingNode: any, dropNode: any, dropType: ActualNodeDropType) => {
   if (!props.handleNodeDrop) return;
 
   if (treeRef.value) {
@@ -124,8 +144,8 @@ const handleNodeDrop = async (draggingNode: any, dropNode: any, dropType: any) =
   }
 };
 
-const handleNodeClick = (data: any) => {
-  emit('node-click', data);
+const handleNodeClick = (data: any, node: any, component: any, event: MouseEvent) => {
+  emit('node-click', data, { node, component, event });
 };
 
 const handleNodeExpand = (data: any) => {
@@ -174,6 +194,11 @@ const handleNodeCollapse = (data: any) => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+.sidebar-panel-header-extra {
+  border-bottom: 1px solid var(--el-border-color-light);
+  flex-shrink: 0;
 }
 
 .sidebar-header-button {

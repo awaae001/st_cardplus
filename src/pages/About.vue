@@ -15,7 +15,7 @@
       <p class="hero-version">
         <code v-if="appCommitCount === '1'">在线版_{{ appVersion }}</code>
         <code v-else>dev_{{ appVersion }} ({{ appCommitCount }})</code>
-        <code class="version-tag">v0.1.13</code>
+        <code class="version-tag">v0.1.14</code>
       </p>
     </div>
 
@@ -168,7 +168,7 @@
                   >
                     {{ log.sha.substring(0, 7) }}
                   </a>
-                  <span class="commit-date">{{ new Date(log.date).toLocaleDateString() }}</span>
+                  <span class="commit-date">{{ formatDate(log.date) }}</span>
                 </div>
               </div>
               <transition name="expand">
@@ -205,6 +205,7 @@
 
 <script setup lang="ts">
 import SystemBanner from '@/components/SystemBanner.vue';
+import { formatDate } from '@/utils/datetime';
 import { Icon } from '@iconify/vue';
 import { ElMessage, ElOption, ElSelect, ElSkeleton, ElSkeletonItem } from 'element-plus';
 import { computed, onMounted, ref, watch } from 'vue';

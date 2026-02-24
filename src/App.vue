@@ -1,6 +1,5 @@
 <template>
   <div class="app-layout">
-    <!-- 桌面端 -->
     <template v-if="!isMobile">
       <AppSidebar />
 
@@ -31,7 +30,6 @@
       </main>
     </template>
 
-    <!-- 移动端 -->
     <template v-else>
       <MobileDrawer v-model="drawerVisible" />
 
@@ -71,51 +69,34 @@ import AppSidebar from '@/components/layout/AppSidebar.vue';
 import MobileDrawer from '@/components/layout/MobileDrawer.vue';
 import MobileTabBar from '@/components/layout/MobileTabBar.vue';
 import SystemBanner from '@/components/SystemBanner.vue';
-
 import { provideNavigation } from '@/composables/useNavigation';
 import { provideOverflowControl } from '@/composables/useOverflowControl';
 import { usePersonalization } from '@/composables/usePersonalization';
 
 import { getSetting } from '@/utils/localStorageUtils';
 
-// 溢出控制
 const { isOverflowHidden, setOverflowHidden } = provideOverflowControl();
-
-// 路由
 const route = useRoute();
-
-// 个性化设置
-const { allowBodyScroll, sidebarConfig, refreshSidebarConfig } = usePersonalization();
-
-// Beta 功能开关
+const { sidebarConfig, refreshSidebarConfig } = usePersonalization();
 const betaFeaturesEnabled = ref(false);
+const drawerVisible = ref(false);
 
-// 动态生成菜单项
+
 const mainMenuItems = computed(() => {
   return sidebarConfig.value.items
     .filter((item) => {
-      // 必须是可见的
       if (!item.visible) return false;
-      // 如果是 beta 功能，需要检查开关状态
       if (item.beta && !betaFeaturesEnabled.value) return false;
       return true;
     })
     .sort((a, b) => a.order - b.order);
 });
-
 const { isMobile } = provideNavigation(mainMenuItems);
 
-const drawerVisible = ref(false);
-
-// 监听路由变化，控制溢出
 watch(
   [() => route.path, isMobile],
   ([newPath, mobile]) => {
     if (mobile) {
-      setOverflowHidden(false);
-      return;
-    }
-    if (allowBodyScroll.value) {
       setOverflowHidden(false);
       return;
     }
@@ -129,7 +110,6 @@ watch(
   { immediate: true }
 );
 
-// 事件处理
 const handleBetaFeaturesToggle = (event: CustomEvent) => {
   betaFeaturesEnabled.value = event.detail;
 };

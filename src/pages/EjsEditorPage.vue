@@ -271,6 +271,7 @@
 <script setup lang="ts">
 import { useEjsEditorStore } from '@/composables/ejs/ejsEditor';
 import { useDevice } from '@/composables/useDevice';
+import { nowIso } from '@/utils/datetime';
 import { CopyDocument, DocumentAdd, Download, Hide, RefreshLeft, RefreshRight, View } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { saveAs } from 'file-saver';
@@ -349,7 +350,7 @@ function handleExportConfig() {
   const blob = new Blob([JSON.stringify(config, null, 2)], {
     type: 'application/json',
   });
-  const fileName = `ejs-template-${new Date().toISOString().slice(0, 10)}.json`;
+  const fileName = `ejs-template-${nowIso().slice(0, 10)}.json`;
   saveAs(blob, fileName);
   ElMessage.success('配置导出成功');
 }
@@ -423,7 +424,7 @@ watch(
         const saveData = {
           projects: store.projects,
           currentProjectId: store.currentProjectId,
-          timestamp: new Date().toISOString(),
+          timestamp: nowIso(),
         };
         localStorage.setItem('ejs-editor-projects', JSON.stringify(saveData));
       } catch (error) {

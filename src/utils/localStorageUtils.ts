@@ -19,7 +19,6 @@ interface AppSettings {
   autoSaveDebounce: number;
   useOldWorldEditor: boolean;
   autoExpandSidebar: boolean;
-  allowBodyScroll: boolean;
   sidebarConfig: SidebarConfig;
 }
 
@@ -237,7 +236,6 @@ const defaultSettings: AppSettings = {
   autoSaveDebounce: 1.5,
   useOldWorldEditor: false,
   autoExpandSidebar: true,
-  allowBodyScroll: false,
   sidebarConfig: createDefaultSidebarConfig(),
 };
 

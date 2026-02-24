@@ -2,6 +2,7 @@ import { ref, readonly, onMounted } from 'vue';
 import type { HistoryEntry } from '@/types/world-editor';
 import { v4 as uuidv4 } from 'uuid';
 import { readSessionStorageJSON, writeSessionStorageJSON, removeSessionStorageItem } from '@/utils/localStorageUtils';
+import { nowIso } from '@/utils/datetime';
 
 export function useHistory(storageKey: string, maxHistorySize = 100) {
   const history = ref<HistoryEntry[]>([]);
@@ -41,7 +42,6 @@ export function useHistory(storageKey: string, maxHistorySize = 100) {
   };
 
   const add = (entry: Omit<HistoryEntry, 'id' | 'timestamp'>) => {
-    // If we are in the middle of history, truncate the future
     if (currentIndex.value < history.value.length - 1) {
       history.value.splice(currentIndex.value + 1);
     }
@@ -49,7 +49,7 @@ export function useHistory(storageKey: string, maxHistorySize = 100) {
     const newEntry: HistoryEntry = {
       ...entry,
       id: uuidv4(),
-      timestamp: new Date().toISOString(),
+      timestamp: nowIso(),
     };
 
     history.value.push(newEntry);

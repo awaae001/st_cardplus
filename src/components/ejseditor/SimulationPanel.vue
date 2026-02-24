@@ -1,7 +1,6 @@
 <template>
   <div class="simulation-panel">
     <div class="panel-content">
-      <!-- 模拟头部 -->
       <div
         class="simulation-header"
         :class="{ 'mobile-header': isMobile }"
@@ -15,7 +14,6 @@
         </el-tooltip>
       </div>
 
-      <!-- 模拟控制 -->
       <div class="simulation-controls">
         <div
           v-if="store.flatVariables.length === 0"
@@ -31,7 +29,6 @@
         </div>
 
         <div v-else>
-          <!-- 添加变量区域 -->
           <div class="add-variable-section">
             <el-select
               v-model="variableToAdd"
@@ -59,7 +56,6 @@
             </el-button>
           </div>
 
-          <!-- 已添加的变量列表 -->
           <div class="simulated-variables-list">
             <div
               v-if="Object.keys(store.simulationValues).length === 0"
@@ -118,8 +114,6 @@
         </el-button>
       </div>
 
-      <!-- 匹配的阶段显示 -->
-      <!-- 测试结果 -->
       <div class="test-result">
         <h5>输出结果</h5>
         <div class="result-container">
@@ -151,7 +145,6 @@
         </div>
       </div>
 
-      <!-- 阶段对比表 -->
       <div
         v-if="allStages.length > 0"
         class="stage-comparison"
@@ -187,7 +180,6 @@
         </div>
       </div>
     </div>
-    <!-- 测试建议 -->
   </div>
 </template>
 
@@ -202,7 +194,6 @@ const store = useEjsEditorStore();
 const { isMobile } = useDevice();
 const variableToAdd = ref<string | null>(null);
 
-// 可供选择的变量（未被添加到模拟中的）
 const allStages = computed(() => store.logicBlocks.flatMap((block) => block.stages));
 
 const availableVariables = computed(() => {
@@ -213,7 +204,6 @@ const availableVariables = computed(() => {
   });
 });
 
-// 已添加到模拟中的变量
 const simulatedVariables = computed(() => {
   const simulatedPaths = Object.keys(store.simulationValues);
   return store.flatVariables.filter((v) => {

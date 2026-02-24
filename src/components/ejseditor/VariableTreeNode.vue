@@ -45,7 +45,6 @@
       </div>
     </div>
 
-    <!-- 递归渲染子节点 -->
     <div
       v-if="node.children && isExpanded"
       class="child-nodes"

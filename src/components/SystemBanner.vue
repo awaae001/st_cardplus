@@ -26,6 +26,7 @@
 </template>
 
 <script setup lang="ts">
+import { now, toDateSafe } from '@/utils/datetime';
 import { onMounted, ref } from 'vue';
 
 const props = withDefaults(
@@ -50,23 +51,24 @@ const bannerMessage = ref(props.message);
 const bannerLink = ref(props.link);
 const bannerLinkText = ref(props.linkText);
 
-const BANNER_START_DATE = new Date(props.startDate);
-const BANNER_END_DATE = new Date(props.endDate);
+const bannerStartDate = toDateSafe(props.startDate);
+const bannerEndDate = toDateSafe(props.endDate);
 
 const DISMISSED_KEY = 'systemBannerDismissed';
 
 onMounted(() => {
-  const now = new Date();
+  const currentTime = now();
+  if (!bannerStartDate || !bannerEndDate) return;
 
-  if (now >= BANNER_START_DATE && now < BANNER_END_DATE) {
+  if (currentTime >= bannerStartDate && currentTime < bannerEndDate) {
     if (props.dismissible) {
       const dismissedBannersRaw = localStorage.getItem(DISMISSED_KEY);
       const dismissedBanners = dismissedBannersRaw ? JSON.parse(dismissedBannersRaw) : {};
       const dismissedTimestamp = dismissedBanners[props.bannerId];
 
       if (dismissedTimestamp) {
-        const dismissedTime = new Date(parseInt(dismissedTimestamp, 10));
-        if (dismissedTime < BANNER_START_DATE) {
+        const dismissedTime = toDateSafe(Number(dismissedTimestamp));
+        if (!dismissedTime || dismissedTime < bannerStartDate) {
           showBanner.value = true;
         }
       } else {
@@ -82,7 +84,7 @@ const dismissBanner = () => {
   showBanner.value = false;
   const dismissedBannersRaw = localStorage.getItem(DISMISSED_KEY);
   const dismissedBanners = dismissedBannersRaw ? JSON.parse(dismissedBannersRaw) : {};
-  dismissedBanners[props.bannerId] = Date.now();
+  dismissedBanners[props.bannerId] = now().getTime();
   localStorage.setItem(DISMISSED_KEY, JSON.stringify(dismissedBanners));
 };
 </script>
@@ -133,7 +135,6 @@ const dismissBanner = () => {
   background-color: #e9ecef;
 }
 
-/* 移动端优化 - 垂直堆叠 */
 @media (max-width: 640px) {
   .system-banner {
     flex-direction: column;
@@ -153,7 +154,6 @@ const dismissBanner = () => {
   }
 }
 
-/* 暗色模式 */
 :global(.dark) .system-banner {
   background-color: #1a365d;
   color: #e2e8f0;

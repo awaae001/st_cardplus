@@ -1,5 +1,6 @@
 import { ref, computed, type Ref } from 'vue';
 import type { Project, LogicBlock, StageScheme } from '@/types/ejs-editor';
+import { nowIso } from '@/utils/datetime';
 
 export function useEjsScheme(
   currentProject: Ref<Project | undefined>,
@@ -22,7 +23,7 @@ export function useEjsScheme(
       id: `scheme_${Date.now()}`,
       name,
       logicBlocks: JSON.parse(JSON.stringify(logicBlocks.value)),
-      createdAt: new Date().toISOString(),
+      createdAt: nowIso(),
       description,
     };
 
@@ -31,7 +32,7 @@ export function useEjsScheme(
     }
 
     currentProject.value.stageSchemes.push(newScheme);
-    currentProject.value.updatedAt = new Date().toISOString();
+    currentProject.value.updatedAt = nowIso();
 
     return newScheme.id;
   }
@@ -81,7 +82,7 @@ export function useEjsScheme(
     const scheme = project.stageSchemes.find((s) => s.id === schemeId);
     if (scheme) {
       scheme.name = newName;
-      project.updatedAt = new Date().toISOString();
+      project.updatedAt = nowIso();
     }
   }
 
@@ -92,7 +93,7 @@ export function useEjsScheme(
     const index = project.stageSchemes.findIndex((s) => s.id === schemeId);
     if (index > -1) {
       project.stageSchemes.splice(index, 1);
-      project.updatedAt = new Date().toISOString();
+      project.updatedAt = nowIso();
 
       if (currentSchemeId.value === schemeId) {
         if (project.stageSchemes.length > 0) {
@@ -120,12 +121,12 @@ export function useEjsScheme(
       id: `scheme_${Date.now()}`,
       name: copyName,
       logicBlocks: JSON.parse(JSON.stringify(sourceScheme.logicBlocks)),
-      createdAt: new Date().toISOString(),
+      createdAt: nowIso(),
       description: sourceScheme.description,
     };
 
     project.stageSchemes.push(newScheme);
-    project.updatedAt = new Date().toISOString();
+    project.updatedAt = nowIso();
 
     return newScheme.id;
   }

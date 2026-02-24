@@ -7,7 +7,33 @@ on:
     branches: [ main ]
 
 jobs:
+  type-check:
+    if: github.repository == 'awaae001/st_cardplus'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v3
+      with:
+        version: 10
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'pnpm'
+        cache-dependency-path: pnpm-lock.yaml
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Run type check
+      run: pnpm type-check
+
   build-web:
+    needs: type-check
     # 仅在主仓库运行，避免 fork 仓库触发不必要的 CI
     if: github.repository == 'awaae001/st_cardplus' && (github.event_name != 'pull_request' || github.head_ref != 'dev')
     runs-on: ubuntu-latest
@@ -19,17 +45,17 @@ jobs:
     - name: Setup pnpm
       uses: pnpm/action-setup@v3
       with:
-        version: 8
+        version: 10
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'pnpm'
         cache-dependency-path: pnpm-lock.yaml
 
     - name: Install dependencies
-      run: pnpm install
+      run: pnpm install --frozen-lockfile
 
     - name: Build web version
       run: pnpm build
@@ -41,6 +67,7 @@ jobs:
         path: dist/
 
   build-windows:
+    needs: type-check
     # 仅在主仓库的 main 分支运行
     if: github.repository == 'awaae001/st_cardplus' && github.ref == 'refs/heads/main'
     runs-on: windows-latest
@@ -52,20 +79,17 @@ jobs:
     - name: Setup pnpm
       uses: pnpm/action-setup@v3
       with:
-        version: 8
+        version: 10
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'pnpm'
         cache-dependency-path: pnpm-lock.yaml
 
     - name: Install dependencies
-      run: pnpm install
-
-    - name: Install Electron dependencies
-      run: pnpm install --production=false
+      run: pnpm install --frozen-lockfile
 
     - name: Build Windows app
       run: pnpm build:electron

@@ -14,6 +14,7 @@ import { SYNC_EXCLUDED_KEYS } from '@/config/dataSyncConfig';
 import type { GistConfig, BackupData } from '@/types/gist';
 import { exportAllDatabases, importAllDatabases } from '@/database/utils';
 import { getSessionStorageItem, removeSessionStorageItem, readSessionStorageJSON } from '@/utils/localStorageUtils';
+import { now, nowIso, formatDateTime, formatRelative } from '@/utils/datetime';
 
 interface WebDAVConfig {
   url: string;
@@ -143,7 +144,7 @@ export function useSync() {
     const dbData = await exportAllDatabases();
     setProgress('本地数据准备完成');
     return {
-      timestamp: new Date().toISOString(),
+      timestamp: nowIso(),
       version: '1.0.0',
       localStorage: localStorageData,
       databases: dbData as any,
@@ -209,7 +210,7 @@ export function useSync() {
 
       await ElMessageBox.confirm(
         `这将用服务器上的备份覆盖所有现有本地数据<br/>
-        <strong>备份时间:</strong> ${new Date(backupData.timestamp).toLocaleString('zh-CN')}<br/>
+        <strong>备份时间:</strong> ${formatDateTime(backupData.timestamp)}<br/>
         此操作可能会丢失你没有保存的更改 您确定要继续吗？${snapshotWarning}`,
         '警告',
         {
@@ -366,18 +367,7 @@ export function useSync() {
 
   // --- Gist ---
   const formatSyncTime = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
-
-    if (minutes < 1) return '刚刚';
-    if (minutes < 60) return `${minutes} 分钟前`;
-    if (hours < 24) return `${hours} 小时前`;
-    if (days < 7) return `${days} 天前`;
-    return date.toLocaleString('zh-CN');
+    return formatRelative(timestamp, now(), 'zh-CN') || formatDateTime(timestamp, 'zh-CN') || '未知时间';
   };
 
   const openGistTokenHelp = () => {
@@ -432,7 +422,7 @@ export function useSync() {
                   <div>
                     <strong>ID:</strong> ${g.id}<br/>
                     <strong>描述:</strong> ${g.description || '无描述'}<br/>
-                    <strong>更新:</strong> ${new Date(g.updated_at).toLocaleString('zh-CN')}
+                    <strong>更新:</strong> ${formatDateTime(g.updated_at)}
                   </div>
                 </label>
               </div>`
@@ -509,7 +499,7 @@ export function useSync() {
       }
 
       if (result.success) {
-        gistConfig.value.lastSyncTime = new Date().toISOString();
+        gistConfig.value.lastSyncTime = nowIso();
         ElMessage.success(`${result.message} (大小: ${backupSizeMB}MB)`);
         finishProgress('完成');
       } else {
@@ -534,7 +524,7 @@ export function useSync() {
       snapshotSessionKey,
       snapshotAvailable,
       () => {
-        gistConfig.value.lastSyncTime = new Date().toISOString();
+        gistConfig.value.lastSyncTime = nowIso();
         saveGistConfig(gistConfig.value);
       }
     );

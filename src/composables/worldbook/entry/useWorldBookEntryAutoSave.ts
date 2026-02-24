@@ -1,6 +1,7 @@
 import { ref, onMounted, onBeforeUnmount, watch, type Ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import { initAutoSave, clearAutoSave, getSetting } from '../../../utils/localStorageUtils';
+import { now } from '../../../utils/datetime';
 import type { WorldBookEntry } from '../../../types/types';
 
 type EntryCallbacks = {
@@ -93,7 +94,7 @@ export function useWorldBookEntryAutoSave(state: EntryState, callbacks: EntryCal
       lastSavedData.value = JSON.stringify(entryToSave);
       hasUnsavedChanges.value = false;
       saveStatus.value = 'saved';
-      lastSaveTime.value = new Date();
+      lastSaveTime.value = now();
 
       setTimeout(() => {
         if (saveStatus.value === 'saved') {

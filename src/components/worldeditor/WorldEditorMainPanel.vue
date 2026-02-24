@@ -59,7 +59,17 @@
       v-else
       class="editor-placeholder"
     >
-      <p>请从左侧列表选择一个项目进行编辑</p>
+      <p>
+        请选择一个条目/功能以使用，或者
+        <button
+          type="button"
+          class="create-project-link"
+          @click="handleCreateProject"
+        >
+          新建
+        </button>
+        一个项目
+      </p>
     </div>
   </div>
 </template>
@@ -95,7 +105,12 @@ const props = defineProps<Props>();
 
 const emit = defineEmits<{
   (e: 'update:selectedItem', item: Project | EnhancedLandmark | EnhancedForce | EnhancedRegion): void;
+  (e: 'create-project'): void;
 }>();
+
+const handleCreateProject = () => {
+  emit('create-project');
+};
 
 const updateSelectedItem = (importedData: any) => {
   if (!props.selectedItem) return;
@@ -310,6 +325,20 @@ const getCurrentProject = (integration: ProjectIntegration): Project | null => {
   text-align: center;
   padding: 20px;
   box-sizing: border-box;
+}
+
+.create-project-link {
+  border: none;
+  background: transparent;
+  padding: 0 2px;
+  color: var(--el-color-primary);
+  cursor: pointer;
+  font-size: inherit;
+  text-decoration: underline;
+}
+
+.create-project-link:hover {
+  color: var(--el-color-primary-light-3);
 }
 
 /* 移动端适配 */

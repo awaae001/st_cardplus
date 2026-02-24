@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { processImportedWorldBookData } from './entry/useWorldBookEntryData';
 import { worldBookService } from '../../database/worldBookService';
 import type { StoredWorldBook } from '../../database/db';
+import { nowIso, formatDateTime } from '@/utils/datetime';
 
 export function useWorldBookCollection() {
   const worldBookCollection = ref<WorldBookCollection>({
@@ -28,7 +29,7 @@ export function useWorldBookCollection() {
       if (Object.keys(collection.books).length === 0) {
         // 数据库为空，创建一本默认世界书
         const newBookId = uuidv4();
-        const now = new Date().toISOString();
+        const now = nowIso();
         const defaultBook: StoredWorldBook = {
           id: newBookId,
           name: '我的第一个世界书',
@@ -71,7 +72,7 @@ export function useWorldBookCollection() {
       const { value: bookName } = createBookResult as { value: string };
 
       const newBookId = uuidv4();
-      const now = new Date().toISOString();
+      const now = nowIso();
       const existingOrders = Object.values(worldBookCollection.value.books).map((b) => b.order);
       const maxOrder = existingOrders.length > 0 ? Math.max(...existingOrders) : -1;
 
@@ -80,7 +81,7 @@ export function useWorldBookCollection() {
         name: bookName,
         createdAt: now,
         updatedAt: now,
-        description: `创建于 ${new Date().toLocaleString()}`,
+        description: `创建于 ${formatDateTime(nowIso())}`,
         order: maxOrder + 1,
       };
 
@@ -120,7 +121,7 @@ export function useWorldBookCollection() {
         description: book.description,
         metadata: book.metadata,
         order: book.order,
-        updatedAt: new Date().toISOString(),
+        updatedAt: nowIso(),
       };
 
       await worldBookService.updateBook(bookToUpdate);
@@ -188,7 +189,7 @@ export function useWorldBookCollection() {
         }
 
         const newBookId = uuidv4();
-        const now = new Date().toISOString();
+        const now = nowIso();
         const fileName = file.name.replace(/\.json$/i, '').replace(/\.world$/i, '');
         const existingOrders = Object.values(worldBookCollection.value.books).map((b) => b.order);
         const maxOrder = existingOrders.length > 0 ? Math.max(...existingOrders) : -1;
@@ -280,7 +281,7 @@ export function useWorldBookCollection() {
         const m = mapTo.get(e.uid);
         return m ? { ...e, id: m.id } : e;
       });
-      const now = new Date().toISOString();
+      const now = nowIso();
       fromBook.updatedAt = now;
       toBook.updatedAt = now;
 
@@ -320,7 +321,7 @@ export function useWorldBookCollection() {
   const updateBookEntries = async (bookId: string, entries: WorldBookEntry[]) => {
     const book = worldBookCollection.value.books[bookId];
     if (book) {
-      const now = new Date().toISOString();
+      const now = nowIso();
       await worldBookService.replaceEntriesForBook(bookId, entries);
       // 读取数据库中保存后的条目，按 uid 回填 id，保持传入顺序
       const savedEntries = await worldBookService.getEntriesForBook(bookId);
@@ -352,7 +353,7 @@ export function useWorldBookCollection() {
   };
 
   const updateBookOrder = async (bookIdsInOrder: string[]) => {
-    const now = new Date().toISOString();
+    const now = nowIso();
     const booksToUpdate: Pick<StoredWorldBook, 'id' | 'order' | 'updatedAt'>[] = [];
 
     bookIdsInOrder.forEach((bookId, index) => {
@@ -408,7 +409,7 @@ export function useWorldBookCollection() {
       // 更新本地状态
       activeBook.value.entries.unshift(newEntry);
 
-      const now = new Date().toISOString();
+      const now = nowIso();
       activeBook.value.updatedAt = now;
 
       // 使用明确的字段构造来避免 Vue 响应式代理问题
@@ -457,7 +458,7 @@ export function useWorldBookCollection() {
         console.warn('警告：在本地状态中未找到要删除的条目，ID:', entryId);
       }
 
-      const now = new Date().toISOString();
+      const now = nowIso();
       activeBook.value.updatedAt = now;
 
       // 使用 JSON.parse(JSON.stringify()) 移除 Vue 响应式代理

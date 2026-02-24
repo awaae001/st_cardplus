@@ -172,7 +172,8 @@
 
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
-import { ElButton, ElCard, ElInput, ElMessageBox } from 'element-plus';
+import { ElButton, ElCard, ElInput } from 'element-plus';
+import { useBatchCustomFieldPrompt } from '@/composables/characterInfo/useBatchCustomFieldPrompt';
 import { onMounted, ref, toRefs, watch } from 'vue';
 import draggable from 'vuedraggable';
 
@@ -190,8 +191,8 @@ const props = defineProps({
 defineEmits(['addAttire', 'removeAttire', 'exportAttires', 'update:attires']);
 
 const { form } = toRefs(props);
+const { addFieldsByPrompt } = useBatchCustomFieldPrompt();
 
-// Appearance Features
 interface AppearanceField {
   key: string;
   label: string;
@@ -237,56 +238,20 @@ const updateFormField = (key: string, value: string) => {
 };
 
 const addCustomField = async () => {
-  try {
-    const result = await ElMessageBox.prompt(
-      '<b>请输入自定义字段，每行一个字段</b><br>格式为"字段名:字段描述"<br>例如:<br>纹身:淡青色纹身，一条小龙<br>右腿:断掉的右腿，只有裤腿在晃荡',
-      '添加自定义字段',
-      {
-        confirmButtonText: '确认',
-        cancelButtonText: '取消',
-        inputType: 'textarea',
-        inputPlaceholder: '字段名:字段描述',
-        inputValidator: (value) => {
-          if (!value) return true;
-          const lines = value.split('\n').filter((line: string) => line.trim());
-          for (const line of lines) {
-            if (!line.includes(':')) {
-              return `格式错误: "${line}"每行必须包含冒号(:)分隔字段名和描述`;
-            }
-          }
-          return true;
-        },
-        dangerouslyUseHTMLString: true,
-      }
-    );
-    const { value: inputText } = result as { value: string };
-    if (inputText) {
-      const lines = inputText.split('\n').filter((line: string) => line.trim());
-      let addedCount = 0;
-      for (const line of lines) {
-        const [fieldName, ...fieldValueParts] = line.split(':');
-        const trimmedName = fieldName.trim();
-        const fieldValue = fieldValueParts.join(':').trim();
-        if (!trimmedName) continue;
-        const keyExists = Object.keys(form.value.appearance).includes(trimmedName);
-        const labelExists = Object.values(standardFieldsMap).includes(trimmedName);
-        if (keyExists || labelExists) {
-          ElMessageBox.alert(`字段 "${trimmedName}" 已存在或为预设字段，请使用其他名称 `, '提示', {
-            confirmButtonText: '确定',
-          });
-          continue;
-        }
-        form.value.appearance[trimmedName] = fieldValue;
-        addedCount++;
-      }
-      if (addedCount > 0) {
-        syncFields();
-        ElMessageBox.alert(`成功添加 ${addedCount} 个自定义字段`, '成功', { confirmButtonText: '确定' });
-      }
-    }
-  } catch (error) {
-    // User cancelled
-  }
+  await addFieldsByPrompt({
+    promptMessage: '请输入自定义字段，每行一个。格式: 字段名:字段描述（示例: 纹身:淡青色纹身，一条小龙）',
+    promptTitle: '添加自定义字段',
+    inputPlaceholder: '字段名:字段描述',
+    lineFormat: '字段名:字段描述',
+    successItemName: '自定义字段',
+    errorMessage: '添加自定义字段失败，请稍后重试',
+    getFields: () => form.value.appearance,
+    setFields: (fields) => {
+      form.value.appearance = fields;
+    },
+    reservedLabels: Object.values(standardFieldsMap),
+    onAdded: syncFields,
+  });
 };
 
 const removeField = (index: number) => {
@@ -311,7 +276,6 @@ watch(
 </script>
 
 <style scoped>
-/* 主容器样式 - 采用 worldbook 设计语言 */
 .character-card-editor-scrollbar {
   height: 100vh;
 }
@@ -323,7 +287,6 @@ watch(
   padding: 16px;
 }
 
-/* 表单区块样式 - 统一 worldbook 风格 */
 .character-card-editor-form .form-section {
   margin-bottom: 24px;
   padding: 16px;
@@ -357,7 +320,6 @@ watch(
   display: block;
 }
 
-/* 响应式布局 - 统一 worldbook 网格系统 */
 .form-row-responsive {
   display: flex;
   flex-direction: column;
@@ -388,7 +350,6 @@ watch(
   line-height: 1.4;
 }
 
-/* 信息提示框样式优化 */
 .whatYouwant {
   display: flex;
   align-items: center;
@@ -399,7 +360,6 @@ watch(
   border: 1px solid var(--el-color-primary-light-7);
 }
 
-/* 自定义字段容器 */
 #appearance-form,
 #routine-form {
   display: grid;
@@ -431,7 +391,6 @@ watch(
   justify-content: center;
 }
 
-/* 标题按钮组合样式 */
 .title-Btn-add {
   display: flex;
   align-items: center;
@@ -440,7 +399,6 @@ watch(
   gap: 8px;
 }
 
-/* 卡片网格布局 */
 .form-grid-4-col {
   display: grid;
   grid-template-columns: 1fr;
@@ -453,14 +411,12 @@ watch(
   }
 }
 
-/* 拖拽卡片样式优化 */
 .draggable-card {
   position: relative;
   transition: all 0.2s;
   border: 1px solid var(--el-border-color-lighter);
 }
 
-/* 卡片内部输入框间距 */
 .draggable-card :deep(.el-card__body) {
   display: flex;
   flex-direction: column;
@@ -494,7 +450,6 @@ watch(
   cursor: grabbing;
 }
 
-/* 拖拽状态样式 */
 .ghost {
   opacity: 0.3;
   background-color: var(--el-color-primary-light-8);
@@ -508,7 +463,6 @@ watch(
   border-color: var(--el-color-primary) !important;
 }
 
-/* 桌面端优化 */
 @media (min-width: 1200px) {
   .form-grid-4-col {
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));

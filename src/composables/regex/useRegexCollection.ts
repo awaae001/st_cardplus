@@ -3,6 +3,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import type { RegexCategory, RegexScriptCollection, SillyTavernRegexScript } from './types';
 import { v4 as uuidv4 } from 'uuid';
 import { getSessionStorageItem, setSessionStorageItem } from '@/utils/localStorageUtils';
+import { nowIso } from '@/utils/datetime';
 
 const STORAGE_KEY = 'regex-script-collection';
 const ACTIVE_CATEGORY_KEY = 'regex-active-category-id';
@@ -58,7 +59,7 @@ export function useRegexCollection() {
     if (!loaded) {
       // 创建默认类别
       const defaultCategoryId = uuidv4();
-      const now = new Date().toISOString();
+      const now = nowIso();
 
       const defaultCategory: RegexCategory = {
         id: defaultCategoryId,
@@ -97,7 +98,7 @@ export function useRegexCollection() {
       const { value: categoryName } = createCategoryResult as { value: string };
 
       const newCategoryId = uuidv4();
-      const now = new Date().toISOString();
+      const now = nowIso();
       const existingOrders = Object.values(regexCollection.value.categories).map((c) => c.order);
       const maxOrder = existingOrders.length > 0 ? Math.max(...existingOrders) : -1;
 
@@ -137,7 +138,7 @@ export function useRegexCollection() {
       const { value: newCategoryName } = renameCategoryResult as { value: string };
 
       category.name = newCategoryName;
-      category.updatedAt = new Date().toISOString();
+      category.updatedAt = nowIso();
       saveToStorage();
 
       ElMessage.success('类别已重命名！');
@@ -204,7 +205,7 @@ export function useRegexCollection() {
     };
 
     activeCategory.value.scripts.push(newScript);
-    activeCategory.value.updatedAt = new Date().toISOString();
+    activeCategory.value.updatedAt = nowIso();
     saveToStorage();
 
     return newScript;
@@ -216,7 +217,7 @@ export function useRegexCollection() {
       const scriptIndex = category.scripts.findIndex((s) => s.id === scriptId);
       if (scriptIndex !== -1) {
         Object.assign(category.scripts[scriptIndex], updates);
-        category.updatedAt = new Date().toISOString();
+        category.updatedAt = nowIso();
         saveToStorage();
         return;
       }
@@ -252,7 +253,7 @@ export function useRegexCollection() {
       });
 
       foundCategory.scripts.splice(scriptIndex, 1);
-      foundCategory.updatedAt = new Date().toISOString();
+      foundCategory.updatedAt = nowIso();
       saveToStorage();
 
       ElMessage.success(`脚本 "${script.scriptName}" 已删除`);
@@ -289,7 +290,7 @@ export function useRegexCollection() {
     script.categoryId = toCategoryId;
     toCategory.scripts.splice(insertIndex, 0, script);
 
-    const now = new Date().toISOString();
+    const now = nowIso();
     fromCategory.updatedAt = now;
     toCategory.updatedAt = now;
 
@@ -301,7 +302,7 @@ export function useRegexCollection() {
     const category = regexCollection.value.categories[categoryId];
     if (category) {
       category.scripts = scripts;
-      category.updatedAt = new Date().toISOString();
+      category.updatedAt = nowIso();
       saveToStorage();
     }
   };
@@ -356,7 +357,7 @@ export function useRegexCollection() {
           }));
 
           existingCategory.scripts.push(...newScripts);
-          existingCategory.updatedAt = new Date().toISOString();
+          existingCategory.updatedAt = nowIso();
 
           // 更新 metadata
           if (!existingCategory.metadata) {
@@ -390,7 +391,7 @@ export function useRegexCollection() {
 
     // 创建新分类
     targetCategoryId = uuidv4();
-    const now = new Date().toISOString();
+    const now = nowIso();
     const existingOrders = Object.values(regexCollection.value.categories).map((c) => c.order);
     const maxOrder = existingOrders.length > 0 ? Math.max(...existingOrders) : -1;
 

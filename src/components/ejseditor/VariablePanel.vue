@@ -1,7 +1,6 @@
 <template>
   <div class="variable-panel">
     <div class="panel-content">
-      <!-- 变量定义 -->
       <div class="section">
         <div
           class="section-header"
@@ -17,7 +16,6 @@
           </el-radio-group>
         </div>
 
-        <!-- YAML 编辑模式 -->
         <div v-if="store.variableEditMode === 'yaml'">
           <div class="yaml-input-section">
             <el-input
@@ -57,7 +55,6 @@
               </el-button>
             </div>
           </div>
-          <!-- 只读预览 -->
           <div
             v-if="store.variableTree.length > 0"
             class="variable-tree-readonly"
@@ -72,7 +69,6 @@
           </div>
         </div>
 
-        <!-- 节点树编辑模式 -->
         <div v-if="store.variableEditMode === 'tree'">
           <div class="tree-actions">
             <el-button
@@ -103,7 +99,6 @@
 
 <script setup lang="ts">
 import { ElMessage } from 'element-plus';
-// import { QuestionFilled } from '@element-plus/icons-vue'
 import { useEjsEditorStore } from '@/composables/ejs/ejsEditor';
 import { useDevice } from '@/composables/useDevice';
 import VariableTreeNode from './VariableTreeNode.vue';
@@ -272,7 +267,6 @@ function selectVariable(node: VariableNode) {
   gap: 8px;
 }
 
-/* 移动端样式 */
 @media screen and (max-width: 768px) {
   .variable-panel {
     padding: 8px 12px;
@@ -321,7 +315,6 @@ function selectVariable(node: VariableNode) {
   }
 }
 
-/* 平板端样式 */
 @media screen and (min-width: 769px) and (max-width: 1024px) {
   .variable-panel {
     padding: 12px 16px;

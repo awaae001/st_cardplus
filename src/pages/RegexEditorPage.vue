@@ -323,6 +323,7 @@ import { useRegexCollection } from '@/composables/regex/useRegexCollection';
 import { useRegexDragDrop } from '@/composables/regex/useRegexDragDrop';
 import { useRegexSimulator } from '@/composables/regex/useRegexSimulator';
 import { useDevice } from '@/composables/useDevice';
+import { nowIso } from '@/utils/datetime';
 import { DocumentAdd, Download, Hide, Plus, View } from '@element-plus/icons-vue';
 import { Icon } from '@iconify/vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -449,7 +450,7 @@ async function handleImportScript() {
 
         if (newScripts.length > 0) {
           activeCategory.value!.scripts.push(...newScripts);
-          activeCategory.value!.updatedAt = new Date().toISOString();
+          activeCategory.value!.updatedAt = nowIso();
 
           saveToStorage();
           selectedScript.value = newScripts[0];
@@ -667,7 +668,7 @@ watch(
           };
           activeCategory.value.scripts[scriptIndex] = updatedScript;
           selectedScript.value = updatedScript;
-          activeCategory.value.updatedAt = new Date().toISOString();
+          activeCategory.value.updatedAt = nowIso();
           saveToStorage();
         }
       }

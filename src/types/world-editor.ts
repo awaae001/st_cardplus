@@ -132,6 +132,7 @@ export interface RoadConnection {
   targetId: string;
   handle?: string;
   targetHandle?: string;
+  length?: number;
 }
 
 /**

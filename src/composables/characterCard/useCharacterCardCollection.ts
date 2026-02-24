@@ -5,6 +5,7 @@ import { read as readPngMetadata } from '@/utils/pngCardMetadata';
 import type { CharacterCardV3 } from '@/types/character-card-v3';
 import type { CharacterCardCollection, CharacterCardItem } from '@/types/character-card-collection';
 import { characterCardService, type StoredCharacterCard } from '@/database/characterCardService';
+import { nowIso } from '@/utils/datetime';
 
 export function useCharacterCardCollection() {
   const characterCardCollection = ref<CharacterCardCollection>({
@@ -64,7 +65,7 @@ export function useCharacterCardCollection() {
 
     try {
       const cardId = uuidv4();
-      const now = new Date().toISOString();
+      const now = nowIso();
       const existingOrders = Object.values(characterCardCollection.value.cards).map((c) => c.order);
       const maxOrder = existingOrders.length > 0 ? Math.max(...existingOrders) : -1;
 
@@ -118,7 +119,7 @@ export function useCharacterCardCollection() {
     );
 
     try {
-      const now = new Date().toISOString();
+      const now = nowIso();
 
       // 【关键修复】反转同步方向：从 data 同步到顶层（data 是真实数据源）
       const synchronizedCardData = { ...cardData };
@@ -342,7 +343,7 @@ export function useCharacterCardCollection() {
 
       const link = document.createElement('a');
       link.href = url;
-      link.download = `character-cards-${new Date().toISOString().split('T')[0]}.json`;
+      link.download = `character-cards-${nowIso().split('T')[0]}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

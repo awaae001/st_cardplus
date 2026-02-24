@@ -208,7 +208,6 @@ function deleteNode() {
   padding-left: 6px;
 }
 
-/* 移动端进一步缩减 */
 @media (max-width: 768px) {
   .child-nodes {
     margin-left: 16px;

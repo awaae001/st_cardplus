@@ -86,6 +86,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { ElTooltip } from 'element-plus';
+import type { AllowDropType, NodeDropType } from 'element-plus/es/components/tree/src/tree.type';
 import { Icon } from '@iconify/vue';
 import SidebarTreePanel from '../common/SidebarTreePanel.vue';
 import type { CharacterCard } from '../../types/character';
@@ -139,13 +140,13 @@ const allowDrag = (draggingNode: any) => {
   return !!draggingNode?.data?.id;
 };
 
-const allowDrop = (draggingNode: any, dropNode: any, type: any) => {
+const allowDrop = (draggingNode: any, dropNode: any, type: AllowDropType) => {
   if (!draggingNode?.data || !dropNode?.data) return false;
   if (type === 'inner') return false;
   return Boolean(draggingNode.data.raw?.starred) === Boolean(dropNode.data.raw?.starred);
 };
 
-const handleNodeDrop = (draggingNode: any, dropNode: any, type: any) => {
+const handleNodeDrop = (draggingNode: any, dropNode: any, type: Exclude<NodeDropType, 'none'>) => {
   if (!draggingNode?.data || !dropNode?.data) return false;
   if (type === 'inner') return false;
 
@@ -161,7 +162,7 @@ const handleNodeDrop = (draggingNode: any, dropNode: any, type: any) => {
 
   currentIds.splice(fromIndex, 1);
   const normalizedToIndex = fromIndex < toIndex ? toIndex - 1 : toIndex;
-  const insertIndex = type === 'prev' ? normalizedToIndex : normalizedToIndex + 1;
+  const insertIndex = type === 'before' ? normalizedToIndex : normalizedToIndex + 1;
   currentIds.splice(insertIndex, 0, draggingId);
 
   emit('reorder', currentIds);

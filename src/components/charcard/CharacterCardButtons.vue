@@ -131,7 +131,6 @@ const showImportDialog = () => {
       emit('importFromClipboard', value);
     })
     .catch(() => {
-      // 用户取消操作
     });
 };
 </script>
@@ -147,7 +146,6 @@ const showImportDialog = () => {
   padding: 0 12px;
 }
 
-/* 标题 */
 .card-info-header-title {
   margin: 0;
   font-size: 16px;
@@ -160,7 +158,6 @@ const showImportDialog = () => {
   color: var(--el-color-primary);
 }
 
-/* 按钮组 */
 .card-info-header-actions {
   display: flex;
   align-items: center;
@@ -168,18 +165,15 @@ const showImportDialog = () => {
   gap: 4px;
 }
 
-/* 移动端：隐藏按钮文字标签，仅显示图标 */
 .btn-label {
   display: none;
 }
 
-/* 移动端：缩小按钮间距 */
 .card-info-header-actions :deep(.el-button) {
   padding: 6px 8px;
   margin-left: 0;
 }
 
-/* 桌面端：显示文字标签，恢复间距 */
 @media (min-width: 768px) {
   .card-info-header-title {
     font-size: 18px;
