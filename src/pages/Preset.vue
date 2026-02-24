@@ -151,51 +151,7 @@
             label="预设预览"
             name="preview"
           >
-            <div class="preview-panel">
-              <div class="panel-header">
-                <h3>预设预览</h3>
-                <div class="header-actions">
-                  <el-tag
-                    v-if="activePreset"
-                    type="info"
-                    effect="plain"
-                  >
-                    {{ activePreset.name || '未命名预设' }} · {{ previewPrompts.length }} 条目
-                  </el-tag>
-                </div>
-              </div>
-              <el-scrollbar class="panel-scroll">
-                <div
-                  v-if="!activePreset"
-                  class="empty-state"
-                >
-                  <el-empty
-                    description="请先选择一个预设"
-                    :image-size="120"
-                  />
-                </div>
-                <div
-                  v-else-if="previewPrompts.length === 0"
-                  class="empty-state"
-                >
-                  <el-empty
-                    description="暂无条目"
-                    :image-size="120"
-                  />
-                </div>
-                <div
-                  v-else
-                  class="preview-list"
-                >
-                  <pre
-                    v-for="item in previewPrompts"
-                    :key="item.key"
-                    class="preview-content"
-                    >{{ item.text }}</pre
-                  >
-                </div>
-              </el-scrollbar>
-            </div>
+            <PresetPreviewPanel :active-preset="activePreset" />
           </el-tab-pane>
         </el-tabs>
       </pane>
@@ -206,14 +162,13 @@
 <script setup lang="ts">
 import PresetEditor, { type PresetEditorState, type PresetHeaderForm } from '@/components/preset/PresetEditor.vue';
 import PresetList from '@/components/preset/PresetList.vue';
+import PresetPreviewPanel from '@/components/preset/PresetPreviewPanel.vue';
 import { usePresetAutoSave } from '@/composables/preset/usePresetAutoSave';
 import { usePresetClipboard } from '@/composables/preset/usePresetClipboard';
 import { usePresetStore, type PresetPrompt } from '@/composables/preset/usePresetStore';
 import {
   buildPromptOrderList,
   getPromptOrderIdentifiers,
-  getPromptOrderList,
-  PROMPT_ORDER_CHARACTER_ID,
   upsertPromptOrderEntry,
 } from '@/composables/preset/utils/presetPromptOrder';
 import { getPromptNodeKey, resolvePromptIdentifier } from '@/composables/preset/utils/presetTree';
@@ -635,37 +590,6 @@ const handleImportPreset = async (file: File) => {
   }
 };
 
-const previewPrompts = computed(() => {
-  if (!activePreset.value) return [];
-  const prompts = (activePreset.value.data.prompts as Record<string, any>[]) || [];
-  const promptByIdentifier = new Map<string, { prompt: Record<string, any>; index: number }>();
-  prompts.forEach((prompt, index) => {
-    if (typeof prompt?.identifier === 'string' && prompt.identifier.trim() && !promptByIdentifier.has(prompt.identifier)) {
-      promptByIdentifier.set(prompt.identifier, { prompt, index });
-    }
-  });
-
-  const promptOrderList = getPromptOrderList(activePreset.value.data.prompt_order, PROMPT_ORDER_CHARACTER_ID);
-
-  return promptOrderList
-    .map((item) => {
-      const identifier = item.identifier;
-      if (!identifier) return null;
-      const enabled = item.enabled;
-      if (!enabled) return null;
-      const matched = promptByIdentifier.get(identifier);
-      if (!matched) return null;
-      const { prompt, index } = matched;
-      const title = prompt.name || prompt.identifier || `条目 ${index + 1}`;
-      const content = prompt.content || '';
-      return {
-        key: identifier,
-        text: `---： ${title}\n${content}`,
-      };
-    })
-    .filter((item): item is { key: string; text: string } => Boolean(item));
-});
-
 const extractExtras = (prompt: PresetPrompt) => {
   const baseKeys = ['identifier', 'name', 'role', 'content', 'system_prompt', 'marker', 'enabled', 'order'];
   const extra: Record<string, any> = {};
@@ -887,14 +811,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
 }
 
-.preview-panel {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.clipboard-panel .panel-header,
-.preview-panel .panel-header {
+.clipboard-panel .panel-header {
   display: flex;
   gap: 12px;
   padding: 0 8px;
@@ -964,17 +881,4 @@ onBeforeUnmount(() => {
   gap: 6px;
 }
 
-.preview-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.preview-content {
-  margin: 0;
-  white-space: pre-wrap;
-  font-size: 12px;
-  color: var(--el-text-color-regular);
-  font-family: var(--el-font-family);
-}
 </style>

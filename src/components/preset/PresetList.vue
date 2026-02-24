@@ -340,10 +340,6 @@ const isProtectedPrompt = (prompt: Record<string, any> | undefined) => {
   opacity: 0.65;
 }
 
-.sidebar-tree-node.is-multi-selected {
-  background: color-mix(in srgb, var(--el-color-primary) 14%, transparent);
-  border-radius: 8px;
-}
 
 .sidebar-tree-node.is-multi-selected .sidebar-tree-node-label,
 .sidebar-tree-node.is-multi-selected .sidebar-tree-node-icon {
