@@ -77,7 +77,7 @@ export default defineConfig({
   },
   optimizeDeps: {
     exclude: [],
-    include: ['js-yaml', 'ejs', 'vue', '@vue/runtime-core', '@vue/runtime-dom', 'vuedraggable'],
+    include: ['js-yaml', 'ejs', 'vue', 'vuedraggable'],
     force: true, // 强制重新预优化
   },
   build: {
