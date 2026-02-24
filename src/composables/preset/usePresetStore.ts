@@ -66,7 +66,7 @@ export function usePresetStore() {
     return (activePreset.value?.data?.prompts as PresetPrompt[]) || [];
   });
   const selectedPrompt = computed<PresetPrompt | null>(() => {
-    if (!selected.value || selected.value.type !== 'prompt') return null;
+    if (!selected.value) return null;
     const index = selected.value.promptIndex ?? -1;
     return activePrompts.value[index] || null;
   });
