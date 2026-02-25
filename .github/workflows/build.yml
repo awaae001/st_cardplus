@@ -68,8 +68,6 @@ jobs:
 
   build-windows:
     needs: type-check
-    # 仅在主仓库的 main 分支运行
-    if: github.repository == 'awaae001/st_cardplus' && github.ref == 'refs/heads/main'
     runs-on: windows-latest
 
     steps:
