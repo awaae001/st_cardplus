@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "node scripts/run-dev.mjs",
     "dev:web": "node scripts/run-dev.mjs --web",
-    "type-check": "vue-tsc --noEmit",
+    "type-check": "vue-tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p electron/tsconfig.json",
     "build": "vite build",
     "preview": "vite preview",
     "electron": "electron .",
