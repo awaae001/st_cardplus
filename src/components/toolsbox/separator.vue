@@ -81,6 +81,7 @@
 
 <script lang="ts" setup>
 import { read } from '@/utils/pngCardMetadata';
+import { saveFile } from '@/utils/fileSave';
 import { Icon } from '@iconify/vue';
 import type { UploadFile } from 'element-plus';
 import { ElMessage } from 'element-plus';
@@ -115,16 +116,15 @@ const handleFileChange = (file: UploadFile) => {
   reader.readAsArrayBuffer(file.raw);
 };
 
-const saveJson = () => {
+const saveJson = async () => {
   if (!characterData.value) return;
 
   const jsonStr = characterData.value;
-  const blob = new Blob([jsonStr], { type: 'application/json' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `${uploadedImageName.value}.json`;
-  link.click();
-  URL.revokeObjectURL(link.href);
+  await saveFile({
+    data: new TextEncoder().encode(jsonStr),
+    fileName: `${uploadedImageName.value}.json`,
+    mimeType: 'application/json',
+  });
   ElMessage.success('JSON文件已保存');
 };
 </script>

@@ -1,11 +1,11 @@
 import type { Ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { saveAs } from 'file-saver';
 import { copyToClipboard as copyUtil } from '../../utils/clipboard';
 import { clearLocalStorage } from '../../utils/localStorageUtils';
 import { createDefaultCharacterCard } from './useCharacterCard';
 import type { CharacterCard, Attire, Appearance, Trait, Relationship, Skill, Note } from '../../types/character';
 import { removeEmptyFields } from '../../utils/objectUtils';
+import { saveFile } from '../../utils/fileSave';
 
 /**
  * 将数组转换为多行文本
@@ -220,8 +220,11 @@ export function useCardDataHandler(form: Ref<CharacterCard>) {
 
       // 创建并保存文件
       const jsonData = JSON.stringify(dataToSave, null, 2);
-      const blob = new Blob([jsonData], { type: 'application/json' });
-      saveAs(blob, `${form.value.chineseName || 'character_card'}_${generateRandomNumber()}.json`);
+      await saveFile({
+        data: new TextEncoder().encode(jsonData),
+        fileName: `${form.value.chineseName || 'character_card'}_${generateRandomNumber()}.json`,
+        mimeType: 'application/json',
+      });
 
       ElMessage.success('角色卡保存成功！');
     } catch (error) {

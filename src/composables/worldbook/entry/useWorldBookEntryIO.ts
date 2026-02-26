@@ -2,6 +2,7 @@ import { ElMessage } from 'element-plus';
 import { copyToClipboard } from '../../../utils/clipboard';
 import type { WorldBookEntry, WorldBook } from '../../../types/types';
 import type { Ref } from 'vue';
+import { saveFile } from '../../../utils/fileSave';
 
 type EntryState = {
   activeBook: Ref<WorldBook | null>;
@@ -21,23 +22,19 @@ export function useWorldBookEntryIO(state: EntryState) {
     return exportData;
   };
 
-  const exportToJson = (): void => {
+  const exportToJson = async (): Promise<void> => {
     if (!activeBookEntries.value.length) {
       ElMessage.warning('当前世界书没有条目可以导出');
       return;
     }
     const exportData = formatWorldBookForExport();
     const jsonString = JSON.stringify(exportData, null, 2);
-    const blob = new Blob([jsonString], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
     const fileName = activeBook.value ? `${activeBook.value.name}.world.json` : 'world_info.json';
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    await saveFile({
+      data: new TextEncoder().encode(jsonString),
+      fileName,
+      mimeType: 'application/json',
+    });
     ElMessage.success(`已导出为 ${fileName}`);
   };
 

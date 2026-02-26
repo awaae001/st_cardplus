@@ -12,10 +12,16 @@
       <div class="form-section-content two-column">
         <div class="image-panel-container">
           <h4 class="sub-section-title">角色图片</h4>
-          <p class="image-persistence-notice">注意：图片仅用于本次导出，不会随角色卡保存。</p>
+          <p class="image-persistence-notice">注意：本地上传图片仅用于导出；通过 🔗 设置的 URL 会随角色卡保存。</p>
           <ImagePanel
             :preview-url="imagePreviewUrl"
+            :avatar-url="avatarUrl"
+            :is-desktop-app="isDesktopApp"
+            :selected-provider="selectedProvider"
             @image-change="emit('imageChange', $event)"
+            @image-url-change="emit('imageUrlChange', $event)"
+            @provider-change="emit('providerChange', $event)"
+            @upload-to-hosting="emit('uploadToHosting', $event)"
           />
         </div>
         <div class="basic-info-container">
@@ -95,12 +101,18 @@ import { ElCollapseTransition } from 'element-plus';
 const props = defineProps<{
   character: CharacterCardV3;
   imagePreviewUrl?: string;
+  avatarUrl?: string;
+  isDesktopApp?: boolean;
+  selectedProvider?: 'catbox' | 'imgbb';
   advancedOptionsVisible: boolean;
   allTags?: string[];
 }>();
 
 const emit = defineEmits<{
   (e: 'imageChange', file: File): void;
+  (e: 'imageUrlChange', url: string): void;
+  (e: 'providerChange', provider: 'catbox' | 'imgbb'): void;
+  (e: 'uploadToHosting', provider: 'catbox' | 'imgbb'): void;
   (e: 'update:advancedOptionsVisible', value: boolean): void;
 }>();
 

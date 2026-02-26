@@ -2,6 +2,7 @@ import { computed, type Ref } from 'vue';
 import type { Project, LogicBlock, StageScheme, EditorError } from '@/types/ejs-editor';
 import { ElMessage } from 'element-plus';
 import { nowIso, formatDateTime } from '@/utils/datetime';
+import { saveFile } from '@/utils/fileSave';
 
 export function useEjsProject(
   projects: Ref<Project[]>,
@@ -217,7 +218,7 @@ export function useEjsProject(
     }
   }
 
-  function exportCurrentProject() {
+  async function exportCurrentProject() {
     if (!currentProject.value) {
       ElMessage.error('没有当前项目可供导出');
       return;
@@ -227,19 +228,15 @@ export function useEjsProject(
 
     const projectData = { ...currentProject.value };
     const projectJson = JSON.stringify(projectData, null, 2);
-    const blob = new Blob([projectJson], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${currentProject.value.name || 'Untitled Project'}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    await saveFile({
+      data: new TextEncoder().encode(projectJson),
+      fileName: `${currentProject.value.name || 'Untitled Project'}.json`,
+      mimeType: 'application/json',
+    });
     ElMessage.success(`项目 "${currentProject.value.name}" 已导出`);
   }
 
-  function exportWorkspace() {
+  async function exportWorkspace() {
     saveCurrentProjectState(); // 保存当前项目以包含最新更改
 
     const workspace = {
@@ -250,15 +247,11 @@ export function useEjsProject(
     };
 
     const workspaceJson = JSON.stringify(workspace, null, 2);
-    const blob = new Blob([workspaceJson], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `ejs-workspace-backup-${nowIso().slice(0, 10)}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    await saveFile({
+      data: new TextEncoder().encode(workspaceJson),
+      fileName: `ejs-workspace-backup-${nowIso().slice(0, 10)}.json`,
+      mimeType: 'application/json',
+    });
     ElMessage.success('EJS 工作区已导出');
   }
 

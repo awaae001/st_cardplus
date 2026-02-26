@@ -83,6 +83,7 @@ import type {
   ProjectIntegration,
 } from '@/types/world-editor';
 import { ElMessage } from 'element-plus';
+import { saveFile } from '@/utils/fileSave';
 import ForceEditor from './editorPacel/ForceEditor.vue';
 import IntegratedPanel from './editorPacel/IntegratedPanel.vue';
 import LandmarkEditor from './editorPacel/LandmarkEditor.vue';
@@ -184,7 +185,7 @@ const handleImportFromClipboard = async () => {
   }
 };
 
-const handleSaveToFile = () => {
+const handleSaveToFile = async () => {
   if (!props.selectedItem) return;
 
   if (isIntegration(props.selectedItem)) {
@@ -202,24 +203,20 @@ const handleSaveToFile = () => {
         regions: projectRegions,
       };
 
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${currentProject.name || 'project'}_complete.json`;
-      a.click();
-      URL.revokeObjectURL(url);
+      await saveFile({
+        data: new TextEncoder().encode(JSON.stringify(exportData, null, 2)),
+        fileName: `${currentProject.name || 'project'}_complete.json`,
+        mimeType: 'application/json',
+      });
       ElMessage.success('项目数据已保存');
     }
   } else {
     // 非整合面板：保存单个项目数据
-    const blob = new Blob([JSON.stringify(props.selectedItem, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${(props.selectedItem as any).name || 'data'}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    await saveFile({
+      data: new TextEncoder().encode(JSON.stringify(props.selectedItem, null, 2)),
+      fileName: `${(props.selectedItem as any).name || 'data'}.json`,
+      mimeType: 'application/json',
+    });
     ElMessage.success('数据已保存');
   }
 };

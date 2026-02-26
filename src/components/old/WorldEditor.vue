@@ -275,8 +275,8 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import draggable from 'vuedraggable';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { saveAs } from 'file-saver';
 import { Icon } from '@iconify/vue';
+import { saveFile } from '../../utils/fileSave';
 import {
   saveToLocalStorage,
   loadFromLocalStorage,
@@ -504,8 +504,11 @@ const saveWorld = async () => {
     };
     const generateRandomNumber = () => Math.floor(10000000 + Math.random() * 90000000);
     const jsonData = JSON.stringify(dataToSave, null, 2);
-    const blob = new Blob([jsonData], { type: 'application/json' });
-    saveAs(blob, `${form.value.name || 'world'}_${generateRandomNumber()}.json`);
+    await saveFile({
+      data: new TextEncoder().encode(jsonData),
+      fileName: `${form.value.name || 'world'}_${generateRandomNumber()}.json`,
+      mimeType: 'application/json',
+    });
     ElMessage.success('世界书保存成功！');
   } catch (error) {
     ElMessage.error('保存失败');

@@ -92,6 +92,9 @@ jobs:
     - name: Setup Rust
       uses: dtolnay/rust-toolchain@stable
 
+    - name: Generate Tauri icons
+      run: pnpm prepare:icons
+
     - name: Build Windows app
       run: pnpm build:desktop
 
@@ -100,3 +103,52 @@ jobs:
       with:
         name: windows-app
         path: src-tauri/target/release/bundle/
+
+  build-linux-appimage:
+    needs: type-check
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v3
+      with:
+        version: 10
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'pnpm'
+        cache-dependency-path: pnpm-lock.yaml
+
+    - name: Install Linux dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          libwebkit2gtk-4.1-dev \
+          libgtk-3-dev \
+          libayatana-appindicator3-dev \
+          librsvg2-dev \
+          patchelf
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Generate Tauri icons
+      run: pnpm prepare:icons
+
+    - name: Build Linux AppImage
+      run: pnpm tauri build --bundles appimage
+
+    - name: Upload Linux AppImage artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: linux-appimage
+        path: src-tauri/target/release/bundle/appimage/*.AppImage
+        if-no-files-found: error
