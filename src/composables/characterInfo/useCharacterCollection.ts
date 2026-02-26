@@ -5,6 +5,7 @@ import type { CharacterCard } from '../../types/character';
 import { v4 as uuidv4 } from 'uuid';
 import { createDefaultCharacterCard } from './useCharacterCard';
 import { processLoadedData } from './useCardDataHandler';
+import { migrateCharacterCollection } from './characterCollectionMigration';
 
 const LOCAL_STORAGE_KEY_CHARACTER_MANAGER = 'characterManagerData';
 
@@ -12,6 +13,31 @@ export interface CharacterCollection {
   characters: { [id: string]: CharacterCard };
   activeCharacterId: string | null;
 }
+
+const createCharacterCardWithMeta = (meta: CharacterCard['meta'], dataOverrides: Partial<CharacterCard['data']> = {}): CharacterCard => {
+  const base = createDefaultCharacterCard();
+  return {
+    ...base,
+    meta: {
+      ...base.meta,
+      ...meta,
+    },
+    data: {
+      ...base.data,
+      ...dataOverrides,
+    },
+  };
+};
+
+const mergeCharacterMeta = (character: CharacterCard, metaPatch: Partial<CharacterCard['meta']>): CharacterCard => {
+  return {
+    ...character,
+    meta: {
+      ...character.meta,
+      ...metaPatch,
+    },
+  };
+};
 
 export function useCharacterCollection() {
   const characterCollection = ref<CharacterCollection>({
@@ -35,65 +61,58 @@ export function useCharacterCollection() {
   const ensureCharacterOrder = () => {
     const characters = { ...characterCollection.value.characters };
     const values = Object.values(characters);
-    const hasAnyOrder = values.some((character) => typeof character.order === 'number');
+    const hasAnyOrder = values.some((character) => typeof character.meta.order === 'number');
 
     if (!hasAnyOrder) {
-      const starredCharacters = values.filter((character) => !!character.starred);
-      const regularCharacters = values.filter((character) => !character.starred);
+      const starredCharacters = values.filter((character) => !!character.meta.starred);
+      const regularCharacters = values.filter((character) => !character.meta.starred);
       starredCharacters.forEach((character, index) => {
-        if (!character.id) return;
-        characters[character.id] = {
-          ...character,
+        if (!character.meta.id) return;
+        characters[character.meta.id] = mergeCharacterMeta(character, {
           order: index,
-          starred: typeof character.starred === 'boolean' ? character.starred : false,
-        };
+          starred: typeof character.meta.starred === 'boolean' ? character.meta.starred : false,
+        });
       });
       regularCharacters.forEach((character, index) => {
-        if (!character.id) return;
-        characters[character.id] = {
-          ...character,
+        if (!character.meta.id) return;
+        characters[character.meta.id] = mergeCharacterMeta(character, {
           order: index,
-          starred: typeof character.starred === 'boolean' ? character.starred : false,
-        };
+          starred: typeof character.meta.starred === 'boolean' ? character.meta.starred : false,
+        });
       });
     } else {
       let maxStarredOrder = values
-        .filter((character) => !!character.starred)
+        .filter((character) => !!character.meta.starred)
         .reduce((max, character) => {
-          const currentOrder = typeof character.order === 'number' ? character.order : -1;
+          const currentOrder = typeof character.meta.order === 'number' ? character.meta.order : -1;
           return Math.max(max, currentOrder);
         }, -1);
       let maxRegularOrder = values
-        .filter((character) => !character.starred)
+        .filter((character) => !character.meta.starred)
         .reduce((max, character) => {
-          const currentOrder = typeof character.order === 'number' ? character.order : -1;
+          const currentOrder = typeof character.meta.order === 'number' ? character.meta.order : -1;
           return Math.max(max, currentOrder);
         }, -1);
 
       values.forEach((character) => {
-        if (!character.id) return;
-        if (typeof character.starred !== 'boolean') {
-          characters[character.id] = {
-            ...character,
-            starred: false,
-          };
+        if (!character.meta.id) return;
+        if (typeof character.meta.starred !== 'boolean') {
+          characters[character.meta.id] = mergeCharacterMeta(character, { starred: false });
         }
-        if (typeof character.order === 'number') return;
-        if (character.starred) {
+        if (typeof character.meta.order === 'number') return;
+        if (character.meta.starred) {
           maxStarredOrder += 1;
-          characters[character.id] = {
-            ...character,
+          characters[character.meta.id] = mergeCharacterMeta(character, {
             order: maxStarredOrder,
             starred: true,
-          };
+          });
           return;
         }
         maxRegularOrder += 1;
-        characters[character.id] = {
-          ...character,
+        characters[character.meta.id] = mergeCharacterMeta(character, {
           order: maxRegularOrder,
           starred: false,
-        };
+        });
       });
     }
 
@@ -105,8 +124,8 @@ export function useCharacterCollection() {
 
   const getNextOrder = (starred: boolean) => {
     const orders = Object.values(characterCollection.value.characters)
-      .filter((character) => !!character.starred === starred)
-      .map((character) => character.order)
+      .filter((character) => !!character.meta.starred === starred)
+      .map((character) => character.meta.order)
       .filter((order): order is number => typeof order === 'number');
     return orders.length > 0 ? Math.max(...orders) + 1 : 0;
   };
@@ -114,18 +133,19 @@ export function useCharacterCollection() {
   onMounted(() => {
     const loadedData = loadFromLS(LOCAL_STORAGE_KEY_CHARACTER_MANAGER);
     if (loadedData && typeof loadedData === 'object' && loadedData.characters) {
-      characterCollection.value = loadedData as CharacterCollection;
+      const { collection, migrated } = migrateCharacterCollection(loadedData as CharacterCollection);
+      characterCollection.value = collection;
       ensureCharacterOrder();
+      if (migrated) {
+        saveCharactersToLocalStorage();
+      }
     } else {
       // Initialize with a default character if none exist
       const newId = uuidv4();
-      const defaultCharacter = {
-        ...createDefaultCharacterCard(),
-        id: newId,
-        order: 0,
-        starred: false,
-        chineseName: '默认角色',
-      };
+      const defaultCharacter = createCharacterCardWithMeta(
+        { id: newId, order: 0, starred: false },
+        { chineseName: '默认角色' }
+      );
       characterCollection.value = {
         characters: { [newId]: defaultCharacter },
         activeCharacterId: newId,
@@ -161,13 +181,10 @@ export function useCharacterCollection() {
       const { value: characterName } = createCharacterResult as { value: string };
 
       const newId = uuidv4();
-      const newCharacter: CharacterCard = {
-        ...createDefaultCharacterCard(),
-        id: newId,
-        order: getNextOrder(false),
-        starred: false,
-        chineseName: characterName,
-      };
+      const newCharacter = createCharacterCardWithMeta(
+        { id: newId, order: getNextOrder(false), starred: false },
+        { chineseName: characterName }
+      );
 
       // 立即更新characterCollection，避免时序问题
       characterCollection.value = {
@@ -197,7 +214,7 @@ export function useCharacterCollection() {
     }
 
     try {
-      await ElMessageBox.confirm(`确定要删除角色 "${character.chineseName}" 吗？此操作不可恢复！`, '删除角色', {
+      await ElMessageBox.confirm(`确定要删除角色 "${character.data.chineseName}" 吗？此操作不可恢复！`, '删除角色', {
         confirmButtonText: '确认删除',
         cancelButtonText: '取消',
         type: 'warning',
@@ -219,7 +236,7 @@ export function useCharacterCollection() {
         activeCharacterId: newActiveId,
       };
 
-      ElMessage.success(`角色 "${character.chineseName}" 已删除 `);
+      ElMessage.success(`角色 "${character.data.chineseName}" 已删除 `);
     } catch (error) {
       if (error !== 'cancel') {
         ElMessage.info('删除操作已取消');
@@ -238,24 +255,24 @@ export function useCharacterCollection() {
 
         const importedData = JSON.parse(result) as Partial<CharacterCard> & { name?: string };
 
-        // 基本验证 (可以根据需要扩展)
-        if (!importedData.chineseName && !importedData.japaneseName && !importedData.name) {
-          throw new Error('导入的数据缺少角色名称 ');
-        }
-
         const newId = uuidv4();
         const processedData = processLoadedData(importedData);
+        if (!processedData.data.chineseName && !processedData.data.japaneseName && !importedData.name) {
+          throw new Error('导入的数据缺少角色名称 ');
+        }
         const newCharacter: CharacterCard = {
           ...createDefaultCharacterCard(),
           ...processedData,
-          id: newId, // 始终分配新ID以避免冲突
-          order: getNextOrder(false),
-          starred: typeof processedData.starred === 'boolean' ? processedData.starred : false,
+          meta: {
+            id: newId, // 始终分配新ID以避免冲突
+            order: getNextOrder(false),
+            starred: false,
+          },
         };
 
         // 如果没有中文名，但有英文名或日文名，则使用它们
-        if (!newCharacter.chineseName) {
-          newCharacter.chineseName = importedData.name || newCharacter.japaneseName || '未命名角色';
+        if (!newCharacter.data.chineseName) {
+          newCharacter.data.chineseName = importedData.name || newCharacter.data.japaneseName || '未命名角色';
         }
 
         // 立即更新characterCollection，避免时序问题
@@ -268,7 +285,7 @@ export function useCharacterCollection() {
           activeCharacterId: newId,
         };
 
-        ElMessage.success(`角色 "${newCharacter.chineseName}" 已成功导入！`);
+        ElMessage.success(`角色 "${newCharacter.data.chineseName}" 已成功导入！`);
       } catch (error) {
         console.error('导入角色失败:', error);
         ElMessage.error(`导入失败: ${error instanceof Error ? error.message : '无效的文件格式 '}`);
@@ -309,12 +326,13 @@ export function useCharacterCollection() {
     const character = characterCollection.value.characters[characterId];
     if (!character) return;
 
-    if (!!character.starred === starred) return;
+    if (!!character.meta.starred === starred) return;
 
     const updatedCharacter = {
-      ...character,
-      starred,
-      order: getNextOrder(starred),
+      ...mergeCharacterMeta(character, {
+        starred,
+        order: getNextOrder(starred),
+      }),
     };
 
     characterCollection.value = {
@@ -332,18 +350,12 @@ export function useCharacterCollection() {
     let regularIndex = 0;
     orderedIds.forEach((id) => {
       if (!updatedCharacters[id]) return;
-      if (updatedCharacters[id].starred) {
-        updatedCharacters[id] = {
-          ...updatedCharacters[id],
-          order: starredIndex,
-        };
+      if (updatedCharacters[id].meta.starred) {
+        updatedCharacters[id] = mergeCharacterMeta(updatedCharacters[id], { order: starredIndex });
         starredIndex += 1;
         return;
       }
-      updatedCharacters[id] = {
-        ...updatedCharacters[id],
-        order: regularIndex,
-      };
+      updatedCharacters[id] = mergeCharacterMeta(updatedCharacters[id], { order: regularIndex });
       regularIndex += 1;
     });
 

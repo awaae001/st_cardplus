@@ -53,15 +53,15 @@
         </div>
         <div class="sidebar-tree-node-star">
           <el-tooltip
-            :content="data.raw.starred ? '取消星标' : '设为星标'"
+            :content="data.raw.meta.starred ? '取消星标' : '设为星标'"
             placement="top"
           >
             <button
-              @click.stop="emit('toggle-star', data.id, !data.raw.starred)"
+              @click.stop="emit('toggle-star', data.id, !data.raw.meta.starred)"
               class="sidebar-tree-node-action-button"
-              :class="{ 'is-active': data.raw.starred }"
+              :class="{ 'is-active': data.raw.meta.starred }"
             >
-              <Icon :icon="data.raw.starred ? 'ph:star-fill' : 'ph:star'" />
+              <Icon :icon="data.raw.meta.starred ? 'ph:star-fill' : 'ph:star'" />
             </button>
           </el-tooltip>
         </div>
@@ -115,10 +115,10 @@ const treeProps = {
 
 const treeData = computed(() => {
   return props.characters
-    .filter((character) => !!character.id)
+    .filter((character) => !!character.meta.id)
     .map((character) => ({
-      id: character.id as string,
-      label: character.chineseName || '未命名角色',
+      id: character.meta.id as string,
+      label: character.data.chineseName || '未命名角色',
       raw: character,
     }));
 });
@@ -143,7 +143,7 @@ const allowDrag = (draggingNode: any) => {
 const allowDrop = (draggingNode: any, dropNode: any, type: AllowDropType) => {
   if (!draggingNode?.data || !dropNode?.data) return false;
   if (type === 'inner') return false;
-  return Boolean(draggingNode.data.raw?.starred) === Boolean(dropNode.data.raw?.starred);
+  return Boolean(draggingNode.data.raw?.meta?.starred) === Boolean(dropNode.data.raw?.meta?.starred);
 };
 
 const handleNodeDrop = (draggingNode: any, dropNode: any, type: Exclude<NodeDropType, 'none'>) => {
@@ -154,7 +154,7 @@ const handleNodeDrop = (draggingNode: any, dropNode: any, type: Exclude<NodeDrop
   const dropId = dropNode.data.id as string | undefined;
   if (!draggingId || !dropId) return false;
 
-  const currentIds = props.characters.map((character) => character.id).filter((id): id is string => !!id);
+  const currentIds = props.characters.map((character) => character.meta.id).filter((id): id is string => !!id);
 
   const fromIndex = currentIds.indexOf(draggingId);
   const toIndex = currentIds.indexOf(dropId);

@@ -20,7 +20,7 @@ export function useCharacterCardLifecycle(form: Ref<CharacterCard>, processLoade
     }
     autoSaveTimer = initAutoSave(
       () => saveToLocalStorage(form.value),
-      () => !!form.value.chineseName,
+      () => !!form.value.data.chineseName,
       intervalMs
     );
   };
@@ -32,7 +32,7 @@ export function useCharacterCardLifecycle(form: Ref<CharacterCard>, processLoade
     }
     autoSaveTimer = initAutoSave(
       () => saveToLocalStorage(form.value),
-      () => !!form.value.chineseName,
+      () => !!form.value.data.chineseName,
       intervalMs
     );
     window.addEventListener('autoSaveIntervalChange', handleIntervalChange);

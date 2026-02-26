@@ -35,7 +35,7 @@
           <template #label>
             <span>
               <i class="el-icon-edit"></i>
-              {{ activeCharacter ? activeCharacter.chineseName || '编辑中' : '编辑角色' }}
+              {{ activeCharacter ? activeCharacter.data.chineseName || '编辑中' : '编辑角色' }}
             </span>
           </template>
           <div class="editor-area">
@@ -152,20 +152,20 @@ watch(activeCharacterId, (newId) => {
 
 const characters = computed(() => {
   return Object.values(characterCollection.value.characters).sort((a, b) => {
-    const aStarred = !!a.starred;
-    const bStarred = !!b.starred;
+    const aStarred = !!a.meta.starred;
+    const bStarred = !!b.meta.starred;
     if (aStarred !== bStarred) {
       return aStarred ? -1 : 1;
     }
-    const aOrder = a.order ?? 0;
-    const bOrder = b.order ?? 0;
+    const aOrder = a.meta.order ?? 0;
+    const bOrder = b.meta.order ?? 0;
     return aOrder - bOrder;
   });
 });
 
 const handleUpdateCharacter = (updatedCharacter: any) => {
-  if (updatedCharacter && updatedCharacter.id) {
-    updateCharacter(updatedCharacter.id, updatedCharacter);
+  if (updatedCharacter && updatedCharacter.meta?.id) {
+    updateCharacter(updatedCharacter.meta.id, updatedCharacter);
   } else {
     console.warn('角色更新失败：无效的角色数据或缺少ID', updatedCharacter);
   }
@@ -187,8 +187,8 @@ const originalTitle = document.title;
 watch(
   activeCharacter,
   (newCharacter) => {
-    if (newCharacter && newCharacter.chineseName) {
-      document.title = `角色卡 : ${newCharacter.chineseName}`;
+    if (newCharacter && newCharacter.data.chineseName) {
+      document.title = `角色卡 : ${newCharacter.data.chineseName}`;
     } else {
       document.title = '角色卡编辑器';
     }
