@@ -3,8 +3,10 @@ name: Build and Deploy
 on:
   push:
     branches: [ main, dev ]
-  pull_request:
-    branches: [ main ]
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   type-check:
@@ -35,7 +37,7 @@ jobs:
   build-web:
     needs: type-check
     # 仅在主仓库运行，避免 fork 仓库触发不必要的 CI
-    if: github.repository == 'awaae001/st_cardplus' && (github.event_name != 'pull_request' || github.head_ref != 'dev')
+    if: github.repository == 'awaae001/st_cardplus'
     runs-on: ubuntu-latest
 
     steps:
@@ -92,8 +94,10 @@ jobs:
     - name: Setup Rust
       uses: dtolnay/rust-toolchain@stable
 
-    - name: Generate Tauri icons
-      run: pnpm prepare:icons
+    - name: Cache Rust build artifacts
+      uses: Swatinem/rust-cache@v2
+      with:
+        workspaces: src-tauri -> target
 
     - name: Build Windows app
       run: pnpm build:desktop
@@ -139,6 +143,11 @@ jobs:
 
     - name: Setup Rust
       uses: dtolnay/rust-toolchain@stable
+
+    - name: Cache Rust build artifacts
+      uses: Swatinem/rust-cache@v2
+      with:
+        workspaces: src-tauri -> target
 
     - name: Generate Tauri icons
       run: pnpm prepare:icons
