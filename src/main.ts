@@ -8,6 +8,8 @@ import 'element-plus/theme-chalk/dark/css-vars.css';
 import './css/dark.css';
 import './style.css';
 import './css/mobile.css';
+
+document.documentElement.style.zoom = '90%';
 const app = createApp(App);
 const pinia = createPinia();
 

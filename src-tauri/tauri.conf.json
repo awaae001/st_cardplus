@@ -1,0 +1,32 @@
+{
+  "productName": "sillytavern-char_cardplus",
+  "version": "0.1.14",
+  "identifier": "com.awaae001.cardplus",
+  "build": {
+    "beforeDevCommand": "pnpm dev:web",
+    "beforeBuildCommand": "pnpm build",
+    "devUrl": "http://localhost:3066",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "sillytavern-char_cardplus",
+        "width": 1620,
+        "height": 780,
+        "resizable": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/icon.png"
+    ]
+  }
+}

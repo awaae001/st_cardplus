@@ -1,14 +1,54 @@
-import { crc32 } from 'crc';
 import extract, { type Chunk } from 'png-chunks-extract';
 import PNGtext from 'png-chunk-text';
 
 // Helper for base64 encoding and decoding in browser environment
 function toBase64(str: string): string {
-  return btoa(unescape(encodeURIComponent(str)));
+  const bytes = new TextEncoder().encode(str);
+  let binary = '';
+  const chunkSize = 0x8000;
+
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, i + chunkSize);
+    binary += String.fromCharCode(...chunk);
+  }
+
+  return btoa(binary);
 }
 
 function fromBase64(base64: string): string {
-  return decodeURIComponent(escape(atob(base64)));
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+
+  return new TextDecoder().decode(bytes);
+}
+
+const CRC_TABLE = (() => {
+  const table = new Uint32Array(256);
+  for (let i = 0; i < 256; i++) {
+    let c = i;
+    for (let j = 0; j < 8; j++) {
+      c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
+    }
+    table[i] = c >>> 0;
+  }
+  return table;
+})();
+
+function crc32Png(chunkType: Uint8Array, chunkData: Uint8Array): number {
+  let crc = 0xffffffff;
+  for (let i = 0; i < chunkType.length; i++) {
+    crc = CRC_TABLE[(crc ^ chunkType[i]) & 0xff] ^ (crc >>> 8);
+  }
+
+  for (let i = 0; i < chunkData.length; i++) {
+    crc = CRC_TABLE[(crc ^ chunkData[i]) & 0xff] ^ (crc >>> 8);
+  }
+
+  return (crc ^ 0xffffffff) >>> 0;
 }
 
 /**
@@ -60,8 +100,7 @@ function encode(chunks: Chunk[]): Uint8Array {
     for (let j = 0; j < size; ) {
       output[idx++] = data[j++];
     }
-
-    const crc = crc32(data, crc32(new Uint8Array(nameChars)));
+    const crc = crc32Png(new Uint8Array(nameChars), data);
 
     int32[0] = crc;
     output[idx++] = uint8[3];

@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
-import electron from 'vite-plugin-electron';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 import { execSync } from 'child_process';
@@ -26,36 +25,16 @@ const { commitHash, commitCount, gitLog } = getGitVersionInfo();
 const appVersion = process.env.CF_PAGES_COMMIT_SHA ? process.env.CF_PAGES_COMMIT_SHA.slice(0, 7) : commitHash;
 const appCommitCount = commitCount;
 const appGitLog = gitLog;
-const enableElectron = !process.env.DISABLE_ELECTRON;
 
 export default defineConfig({
   server: {
     host: true,
-    port: 3066
+    port: 3066,
+    strictPort: true,
   },
   plugins: [
     vue(),
     tailwindcss(),
-    ...(enableElectron
-      ? [
-        electron([
-          {
-            entry: 'electron/main.ts',
-            vite: {
-              build: {
-                outDir: 'dist/electron',
-              },
-            },
-            onstart: ({ startup }) => {
-              if (process.env.ELECTRON_EXTERNAL === '1') {
-                return;
-              }
-              startup();
-            },
-          },
-        ]),
-      ]
-      : []),
   ],
   resolve: { // 添加 resolve 配置
     alias: {
