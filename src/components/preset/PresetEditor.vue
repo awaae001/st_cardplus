@@ -177,7 +177,18 @@
             <el-form-item label="条目名称">
               <div class="prompt-name-row">
                 <el-input v-model="localEditorState.promptName" placeholder="请输入条目名称" :disabled="isFullyLocked" />
+                <span> | </span>
                 <el-switch v-model="localEditorState.promptEnabled" active-text="激活" :disabled="isFullyLocked" />
+                <el-tooltip content="也可以在左侧列表双击条目，快速激活/取消激活" placement="top" :show-arrow="false">
+                  <button
+                    type="button"
+                    class="prompt-hint-trigger"
+                    aria-label="激活玩法提示"
+                    :disabled="isFullyLocked"
+                  >
+                    <Icon icon="ph:info-duotone" />
+                  </button>
+                </el-tooltip>
               </div>
             </el-form-item>
             <el-form-item label="提示词内容">
@@ -743,6 +754,23 @@ watch(
 
 .prompt-name-row :deep(.el-switch) {
   margin-left: auto;
+}
+
+.prompt-hint-trigger {
+  border: none;
+  background: transparent;
+  color: var(--el-color-info);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0;
+}
+
+.prompt-hint-trigger:disabled {
+  cursor: not-allowed;
+  color: var(--el-text-color-disabled);
 }
 
 .grid :deep(.el-form-item) {
