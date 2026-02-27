@@ -126,6 +126,7 @@
                 @select-preset="handleSelectPreset"
                 @select-header="handleSelectHeader"
                 @select-prompt="handleSelectPrompt"
+                @toggle-prompt-enabled="togglePromptEnabled"
                 @toggle-node-selection="handleToggleNodeSelection"
                 @add-prompt="addPrompt"
                 @duplicate-prompt="duplicatePrompt"
@@ -186,6 +187,7 @@
           @select-preset="handleSelectPreset"
           @select-header="handleSelectHeader"
           @select-prompt="handleSelectPrompt"
+          @toggle-prompt-enabled="togglePromptEnabled"
           @toggle-node-selection="handleToggleNodeSelection"
           @add-prompt="addPrompt"
           @duplicate-prompt="duplicatePrompt"
@@ -297,6 +299,7 @@ const {
   removePrompt,
   updateHeader,
   updatePrompt,
+  togglePromptEnabled,
   reorderPresets,
   updatePromptOrder,
 } = usePresetStore();

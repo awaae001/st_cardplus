@@ -35,11 +35,16 @@
         @node-collapse="handleNodeCollapse"
       >
         <template #default="{ node, data }">
-          <slot
-            name="node"
-            :node="node"
-            :data="data"
-          />
+          <div
+            class="sidebar-tree-node-slot"
+            @dblclick.stop="handleNodeDblClick(data, node, $event)"
+          >
+            <slot
+              name="node"
+              :node="node"
+              :data="data"
+            />
+          </div>
         </template>
       </el-tree>
     </el-scrollbar>
@@ -91,6 +96,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   (e: 'node-click', data: any, context?: { node: any; component: any; event: MouseEvent | undefined }): void;
+  (e: 'node-dblclick', data: any, context?: { node: any; event: MouseEvent | undefined }): void;
 }>();
 
 const treeRef = ref<InstanceType<typeof ElTree> | null>(null);
@@ -145,7 +151,24 @@ const handleNodeDrop = async (draggingNode: any, dropNode: any, dropType: Actual
 };
 
 const handleNodeClick = (data: any, node: any, component: any, event: MouseEvent) => {
+  if (shouldIgnoreTreeNodeEvent(event)) return;
   emit('node-click', data, { node, component, event });
+};
+
+const handleNodeDblClick = (data: any, node: any, event: MouseEvent) => {
+  if (shouldIgnoreTreeNodeEvent(event)) return;
+  emit('node-dblclick', data, { node, event });
+};
+
+const shouldIgnoreTreeNodeEvent = (event?: MouseEvent) => {
+  if (!event) return false;
+  const target = event.target as HTMLElement | null;
+  if (!target) return false;
+  return Boolean(
+    target.closest('.sidebar-tree-node-action-button') ||
+      target.closest('.sidebar-tree-node-actions') ||
+      target.closest('.el-upload')
+  );
 };
 
 const handleNodeExpand = (data: any) => {
@@ -233,6 +256,10 @@ const handleNodeCollapse = (data: any) => {
 .sidebar-tree {
   background-color: transparent;
   padding: 8px;
+  width: 100%;
+}
+
+.sidebar-tree-node-slot {
   width: 100%;
 }
 
