@@ -1,6 +1,7 @@
 /**
  * 数据同步相关配置
  */
+export const SYNC_SNAPSHOT_SESSION_KEY = 'sync-snapshot';
 
 /**
  * 在同步过程中应从 localStorage 中排除的键列表。
@@ -18,5 +19,5 @@ export const SYNC_EXCLUDED_KEYS: string[] = [
   'character-card-tabs', // 角色卡编辑器打开的标签页
 
   // 可能会导致冲突的会话特定数据
-  'sync-snapshot', // 同步快照，用于撤销
+  SYNC_SNAPSHOT_SESSION_KEY, // 同步快照，用于撤销
 ];

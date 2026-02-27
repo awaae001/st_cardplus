@@ -1,13 +1,14 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-mod image_service;
-mod export_service;
+mod handler;
 
 fn main() {
+  env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
   tauri::Builder::default()
     .invoke_handler(tauri::generate_handler![
-      image_service::upload_image_to_hosting,
-      export_service::save_binary_file
+      handler::image_service::upload_image_to_hosting,
+      handler::export_service::save_binary_file,
+      handler::webdav_service::webdav_request
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

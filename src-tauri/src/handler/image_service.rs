@@ -1,4 +1,5 @@
 use base64::Engine;
+use log::{error, info, warn};
 use std::time::Duration;
 use thiserror::Error;
 
@@ -92,7 +93,7 @@ async fn upload_to_catbox(
             attempt + 1,
             format_reqwest_error(&error)
           );
-          eprintln!("[catbox] {message}");
+          warn!("[catbox] {message}");
           last_error_message = Some(message);
         }
       }
@@ -162,7 +163,7 @@ async fn upload_to_imgbb(client: &reqwest::Client, bytes: &[u8], upload_name: &s
           attempt + 1,
           format_reqwest_error(&error)
         );
-        eprintln!("[imgbb] {message}");
+        warn!("[imgbb] {message}");
         last_error_message = Some(message);
         continue;
       }
@@ -219,6 +220,7 @@ pub async fn upload_image_to_hosting(
   provider: String,
   imgbb_api_key: Option<String>,
 ) -> Result<String, String> {
+  info!("开始上传图片到图床 provider={}", provider);
   let bytes = base64::engine::general_purpose::STANDARD
     .decode(base64_data.trim())
     .map_err(|error| err!("base64 解码失败: {error}"))
@@ -237,13 +239,22 @@ pub async fn upload_image_to_hosting(
   match provider.as_str() {
     "catbox" => upload_to_catbox(&client, &bytes, &upload_name, &upload_mime)
       .await
-      .map_err(|error| error.to_string()),
+      .map_err(|error| {
+        error!("上传到 catbox 失败: {}", error);
+        error.to_string()
+      }),
     "imgbb" => {
       let key = imgbb_api_key.unwrap_or_default();
       upload_to_imgbb(&client, &bytes, &upload_name, &key)
         .await
-        .map_err(|error| error.to_string())
+        .map_err(|error| {
+          error!("上传到 imgbb 失败: {}", error);
+          error.to_string()
+        })
     }
-    _ => Err(err!("不支持的图床提供商: {provider}").to_string()),
+    _ => {
+      warn!("不支持的图床提供商: {}", provider);
+      Err(err!("不支持的图床提供商: {provider}").to_string())
+    }
   }
 }
