@@ -21,15 +21,30 @@ export function removeItem<T>(list: T[], index: number): void {
   }
 }
 
+const hasMeaningfulContent = (value: unknown): boolean => {
+  if (value == null) return false;
+
+  if (typeof value === 'string') return value.trim() !== '';
+  if (typeof value === 'number') return Number.isFinite(value);
+  if (Array.isArray(value)) return value.some((item) => hasMeaningfulContent(item));
+
+  if (typeof value === 'object') {
+    return Object.values(value).some((item) => hasMeaningfulContent(item));
+  }
+
+  return Boolean(value);
+};
+
 /**
- * 将项目列表作为JSON导出到剪贴板。
+ * 将任意结构数据作为JSON导出到剪贴板。
  * @param data 要导出的数据。
  * @param sectionName 用于用户消息的部分名称（例如，“技能”）。
  */
-export async function exportSection(data: any[], sectionName: string): Promise<void> {
-  if (data.length === 0) {
+export async function exportSection(data: unknown, sectionName: string): Promise<void> {
+  if (!hasMeaningfulContent(data)) {
     ElMessage.warning(`没有可导出的${sectionName}`);
     return;
   }
+
   await copyUtil(JSON.stringify(data, null, 2), `${sectionName}已复制到剪贴板！`, '导出失败');
 }

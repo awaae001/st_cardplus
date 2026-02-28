@@ -1,12 +1,27 @@
 <template>
   <section class="form-section">
-    <h3 class="form-section-title">
-      <Icon
-        icon="ph:user-focus-duotone"
-        class="form-section-icon"
-      />
-      外貌特征
-    </h3>
+    <div class="title-Btn-add form-section-title">
+      <h3 class="title-fixed">
+        <Icon
+          icon="ph:user-focus-duotone"
+          class="form-section-icon"
+        />
+        外貌特征
+      </h3>
+      <div style="display: flex; gap: 8px; margin-left: 16px">
+        <el-button
+          type="success"
+          @click="$emit('exportAppearance')"
+          title="导出外貌特征"
+        >
+          <Icon
+            icon="material-symbols:content-copy-outline"
+            width="18"
+            height="18"
+          />
+        </el-button>
+      </div>
+    </div>
     <div class="form-section-content">
       <p class="whatYouwant">
         <Icon
@@ -188,7 +203,7 @@ const props = defineProps({
   },
 });
 
-defineEmits(['addAttire', 'removeAttire', 'exportAttires', 'update:attires']);
+defineEmits(['addAttire', 'removeAttire', 'exportAttires', 'exportAppearance', 'update:attires']);
 
 const { form } = toRefs(props);
 const { addFieldsByPrompt } = useBatchCustomFieldPrompt();

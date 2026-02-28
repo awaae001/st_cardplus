@@ -3,6 +3,18 @@ import type { CharacterCard } from '../../types/character';
 import { addItem, removeItem, exportSection } from './sectionHelpers';
 
 export function useCardSections(form: Ref<CharacterCard>) {
+  const exportBasicInfo = () =>
+    exportSection(
+      {
+        chineseName: form.value.data.chineseName,
+        gender: form.value.data.gender,
+        customGender: form.value.data.customGender,
+        age: form.value.data.age,
+        identity: form.value.data.identity,
+      },
+      '基本信息'
+    );
+
   const addTrait = () =>
     addItem(form.value.data.traits, () => ({
       name: '',
@@ -83,8 +95,10 @@ export function useCardSections(form: Ref<CharacterCard>) {
   const exportSkills = () => exportSection(form.value.data.skills, '技能');
   const exportTraits = () => exportSection(form.value.data.traits, '性格特质');
   const exportRelationships = () => exportSection(form.value.data.relationships, '人际关系');
+  const exportAppearance = () => exportSection(form.value.data.appearance, '外貌特征');
 
   return {
+    exportBasicInfo,
     addTrait,
     removeTrait,
     addSkill,
@@ -99,5 +113,6 @@ export function useCardSections(form: Ref<CharacterCard>) {
     exportSkills,
     exportTraits,
     exportRelationships,
+    exportAppearance,
   };
 }

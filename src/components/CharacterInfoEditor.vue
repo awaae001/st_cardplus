@@ -16,13 +16,28 @@
         class="character-card-editor-form"
       >
         <section class="form-section">
-          <h3 class="form-section-title">
-            <Icon
-              icon="ph:info-duotone"
-              class="form-section-icon"
-            />
-            基本信息
-          </h3>
+          <div class="title-Btn-add form-section-title">
+            <h3 class="title-fixed">
+              <Icon
+                icon="ph:info-duotone"
+                class="form-section-icon"
+              />
+              基本信息
+            </h3>
+            <div style="display: flex; gap: 8px; margin-left: 16px">
+              <el-button
+                type="success"
+                @click="exportBasicInfo"
+                title="导出基本信息"
+              >
+                <Icon
+                  icon="material-symbols:content-copy-outline"
+                  width="18"
+                  height="18"
+                />
+              </el-button>
+            </div>
+          </div>
           <div class="form-section-content">
             <div class="form-row-responsive">
               <div class="form-group-responsive">
@@ -168,6 +183,7 @@
               :form="form.data"
               @addAttire="addAttire"
               @removeAttire="removeAttire"
+              @exportAppearance="exportAppearance"
               @exportAttires="exportAttires"
               v-model:attires="form.data.attires"
             />
@@ -292,6 +308,7 @@ const { saveCharacterCard, loadCharacterCard, resetForm, copyToClipboard, import
   useCardDataHandler(form);
 
 const {
+  exportBasicInfo,
   addTrait,
   removeTrait,
   addSkill,
@@ -300,6 +317,7 @@ const {
   removeRelationship,
   addAttire,
   removeAttire,
+  exportAppearance,
   exportAttires,
   exportSkills,
   exportTraits,
@@ -351,11 +369,13 @@ const validateMBTI = () => {
 };
 
 defineExpose({
+  exportBasicInfo,
   saveCharacterCard,
   loadCharacterCard,
   resetForm,
   addAttire,
   removeAttire,
+  exportAppearance,
   exportAttires,
   copyToClipboard,
   importFromClipboard,
@@ -394,6 +414,19 @@ defineExpose({
   margin: 0 0 16px 0;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--el-border-color-lighter);
+}
+
+.title-Btn-add {
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.title-fixed {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
 }
 
 .character-card-editor-form .form-section-icon {
