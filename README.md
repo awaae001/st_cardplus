@@ -7,7 +7,9 @@
 **获取最新构建版本请前往 [Actions](../../actions) 页面下载：**
 
 - 🌐 **Web版本** - 下载 `web-build` 构建产物，解压后可直接部署
-- 💻 **Windows应用** - 下载 `windows-app` 构建产物，获取可执行安装包
+- 🐧 **Linux APP Image** - 下载 `linux-appimage` 构建产物，双击运行
+- 💻 **Windows应用（NSIS）** - 下载 `windows-nsis-installer` 构建产物（`.exe` 安装器）
+- 💻 **Windows应用（MSI）** - 下载 `windows-msi-installer` 构建产物（`.msi` 安装器）
 
 > 每次代码推送后会自动构建最新版本，确保您使用的是最新功能和修复
 
@@ -17,7 +19,7 @@
 
 **Discord 社区**：[St_CardPlus](https://discord.gg/KH6rHAGBXD)
 
-![alt text](/public/image/hello.png)
+![大图](/public/image/hello.png)
 
 ## 主要功能
 
