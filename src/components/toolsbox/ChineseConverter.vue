@@ -2,6 +2,7 @@
 import { Icon } from '@iconify/vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { computed, ref } from 'vue';
+import { saveFile } from '../../utils/fileSave';
 import {
   CONVERSION_OPTIONS,
   type ConversionConfig,
@@ -182,24 +183,21 @@ async function downloadAll() {
 }
 
 // 下载单个文件
-function downloadSingle(item: FileItem) {
+async function downloadSingle(item: FileItem) {
   if (!item.result || !item.result.convertedData) {
     ElMessage.error('文件数据不可用');
     return;
   }
 
   try {
-    const blob = new Blob([new Uint8Array(item.result.convertedData)], { type: 'image/png' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
     const baseName = item.file.name.replace(/\.png$/i, '');
-    a.href = url;
-    a.download = `${baseName}_converted.png`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    ElMessage.success(`已开始下载: ${a.download}`);
+    const fileName = `${baseName}_converted.png`;
+    await saveFile({
+      data: new Uint8Array(item.result.convertedData),
+      fileName,
+      mimeType: 'image/png',
+    });
+    ElMessage.success(`已开始下载: ${fileName}`);
   } catch (error) {
     ElMessage.error('下载失败');
     console.error(error);

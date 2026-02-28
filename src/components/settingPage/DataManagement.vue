@@ -5,7 +5,7 @@
       appear
     >
       <div
-        v-if="sync.snapshotAvailable.value"
+        v-if="sync.state.snapshotAvailable.value"
         class="snapshot-revert-container"
       >
         <p class="snapshot-revert-text">
@@ -53,14 +53,14 @@ const sync = useSync();
 provide(syncInjectionKey, sync);
 
 const handleHideSnapshotNotice = () => {
-  sync.clearSnapshotNotice();
+  sync.actions.clearSnapshot();
 };
 
 const handleRevert = async () => {
-  await sync.revertCurrentPull();
+  await sync.actions.revertLastPull();
 };
 
-onMounted(sync.initSync);
+onMounted(sync.actions.init);
 </script>
 
 <style scoped>

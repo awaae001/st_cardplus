@@ -1,6 +1,6 @@
 # SillyTavern 角色卡编辑器
 
-这是一个基于 Electron、Vue 3、TypeScript 和 Vite 构建的桌面应用程序，旨在为 SillyTavern 用户提供快速创建和管理角色卡及世界观的工具
+这是一个基于 Tauri 2、Vue 3、TypeScript 和 Vite 构建的桌面应用程序，旨在为 SillyTavern 用户提供快速创建和管理角色卡及世界观的工具
 
 ## 下载最新版本
 
@@ -37,9 +37,11 @@
 pnpm install
 ```
 
+桌面端构建还需要安装 Rust 与 Tauri 相关工具链（Windows 需要 WebView2，Android 需要 Android Studio/SDK/NDK）。
+
 ### 2. 启动开发模式
 
-**Electron 桌面应用模式**：
+**Tauri 桌面应用模式**：
 
 ```bash
 pnpm dev
@@ -54,14 +56,14 @@ pnpm dev:web
 ### 3. 打包应用程序
 
 ```bash
-pnpm build:electron
+pnpm build:desktop
 ```
 
 ## 项目结构
 
 ```
 st_cardplus/
-├── electron/                 # Electron 主进程代码
+├── src-tauri/                # Tauri Rust 端与打包配置
 ├── public/                   # 静态资源
 ├── src/                      # 前端源代码
 │   ├── assets/              # 静态资源 (icons, etc.)

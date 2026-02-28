@@ -194,7 +194,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, defineProps } from 'vue';
+import { ref, watch } from 'vue';
 import { useEjsEditorStore } from '@/composables/ejs/ejsEditor';
 import type { Stage, Condition, ConditionGroup } from '@/types/ejs-editor';
 import { Plus, Delete, QuestionFilled, InfoFilled } from '@element-plus/icons-vue';

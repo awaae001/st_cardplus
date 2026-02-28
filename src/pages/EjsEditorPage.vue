@@ -272,9 +272,9 @@
 import { useEjsEditorStore } from '@/composables/ejs/ejsEditor';
 import { useDevice } from '@/composables/useDevice';
 import { nowIso } from '@/utils/datetime';
+import { saveFile } from '@/utils/fileSave';
 import { CopyDocument, DocumentAdd, Download, Hide, RefreshLeft, RefreshRight, View } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { saveAs } from 'file-saver';
 import { Pane, Splitpanes } from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
 import { onMounted, ref } from 'vue';
@@ -345,13 +345,14 @@ async function handleImportConfig() {
   }
 }
 
-function handleExportConfig() {
+async function handleExportConfig() {
   const config = store.exportConfig();
-  const blob = new Blob([JSON.stringify(config, null, 2)], {
-    type: 'application/json',
-  });
   const fileName = `ejs-template-${nowIso().slice(0, 10)}.json`;
-  saveAs(blob, fileName);
+  await saveFile({
+    data: new TextEncoder().encode(JSON.stringify(config, null, 2)),
+    fileName,
+    mimeType: 'application/json',
+  });
   ElMessage.success('配置导出成功');
 }
 

@@ -324,6 +324,7 @@ import { useRegexDragDrop } from '@/composables/regex/useRegexDragDrop';
 import { useRegexSimulator } from '@/composables/regex/useRegexSimulator';
 import { useDevice } from '@/composables/useDevice';
 import { nowIso } from '@/utils/datetime';
+import { saveFile } from '@/utils/fileSave';
 import { DocumentAdd, Download, Hide, Plus, View } from '@element-plus/icons-vue';
 import { Icon } from '@iconify/vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -471,7 +472,7 @@ async function handleImportScript() {
   }
 }
 
-function handleExportScript() {
+async function handleExportScript() {
   if (!selectedScript.value) return;
 
   try {
@@ -483,20 +484,18 @@ function handleExportScript() {
     delete scriptToExport.categoryId;
 
     const jsonString = JSON.stringify(scriptToExport, null, 2);
-    const blob = new Blob([jsonString], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${scriptToExport.scriptName.replace(/[\s./\\?*]/g, '_') || 'regex-script'}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    await saveFile({
+      data: new TextEncoder().encode(jsonString),
+      fileName: `${scriptToExport.scriptName.replace(/[\s./\\?*]/g, '_') || 'regex-script'}.json`,
+      mimeType: 'application/json',
+    });
     ElMessage.success('导出成功!');
   } catch (error) {
     ElMessage.error('导出失败!');
   }
 }
 
-function handleExportSingleScript(scriptId: string) {
+async function handleExportSingleScript(scriptId: string) {
   // 在所有类别中查找该脚本
   let script: SillyTavernRegexScript | undefined;
   for (const category of Object.values(regexCollection.value.categories)) {
@@ -513,13 +512,11 @@ function handleExportSingleScript(scriptId: string) {
     const cleanScript = { ...script };
     delete cleanScript.categoryId;
     const jsonString = JSON.stringify(cleanScript, null, 2);
-    const blob = new Blob([jsonString], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${cleanScript.scriptName.replace(/[\s./\\?*]/g, '_') || 'regex-script'}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    await saveFile({
+      data: new TextEncoder().encode(jsonString),
+      fileName: `${cleanScript.scriptName.replace(/[\s./\\?*]/g, '_') || 'regex-script'}.json`,
+      mimeType: 'application/json',
+    });
     ElMessage.success(`脚本 "${cleanScript.scriptName}" 导出成功!`);
   } catch (error) {
     ElMessage.error('导出失败!');

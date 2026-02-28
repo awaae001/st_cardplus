@@ -3,6 +3,7 @@ import { ElMessage } from 'element-plus';
 import { v4 as uuidv4 } from 'uuid';
 import { ref } from 'vue';
 import { cleanObject } from '../../utils/objectUtils';
+import { saveFile } from '../../utils/fileSave';
 import { convertCharacterBookToWorldBook, convertWorldBookToCharacterBook } from '../../utils/worldBookConverter';
 
 const inputJson = ref('');
@@ -97,20 +98,16 @@ function handleConvertToCharacterBook() {
   }
 }
 
-function downloadJson() {
+async function downloadJson() {
   if (!outputJson.value) {
     ElMessage.warning('没有可下载的内容');
     return;
   }
-  const blob = new Blob([outputJson.value], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = outputFileName.value;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  await saveFile({
+    data: new TextEncoder().encode(outputJson.value),
+    fileName: outputFileName.value,
+    mimeType: 'application/json',
+  });
   ElMessage.success(`已开始下载: ${outputFileName.value}`);
 }
 </script>

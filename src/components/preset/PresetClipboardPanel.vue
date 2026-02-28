@@ -110,6 +110,7 @@ defineEmits<{
   gap: 12px;
   padding: 0 8px;
   margin-bottom: 12px;
+  justify-content: space-between;
 }
 
 .panel-scroll {

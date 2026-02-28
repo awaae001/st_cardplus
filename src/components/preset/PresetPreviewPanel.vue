@@ -3,13 +3,12 @@
     <div class="panel-header">
       <h3>预设预览</h3>
       <div class="header-actions">
-        <el-tag
-          v-if="activePreset"
-          type="info"
-          effect="plain"
+        <el-checkbox
+          v-model="hideSplitText"
+          size="small"
         >
-          {{ activePreset.name || '未命名预设' }} · {{ activeEntries.length }} 条目
-        </el-tag>
+          隐藏分割文本
+        </el-checkbox>
       </div>
     </div>
     <el-scrollbar class="panel-scroll">
@@ -40,7 +39,12 @@
           :key="entry.key"
           class="preview-entry"
         >
-          <div class="preview-title">---： {{ entry.title }}</div>
+          <div
+            v-if="!hideSplitText"
+            class="preview-title"
+          >
+            ---： {{ entry.title }}
+          </div>
           <pre class="preview-content">{{ entry.content }}</pre>
         </div>
       </div>
@@ -52,13 +56,14 @@
 import type { StoredPresetFile } from '@/database/db';
 import { getPromptOrderList, PROMPT_ORDER_CHARACTER_ID } from '@/composables/preset/utils/presetPromptOrder';
 import { resolvePromptIdentifier } from '@/composables/preset/utils/presetTree';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 interface Props {
   activePreset: StoredPresetFile | null;
 }
 
 const props = defineProps<Props>();
+const hideSplitText = ref(false);
 
 const activeEntries = computed(() => {
   if (!props.activePreset) return [];
@@ -111,6 +116,7 @@ const activeEntries = computed(() => {
   gap: 12px;
   padding: 0 8px;
   margin-bottom: 12px;
+  justify-content: space-between;
 }
 
 .panel-scroll {

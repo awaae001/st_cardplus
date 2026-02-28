@@ -23,7 +23,8 @@ scripts/__pycache__/*
 *.njsproj
 *.sln
 *.sw?
-dist-electron/main.js
+src-tauri/target/
+src-tauri/gen/
 .vscode/
 
 doc/

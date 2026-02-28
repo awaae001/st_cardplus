@@ -15,7 +15,7 @@
       <p class="hero-version">
         <code v-if="appCommitCount === '1'">在线版_{{ appVersion }}</code>
         <code v-else>dev_{{ appVersion }} ({{ appCommitCount }})</code>
-        <code class="version-tag">v0.1.14</code>
+        <code class="version-tag">v0.1.15</code>
       </p>
     </div>
 

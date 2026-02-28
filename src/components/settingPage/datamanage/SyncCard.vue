@@ -4,89 +4,52 @@
       <div class="setting-header">
         <div class="setting-info">
           <span class="setting-label">云同步</span>
-          <Icon
-            icon="material-symbols:cloud-sync-outline"
-            width="20"
-            height="20"
-            style="margin-left: 8px; color: var(--el-color-primary)"
-          />
+          <Icon icon="material-symbols:cloud-sync-outline" width="20" height="20"
+            style="margin-left: 8px; color: var(--el-color-primary)" />
         </div>
       </div>
 
       <!-- 同步提供商选择 -->
       <div class="sync-provider-selector">
         <span class="provider-label">同步提供商</span>
-        <el-segmented
-          v-model="selectedProvider"
-          :options="providerOptions"
-          size="default"
-        />
+        <el-segmented v-model="selectedProvider" :options="providerOptions" size="default" />
       </div>
 
       <!-- WebDAV 配置 -->
-      <div
-        v-show="selectedProvider === 'webdav'"
-        class="sync-config-container"
-      >
-        <el-input
-          v-model="webdavConfig.url"
-          placeholder="WebDAV URL"
-        />
-        <el-input
-          v-model="webdavConfig.username"
-          placeholder="用户名"
-        />
-        <el-input
-          v-model="webdavConfig.password"
-          placeholder="密码"
-          type="password"
-          show-password
-        />
+      <div v-show="selectedProvider === 'webdav'" class="sync-config-container">
+        <el-input v-model="webdavConfig.url" placeholder="WebDAV URL" />
+        <el-input v-model="webdavConfig.username" placeholder="用户名" />
+        <el-input v-model="webdavConfig.password" placeholder="密码" type="password" show-password />
         <p class="provider-description">
           将数据备份到你的 WebDAV 服务器
           <br />
           <span style="color: var(--el-color-warning)">请注意前端该死的跨域问题，尽量使用自建服务</span>
+          <br />
+          <br />
+          <span v-if="!isDesktopApp">
+            出现问题？试试安装桌面APP获取更好的兼容性
+          </span>
         </p>
       </div>
 
       <!-- GitHub Gist 配置 -->
-      <div
-        v-show="selectedProvider === 'gist'"
-        class="sync-config-container"
-      >
-        <el-input
-          v-model="gistConfig.token"
-          placeholder="GitHub Personal Access Token"
-          type="password"
-          show-password
-        >
+      <div v-show="selectedProvider === 'gist'" class="sync-config-container">
+        <el-input v-model="gistConfig.token" placeholder="GitHub Personal Access Token" type="password" show-password>
           <template #append>
             <el-button @click="openGistTokenHelp">
               <Icon icon="material-symbols:help-outline" />
             </el-button>
           </template>
         </el-input>
-        <el-input
-          v-model="gistConfig.gistId"
-          placeholder="Gist ID (可选，留空将创建新 Gist)"
-        >
+        <el-input v-model="gistConfig.gistId" placeholder="Gist ID (可选，留空将创建新 Gist)">
           <template #append>
-            <el-button
-              @click="listGists"
-              :disabled="!gistConfig.token"
-            >
+            <el-button @click="listGists" :disabled="!gistConfig.token">
               <Icon icon="material-symbols:list" />
             </el-button>
           </template>
         </el-input>
-        <div
-          class="sync-time-display"
-          v-if="gistConfig.lastSyncTime"
-        >
-          <Icon
-            icon="material-symbols:schedule"
-            style="margin-right: 4px"
-          />
+        <div class="sync-time-display" v-if="gistConfig.lastSyncTime">
+          <Icon icon="material-symbols:schedule" style="margin-right: 4px" />
           <span>上次同步: {{ formatSyncTime(gistConfig.lastSyncTime) }}</span>
         </div>
         <p class="provider-description">
@@ -95,11 +58,8 @@
           需要创建 Personal Access Token 并赋予
           <code>gist</code>
           权限
-          <a
-            href="https://github.com/settings/tokens/new?scopes=gist&description=ST-CardPlus-Sync"
-            target="_blank"
-            style="color: var(--el-color-primary)"
-          >
+          <a href="https://github.com/settings/tokens/new?scopes=gist&description=ST-CardPlus-Sync" target="_blank"
+            style="color: var(--el-color-primary)">
             创建 Token
           </a>
           <br />
@@ -111,64 +71,27 @@
 
       <!-- 统一操作按钮 -->
       <div class="sync-action-buttons">
-        <el-button
-          @click="handleTestConnection"
-          :disabled="syncProgressActive"
-        >
-          <Icon
-            icon="material-symbols:add-link-rounded"
-            style="margin-right: 8px"
-          />
+        <el-button @click="handleTestConnection" :disabled="syncProgressActive">
+          <Icon icon="material-symbols:add-link-rounded" style="margin-right: 8px" />
           {{ testButtonText }}
         </el-button>
-        <el-button
-          @click="handlePush"
-          type="primary"
-          plain
-          :disabled="!canPush || syncProgressActive"
-        >
-          <Icon
-            icon="material-symbols:cloud-upload"
-            style="margin-right: 8px"
-          />
+        <el-button @click="handlePush" type="primary" plain :disabled="!canPush || syncProgressActive">
+          <Icon icon="material-symbols:cloud-upload" style="margin-right: 8px" />
           {{ pushButtonText }}
         </el-button>
-        <el-button
-          @click="handlePull"
-          type="success"
-          plain
-          :disabled="!canPull || syncProgressActive"
-        >
-          <Icon
-            icon="material-symbols:cloud-download-outline"
-            style="margin-right: 8px"
-          />
+        <el-button @click="handlePull" type="success" plain :disabled="!canPull || syncProgressActive">
+          <Icon icon="material-symbols:cloud-download-outline" style="margin-right: 8px" />
           {{ pullButtonText }}
         </el-button>
       </div>
 
-      <transition
-        name="sync-progress"
-        appear
-      >
-        <div
-          v-if="syncProgressActive"
-          class="sync-progress"
-        >
+      <transition name="sync-progress" appear>
+        <div v-if="syncProgressActive" class="sync-progress">
           <div class="sync-progress-label">
-            <Icon
-              icon="material-symbols:hourglass-top"
-              width="16"
-              height="16"
-            />
+            <Icon icon="material-symbols:hourglass-top" width="16" height="16" />
             <span>{{ syncProgressText || '处理中...' }}</span>
           </div>
-          <el-progress
-            :percentage="100"
-            :indeterminate="true"
-            :stroke-width="12"
-            :show-text="false"
-          />
+          <el-progress :percentage="100" :indeterminate="true" :stroke-width="12" :show-text="false" />
         </div>
       </transition>
     </div>
@@ -185,22 +108,28 @@ if (!sync) {
   throw new Error('Sync provider is missing');
 }
 
+const isDesktopApp = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+
 const {
-  webdavConfig,
-  gistConfig,
-  selectedProvider,
-  providerOptions,
-  canPush,
-  canPull,
-  handleTestConnection,
-  handlePush,
-  handlePull,
-  syncProgressActive,
-  syncProgressText,
-  syncCurrentAction,
-  formatSyncTime,
-  openGistTokenHelp,
-  listGists,
+  state: {
+    webdavConfig,
+    gistConfig,
+    selectedProvider,
+    providerOptions,
+    canPush,
+    canPull,
+    syncProgressActive,
+    syncProgressText,
+    syncCurrentAction,
+  },
+  actions: {
+    testConnection: handleTestConnection,
+    push: handlePush,
+    pull: handlePull,
+    openGistTokenHelp,
+    listGists,
+  },
+  utils: { formatSyncTime },
 } = sync;
 
 const testButtonText = computed(() => {

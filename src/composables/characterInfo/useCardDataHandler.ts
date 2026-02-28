@@ -1,36 +1,21 @@
 import type { Ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { saveAs } from 'file-saver';
 import { copyToClipboard as copyUtil } from '../../utils/clipboard';
 import { clearLocalStorage } from '../../utils/localStorageUtils';
 import { createDefaultCharacterCard } from './useCharacterCard';
-import type { CharacterCard, Attire, Appearance, Trait, Relationship, Skill, Note } from '../../types/character';
-import { removeEmptyFields } from '../../utils/objectUtils';
+import type { CharacterCard, Attire, Appearance, Trait, Relationship, Skill, Note, CharacterData } from '../../types/character';
+import { cleanObject, removeEmptyFields } from '../../utils/objectUtils';
+import { saveFile } from '../../utils/fileSave';
 
-/**
- * 将数组转换为多行文本
- * @param arr - 要转换的数组
- * @returns 转换后的多行文本
- */
 const arrayToText = (arr: string[] | undefined): string => {
   if (!arr || !Array.isArray(arr)) return '';
   return arr.join('\n');
 };
 
-/**
- * 处理文本字段，将多行文本转换为数组
- * @param text - 要处理的文本
- * @returns 处理后的字符串数组
- */
 const processTextToArray = (text: string): string[] => {
   return text.split('\n').filter((line) => line.trim() !== '');
 };
 
-/**
- * 处理服装配饰，将字符串转换为数组
- * @param accessories - 配饰字符串或数组
- * @returns 处理后的配饰数组
- */
 const processAccessories = (accessories: string | string[]): string[] => {
   if (typeof accessories === 'string') {
     return processTextToArray(accessories);
@@ -38,19 +23,54 @@ const processAccessories = (accessories: string | string[]): string[] => {
   return accessories || [];
 };
 
-/**
- * 处理加载的角色卡数据
- * @param parsedData - 解析后的JSON数据
- * @returns 转换后的角色卡数据
- */
-export const processLoadedData = (parsedData: any): CharacterCard => {
-  // 简化外观数据处理逻辑
-  // 直接使用导入文件中的 appearance 对象，如果不存在则为空对象
-  const appearance: Appearance = parsedData.appearance || {};
+const toSerializableCharacterData = (
+  character: CharacterData,
+  options: {
+    includeIdentityAsArray: boolean;
+  }
+) => {
+  const processedAttires =
+    character.attires?.map((attire: Attire) => ({
+      ...attire,
+      accessories: processAccessories(attire.accessories),
+    })) || [];
 
-  // 处理服装数据
-  const attires: Attire[] = Array.isArray(parsedData.attires)
-    ? parsedData.attires.map((attire: any) => ({
+  const processedNotes =
+    character.notes?.reduce(
+      (acc: Record<string, { name: string; data: string[] }>, note: Note) => {
+        if (note.name) {
+          acc[note.id.toString()] = {
+            name: note.name,
+            data: note.data.filter((d: string) => d.trim() !== ''),
+          };
+        }
+        return acc;
+      },
+      {} as Record<string, { name: string; data: string[] }>
+    ) || {};
+
+  return {
+    ...character,
+    attires: processedAttires,
+    gender: character.gender === 'other' ? character.customGender : character.gender,
+    identity: options.includeIdentityAsArray ? processTextToArray(character.identity || '') : character.identity,
+    background: processTextToArray(character.background || ''),
+    likes: processTextToArray(character.likes || ''),
+    dislikes: processTextToArray(character.dislikes || ''),
+    notes: processedNotes,
+  };
+};
+
+export const processLoadedData = (parsedData: any): CharacterCard => {
+  const source = parsedData?.data && typeof parsedData.data === 'object' ? parsedData.data : parsedData;
+  const rawSource = (source || {}) as Record<string, any>;
+  const rawData = cleanObject(rawSource, ['id', 'order', 'starred', 'meta']) as Record<string, any>;
+  const defaultCard = createDefaultCharacterCard();
+
+  const appearance: Appearance = rawData.appearance || {};
+
+  const attires: Attire[] = Array.isArray(rawData.attires)
+    ? rawData.attires.map((attire: any) => ({
         name: attire.name || '',
         description: attire.description || '',
         tops: attire.tops || '',
@@ -58,7 +78,6 @@ export const processLoadedData = (parsedData: any): CharacterCard => {
         shoes: attire.shoes || '',
         socks: attire.socks || '',
         underwears: attire.underwears || '',
-        // 处理配饰：数组转为多行文本
         accessories: Array.isArray(attire.accessories)
           ? attire.accessories.join('\n')
           : typeof attire.accessories === 'string'
@@ -67,9 +86,8 @@ export const processLoadedData = (parsedData: any): CharacterCard => {
       }))
     : [];
 
-  // 处理性格特质
-  const traits: Trait[] = Array.isArray(parsedData.traits)
-    ? parsedData.traits.map((trait: any) => ({
+  const traits: Trait[] = Array.isArray(rawData.traits)
+    ? rawData.traits.map((trait: any) => ({
         name: trait.name || '',
         description: trait.description || '',
         dialogueExamples: Array.isArray(trait.dialogueExamples) ? trait.dialogueExamples : [''],
@@ -77,9 +95,8 @@ export const processLoadedData = (parsedData: any): CharacterCard => {
       }))
     : [];
 
-  // 处理人际关系
-  const relationships: Relationship[] = Array.isArray(parsedData.relationships)
-    ? parsedData.relationships.map((rel: any) => ({
+  const relationships: Relationship[] = Array.isArray(rawData.relationships)
+    ? rawData.relationships.map((rel: any) => ({
         name: rel.name || '',
         description: rel.description || '',
         features: rel.features || '',
@@ -87,37 +104,35 @@ export const processLoadedData = (parsedData: any): CharacterCard => {
       }))
     : [];
 
-  // 处理技能
-  const skills: Skill[] = Array.isArray(parsedData.skills)
-    ? parsedData.skills.map((skill: any) => ({
+  const skills: Skill[] = Array.isArray(rawData.skills)
+    ? rawData.skills.map((skill: any) => ({
         name: skill.name || '',
+        type: skill.type || '',
         description: skill.description || '',
         dialogExample: skill.dialogExample || '',
         behaviorExample: skill.behaviorExample || '',
       }))
     : [];
 
-  // 4位数字ID生成器 (1000-9999)
+  let notes: Note[] = [];
   const generateNoteId = (): number => {
     const existingIds = new Set(notes.map((note) => note.id));
     let newId: number;
     do {
-      newId = Math.floor(Math.random() * 9000) + 1000; // 1000-9999
+      newId = Math.floor(Math.random() * 9000) + 1000;
     } while (existingIds.has(newId));
     return newId;
   };
 
-  // 处理角色备注
-  let notes: Note[] = [];
-  if (parsedData.notes) {
-    if (Array.isArray(parsedData.notes)) {
-      notes = parsedData.notes.map((note: any) => ({
+  if (rawData.notes) {
+    if (Array.isArray(rawData.notes)) {
+      notes = rawData.notes.map((note: any) => ({
         id: note.id || generateNoteId(),
         name: note.name || '',
         data: Array.isArray(note.data) ? note.data : [''],
       }));
-    } else if (typeof parsedData.notes === 'object') {
-      notes = Object.entries(parsedData.notes).map(([key, note]: [string, any]) => {
+    } else if (typeof rawData.notes === 'object') {
+      notes = Object.entries(rawData.notes).map(([key, note]: [string, any]) => {
         const id = note.id ? Number(note.id) : isNaN(Number(key)) ? generateNoteId() : Number(key);
         return {
           id: id,
@@ -128,100 +143,66 @@ export const processLoadedData = (parsedData: any): CharacterCard => {
     }
   }
 
-  // 返回转换后的数据
-  return {
-    chineseName: parsedData.chineseName || '',
-    japaneseName: parsedData.japaneseName || '',
-    gender: parsedData.gender || '',
-    customGender: parsedData.customGender || '',
-    age: Number(parsedData.age) || 0,
-    identity: Array.isArray(parsedData.identity) ? arrayToText(parsedData.identity) : parsedData.identity || '',
-    background: Array.isArray(parsedData.background) ? arrayToText(parsedData.background) : parsedData.background || '',
+  const data: CharacterData = {
+    chineseName: rawData.chineseName || '',
+    japaneseName: rawData.japaneseName || '',
+    gender: rawData.gender || '',
+    customGender: rawData.customGender || '',
+    age: Number(rawData.age) || 0,
+    identity: Array.isArray(rawData.identity) ? arrayToText(rawData.identity) : rawData.identity || '',
+    background: Array.isArray(rawData.background) ? arrayToText(rawData.background) : rawData.background || '',
     appearance,
     attires,
-    mbti: parsedData.mbti || '',
+    mbti: rawData.mbti || '',
     traits,
     relationships,
-    likes: Array.isArray(parsedData.likes) ? arrayToText(parsedData.likes) : parsedData.likes || '',
-    dislikes: Array.isArray(parsedData.dislikes) ? arrayToText(parsedData.dislikes) : parsedData.dislikes || '',
+    likes: Array.isArray(rawData.likes) ? arrayToText(rawData.likes) : rawData.likes || '',
+    dislikes: Array.isArray(rawData.dislikes) ? arrayToText(rawData.dislikes) : rawData.dislikes || '',
     dailyRoutine: {
-      earlyMorning: parsedData.dailyRoutine?.earlyMorning || '',
-      morning: parsedData.dailyRoutine?.morning || '',
-      afternoon: parsedData.dailyRoutine?.afternoon || '',
-      evening: parsedData.dailyRoutine?.evening || '',
-      night: parsedData.dailyRoutine?.night || '',
-      lateNight: parsedData.dailyRoutine?.lateNight || '',
+      earlyMorning: rawData.dailyRoutine?.earlyMorning || '',
+      morning: rawData.dailyRoutine?.morning || '',
+      afternoon: rawData.dailyRoutine?.afternoon || '',
+      evening: rawData.dailyRoutine?.evening || '',
+      night: rawData.dailyRoutine?.night || '',
+      lateNight: rawData.dailyRoutine?.lateNight || '',
     },
     skills,
     notes,
   };
+
+  return {
+    meta: {
+      ...defaultCard.meta,
+    },
+    data,
+  };
 };
 
-/**
- * 准备用于导出的角色卡数据，移除内部使用的字段（如 id）
- * @param character - 原始角色卡数据
- * @returns 清理后的角色卡数据
- */
-const prepareForExport = (character: CharacterCard): Partial<CharacterCard> => {
-  const exportData = { ...character };
-  delete exportData.id;
-  return exportData;
+const prepareForExport = (character: CharacterCard): CharacterData => {
+  const cleaned = cleanObject(character, ['meta']) as { data?: CharacterData };
+  return { ...(cleaned.data || character.data) };
 };
 
 export function useCardDataHandler(form: Ref<CharacterCard>) {
   const saveCharacterCard = async (): Promise<void> => {
     try {
-      // 准备导出数据
       const characterToExport = prepareForExport(form.value);
+      const rawData = toSerializableCharacterData(characterToExport, { includeIdentityAsArray: false });
 
-      // 处理服装数据
-      const processedAttires =
-        characterToExport.attires?.map((attire: Attire) => ({
-          ...attire,
-          accessories: processAccessories(attire.accessories),
-        })) || [];
-
-      // 处理原始数据
-      const processedNotes =
-        characterToExport.notes?.reduce(
-          (acc: Record<string, { name: string; data: string[] }>, note: Note) => {
-            if (note.name) {
-              acc[note.id.toString()] = {
-                name: note.name,
-                data: note.data.filter((d: string) => d.trim() !== ''),
-              };
-            }
-            return acc;
-          },
-          {} as Record<string, { name: string; data: string[] }>
-        ) || {};
-
-      const rawData = {
-        ...characterToExport,
-        attires: processedAttires,
-        gender: characterToExport.gender === 'other' ? characterToExport.customGender : characterToExport.gender,
-        background: processTextToArray(characterToExport.background || ''),
-        likes: processTextToArray(characterToExport.likes || ''),
-        dislikes: processTextToArray(characterToExport.dislikes || ''),
-        notes: processedNotes,
-      };
-
-      // 过滤空值
       const dataToSave = removeEmptyFields(rawData);
 
-      // 验证数据
       if (!dataToSave || Object.keys(dataToSave).length === 0) {
         ElMessage.warning('没有可保存的数据，请先填写角色卡信息');
         return;
       }
 
-      // 生成随机数作为文件名的一部分
       const generateRandomNumber = (): number => Math.floor(10000000 + Math.random() * 90000000);
-
-      // 创建并保存文件
       const jsonData = JSON.stringify(dataToSave, null, 2);
-      const blob = new Blob([jsonData], { type: 'application/json' });
-      saveAs(blob, `${form.value.chineseName || 'character_card'}_${generateRandomNumber()}.json`);
+      await saveFile({
+        data: new TextEncoder().encode(jsonData),
+        fileName: `${form.value.data.chineseName || 'character_card'}_${generateRandomNumber()}.json`,
+        mimeType: 'application/json',
+      });
 
       ElMessage.success('角色卡保存成功！');
     } catch (error) {
@@ -232,35 +213,28 @@ export function useCardDataHandler(form: Ref<CharacterCard>) {
 
   const loadCharacterCard = async (): Promise<void> => {
     try {
-      // 创建文件输入元素
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = '.json';
 
-      // 设置文件选择事件处理
       input.onchange = async (event) => {
         const file = (event.target as HTMLInputElement).files?.[0];
         if (!file) return;
 
         try {
-          // 读取并解析文件内容
           const content = await file.text();
           const parsedData = JSON.parse(content);
+          const convertedData = processLoadedData(parsedData);
 
-          // 验证基本结构
-          if (!parsedData.chineseName) {
+          if (!convertedData.data.chineseName && !convertedData.data.japaneseName) {
             throw new Error('无效的角色卡文件格式');
           }
 
-          // 处理数据并更新表单
-          const convertedData = processLoadedData(parsedData);
-
-          // 保留当前角色的 ID，确保导入数据能正确更新现有角色
-          const currentId = form.value.id;
-          convertedData.id = currentId;
+          convertedData.meta.id = form.value.meta.id;
+          convertedData.meta.order = form.value.meta.order;
+          convertedData.meta.starred = form.value.meta.starred;
 
           form.value = convertedData;
-
           ElMessage.success('角色卡加载成功！');
         } catch (error) {
           console.error('JSON文件导入失败:', error);
@@ -281,9 +255,7 @@ export function useCardDataHandler(form: Ref<CharacterCard>) {
       type: 'warning',
     })
       .then(() => {
-        // 清除本地存储的数据
         clearLocalStorage();
-        // 完全重置表单数据，包括自定义字段
         const newForm = createDefaultCharacterCard();
         const standardFields = {
           height: '',
@@ -306,9 +278,8 @@ export function useCardDataHandler(form: Ref<CharacterCard>) {
           feet: '',
         };
 
-        newForm.appearance = { ...standardFields };
+        newForm.data.appearance = { ...standardFields };
         form.value = newForm;
-
         ElMessage.success('数据已重置，包括自定义字段');
       })
       .catch(() => {
@@ -317,80 +288,32 @@ export function useCardDataHandler(form: Ref<CharacterCard>) {
   };
 
   const copyToClipboard = async (): Promise<void> => {
-    // 准备导出数据
     const characterToExport = prepareForExport(form.value);
+    const rawData = toSerializableCharacterData(characterToExport, { includeIdentityAsArray: true });
 
-    // 处理服装数据
-    const processedAttires =
-      characterToExport.attires?.map((attire: Attire) => ({
-        ...attire,
-        accessories:
-          typeof attire.accessories === 'string'
-            ? attire.accessories.split('\n').filter((a: string) => a.trim() !== '')
-            : attire.accessories || [],
-      })) || [];
-
-    // 处理原始数据
-    const processedNotes =
-      characterToExport.notes?.reduce(
-        (acc: Record<string, { name: string; data: string[] }>, note: Note) => {
-          if (note.name) {
-            acc[note.id.toString()] = {
-              name: note.name,
-              data: note.data.filter((d: string) => d.trim() !== ''),
-            };
-          }
-          return acc;
-        },
-        {} as Record<string, { name: string; data: string[] }>
-      ) || {};
-
-    const rawData = {
-      ...characterToExport,
-      attires: processedAttires,
-      gender: characterToExport.gender === 'other' ? characterToExport.customGender : characterToExport.gender,
-      identity: processTextToArray(characterToExport.identity || ''),
-      background: processTextToArray(characterToExport.background || ''),
-      likes: processTextToArray(characterToExport.likes || ''),
-      dislikes: processTextToArray(characterToExport.dislikes || ''),
-      notes: processedNotes,
-    };
-
-    // 过滤空值
     const dataToSave = removeEmptyFields(rawData);
-
-    // 验证数据
     if (!dataToSave || Object.keys(dataToSave).length === 0) {
       ElMessage.warning('没有可复制的数据，请先填写角色卡信息');
       return;
     }
 
-    // 复制到剪贴板
     const jsonData = JSON.stringify(dataToSave, null, 2);
     await copyUtil(jsonData, '已复制到剪贴板！', '复制失败');
   };
 
   const importFromClipboard = async (data: string): Promise<void> => {
     try {
-      // 保存当前角色的 ID
-      const currentId = form.value.id;
-
-      // 先重置表单
+      const currentMeta = { ...form.value.meta };
       form.value = createDefaultCharacterCard();
 
       const parsedData = JSON.parse(data);
+      const convertedData = processLoadedData(parsedData);
 
-      // 验证基本结构
-      if (!parsedData.chineseName) {
+      if (!convertedData.data.chineseName && !convertedData.data.japaneseName) {
         throw new Error('剪贴板内容不是有效的角色卡数据');
       }
 
-      // 处理数据并更新表单
-      const convertedData = processLoadedData(parsedData);
-
-      // 保留当前角色的 ID，确保导入数据能正确更新现有角色
-      convertedData.id = currentId;
-
+      convertedData.meta = currentMeta;
       form.value = convertedData;
 
       ElMessage.success('从剪贴板导入成功！');

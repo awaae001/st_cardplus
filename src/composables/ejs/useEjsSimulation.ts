@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import type { Ref } from 'vue';
-import * as ejs from 'ejs';
+import ejs from 'ejs';
 import type { LogicBlock } from '@/types/ejs-editor';
 
 export function useEjsSimulation(ejsTemplate: Ref<string>, logicBlocks: Ref<LogicBlock[]>) {
@@ -83,7 +83,7 @@ export function useEjsSimulation(ejsTemplate: Ref<string>, logicBlocks: Ref<Logi
         );
 
         if (anyMatch) {
-          testResult.value = ''; // 有匹配但内容为空
+          testResult.value = '';
         } else {
           const defaultContent = logicBlocks.value.find((b) => b.enabled)?.defaultStageContent;
           testResult.value = defaultContent || '// 默认情况';

@@ -56,13 +56,13 @@
           >
             <el-input
               :model-value="dataItem"
-              @update:model-value="(value) => handleUpdateNoteData(note.id, dataIndex, value)"
+              @update:model-value="(value) => handleUpdateNoteData(note.id, Number(dataIndex), value)"
               type="textarea"
               :rows="2"
-              :placeholder="`备注内容 ${dataIndex + 1}`"
+              :placeholder="`备注内容 ${Number(dataIndex) + 1}`"
             />
             <el-button
-              @click="handleRemoveNoteDataItem(note.id, dataIndex)"
+              @click="handleRemoveNoteDataItem(note.id, Number(dataIndex))"
               size="small"
             >
               <Icon

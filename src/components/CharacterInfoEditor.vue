@@ -2,7 +2,7 @@
   <el-scrollbar class="character-card-editor-scrollbar">
     <div class="content-panel-body">
       <CharacterCardButtons
-        :characterName="form.chineseName"
+        :characterName="form.data.chineseName"
         @saveCharacterCard="saveCharacterCard"
         @loadCharacterCard="loadCharacterCard"
         @resetForm="resetForm"
@@ -10,25 +10,40 @@
         @importFromClipboard="(data) => importFromClipboard(data)"
       />
       <el-form
-        :model="form"
+        :model="form.data"
         label-position="top"
         ref="characterFormRef"
         class="character-card-editor-form"
       >
         <section class="form-section">
-          <h3 class="form-section-title">
-            <Icon
-              icon="ph:info-duotone"
-              class="form-section-icon"
-            />
-            基本信息
-          </h3>
+          <div class="title-Btn-add form-section-title">
+            <h3 class="title-fixed">
+              <Icon
+                icon="ph:info-duotone"
+                class="form-section-icon"
+              />
+              基本信息
+            </h3>
+            <div style="display: flex; gap: 8px; margin-left: 16px">
+              <el-button
+                type="success"
+                @click="exportBasicInfo"
+                title="导出基本信息"
+              >
+                <Icon
+                  icon="material-symbols:content-copy-outline"
+                  width="18"
+                  height="18"
+                />
+              </el-button>
+            </div>
+          </div>
           <div class="form-section-content">
             <div class="form-row-responsive">
               <div class="form-group-responsive">
                 <label class="form-label">中文名</label>
                 <el-input
-                  v-model="form.chineseName"
+                  v-model="form.data.chineseName"
                   placeholder="请输入中文名"
                 />
               </div>
@@ -37,7 +52,7 @@
               <div class="form-group-responsive">
                 <label class="form-label">性别</label>
                 <el-select
-                  v-model="form.gender"
+                  v-model="form.data.gender"
                   placeholder="请选择性别"
                   class="form-full-width"
                 >
@@ -79,8 +94,8 @@
                   />
                 </el-select>
                 <el-input
-                  v-if="form.gender === 'other'"
-                  v-model="form.customGender"
+                  v-if="form.data.gender === 'other'"
+                  v-model="form.data.customGender"
                   placeholder="请输入角色的性别（other）"
                   style="margin-top: 10px"
                 />
@@ -88,7 +103,7 @@
               <div class="form-group-responsive">
                 <label class="form-label">年龄</label>
                 <el-input-number
-                  v-model="form.age"
+                  v-model="form.data.age"
                   controls-position="right"
                   :min="-Infinity"
                   :max="Infinity"
@@ -101,7 +116,7 @@
             <div>
               <label class="form-label">身份</label>
               <el-input
-                v-model="form.identity"
+                v-model="form.data.identity"
                 type="textarea"
                 :rows="5"
                 placeholder="请输入身份 · 一行一条"
@@ -122,7 +137,7 @@
             <div>
               <label class="form-label">背景故事</label>
               <el-input
-                v-model="form.background"
+                v-model="form.data.background"
                 type="textarea"
                 :rows="6"
                 placeholder="请输入背景故事（每行一条）"
@@ -149,7 +164,7 @@
               </div>
               <p class="form-help-text">必须是有效的MBTI数值或者是 none</p>
               <el-input
-                v-model="form.mbti"
+                v-model="form.data.mbti"
                 placeholder="请输入MBTI性格"
               />
             </div>
@@ -165,11 +180,12 @@
             name="appearance"
           >
             <AppearanceAndAttireTab
-              :form="form"
+              :form="form.data"
               @addAttire="addAttire"
               @removeAttire="removeAttire"
+              @exportAppearance="exportAppearance"
               @exportAttires="exportAttires"
-              v-model:attires="form.attires"
+              v-model:attires="form.data.attires"
             />
           </el-tab-pane>
           <el-tab-pane
@@ -177,19 +193,19 @@
             name="traits"
           >
             <TraitsTab
-              :form="form"
+              :form="form.data"
               @addTrait="addTrait"
               @removeTrait="removeTrait"
               @exportTraits="exportTraits"
-              v-model:traits="form.traits"
+              v-model:traits="form.data.traits"
               @addRelationship="addRelationship"
               @removeRelationship="removeRelationship"
               @exportRelationships="exportRelationships"
-              v-model:relationships="form.relationships"
+              v-model:relationships="form.data.relationships"
               @addSkill="addSkill"
               @removeSkill="removeSkill"
               @exportSkills="exportSkills"
-              v-model:skills="form.skills"
+              v-model:skills="form.data.skills"
             />
           </el-tab-pane>
           <el-tab-pane
@@ -197,10 +213,10 @@
             name="notes"
           >
             <DailyAndNotesTab
-              :form="form"
-              @update:form-likes="form.likes = $event"
-              @update:form-dislikes="form.dislikes = $event"
-              @update:notes="form.notes = $event"
+              :form="form.data"
+              @update:form-likes="form.data.likes = $event"
+              @update:form-dislikes="form.data.dislikes = $event"
+              @update:notes="form.data.notes = $event"
             />
           </el-tab-pane>
         </el-tabs>
@@ -248,13 +264,13 @@ let isUpdatingFromProps = false;
 watch(
   () => props.character,
   (newCharacter) => {
-    if (newCharacter && newCharacter.id !== form.value.id) {
+    if (newCharacter && newCharacter.meta.id !== form.value.meta.id) {
       isUpdatingFromProps = true;
       form.value = JSON.parse(JSON.stringify(newCharacter)); // 深度克隆
       nextTick(() => {
         isUpdatingFromProps = false;
       });
-    } else if (newCharacter && newCharacter.id === form.value.id) {
+    } else if (newCharacter && newCharacter.meta.id === form.value.meta.id) {
       const currentFormJson = JSON.stringify(form.value);
       const newCharacterJson = JSON.stringify(newCharacter);
       if (currentFormJson !== newCharacterJson) {
@@ -273,12 +289,12 @@ watch(
   form,
   (updatedCharacter) => {
     if (!isUpdatingFromProps) {
-      if (!updatedCharacter.id && props.character?.id) {
+      if (!updatedCharacter.meta.id && props.character?.meta?.id) {
         console.warn('CharacterInfoEditor: form 缺少 ID，从 props 恢复');
-        updatedCharacter.id = props.character.id;
+        updatedCharacter.meta.id = props.character.meta.id;
       }
 
-      if (updatedCharacter.id) {
+      if (updatedCharacter.meta.id) {
         emit('update:character', JSON.parse(JSON.stringify(updatedCharacter))); // 深度克隆
       } else {
         console.error('CharacterInfoEditor: 无法更新角色，缺少 ID');
@@ -292,6 +308,7 @@ const { saveCharacterCard, loadCharacterCard, resetForm, copyToClipboard, import
   useCardDataHandler(form);
 
 const {
+  exportBasicInfo,
   addTrait,
   removeTrait,
   addSkill,
@@ -300,6 +317,7 @@ const {
   removeRelationship,
   addAttire,
   removeAttire,
+  exportAppearance,
   exportAttires,
   exportSkills,
   exportTraits,
@@ -337,12 +355,12 @@ const mbtiDescriptions: MBTIDescriptions = {
 };
 
 const validateMBTI = () => {
-  if (!form.value.mbti) {
+  if (!form.value.data.mbti) {
     ElMessageBox.alert('请输入MBTI类型', '警告');
     return;
   }
-  const type = form.value.mbti.toUpperCase();
-  if (isValidMBTI(form.value.mbti)) {
+  const type = form.value.data.mbti.toUpperCase();
+  if (isValidMBTI(form.value.data.mbti)) {
     const description = mbtiDescriptions[type] || mbtiDescriptions['none'];
     ElMessageBox.alert(`MBTI格式正确，类型：${type} - ${description}`, '正确');
   } else {
@@ -351,11 +369,13 @@ const validateMBTI = () => {
 };
 
 defineExpose({
+  exportBasicInfo,
   saveCharacterCard,
   loadCharacterCard,
   resetForm,
   addAttire,
   removeAttire,
+  exportAppearance,
   exportAttires,
   copyToClipboard,
   importFromClipboard,
@@ -394,6 +414,19 @@ defineExpose({
   margin: 0 0 16px 0;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--el-border-color-lighter);
+}
+
+.title-Btn-add {
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.title-fixed {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
 }
 
 .character-card-editor-form .form-section-icon {

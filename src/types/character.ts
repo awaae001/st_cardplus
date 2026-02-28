@@ -79,13 +79,20 @@ export interface Note {
 }
 
 /**
- * 角色卡主接口定义
- * 包含角色的所有信息
+ * 角色元数据接口定义
+ * 用于本地管理与排序
  */
-export interface CharacterCard {
+export interface CharacterMetadata {
   id?: string; // 唯一标识符，用于本地管理
   order?: number; // 列表排序值
   starred?: boolean; // 星标置顶
+}
+
+/**
+ * 角色核心数据接口定义
+ * 包含角色的业务数据（不含元数据）
+ */
+export interface CharacterData {
   chineseName: string; // 中文名
   japaneseName: string; // 日文名
   gender: string; // 性别
@@ -103,4 +110,13 @@ export interface CharacterCard {
   dailyRoutine: { [key: string]: string }; // 日常作息
   skills: Skill[]; // 技能
   notes: Note[]; // 角色备注
+}
+
+/**
+ * 角色卡主接口定义
+ * 顶层分离元数据与业务数据，便于后续扩展
+ */
+export interface CharacterCard {
+  meta: CharacterMetadata;
+  data: CharacterData;
 }

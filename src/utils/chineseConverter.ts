@@ -5,6 +5,7 @@
 
 import * as OpenCC from 'opencc-js';
 import { read, write } from './pngCardMetadata';
+import { saveFile } from './fileSave';
 
 /**
  * 支持的转换配置
@@ -234,32 +235,21 @@ export async function convertPngCharacterCardBatch(
  * @param result 转换结果
  * @param originalFileName 原始文件名
  */
-export function downloadConvertedPng(result: ConversionResult, originalFileName?: string): void {
+export async function downloadConvertedPng(result: ConversionResult, originalFileName?: string): Promise<void> {
   if (!result.success || !result.convertedData) {
     throw new Error('转换未成功或数据不可用');
   }
-
-  // 创建 Blob
-  const blob = new Blob([result.convertedData.slice()], { type: 'image/png' });
 
   // 生成下载文件名（添加后缀以区分）
   const fileName = originalFileName || result.fileName;
   const baseName = fileName.replace(/\.png$/i, '');
   const newFileName = `${baseName}_converted.png`;
 
-  // 创建下载链接
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = newFileName;
-
-  // 触发下载
-  document.body.appendChild(link);
-  link.click();
-
-  // 清理
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  await saveFile({
+    data: result.convertedData.slice(),
+    fileName: newFileName,
+    mimeType: 'image/png',
+  });
 }
 
 /**
@@ -272,7 +262,7 @@ export async function downloadConvertedPngBatch(results: ConversionResult[], del
 
   for (let i = 0; i < successResults.length; i++) {
     const result = successResults[i];
-    downloadConvertedPng(result, result.fileName);
+    await downloadConvertedPng(result, result.fileName);
 
     // 延迟以避免浏览器阻止多个下载
     if (i < successResults.length - 1) {

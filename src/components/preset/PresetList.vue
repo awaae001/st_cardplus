@@ -10,6 +10,7 @@
     :allow-drop="props.dragDropHandlers.allowDrop"
     :handle-node-drop="props.dragDropHandlers.handleNodeDrop"
     @node-click="handleNodeClick"
+    @node-dblclick="handleNodeDblClick"
   >
     <template #header-actions>
       <el-tooltip
@@ -232,6 +233,7 @@ const emit = defineEmits<{
   (e: 'select-preset', id: string): void;
   (e: 'select-header', id: string): void;
   (e: 'select-prompt', presetId: string, promptIndex: number): void;
+  (e: 'toggle-prompt-enabled', presetId: string, promptIndex: number): void;
   (e: 'toggle-node-selection', data: any, additive: boolean): void;
   (e: 'create-preset'): void;
   (e: 'create-blank'): void;
@@ -280,6 +282,12 @@ const handleNodeClick = (data: any, context?: { event?: MouseEvent }) => {
   }
 };
 
+const handleNodeDblClick = (data: any) => {
+  if (data?.isPrompt && !isFullyLockedPrompt(data.raw)) {
+    emit('toggle-prompt-enabled', data.presetId, data.promptIndex);
+  }
+};
+
 const isMultiSelected = (data: any) => {
   const nodeKey = data?.nodeKey;
   if (!nodeKey) return false;
@@ -294,6 +302,11 @@ const handleImportPreset = (file: File): boolean => {
 const isProtectedPrompt = (prompt: Record<string, any> | undefined) => {
   if (!prompt) return false;
   return Boolean(prompt.system_prompt === true);
+};
+
+const isFullyLockedPrompt = (prompt: Record<string, any> | undefined) => {
+  const identifier = typeof prompt?.identifier === 'string' ? prompt.identifier : '';
+  return identifier === 'dialogueExamples' || identifier === 'chatHistory';
 };
 </script>
 

@@ -126,6 +126,7 @@
                 @select-preset="handleSelectPreset"
                 @select-header="handleSelectHeader"
                 @select-prompt="handleSelectPrompt"
+                @toggle-prompt-enabled="togglePromptEnabled"
                 @toggle-node-selection="handleToggleNodeSelection"
                 @add-prompt="addPrompt"
                 @duplicate-prompt="duplicatePrompt"
@@ -186,6 +187,7 @@
           @select-preset="handleSelectPreset"
           @select-header="handleSelectHeader"
           @select-prompt="handleSelectPrompt"
+          @toggle-prompt-enabled="togglePromptEnabled"
           @toggle-node-selection="handleToggleNodeSelection"
           @add-prompt="addPrompt"
           @duplicate-prompt="duplicatePrompt"
@@ -269,14 +271,13 @@ import {
   upsertPromptOrderEntry,
 } from '@/composables/preset/utils/presetPromptOrder';
 import { useDevice } from '@/composables/useDevice';
-import { getSessionStorageItem, setSessionStorageValue } from '@/utils/localStorageUtils';
 import { Icon } from '@iconify/vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
-import { saveAs } from 'file-saver';
+import { ElMessage} from 'element-plus';
+import { saveFile } from '@/utils/fileSave';
 import { Pane, Splitpanes } from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
 import { v4 as uuidv4 } from 'uuid';
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
 const { isMobileOrTablet } = useDevice();
 const {
@@ -298,6 +299,7 @@ const {
   removePrompt,
   updateHeader,
   updatePrompt,
+  togglePromptEnabled,
   reorderPresets,
   updatePromptOrder,
 } = usePresetStore();
@@ -315,7 +317,6 @@ const {
 const rightPanelTab = ref<'clipboard' | 'preview'>('clipboard');
 const mobileDrawerVisible = ref(false);
 const mobilePanelTab = ref<'list' | 'clipboard' | 'preview'>('list');
-const BETA_NOTICE_KEY = 'preset-editor-beta-notice-session-v1';
 const selectedIsHeader = computed(() => selected.value?.type === 'header');
 const selectedPromptIndex = computed(() => selected.value?.promptIndex ?? null);
 const orderedPresets = computed(() => presets.value.slice().sort((a, b) => (a.order ?? 0) - (b.order ?? 0)));
@@ -423,7 +424,7 @@ const goToNext = () => {
   goToNextPrompt();
 };
 
-const handleExportPreset = () => {
+const handleExportPreset = async () => {
   if (!activePreset.value) {
     ElMessage.warning('请先选择一个预设');
     return;
@@ -440,8 +441,11 @@ const handleExportPreset = () => {
     prompt_order: promptOrder,
   };
   const data = JSON.stringify(exportData, null, 2);
-  const blob = new Blob([data], { type: 'application/json;charset=utf-8' });
-  saveAs(blob, filename);
+  await saveFile({
+    data: new TextEncoder().encode(data),
+    fileName: filename,
+    mimeType: 'application/json;charset=utf-8',
+  });
   ElMessage.success('预设已导出');
 };
 
@@ -482,23 +486,6 @@ const replaceEditor = (content: string) => {
   if (!selectedPrompt.value) return;
   editorState.value = { ...editorState.value, promptContent: content };
 };
-
-const showBetaNotice = async () => {
-  if (getSessionStorageItem(BETA_NOTICE_KEY)) return;
-  try {
-    await ElMessageBox.alert(
-      '预设编辑器目前为测试版，功能仍在完善中。建议先备份重要预设再编辑，如遇问题请反馈。',
-      '测试版提示',
-      { confirmButtonText: '我知道了', type: 'warning' }
-    );
-  } finally {
-    setSessionStorageValue(BETA_NOTICE_KEY, true);
-  }
-};
-
-onMounted(() => {
-  showBetaNotice();
-});
 
 watch(
   [activePresetId, selected, activePreset],

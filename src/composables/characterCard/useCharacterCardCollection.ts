@@ -6,6 +6,7 @@ import type { CharacterCardV3 } from '@/types/character-card-v3';
 import type { CharacterCardCollection, CharacterCardItem } from '@/types/character-card-collection';
 import { characterCardService, type StoredCharacterCard } from '@/database/characterCardService';
 import { nowIso } from '@/utils/datetime';
+import { saveFile } from '@/utils/fileSave';
 
 export function useCharacterCardCollection() {
   const characterCardCollection = ref<CharacterCardCollection>({
@@ -315,17 +316,11 @@ export function useCharacterCardCollection() {
       const { id, createdAt, updatedAt, order, ...exportData } = card;
       const jsonDataString = JSON.stringify(exportData, null, 2);
 
-      const blob = new Blob([jsonDataString], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${card.name || 'character'}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      URL.revokeObjectURL(url);
+      await saveFile({
+        data: new TextEncoder().encode(jsonDataString),
+        fileName: `${card.name || 'character'}.json`,
+        mimeType: 'application/json',
+      });
       ElMessage.success('角色卡已成功导出！');
     } catch (error) {
       console.error('导出角色卡失败:', error);
@@ -338,17 +333,11 @@ export function useCharacterCardCollection() {
       const exportData = await characterCardService.exportDatabase();
       const jsonDataString = JSON.stringify(exportData, null, 2);
 
-      const blob = new Blob([jsonDataString], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `character-cards-${nowIso().split('T')[0]}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      URL.revokeObjectURL(url);
+      await saveFile({
+        data: new TextEncoder().encode(jsonDataString),
+        fileName: `character-cards-${nowIso().split('T')[0]}.json`,
+        mimeType: 'application/json',
+      });
       ElMessage.success('所有角色卡已成功导出！');
     } catch (error) {
       console.error('导出失败:', error);

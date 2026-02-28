@@ -2,6 +2,7 @@ import { ElMessage } from 'element-plus';
 import { cleanObject } from '@/utils/objectUtils';
 import type { Project, EnhancedLandmark, EnhancedForce } from '@/types/world-editor';
 import type { Ref } from 'vue';
+import { saveFile } from '@/utils/fileSave';
 
 type WorldEditorItem = Project | EnhancedLandmark | EnhancedForce;
 
@@ -10,19 +11,15 @@ export function useFileSystem(selectedItem: Ref<WorldEditorItem | null>, updateS
     return cleanObject(item, ['id', 'imageUrl', 'createdAt', 'updatedAt', 'version'], ['_']);
   };
 
-  const handleSaveToFile = () => {
+  const handleSaveToFile = async () => {
     if (!selectedItem.value) return;
     const cleanItem = sanitizeItem(selectedItem.value);
     const dataStr = JSON.stringify(cleanItem, null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${selectedItem.value.name || 'world-item'}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    await saveFile({
+      data: new TextEncoder().encode(dataStr),
+      fileName: `${selectedItem.value.name || 'world-item'}.json`,
+      mimeType: 'application/json',
+    });
     ElMessage.success('已导出为 JSON 文件 ');
   };
 

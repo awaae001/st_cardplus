@@ -1,4 +1,6 @@
 const DEFAULT_LOCALE = 'zh-CN';
+const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
 export function now(): Date {
   return new Date();
 }
@@ -10,6 +12,10 @@ export function nowIso(): string {
 export function toDateSafe(input: string | number | Date | null | undefined): Date | null {
   if (input === null || input === undefined || input === '') {
     return null;
+  }
+  if (typeof input === 'string' && DATE_ONLY_PATTERN.test(input)) {
+    const [year, month, day] = input.split('-').map(Number);
+    return new Date(year, month - 1, day);
   }
   const date = input instanceof Date ? input : new Date(input);
   return Number.isNaN(date.getTime()) ? null : date;
