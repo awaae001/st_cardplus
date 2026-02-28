@@ -100,7 +100,7 @@ jobs:
         workspaces: src-tauri -> target
 
     - name: Build Windows installers
-      run: pnpm tauri build --bundles nsis,msi
+      run: pnpm build:desktop
 
     - name: Upload Windows NSIS installer artifact
       uses: actions/upload-artifact@v4
