@@ -31,14 +31,12 @@ interface AppSettingsModels {
   betaFeaturesEnabled: Ref<boolean>;
   useOldSidebar: Ref<boolean>;
   useOldWorldEditor: Ref<boolean>;
-  umamiEnabled: Ref<boolean>;
   autoSaveInterval: Ref<number>;
   autoSaveDebounce: Ref<number>;
 }
 interface AppSettingsHandlers {
   onBetaFeaturesToggle: (value: boolean) => void;
   onUseOldWorldEditorToggle: (value: boolean) => void;
-  onUmamiToggle: (value: boolean) => void;
   onAutoSaveIntervalChange: (value: number | undefined) => void;
   onAutoSaveDebounceChange: (value: number | undefined) => void;
 }
@@ -64,16 +62,6 @@ export const getAppSettings = (models: AppSettingsModels, handlers: AppSettingsH
       type: 'switch',
       model: models.useOldWorldEditor,
       handler: handlers.onUseOldWorldEditorToggle,
-    },
-    {
-      id: 'umamiEnabled',
-      label: 'umami匿名遥测',
-      icon: 'material-symbols:analytics-outline',
-      iconColor: 'var(--el-color-info)',
-      description: '开启后将收集匿名使用数据以帮助改进应用，不会收集任何个人信息或角色卡内容 ',
-      type: 'switch',
-      model: models.umamiEnabled,
-      handler: handlers.onUmamiToggle,
     },
     {
       id: 'autoSaveInterval',

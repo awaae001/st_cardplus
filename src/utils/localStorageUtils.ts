@@ -14,7 +14,6 @@ export type { MenuItemConfig, MenuItemType, SidebarConfig };
 
 interface AppSettings {
   betaFeaturesEnabled: boolean;
-  umamiEnabled: boolean;
   autoSaveInterval: number;
   autoSaveDebounce: number;
   useOldWorldEditor: boolean;
@@ -231,7 +230,6 @@ export const writeSessionStorageJSON = (key: string, value: unknown): void => {
 // 使用统一配置文件中的默认配置
 const defaultSettings: AppSettings = {
   betaFeaturesEnabled: false,
-  umamiEnabled: true,
   autoSaveInterval: 5,
   autoSaveDebounce: 1.5,
   useOldWorldEditor: false,
