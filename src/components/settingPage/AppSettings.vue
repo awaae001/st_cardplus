@@ -1,5 +1,23 @@
 <template>
   <el-alert
+    type="info"
+    show-icon
+    :closable="false"
+    style="margin-bottom: 12px"
+  >
+    <template #title>想要贡献？来贡献文档吧！</template>
+    <template #default>
+      文档贡献地址：
+      <a
+        href="https://github.com/awaae001/doc"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        https://github.com/awaae001/doc
+      </a>
+    </template>
+  </el-alert>
+  <el-alert
     type="warning"
     show-icon
     :closable="false"
