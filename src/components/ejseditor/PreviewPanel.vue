@@ -109,14 +109,6 @@
           >
             语法检查
           </el-button>
-          <el-button
-            size="small"
-            @click="showPreviewDialog"
-            :icon="View"
-            class="action-button"
-          >
-            全屏预览
-          </el-button>
         </template>
         <template v-else>
           <el-button-group>
@@ -133,13 +125,6 @@
               :icon="CircleCheck"
             >
               语法检查
-            </el-button>
-            <el-button
-              size="small"
-              @click="showPreviewDialog"
-              :icon="View"
-            >
-              全屏预览
             </el-button>
           </el-button-group>
         </template>
@@ -162,26 +147,6 @@
         </div>
       </div>
     </div>
-
-    <el-dialog
-      v-model="previewDialogVisible"
-      title="代码预览"
-      width="80%"
-      top="5vh"
-    >
-      <div class="fullscreen-preview">
-        <pre class="code-content"><code>{{ store.previewCode }}</code></pre>
-      </div>
-      <template #footer>
-        <el-button @click="previewDialogVisible = false">关闭</el-button>
-        <el-button
-          type="primary"
-          @click="copyCode"
-        >
-          复制代码
-        </el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
@@ -189,13 +154,12 @@
 import { useEjsEditorStore } from '@/composables/ejs/ejsEditor';
 import { formatDateTime } from '@/utils/datetime';
 import { useDevice } from '@/composables/useDevice';
-import { CircleCheck, CopyDocument, DocumentChecked, RefreshRight, View } from '@element-plus/icons-vue';
+import { CircleCheck, CopyDocument, DocumentChecked, RefreshRight } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import { computed, ref, watch } from 'vue';
 
 const store = useEjsEditorStore();
 const { isMobile } = useDevice();
-const previewDialogVisible = ref(false);
 const lastGeneratedTime = ref(Date.now());
 
 const lineCount = computed(() => {
@@ -287,10 +251,6 @@ function validateSyntax() {
   } catch (error) {
     ElMessage.error('语法检查失败');
   }
-}
-
-function showPreviewDialog() {
-  previewDialogVisible.value = true;
 }
 
 function formatTimestamp(timestamp: number): string {
@@ -434,19 +394,6 @@ function formatTimestamp(timestamp: number): string {
   white-space: nowrap;
 }
 
-.fullscreen-preview {
-  max-height: 70vh;
-  overflow: auto;
-  border: 1px solid var(--el-border-color-light);
-  border-radius: 6px;
-  background-color: var(--el-bg-color-page);
-}
-
-.fullscreen-preview .code-content {
-  font-size: 13px;
-  line-height: 1.6;
-}
-
 @media (max-width: 768px) {
   .preview-panel {
     padding: 8px 12px;
@@ -521,11 +468,6 @@ function formatTimestamp(timestamp: number): string {
 
 @media (prefers-color-scheme: dark) {
   .code-content {
-    background-color: #1e1e1e;
-    color: #d4d4d4;
-  }
-
-  .fullscreen-preview .code-content {
     background-color: #1e1e1e;
     color: #d4d4d4;
   }

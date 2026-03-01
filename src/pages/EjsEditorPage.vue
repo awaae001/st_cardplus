@@ -1,52 +1,5 @@
 <template>
   <div class="ejs-editor-page">
-    <!-- 顶部工具栏 -->
-    <div class="toolbar">
-      <div class="toolbar-left">
-        <h1 class="page-title">EJS 模板编辑器</h1>
-        <el-text
-          type="info"
-          size="small"
-        >
-          可视化创建动态模板
-        </el-text>
-      </div>
-      <div class="toolbar-right">
-        <el-button
-          v-if="!isMobileOrTablet"
-          @click="toggleCenterPanel"
-          :icon="centerPanelVisible ? Hide : View"
-          size="small"
-        >
-          {{ centerPanelVisible ? '隐藏编辑器' : '显示编辑器' }}
-        </el-button>
-        <el-button-group>
-          <el-button
-            :icon="DocumentAdd"
-            @click="handleImportConfig"
-            size="small"
-          >
-            导入配置
-          </el-button>
-          <el-button
-            :icon="Download"
-            @click="handleExportConfig"
-            size="small"
-          >
-            导出配置
-          </el-button>
-          <el-button
-            :icon="RefreshLeft"
-            @click="handleClearAll"
-            size="small"
-            type="warning"
-          >
-            清空
-          </el-button>
-        </el-button-group>
-      </div>
-    </div>
-
     <!-- 错误提示 -->
     <div
       v-if="store.hasErrors"
@@ -87,9 +40,37 @@
         <div class="mobile-panel-content">
           <div
             v-show="mobileActivePanel === 'projects'"
-            class="mobile-panel"
+            class="mobile-panel mobile-projects-panel"
           >
-            <ProjectManager />
+            <div class="mobile-projects-content">
+              <ProjectManager />
+            </div>
+            <div class="sidebar-actions mobile-sidebar-actions">
+              <el-button-group>
+                <el-button
+                  :icon="DocumentAdd"
+                  @click="handleImportConfig"
+                  size="small"
+                >
+                  导入配置
+                </el-button>
+                <el-button
+                  :icon="Download"
+                  @click="handleExportConfig"
+                  size="small"
+                >
+                  导出配置
+                </el-button>
+                <el-button
+                  :icon="RefreshLeft"
+                  @click="handleClearAll"
+                  size="small"
+                  type="warning"
+                >
+                  清空
+                </el-button>
+              </el-button-group>
+            </div>
           </div>
           <div
             v-show="mobileActivePanel === 'variables'"
@@ -168,18 +149,53 @@
           size="20"
         >
           <div class="sidebar-panel">
-            <el-tabs
-              v-model="activeSidebarTab"
-              class="h-full"
-            >
-              <el-tab-pane
-                label="项目管理"
-                name="projects"
+            <div class="sidebar-content">
+              <el-tabs
+                v-model="activeSidebarTab"
                 class="h-full"
               >
-                <ProjectManager />
-              </el-tab-pane>
-            </el-tabs>
+                <el-tab-pane
+                  label="项目管理"
+                  name="projects"
+                  class="h-full"
+                >
+                  <ProjectManager />
+                </el-tab-pane>
+              </el-tabs>
+            </div>
+            <div class="sidebar-actions">
+              <el-button
+                @click="toggleCenterPanel"
+                :icon="centerPanelVisible ? Hide : View"
+                size="small"
+              >
+                {{ centerPanelVisible ? '隐藏编辑器' : '显示编辑器' }}
+              </el-button>
+              <el-button-group>
+                <el-button
+                  :icon="DocumentAdd"
+                  @click="handleImportConfig"
+                  size="small"
+                >
+                  导入配置
+                </el-button>
+                <el-button
+                  :icon="Download"
+                  @click="handleExportConfig"
+                  size="small"
+                >
+                  导出配置
+                </el-button>
+                <el-button
+                  :icon="RefreshLeft"
+                  @click="handleClearAll"
+                  size="small"
+                  type="warning"
+                >
+                  清空
+                </el-button>
+              </el-button-group>
+            </div>
           </div>
         </pane>
         <!-- 左侧面板 -->
@@ -446,34 +462,6 @@ watch(
   background: var(--el-bg-color-page);
 }
 
-.toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 24px;
-  border-bottom: 1px solid var(--el-border-color-light);
-  background: var(--el-bg-color);
-}
-
-.toolbar-left {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.page-title {
-  font-size: 20px;
-  font-weight: 600;
-  margin: 0;
-  color: var(--el-text-color-primary);
-}
-
-.toolbar-right {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
 .error-banner {
   padding: 16px 24px;
   background: var(--el-color-error-light-9);
@@ -493,6 +481,31 @@ watch(
   flex-direction: column;
   background: var(--el-bg-color);
   overflow: hidden;
+}
+
+.sidebar-content {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.sidebar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid var(--el-border-color-light);
+  background: var(--el-bg-color);
+}
+
+.sidebar-actions :deep(.el-button-group) {
+  display: flex;
+  width: 100%;
+}
+
+.sidebar-actions :deep(.el-button-group .el-button) {
+  flex: 1;
+  min-width: 0;
 }
 
 .center-panel {
@@ -600,40 +613,29 @@ watch(
   -webkit-overflow-scrolling: touch;
 }
 
-/* 移动端工具栏优化 */
+.mobile-projects-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.mobile-projects-content {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mobile-sidebar-actions {
+  border-top: 1px solid var(--el-border-color-light);
+}
+
 @media screen and (max-width: 768px) {
-  .toolbar {
-    flex-direction: column;
-    padding: 12px 16px;
-    gap: 12px;
-    align-items: stretch;
+  .sidebar-actions {
+    padding: 10px 12px;
   }
 
-  .toolbar-left {
-    align-items: center;
-    text-align: center;
-  }
-
-  .toolbar-right {
-    justify-content: center;
-    flex-wrap: wrap;
+  .mobile-sidebar-actions :deep(.el-button-group) {
     gap: 6px;
-  }
-
-  .page-title {
-    font-size: 18px;
-  }
-
-  .el-button-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-
-  .el-button-group .el-button {
-    margin: 0;
-    flex: 1;
-    min-width: auto;
   }
 }
 

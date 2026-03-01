@@ -1,53 +1,5 @@
 <template>
   <div class="regex-editor-page">
-    <!-- 顶部工具栏 -->
-    <div class="toolbar">
-      <div class="toolbar-left">
-        <h1 class="page-title">正则表达式编辑器</h1>
-        <el-text
-          type="info"
-          size="small"
-        >
-          可视化创建和测试正则表达式规则
-        </el-text>
-      </div>
-      <div class="toolbar-right">
-        <el-button
-          v-if="!isMobileOrTablet"
-          @click="toggleTesterPanel"
-          :icon="testerPanelVisible ? Hide : View"
-          size="small"
-        >
-          {{ testerPanelVisible ? '隐藏测试器' : '显示测试器' }}
-        </el-button>
-        <el-button-group>
-          <el-button
-            :icon="DocumentAdd"
-            @click="handleImportScript"
-            size="small"
-          >
-            导入脚本
-          </el-button>
-          <el-button
-            :icon="Download"
-            @click="handleExportScript"
-            size="small"
-            :disabled="!selectedScriptId"
-          >
-            导出脚本
-          </el-button>
-          <el-button
-            :icon="Plus"
-            @click="handleCreateScript"
-            size="small"
-            type="primary"
-          >
-            新建
-          </el-button>
-        </el-button-group>
-      </div>
-    </div>
-
     <!-- 主内容区域 -->
     <div class="main-content">
       <!-- 移动端布局 -->
@@ -69,23 +21,52 @@
         <div class="mobile-panel-content">
           <div
             v-show="mobileActivePanel === 'scripts'"
-            class="mobile-panel"
+            class="mobile-panel mobile-scripts-panel"
           >
-            <RegexScriptList
-              :collection="regexCollection"
-              :active-category-id="activeCategoryId"
-              :selected-script="selectedScript"
-              :drag-drop-handlers="dragDropHandlers"
-              @select-category="handleSelectCategory"
-              @select-script="handleSelectScript"
-              @create-category="handleCreateCategory"
-              @rename-category="handleRenameCategory"
-              @delete-category="handleDeleteCategory"
-              @add-script="handleAddScript"
-              @rename-script="handleRenameScript"
-              @delete-script="handleDeleteScript"
-              @export-script="handleExportSingleScript"
-            />
+            <div class="mobile-scripts-content">
+              <RegexScriptList
+                :collection="regexCollection"
+                :active-category-id="activeCategoryId"
+                :selected-script="selectedScript"
+                :drag-drop-handlers="dragDropHandlers"
+                @select-category="handleSelectCategory"
+                @select-script="handleSelectScript"
+                @create-category="handleCreateCategory"
+                @rename-category="handleRenameCategory"
+                @delete-category="handleDeleteCategory"
+                @add-script="handleAddScript"
+                @rename-script="handleRenameScript"
+                @delete-script="handleDeleteScript"
+                @export-script="handleExportSingleScript"
+              />
+            </div>
+            <div class="sidebar-actions mobile-sidebar-actions">
+              <el-button-group>
+                <el-button
+                  :icon="DocumentAdd"
+                  @click="handleImportScript"
+                  size="small"
+                >
+                  导入脚本
+                </el-button>
+                <el-button
+                  :icon="Download"
+                  @click="handleExportScript"
+                  size="small"
+                  :disabled="!selectedScriptId"
+                >
+                  导出脚本
+                </el-button>
+                <el-button
+                  :icon="Plus"
+                  @click="handleCreateScript"
+                  size="small"
+                  type="primary"
+                >
+                  新建
+                </el-button>
+              </el-button-group>
+            </div>
           </div>
           <div
             v-show="mobileActivePanel === 'editor'"
@@ -167,21 +148,59 @@
           min-size="10"
           :size="15"
         >
-          <RegexScriptList
-            :collection="regexCollection"
-            :active-category-id="activeCategoryId"
-            :selected-script="selectedScript"
-            :drag-drop-handlers="dragDropHandlers"
-            @select-category="handleSelectCategory"
-            @select-script="handleSelectScript"
-            @create-category="handleCreateCategory"
-            @rename-category="handleRenameCategory"
-            @delete-category="handleDeleteCategory"
-            @add-script="handleAddScript"
-            @rename-script="handleRenameScript"
-            @delete-script="handleDeleteScript"
-            @export-script="handleExportSingleScript"
-          />
+          <div class="sidebar-panel">
+            <div class="sidebar-content">
+              <RegexScriptList
+                :collection="regexCollection"
+                :active-category-id="activeCategoryId"
+                :selected-script="selectedScript"
+                :drag-drop-handlers="dragDropHandlers"
+                @select-category="handleSelectCategory"
+                @select-script="handleSelectScript"
+                @create-category="handleCreateCategory"
+                @rename-category="handleRenameCategory"
+                @delete-category="handleDeleteCategory"
+                @add-script="handleAddScript"
+                @rename-script="handleRenameScript"
+                @delete-script="handleDeleteScript"
+                @export-script="handleExportSingleScript"
+              />
+            </div>
+            <div class="sidebar-actions">
+              <el-button
+                @click="toggleTesterPanel"
+                :icon="testerPanelVisible ? Hide : View"
+                size="small"
+              >
+                {{ testerPanelVisible ? '隐藏测试器' : '显示测试器' }}
+              </el-button>
+              <el-button-group>
+                <el-button
+                  :icon="DocumentAdd"
+                  @click="handleImportScript"
+                  size="small"
+                >
+                  导入脚本
+                </el-button>
+                <el-button
+                  :icon="Download"
+                  @click="handleExportScript"
+                  size="small"
+                  :disabled="!selectedScriptId"
+                >
+                  导出脚本
+                </el-button>
+                <el-button
+                  :icon="Plus"
+                  @click="handleCreateScript"
+                  size="small"
+                  type="primary"
+                >
+                  新建
+                </el-button>
+              </el-button-group>
+            </div>
+          </div>
         </pane>
 
         <pane
@@ -684,33 +703,37 @@ watch(
   background: var(--el-bg-color-page);
 }
 
-.toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 24px;
-  border-bottom: 1px solid var(--el-border-color-light);
-  background: var(--el-bg-color);
-  flex-shrink: 0;
-}
-
-.toolbar-left {
+.sidebar-panel {
+  height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  background: var(--el-bg-color);
+  overflow: hidden;
 }
 
-.page-title {
-  font-size: 20px;
-  font-weight: 600;
-  margin: 0;
-  color: var(--el-text-color-primary);
+.sidebar-content {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
-.toolbar-right {
+.sidebar-actions {
   display: flex;
+  flex-direction: column;
   gap: 8px;
-  align-items: center;
+  padding: 12px;
+  border-top: 1px solid var(--el-border-color-light);
+  background: var(--el-bg-color);
+}
+
+.sidebar-actions :deep(.el-button-group) {
+  display: flex;
+  width: 100%;
+}
+
+.sidebar-actions :deep(.el-button-group .el-button) {
+  flex: 1;
+  min-width: 0;
 }
 
 .main-content {
@@ -868,6 +891,22 @@ watch(
   -webkit-overflow-scrolling: touch;
 }
 
+.mobile-scripts-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.mobile-scripts-content {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mobile-sidebar-actions {
+  border-top: 1px solid var(--el-border-color-light);
+}
+
 .mobile-editor-content,
 .mobile-simulator-content {
   padding: 16px;
@@ -896,38 +935,12 @@ watch(
 
 /* 移动端工具栏优化 */
 @media screen and (max-width: 768px) {
-  .toolbar {
-    flex-direction: column;
-    padding: 12px 16px;
-    gap: 12px;
-    align-items: stretch;
+  .sidebar-actions {
+    padding: 10px 12px;
   }
 
-  .toolbar-left {
-    align-items: center;
-    text-align: center;
-  }
-
-  .toolbar-right {
-    justify-content: center;
-    flex-wrap: wrap;
+  .mobile-sidebar-actions :deep(.el-button-group) {
     gap: 6px;
-  }
-
-  .page-title {
-    font-size: 18px;
-  }
-
-  .el-button-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-
-  .el-button-group .el-button {
-    margin: 0;
-    flex: 1;
-    min-width: auto;
   }
 }
 
