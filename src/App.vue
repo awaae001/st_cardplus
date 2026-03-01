@@ -7,15 +7,6 @@
         class="desktop-main"
         :class="{ 'overflow-hidden': isOverflowHidden }"
       >
-        <SystemBanner
-          v-if="route.name !== 'about'"
-          bannerId="newYearSurvey2026"
-          startDate="2026-01-01"
-          endDate="2026-03-01"
-          message="我们有一个新年调查，去填写一下？"
-          link="https://tally.so/r/kdeaLo"
-          linkText="填写调查"
-        />
         <RouterView v-slot="{ Component, route: currentRoute }">
           <transition
             name="fade"
@@ -34,15 +25,6 @@
       <MobileDrawer v-model="drawerVisible" />
 
       <main class="mobile-main">
-        <SystemBanner
-          v-if="route.name !== 'about'"
-          bannerId="newYearSurvey2026"
-          startDate="2026-01-01"
-          endDate="2026-03-01"
-          message="我们有一个新年调查，去填写一下？"
-          link="https://tally.so/r/kdeaLo"
-          linkText="填写调查"
-        />
         <RouterView v-slot="{ Component, route: currentRoute }">
           <transition
             name="fade"
@@ -68,7 +50,6 @@ import { RouterView, useRoute } from 'vue-router';
 import AppSidebar from '@/components/layout/AppSidebar.vue';
 import MobileDrawer from '@/components/layout/MobileDrawer.vue';
 import MobileTabBar from '@/components/layout/MobileTabBar.vue';
-import SystemBanner from '@/components/SystemBanner.vue';
 import { provideNavigation } from '@/composables/useNavigation';
 import { provideOverflowControl } from '@/composables/useOverflowControl';
 import { usePersonalization } from '@/composables/usePersonalization';

@@ -98,16 +98,19 @@
                 </span>
               </span>
             </h2>
-            <WorldBookActions
-              context="editor"
-              :has-selection="!!selectedEntry"
-              :save-status="saveStatus"
-              :auto-save-mode="autoSaveMode"
-              @toggle-mode="toggleAutoSaveMode"
-              @copy-entry="copySelectedEntry"
-              @save-entry="saveCurrentEntry"
-              @delete-entry="deleteSelectedEntry"
-            />
+            <div class="worldbook-editor-header-actions">
+              <span class="worldbook-import-notice">导入须知：请使用从酒馆导出的世界书进行导入</span>
+              <WorldBookActions
+                context="editor"
+                :has-selection="!!selectedEntry"
+                :save-status="saveStatus"
+                :auto-save-mode="autoSaveMode"
+                @toggle-mode="toggleAutoSaveMode"
+                @copy-entry="copySelectedEntry"
+                @save-entry="saveCurrentEntry"
+                @delete-entry="deleteSelectedEntry"
+              />
+            </div>
           </div>
           <WorldBookEditor
             :entry="selectedEntry"
@@ -173,16 +176,19 @@
                   {{ selectedEntry ? selectedEntry.comment || '新条目' : '未选择条目' }}
                 </span>
               </h2>
-              <WorldBookActions
-                context="editor"
-                :has-selection="!!selectedEntry"
-                :save-status="saveStatus"
-                :auto-save-mode="autoSaveMode"
-                @toggle-mode="toggleAutoSaveMode"
-                @copy-entry="copySelectedEntry"
-                @save-entry="saveCurrentEntry"
-                @delete-entry="deleteSelectedEntry"
-              />
+              <div class="worldbook-editor-header-actions">
+                <span class="worldbook-import-notice">导入须知：请使用从酒馆导出的世界书进行导入</span>
+                <WorldBookActions
+                  context="editor"
+                  :has-selection="!!selectedEntry"
+                  :save-status="saveStatus"
+                  :auto-save-mode="autoSaveMode"
+                  @toggle-mode="toggleAutoSaveMode"
+                  @copy-entry="copySelectedEntry"
+                  @save-entry="saveCurrentEntry"
+                  @delete-entry="deleteSelectedEntry"
+                />
+              </div>
             </div>
             <WorldBookEditor
               :entry="selectedEntry"
@@ -251,7 +257,7 @@ const {
   handleCreateBook,
   handleRenameBook,
   handleDeleteBook,
-  handleImportBookFile,
+  handleImportBookFile: importBookFile,
   moveEntryBetweenBooks,
   updateBookEntries,
   updateBookOrder,
@@ -446,5 +452,10 @@ const handleDeleteEntryFromList = (bookId: string, entryIndex: number) => {
       deleteSelectedEntry();
     });
   }
+};
+
+const handleImportBookFile = (file: File) => {
+  ElMessage.warning('请使用从酒馆导出的世界书进行导入');
+  importBookFile(file);
 };
 </script>
