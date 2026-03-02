@@ -133,13 +133,8 @@
             <Icon
               :icon="data.icon"
               class="node-icon"
+              :style="data.iconStyle"
             />
-            <span
-              v-if="data.type === 'region' || data.type === 'landmark'"
-              class="region-color-dot"
-              :class="{ 'is-empty': !data.regionColor && data.type === 'landmark' }"
-              :style="{ backgroundColor: data.type === 'region' ? data.color : data.regionColor }"
-            ></span>
             <span class="node-label">{{ node.label }}</span>
           </div>
           <div
@@ -258,11 +253,28 @@ const treeProps = {
   label: 'label',
 };
 
+const DEFAULT_ICON_COLORS = {
+  landmark: 'var(--el-color-primary)',
+  region: 'var(--el-color-warning)',
+} as const;
+
+const normalizeColor = (value?: string) => {
+  const normalized = value?.trim();
+  return normalized || undefined;
+};
+
+const resolveIconColor = (preferredColor: string | undefined, fallbackColor: string) =>
+  normalizeColor(preferredColor) || fallbackColor;
+
+const buildIconStyle = (preferredColor: string | undefined, fallbackColor: string) =>
+  `color: ${resolveIconColor(preferredColor, fallbackColor)};`;
+
 const buildLandmarkTree = (projectLandmarks: EnhancedLandmark[], regionColorMap: Map<string, string>) => {
   const nodeMap = new Map<string, any>();
   const parentMap = new Map<string, string | null>();
 
   projectLandmarks.forEach((landmark) => {
+    const regionColor = landmark.regionId ? regionColorMap.get(landmark.regionId) : undefined;
     parentMap.set(landmark.id, getParentLandmarkId(landmark));
     nodeMap.set(landmark.id, {
       id: landmark.id,
@@ -271,7 +283,7 @@ const buildLandmarkTree = (projectLandmarks: EnhancedLandmark[], regionColorMap:
       isEntry: true,
       type: 'landmark',
       raw: landmark,
-      regionColor: landmark.regionId ? regionColorMap.get(landmark.regionId) : '',
+      iconStyle: buildIconStyle(regionColor, DEFAULT_ICON_COLORS.landmark),
       children: [] as any[],
     });
   });
@@ -345,7 +357,7 @@ const treeData = computed(() => {
             isEntry: true,
             type: 'region',
             raw: region,
-            color: region.color,
+            iconStyle: buildIconStyle(region.color, DEFAULT_ICON_COLORS.region),
           })),
         },
         {
@@ -571,19 +583,6 @@ const handleAddCommand = (command: 'project' | 'landmark' | 'region' | 'force') 
 .list-item-action-button.is-danger:hover {
   background-color: var(--el-color-danger-light-9);
   color: var(--el-color-danger);
-}
-
-.region-color-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  margin-right: 8px;
-  border: 1px solid var(--el-border-color);
-  flex-shrink: 0;
-}
-
-.region-color-dot.is-empty {
-  background-color: transparent;
 }
 
 @keyframes toolbar-marquee-scroll {

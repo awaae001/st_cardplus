@@ -37,7 +37,7 @@
         <el-tab-pane
           name="editor"
           class="world-editor-tab-pane"
-          :disabled="!selectedItem && !graphProjectId"
+          :disabled="!selectedEditorItem"
         >
           <template #label>
             <span class="world-editor-tab-label">
@@ -45,23 +45,61 @@
                 icon="ph:note-pencil-duotone"
                 class="world-editor-tab-icon"
               />
-              <span class="world-editor-tab-text-truncated">
-                {{ selectedItem ? selectedItem.name || '编辑中' : '编辑条目' }}
-              </span>
+              <span class="world-editor-tab-text">编辑</span>
+            </span>
+          </template>
+          <WorldEditorMainPanel
+            :selected-item="selectedEditorItem"
+            :all-tags="allTags"
+            :all-regions="allRegions"
+            :landmarks="landmarks"
+            :forces="forces"
+            :regions="regions"
+            :create-region="createRegion"
+            :projects="projects"
+            @update:selected-item="handleSelectionFromChild"
+            @create-project="handleCreateProjectFromPanel"
+          />
+        </el-tab-pane>
+        <el-tab-pane
+          name="graph"
+          class="world-editor-tab-pane"
+          :disabled="!hasAnyProject"
+        >
+          <template #label>
+            <span class="world-editor-tab-label">
+              <Icon
+                icon="ph:share-network-duotone"
+                class="world-editor-tab-icon"
+              />
+              <span class="world-editor-tab-text">节点图</span>
             </span>
           </template>
           <WorldGraph
-            v-if="graphProjectId"
             :projects="projects"
             :landmarks="landmarks"
             :forces="forces"
             :regions="regions"
-            :active-project-id="graphProjectId || activeProjectId"
+            :active-project-id="currentProjectId"
             @edit-item="handleEditFromGraph"
           />
+        </el-tab-pane>
+        <el-tab-pane
+          name="integration"
+          class="world-editor-tab-pane"
+          :disabled="!hasAnyProject"
+        >
+          <template #label>
+            <span class="world-editor-tab-label">
+              <Icon
+                icon="ph:circles-four-duotone"
+                class="world-editor-tab-icon"
+              />
+              <span class="world-editor-tab-text">整合</span>
+            </span>
+          </template>
           <WorldEditorMainPanel
-            v-else
-            :selected-item="selectedItem"
+            :selected-item="selectedIntegrationItem"
             :all-tags="allTags"
             :all-regions="allRegions"
             :landmarks="landmarks"
@@ -143,7 +181,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { ElTabs, ElTabPane, ElMessageBox } from 'element-plus';
 import { Icon } from '@iconify/vue';
 import { Splitpanes, Pane } from 'splitpanes';
@@ -186,10 +224,49 @@ const {
   handleProjectSubmit,
 } = useWorldEditor();
 
+const isIntegrationItem = (
+  item: Project | EnhancedLandmark | EnhancedForce | EnhancedRegion | ProjectIntegration | null
+): item is ProjectIntegration => Boolean(item && 'type' in item && item.type === 'integration');
+
+const selectedEditorItem = computed(() => {
+  if (isIntegrationItem(selectedItem.value)) {
+    return null;
+  }
+  return selectedItem.value;
+});
+
+const currentProjectId = computed(() => {
+  if (graphProjectId.value) return graphProjectId.value;
+  const currentItem = selectedItem.value;
+  if (currentItem && 'projectId' in currentItem) {
+    return currentItem.projectId;
+  }
+  if (currentItem && 'createdAt' in currentItem) {
+    return currentItem.id;
+  }
+  return activeProjectId.value || projects.value[0]?.id || null;
+});
+
+const selectedIntegrationItem = computed<ProjectIntegration | null>(() => {
+  if (isIntegrationItem(selectedItem.value)) {
+    return selectedItem.value;
+  }
+  const projectId = currentProjectId.value;
+  if (!projectId) return null;
+  return {
+    id: `${projectId}-integration`,
+    projectId,
+    type: 'integration',
+    name: '整合',
+  };
+});
+
+const hasAnyProject = computed(() => projects.value.length > 0);
+
 const handleSelection = (item: Project | EnhancedLandmark | EnhancedForce | EnhancedRegion | ProjectIntegration) => {
   coreHandleSelection(item);
-  activeTab.value = 'editor';
   graphProjectId.value = null;
+  activeTab.value = isIntegrationItem(item) ? 'integration' : 'editor';
 };
 
 const handleSelectionFromChild = (
@@ -197,6 +274,7 @@ const handleSelectionFromChild = (
 ) => {
   coreHandleSelection(item);
   graphProjectId.value = null;
+  activeTab.value = isIntegrationItem(item) ? 'integration' : 'editor';
 };
 
 const handleEditFromGraph = (item: EnhancedLandmark) => {
@@ -207,7 +285,7 @@ const handleEditFromGraph = (item: EnhancedLandmark) => {
 
 const handleOpenGraph = (projectId: string) => {
   graphProjectId.value = projectId;
-  activeTab.value = 'editor';
+  activeTab.value = 'graph';
 };
 
 const {

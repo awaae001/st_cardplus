@@ -39,6 +39,18 @@
             class="sidebar-tree-node-slot"
             @dblclick.stop="handleNodeDblClick(data, node, $event)"
           >
+            <button
+              v-if="draggable"
+              class="sidebar-tree-node-drag-handle"
+              type="button"
+              aria-label="拖拽排序"
+              @click.stop
+            >
+              <Icon
+                icon="ph:dots-six-vertical-bold"
+                class="sidebar-tree-node-drag-handle-icon"
+              />
+            </button>
             <slot
               name="node"
               :node="node"
@@ -59,8 +71,9 @@
 </template>
 
 <script setup lang="ts">
+import { Icon } from '@iconify/vue';
 import { ElScrollbar, ElTree } from 'element-plus';
-import { nextTick, ref, watch } from 'vue';
+import { ref, watch } from 'vue';
 import type { AllowDropType, NodeDropType } from 'element-plus/es/components/tree/src/tree.type';
 
 type ActualNodeDropType = Exclude<NodeDropType, 'none'>;
@@ -131,22 +144,13 @@ watch(
   }
 );
 
-const handleNodeDrop = async (draggingNode: any, dropNode: any, dropType: ActualNodeDropType) => {
+const handleNodeDrop = (draggingNode: any, dropNode: any, dropType: ActualNodeDropType) => {
   if (!props.handleNodeDrop) return;
-
-  if (treeRef.value) {
-    const nodes = Object.values(treeRef.value.store.nodesMap);
-    expandedKeys.value = nodes.filter((node: any) => node.expanded).map((node: any) => node.key);
-  }
 
   const success = props.handleNodeDrop(draggingNode, dropNode, dropType);
 
   if (success) {
     treeKey.value += 1;
-    await nextTick();
-    if (treeRef.value) {
-      treeRef.value.store.setDefaultExpandedKeys(expandedKeys.value);
-    }
   }
 };
 
@@ -173,14 +177,14 @@ const shouldIgnoreTreeNodeEvent = (event?: MouseEvent) => {
 
 const handleNodeExpand = (data: any) => {
   const key = data?.[props.nodeKey];
-  if (key && !expandedKeys.value.includes(key)) {
+  if (key !== undefined && key !== null && !expandedKeys.value.includes(key)) {
     expandedKeys.value.push(key);
   }
 };
 
 const handleNodeCollapse = (data: any) => {
   const key = data?.[props.nodeKey];
-  if (!key) return;
+  if (key === undefined || key === null) return;
   const index = expandedKeys.value.indexOf(key);
   if (index > -1) {
     expandedKeys.value.splice(index, 1);
@@ -260,6 +264,10 @@ const handleNodeCollapse = (data: any) => {
 }
 
 .sidebar-tree-node-slot {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding-left: 22px;
   width: 100%;
 }
 
@@ -344,5 +352,41 @@ const handleNodeCollapse = (data: any) => {
   font-size: 16px;
   color: var(--el-text-color-secondary);
   flex-shrink: 0;
+}
+
+.sidebar-tree-node-drag-handle {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  border: none;
+  background: transparent;
+  width: 20px;
+  height: 24px;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  color: var(--el-text-color-secondary);
+  opacity: 0.55;
+  flex-shrink: 0;
+  border-radius: 4px;
+  transition: color 0.15s ease, opacity 0.15s ease, background-color 0.15s ease;
+}
+
+.sidebar-tree-node-drag-handle:active {
+  cursor: grabbing;
+  opacity: 0.95;
+}
+
+.sidebar-tree-node-drag-handle:hover {
+  opacity: 0.95;
+  color: var(--el-text-color-primary);
+  background-color: var(--el-fill-color-light);
+}
+
+.sidebar-tree-node-drag-handle-icon {
+  font-size: 14px;
 }
 </style>

@@ -331,11 +331,9 @@ export const saveToLocalStorage = (data: any, key = 'characterCardData') => {
   try {
     if (shouldUseSessionStorage(key)) {
       writeSessionStorageJSON(key, data);
-      console.log('数据已保存到会话存储');
       return;
     }
     writeLocalStorageJSON(key, data);
-    console.log('数据已保存到本地存储');
   } catch (error) {
     console.error('保存到本地存储失败:', error);
   }
