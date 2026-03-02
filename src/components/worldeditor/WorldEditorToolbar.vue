@@ -133,7 +133,7 @@
             <Icon
               :icon="data.icon"
               class="node-icon"
-              :style="data.iconStyle"
+              :color="data.iconColor"
             />
             <span class="node-label">{{ node.label }}</span>
           </div>
@@ -254,7 +254,6 @@ const treeProps = {
 };
 
 const DEFAULT_ICON_COLORS = {
-  landmark: 'var(--el-color-primary)',
   region: 'var(--el-color-warning)',
 } as const;
 
@@ -265,9 +264,6 @@ const normalizeColor = (value?: string) => {
 
 const resolveIconColor = (preferredColor: string | undefined, fallbackColor: string) =>
   normalizeColor(preferredColor) || fallbackColor;
-
-const buildIconStyle = (preferredColor: string | undefined, fallbackColor: string) =>
-  `color: ${resolveIconColor(preferredColor, fallbackColor)};`;
 
 const buildLandmarkTree = (projectLandmarks: EnhancedLandmark[], regionColorMap: Map<string, string>) => {
   const nodeMap = new Map<string, any>();
@@ -283,7 +279,7 @@ const buildLandmarkTree = (projectLandmarks: EnhancedLandmark[], regionColorMap:
       isEntry: true,
       type: 'landmark',
       raw: landmark,
-      iconStyle: buildIconStyle(regionColor, DEFAULT_ICON_COLORS.landmark),
+      iconColor: normalizeColor(regionColor),
       children: [] as any[],
     });
   });
@@ -357,7 +353,7 @@ const treeData = computed(() => {
             isEntry: true,
             type: 'region',
             raw: region,
-            iconStyle: buildIconStyle(region.color, DEFAULT_ICON_COLORS.region),
+            iconColor: resolveIconColor(region.color, DEFAULT_ICON_COLORS.region),
           })),
         },
         {
@@ -538,10 +534,6 @@ const handleAddCommand = (command: 'project' | 'landmark' | 'region' | 'force') 
   margin-right: 8px;
   flex-shrink: 0;
   color: var(--el-text-color-secondary);
-}
-
-.toolbar-container :deep(.sidebar-tree .el-tree-node.is-current > .el-tree-node__content .node-icon) {
-  color: var(--el-color-primary);
 }
 
 .node-label {

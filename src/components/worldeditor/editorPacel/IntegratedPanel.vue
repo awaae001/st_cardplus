@@ -65,8 +65,8 @@
                 <div class="item-content">
                   <Icon
                     icon="ph:map-pin-duotone"
-                    class="item-icon landmark-icon"
-                    :style="landmarkIconStyleMap.get(landmark.id)"
+                    class="item-icon"
+                    :color="landmarkIconColorMap.get(landmark.id)"
                   />
                   <div class="item-info">
                     <div class="item-name">{{ landmark.name }}</div>
@@ -205,8 +205,8 @@
                 <div class="item-content">
                   <Icon
                     icon="ph:map-trifold-duotone"
-                    class="item-icon region-icon"
-                    :style="regionIconStyleMap.get(region.id)"
+                    class="item-icon"
+                    :color="regionIconColorMap.get(region.id)"
                   />
                   <div class="item-info">
                     <div class="item-name">{{ region.name }}</div>
@@ -324,7 +324,6 @@ const projectRegions = computed(() => {
 });
 
 const DEFAULT_ICON_COLORS = {
-  landmark: 'var(--el-color-primary)',
   region: 'var(--el-color-warning)',
 } as const;
 
@@ -336,25 +335,22 @@ const normalizeColor = (value?: string) => {
 const resolveIconColor = (preferredColor: string | undefined, fallbackColor: string) =>
   normalizeColor(preferredColor) || fallbackColor;
 
-const buildIconStyle = (preferredColor: string | undefined, fallbackColor: string) =>
-  `color: ${resolveIconColor(preferredColor, fallbackColor)};`;
-
 const regionColorMap = computed(
   () => new Map(projectRegions.value.map((region) => [region.id, region.color]))
 );
 
-const landmarkIconStyleMap = computed(() => {
+const landmarkIconColorMap = computed(() => {
   return new Map(
     projectLandmarks.value.map((landmark) => [
       landmark.id,
-      buildIconStyle(landmark.regionId ? regionColorMap.value.get(landmark.regionId) : undefined, DEFAULT_ICON_COLORS.landmark),
+      normalizeColor(landmark.regionId ? regionColorMap.value.get(landmark.regionId) : undefined),
     ])
   );
 });
 
-const regionIconStyleMap = computed(() => {
+const regionIconColorMap = computed(() => {
   return new Map(
-    projectRegions.value.map((region) => [region.id, buildIconStyle(region.color, DEFAULT_ICON_COLORS.region)])
+    projectRegions.value.map((region) => [region.id, resolveIconColor(region.color, DEFAULT_ICON_COLORS.region)])
   );
 });
 
