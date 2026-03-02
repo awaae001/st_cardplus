@@ -15,19 +15,26 @@ interface BatchCustomFieldPromptOptions {
   onAdded?: () => void;
 }
 
-const parseCustomFieldLine = (line: string) => {
-  const normalizedLine = line.replace(/：/g, ':');
-  const separatorIndex = normalizedLine.indexOf(':');
-  if (separatorIndex === -1) return null;
+const LINE_SEPARATOR_REGEX = /^([^:：﹕꞉]+?)\s*[:：﹕꞉]\s*(.*)$/;
 
-  const fieldName = normalizedLine.slice(0, separatorIndex).trim();
-  const fieldValue = normalizedLine.slice(separatorIndex + 1).trim();
+const parseCustomFieldLine = (line: string) => {
+  const match = line.trim().match(LINE_SEPARATOR_REGEX);
+  if (!match) return null;
+
+  const fieldName = match[1]?.trim() ?? '';
+  const fieldValue = match[2]?.trim() ?? '';
   if (!fieldName) return null;
 
   return { fieldName, fieldValue };
 };
 
 export function useBatchCustomFieldPrompt() {
+  const isUserCancel = (error: unknown) => {
+    if (error === 'cancel' || error === 'close') return true;
+    const action = (error as { action?: string })?.action;
+    return action === 'cancel' || action === 'close';
+  };
+
   const addFieldsByPrompt = async (options: BatchCustomFieldPromptOptions) => {
     try {
       const result = await ElMessageBox.prompt(options.promptMessage, options.promptTitle, {
@@ -91,8 +98,7 @@ export function useBatchCustomFieldPrompt() {
         confirmButtonText: '确定',
       });
     } catch (error: unknown) {
-      const action = (error as { action?: string })?.action;
-      if (action === 'cancel' || action === 'close') return;
+      if (isUserCancel(error)) return;
 
       await ElMessageBox.alert(options.errorMessage, '错误', {
         confirmButtonText: '确定',
