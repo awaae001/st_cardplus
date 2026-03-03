@@ -204,7 +204,7 @@ const {
   isLoadingData,
   autoSaveMode,
   onSave: async (cardId, data) => {
-    await handleUpdateCard(cardId, data, true, true); // silent = true, skipLocalUpdate = true
+    await handleUpdateCard(cardId, data, true); // silent = true
   },
 });
 

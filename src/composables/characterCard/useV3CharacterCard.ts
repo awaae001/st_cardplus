@@ -53,6 +53,9 @@ export function useV3CharacterCard() {
     isLoadingData.value = true;
     const defaultData = getDefaultCharacterData();
     const isV2 = !newData.spec || newData.spec !== 'chara_card_v3';
+    const incomingTopLevel = newData || {};
+    const incomingData = newData?.data && typeof newData.data === 'object' ? newData.data : {};
+    const hasDataField = (key: string) => Object.prototype.hasOwnProperty.call(incomingData, key);
     const mergedData: CharacterCardV3 = {
       ...defaultData,
       ...newData,
@@ -77,21 +80,33 @@ export function useV3CharacterCard() {
       mergedData.talkativeness = extensions.talkativeness ?? newData.talkativeness ?? defaultData.talkativeness;
       mergedData.fav = extensions.fav ?? newData.fav ?? defaultData.fav;
       // V2 可能没有顶层 tags，从 data.tags 提取
-      mergedData.tags = newData.tags || newData.data?.tags || defaultData.tags;
+      mergedData.tags = newData.tags ?? newData.data?.tags ?? defaultData.tags;
       console.log('useV3CharacterCard: V2 conversion completed');
     }
     mergedData.spec = 'chara_card_v3';
     mergedData.spec_version = '3.0';
 
-    // 1. 优先使用 data 层的数据，如果 data 为空才使用顶层
-    mergedData.data.name = mergedData.data.name || mergedData.name;
-    mergedData.data.description = mergedData.data.description || mergedData.description;
-    mergedData.data.personality = mergedData.data.personality || mergedData.personality;
-    mergedData.data.scenario = mergedData.data.scenario || mergedData.scenario;
-    mergedData.data.first_mes = mergedData.data.first_mes || mergedData.first_mes;
-    mergedData.data.mes_example = mergedData.data.mes_example || mergedData.mes_example;
-    mergedData.data.tags =
-      mergedData.data.tags && mergedData.data.tags.length > 0 ? mergedData.data.tags : mergedData.tags;
+    // data 层优先；仅在字段缺失(undefined/null)时才回退到顶层，保留空字符串
+    mergedData.data.name = hasDataField('name')
+      ? (incomingData.name ?? defaultData.data.name)
+      : (incomingTopLevel.name ?? defaultData.data.name);
+    mergedData.data.description = hasDataField('description')
+      ? (incomingData.description ?? defaultData.data.description)
+      : (incomingTopLevel.description ?? defaultData.data.description);
+    mergedData.data.personality = hasDataField('personality')
+      ? (incomingData.personality ?? defaultData.data.personality)
+      : (incomingTopLevel.personality ?? defaultData.data.personality);
+    mergedData.data.scenario = hasDataField('scenario')
+      ? (incomingData.scenario ?? defaultData.data.scenario)
+      : (incomingTopLevel.scenario ?? defaultData.data.scenario);
+    mergedData.data.first_mes = hasDataField('first_mes')
+      ? (incomingData.first_mes ?? defaultData.data.first_mes)
+      : (incomingTopLevel.first_mes ?? defaultData.data.first_mes);
+    mergedData.data.mes_example = hasDataField('mes_example')
+      ? (incomingData.mes_example ?? defaultData.data.mes_example)
+      : (incomingTopLevel.mes_example ?? defaultData.data.mes_example);
+    const resolvedTags = hasDataField('tags') ? incomingData.tags : incomingTopLevel.tags;
+    mergedData.data.tags = Array.isArray(resolvedTags) ? resolvedTags : defaultData.data.tags;
 
     // 2. 从 data 层同步到顶层（用于兼容性）
     mergedData.name = mergedData.data.name;
