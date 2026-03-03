@@ -545,7 +545,6 @@
   }
 
   .worldbook-desktop-panel-right {
-    flex: 1;
     background: var(--el-bg-color);
     border-radius: 4px;
     border: 1px solid var(--el-border-color-lighter);

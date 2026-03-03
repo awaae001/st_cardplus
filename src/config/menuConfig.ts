@@ -76,7 +76,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     icon: 'House',
     route: '/',
     fixed: true,
-    showInTabBar: false, // Logo 已可点击回首页，无需在 TabBar 显示
+    showInTabBar: false,
   },
   {
     id: 'cardmanager',
@@ -127,7 +127,6 @@ export const mainMenuItems: MenuItemConfig[] = [
     title: '世界书',
     icon: 'Collection',
     route: '/worldbook',
-    beta: true,
     showInTabBar: false,
   },
   {

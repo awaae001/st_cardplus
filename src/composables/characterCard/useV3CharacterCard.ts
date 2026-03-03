@@ -79,7 +79,7 @@ export function useV3CharacterCard() {
       const extensions = newData.data?.extensions || {};
       mergedData.talkativeness = extensions.talkativeness ?? newData.talkativeness ?? defaultData.talkativeness;
       mergedData.fav = extensions.fav ?? newData.fav ?? defaultData.fav;
-      // V2 可能没有顶层 tags，从 data.tags 提取
+      // V2 没有顶层 tags，从 data.tags 提取
       mergedData.tags = newData.tags ?? newData.data?.tags ?? defaultData.tags;
       console.log('useV3CharacterCard: V2 conversion completed');
     }
@@ -108,7 +108,6 @@ export function useV3CharacterCard() {
     const resolvedTags = hasDataField('tags') ? incomingData.tags : incomingTopLevel.tags;
     mergedData.data.tags = Array.isArray(resolvedTags) ? resolvedTags : defaultData.data.tags;
 
-    // 2. 从 data 层同步到顶层（用于兼容性）
     mergedData.name = mergedData.data.name;
     mergedData.description = mergedData.data.description;
     mergedData.personality = mergedData.data.personality;
@@ -116,7 +115,7 @@ export function useV3CharacterCard() {
     mergedData.first_mes = mergedData.data.first_mes;
     mergedData.mes_example = mergedData.data.mes_example;
     mergedData.tags = mergedData.data.tags;
-    // 使用 Object.assign 在原地更新对象，以确保响应性
+
     Object.assign(characterData.value, mergedData);
 
     setTimeout(() => {
@@ -124,7 +123,6 @@ export function useV3CharacterCard() {
     }, 0);
   };
 
-  // 用于重置为默认空状态的函数
   const resetCharacter = () => {
     isLoadingData.value = true;
     characterData.value = getDefaultCharacterData();
