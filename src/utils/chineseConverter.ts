@@ -106,7 +106,7 @@ function convertObjectStrings<T>(obj: T, converter: (text: string) => string): T
  * @param config 转换配置
  * @returns 转换后的 JSON 字符串
  */
-export function convertCharacterCardJson(jsonData: any | string, config: ConversionConfig): string {
+function convertCharacterCardJson(jsonData: any | string, config: ConversionConfig): string {
   // 解析 JSON（如果是字符串）
   const cardData = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
 
@@ -126,7 +126,7 @@ export function convertCharacterCardJson(jsonData: any | string, config: Convers
  * @param config 转换配置
  * @returns 转换结果
  */
-export async function convertPngCharacterCard(file: File, config: ConversionConfig): Promise<ConversionResult> {
+async function convertPngCharacterCard(file: File, config: ConversionConfig): Promise<ConversionResult> {
   try {
     // 读取文件为 Uint8Array
     const arrayBuffer = await file.arrayBuffer();
@@ -235,7 +235,7 @@ export async function convertPngCharacterCardBatch(
  * @param result 转换结果
  * @param originalFileName 原始文件名
  */
-export async function downloadConvertedPng(result: ConversionResult, originalFileName?: string): Promise<void> {
+async function downloadConvertedPng(result: ConversionResult, originalFileName?: string): Promise<void> {
   if (!result.success || !result.convertedData) {
     throw new Error('转换未成功或数据不可用');
   }

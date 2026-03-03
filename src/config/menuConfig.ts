@@ -242,6 +242,14 @@ export const toolboxFixedTools: ToolboxToolConfig[] = [
     route: '/toolbox/chinese-converter',
     category: 'converter',
   },
+  {
+    id: 'old-world-editor',
+    title: '旧版世界编辑器',
+    icon: 'material-symbols:history',
+    description: '兼容旧版本格式的世界地标编辑器',
+    route: '/toolbox/old-world-editor',
+    category: 'utility',
+  },
 ];
 
 // 获取所有默认菜单项配置

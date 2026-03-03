@@ -55,23 +55,6 @@ export function createWebDAVClient(options: WebDAVConnectionOptions) {
   });
 }
 
-/**
- * 上传文件到 WebDAV 服务器
- * @param options - WebDAV 连接选项
- * @param remotePath - 远程服务器上的文件路径
- * @param data - 要上传的数据 (字符串)
- * @returns Promise<void>
- */
-export async function uploadToWebDAV(options: WebDAVConnectionOptions, remotePath: string, data: string) {
-  if (isTauriApp()) {
-    await tauriWebDAVRequest<void>(options, 'upload', remotePath, data);
-    return;
-  }
-
-  const client = createWebDAVClient(options);
-  await client.putFileContents(remotePath, data, { overwrite: true });
-}
-
 function buildWebDAVUrl(baseUrl: string, remotePath: string) {
   const normalizedBase = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
   return new URL(remotePath, normalizedBase).toString();
@@ -121,22 +104,6 @@ export async function uploadToWebDAVWithProgress(
     xhr.onerror = () => reject(new Error('网络错误'));
     xhr.send(data);
   });
-}
-
-/**
- * 从 WebDAV 服务器下载文件
- * @param options - WebDAV 连接选项
- * @param remotePath - 远程服务器上的文件路径
- * @returns Promise<string> - 文件内容
- */
-export async function downloadFromWebDAV(options: WebDAVConnectionOptions, remotePath: string): Promise<string> {
-  if (isTauriApp()) {
-    return tauriWebDAVRequest<string>(options, 'download', remotePath);
-  }
-
-  const client = createWebDAVClient(options);
-  const content = await client.getFileContents(remotePath, { format: 'text' });
-  return content as string;
 }
 
 export async function downloadFromWebDAVWithProgress(

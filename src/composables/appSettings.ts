@@ -29,14 +29,11 @@ export type SettingOption = SwitchSetting | NumberInputSetting;
 
 interface AppSettingsModels {
   betaFeaturesEnabled: Ref<boolean>;
-  useOldSidebar: Ref<boolean>;
-  useOldWorldEditor: Ref<boolean>;
   autoSaveInterval: Ref<number>;
   autoSaveDebounce: Ref<number>;
 }
 interface AppSettingsHandlers {
   onBetaFeaturesToggle: (value: boolean) => void;
-  onUseOldWorldEditorToggle: (value: boolean) => void;
   onAutoSaveIntervalChange: (value: number | undefined) => void;
   onAutoSaveDebounceChange: (value: number | undefined) => void;
 }
@@ -52,16 +49,6 @@ export const getAppSettings = (models: AppSettingsModels, handlers: AppSettingsH
       type: 'switch',
       model: models.betaFeaturesEnabled,
       handler: handlers.onBetaFeaturesToggle,
-    },
-    {
-      id: 'useOldWorldEditor',
-      label: '使用旧版本地标编辑器',
-      icon: 'gis:globe-users',
-      iconColor: 'var(--el-color-primary)',
-      description: '开启后将使用旧版本的地标编辑器，它将缺乏维护，并且功能落后 ',
-      type: 'switch',
-      model: models.useOldWorldEditor,
-      handler: handlers.onUseOldWorldEditorToggle,
     },
     {
       id: 'autoSaveInterval',

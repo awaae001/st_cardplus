@@ -82,8 +82,6 @@ import { computed, onMounted, ref } from 'vue';
 const betaFeaturesEnabled = ref(false);
 const autoSaveInterval = ref(5);
 const autoSaveDebounce = ref(1.5);
-const useOldSidebar = ref(false);
-const useOldWorldEditor = ref(false);
 
 const onBetaFeaturesToggle = (value: boolean) => {
   if (value) {
@@ -138,29 +136,15 @@ const onAutoSaveDebounceChange = (value: number | undefined) => {
   window.dispatchEvent(new CustomEvent('autoSaveDebounceChange', { detail: value }));
 };
 
-const onUseOldWorldEditorToggle = (value: boolean) => {
-  setSetting('useOldWorldEditor', value);
-  ElMessageBox.confirm('此设置将在您下次刷新页面 (Ctrl+R) 后生效 ', '提示', {
-    confirmButtonText: '立即刷新',
-    cancelButtonText: '稍后',
-    type: 'info',
-  }).then(() => {
-    window.location.reload();
-  });
-};
-
 const settings = computed(() =>
   getAppSettings(
     {
       betaFeaturesEnabled,
-      useOldSidebar,
-      useOldWorldEditor,
       autoSaveInterval,
       autoSaveDebounce,
     },
     {
       onBetaFeaturesToggle,
-      onUseOldWorldEditorToggle,
       onAutoSaveIntervalChange,
       onAutoSaveDebounceChange,
     }
@@ -171,7 +155,6 @@ onMounted(() => {
   betaFeaturesEnabled.value = getSetting('betaFeaturesEnabled');
   autoSaveInterval.value = getSetting('autoSaveInterval');
   autoSaveDebounce.value = getSetting('autoSaveDebounce');
-  useOldWorldEditor.value = getSetting('useOldWorldEditor');
 });
 </script>
 

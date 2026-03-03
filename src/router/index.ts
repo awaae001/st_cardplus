@@ -82,6 +82,12 @@ const router = createRouter({
       meta: { title: '简繁转换器' },
     },
     {
+      path: '/toolbox/old-world-editor',
+      name: 'oldWorldEditor',
+      component: () => import('../components/toolsbox/OldWorldEditorTool.vue'),
+      meta: { title: '旧版世界编辑器' },
+    },
+    {
       path: '/regex-editor',
       name: 'regexEditor',
       component: () => import('../pages/RegexEditorPage.vue'),

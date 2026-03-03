@@ -2,14 +2,14 @@
 import { Icon } from '@iconify/vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { computed, ref } from 'vue';
-import { saveFile } from '../../utils/fileSave';
+import { saveFile } from '@/utils/fileSave';
 import {
   CONVERSION_OPTIONS,
   type ConversionConfig,
   type ConversionResult,
   convertPngCharacterCardBatch,
   downloadConvertedPngBatch,
-} from '../../utils/chineseConverter';
+} from '@/utils/chineseConverter';
 
 // 文件列表项接口
 interface FileItem {

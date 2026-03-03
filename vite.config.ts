@@ -4,7 +4,6 @@ import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 import { execSync } from 'child_process';
 
-// 安全地获取 git commit hash 和 count
 const getGitVersionInfo = () => {
   try {
     const commitHash = execSync('git rev-parse --short HEAD').toString().trim();

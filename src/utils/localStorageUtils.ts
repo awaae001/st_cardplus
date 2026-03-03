@@ -22,7 +22,6 @@ interface AppSettings {
 }
 
 type LocalStorageSnapshot = Record<string, string | null>;
-type SessionStorageSnapshot = Record<string, string | null>;
 export type AppSettingsKey = keyof AppSettings;
 
 export const getLocalStorageItem = (key: string): string | null => {
@@ -40,10 +39,6 @@ export const setLocalStorageItem = (key: string, value: string): void => {
   } catch (error) {
     console.error('写入本地存储失败:', error);
   }
-};
-
-export const setLocalStorageValue = (key: string, value: string | number | boolean | null | undefined): void => {
-  setLocalStorageItem(key, String(value));
 };
 
 export const removeLocalStorageItem = (key: string): void => {
@@ -124,10 +119,6 @@ export const setSessionStorageItem = (key: string, value: string): void => {
   }
 };
 
-export const setSessionStorageValue = (key: string, value: string | number | boolean | null | undefined): void => {
-  setSessionStorageItem(key, String(value));
-};
-
 export const removeSessionStorageItem = (key: string): void => {
   try {
     sessionStorage.removeItem(key);
@@ -155,38 +146,6 @@ export const getSessionStorageKeys = (): string[] => {
     console.error('读取会话存储键失败:', error);
   }
   return keys;
-};
-
-export const getSessionStorageSnapshot = (options?: { excludeKeys?: string[] }): SessionStorageSnapshot => {
-  const snapshot: SessionStorageSnapshot = {};
-  const excludeSet = new Set(options?.excludeKeys ?? []);
-  getSessionStorageKeys().forEach((key) => {
-    if (!excludeSet.has(key)) {
-      snapshot[key] = getSessionStorageItem(key);
-    }
-  });
-  return snapshot;
-};
-
-export const restoreSessionStorageSnapshot = (
-  snapshot: SessionStorageSnapshot,
-  options?: { preserveKeys?: string[] }
-): void => {
-  const preserved: SessionStorageSnapshot = {};
-  (options?.preserveKeys ?? []).forEach((key) => {
-    const value = getSessionStorageItem(key);
-    if (value !== null) preserved[key] = value;
-  });
-
-  clearAllSessionStorage();
-
-  Object.entries(preserved).forEach(([key, value]) => {
-    if (value !== null) setSessionStorageItem(key, value);
-  });
-
-  Object.entries(snapshot).forEach(([key, value]) => {
-    if (value !== null) setSessionStorageItem(key, value);
-  });
 };
 
 export const readLocalStorageJSON = <T>(key: string): T | null => {
@@ -420,15 +379,6 @@ export const setSidebarConfig = (config: SidebarConfig) => {
   // 发送自定义事件通知配置已更新
   const event = new CustomEvent('sidebarConfigChange', { detail: updatedConfig });
   window.dispatchEvent(event);
-};
-
-/**
- * 获取可见的导航栏菜单项（按顺序排列）
- * @returns 可见的菜单项数组
- */
-export const getVisibleSidebarItems = (): MenuItemConfig[] => {
-  const config = getSidebarConfig();
-  return config.items.filter((item) => item.visible).sort((a, b) => a.order - b.order);
 };
 
 /**
