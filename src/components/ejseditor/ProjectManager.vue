@@ -469,18 +469,11 @@ async function handleDeleteProject(projectId: string) {
 }
 
 
-async function handleSchemeChange(schemeId: string) {
+function handleSchemeChange(schemeId: string) {
   if (schemeId === store.currentSchemeId) return;
 
-  try {
-    await ElMessageBox.confirm('切换方案会保存当前方案的更改，确定继续吗？', '确认切换方案', {
-      type: 'info',
-    });
-
-    store.switchStageScheme(schemeId);
-    ElMessage.success('方案切换成功');
-  } catch {
-  }
+  store.switchStageScheme(schemeId);
+  ElMessage.success('方案切换成功');
 }
 
 async function handleSaveCurrentAsScheme() {
