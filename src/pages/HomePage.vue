@@ -7,7 +7,7 @@
     />
     <h1 class="title">欢迎使用 ST CardPlus</h1>
     <p class="subtitle">你今天要创造些什么？</p>
-    <p class="hint">请从顶部导航栏选择要编辑的内容</p>
+    <p class="hint">请从导航栏选择要编辑的内容 · 或者随便试试？</p>
 
     <div class="did-you-know-card">
       <div class="did-you-know-head">

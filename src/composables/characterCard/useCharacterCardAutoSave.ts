@@ -81,12 +81,6 @@ export function useCharacterCardAutoSave(options: AutoSaveOptions) {
       return;
     }
 
-    // 4. 数据验证：确保有有效的内容
-    if (!hasValidContent(characterData.value)) {
-      console.warn('[AutoSave] 跳过保存：数据无效或为空');
-      return;
-    }
-
     const cardId = activeCardId.value;
     if (!cardId) {
       console.log('[AutoSave] 跳过保存：没有激活的角色卡');
@@ -137,41 +131,18 @@ export function useCharacterCardAutoSave(options: AutoSaveOptions) {
    * 检查是否应该执行保存
    */
   const shouldSave = (): boolean => {
-    // 手动模式：完全禁用自动保存
     if (autoSaveMode.value === 'manual') {
       return false;
     }
-
-    // 正在加载数据时不保存
     if (isLoadingData.value) {
       return false;
     }
 
-    // 没有激活的角色卡时不保存
     if (!activeCardId.value) {
       return false;
     }
 
     return true;
-  };
-
-  /**
-   * 验证角色卡数据是否有效
-   */
-  const hasValidContent = (data: CharacterCardV3): boolean => {
-    const hasValidName = !!(data.name || data.data?.name);
-    const hasAnyContent = !!(
-      data.description ||
-      data.personality ||
-      data.scenario ||
-      data.first_mes ||
-      data.data?.description ||
-      data.data?.personality ||
-      data.data?.scenario ||
-      data.data?.first_mes
-    );
-
-    return hasValidName || hasAnyContent;
   };
 
   /**
@@ -181,11 +152,6 @@ export function useCharacterCardAutoSave(options: AutoSaveOptions) {
     const cardId = activeCardId.value;
     if (!cardId) {
       console.warn('[AutoSave] 手动保存失败：没有激活的角色卡');
-      return;
-    }
-
-    if (!hasValidContent(characterData.value)) {
-      console.warn('[AutoSave] 手动保存失败：数据无效或为空');
       return;
     }
 

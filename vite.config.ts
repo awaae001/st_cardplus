@@ -4,27 +4,20 @@ import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 import { execSync } from 'child_process';
 
-// 安全地获取 git commit hash 和 count
 const getGitVersionInfo = () => {
   try {
     const commitHash = execSync('git rev-parse --short HEAD').toString().trim();
     const commitCount = execSync('git rev-list --count HEAD').toString().trim();
-    // 获取最近10条的提交日志
-    let gitLog: string[] = [];
-    if (!process.env.CF_PAGES) {
-      gitLog = execSync('git log --pretty=format:"%h - %s (%cr)" -n 10').toString().trim().split('\n');
-    }
-    return { commitHash, commitCount, gitLog };
+    return { commitHash, commitCount };
   } catch (e) {
     console.error('Failed to get git info:', e);
-    return { commitHash: 'unknown', commitCount: 'unknown', gitLog: ['Failed to get git log'] };
+    return { commitHash: 'unknown', commitCount: 'unknown' };
   }
 };
 
-const { commitHash, commitCount, gitLog } = getGitVersionInfo();
+const { commitHash, commitCount } = getGitVersionInfo();
 const appVersion = process.env.CF_PAGES_COMMIT_SHA ? process.env.CF_PAGES_COMMIT_SHA.slice(0, 7) : commitHash;
 const appCommitCount = commitCount;
-const appGitLog = gitLog;
 
 export default defineConfig({
   server: {
@@ -49,7 +42,6 @@ export default defineConfig({
     global: 'globalThis',
     __APP_VERSION__: JSON.stringify(appVersion),
     __APP_COMMIT_COUNT__: JSON.stringify(appCommitCount),
-    __APP_GIT_LOG__: JSON.stringify(appGitLog),
     __VUE_OPTIONS_API__: true,
     __VUE_PROD_DEVTOOLS__: false,
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),

@@ -184,12 +184,6 @@
       />
     </div>
 
-    <div class="form-item">
-      <label>内容预览</label>
-      <div class="content-preview">
-        <pre>{{ stage.content || '(空内容)' }}</pre>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -388,24 +382,6 @@ function updateCondition(groupId: string, conditionId: string, updates: Partial<
 
 .content-textarea {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-}
-
-.content-preview {
-  border: 1px solid var(--el-border-color-light);
-  border-radius: 4px;
-  padding: 12px;
-  max-height: 150px;
-  overflow-y: auto;
-}
-
-.content-preview pre {
-  margin: 0;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 12px;
-  line-height: 1.4;
-  color: var(--el-text-color-primary);
-  white-space: pre-wrap;
-  word-break: break-word;
 }
 
 .condition-row {

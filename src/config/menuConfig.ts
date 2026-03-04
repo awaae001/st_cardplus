@@ -76,7 +76,7 @@ export const mainMenuItems: MenuItemConfig[] = [
     icon: 'House',
     route: '/',
     fixed: true,
-    showInTabBar: false, // Logo 已可点击回首页，无需在 TabBar 显示
+    showInTabBar: false,
   },
   {
     id: 'cardmanager',
@@ -127,7 +127,6 @@ export const mainMenuItems: MenuItemConfig[] = [
     title: '世界书',
     icon: 'Collection',
     route: '/worldbook',
-    beta: true,
     showInTabBar: false,
   },
   {
@@ -242,6 +241,14 @@ export const toolboxFixedTools: ToolboxToolConfig[] = [
     description: '批量转换角色卡简繁体，支持多种方言',
     route: '/toolbox/chinese-converter',
     category: 'converter',
+  },
+  {
+    id: 'old-world-editor',
+    title: '旧版世界编辑器',
+    icon: 'material-symbols:history',
+    description: '兼容旧版本格式的世界地标编辑器',
+    route: '/toolbox/old-world-editor',
+    category: 'utility',
   },
 ];
 

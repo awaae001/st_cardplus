@@ -1,15 +1,6 @@
 <template>
   <div class="world-editor-main-panel">
     <template v-if="props.selectedItem">
-      <div class="editor-header">
-        <h1 class="page-title">{{ isIntegration(props.selectedItem) ? '项目整合' : '在这里编辑' }}</h1>
-        <WorldEditorActionButtons
-          @save-to-file="handleSaveToFile"
-          @load-from-file="handleLoadFromFile"
-          @copy-to-clipboard="handleCopyToClipboard"
-          @import-from-clipboard="handleImportFromClipboard"
-        />
-      </div>
       <div
         class="editor-content"
         :key="props.selectedItem.id"
@@ -82,14 +73,11 @@ import type {
   Project,
   ProjectIntegration,
 } from '@/types/world-editor';
-import { ElMessage } from 'element-plus';
-import { saveFile } from '@/utils/fileSave';
 import ForceEditor from './editorPacel/ForceEditor.vue';
 import IntegratedPanel from './editorPacel/IntegratedPanel.vue';
 import LandmarkEditor from './editorPacel/LandmarkEditor.vue';
 import RegionEditor from './editorPacel/RegionEditor.vue';
 import ProjectEditor from './ProjectEditor.vue';
-import WorldEditorActionButtons from './WorldEditorActionButtons.vue';
 
 interface Props {
   selectedItem: Project | EnhancedLandmark | EnhancedForce | EnhancedRegion | ProjectIntegration | null;
@@ -113,145 +101,8 @@ const handleCreateProject = () => {
   emit('create-project');
 };
 
-const updateSelectedItem = (importedData: any) => {
-  if (!props.selectedItem) return;
-  const updatedItem = {
-    ...props.selectedItem,
-    ...importedData,
-    id: props.selectedItem.id,
-  };
-  emit('update:selectedItem', updatedItem);
-  ElMessage.success('导入成功！');
-};
-
 const handleSelectForce = (force: EnhancedForce) => {
   emit('update:selectedItem', force);
-};
-
-// 对于整合面板，我们需要特殊处理剪贴板和文件系统操作
-const handleCopyToClipboard = () => {
-  if (!props.selectedItem) return;
-
-  if (isIntegration(props.selectedItem)) {
-    // 整合面板：导出当前项目的完整数据
-    const currentProject = getCurrentProject(props.selectedItem);
-    if (currentProject) {
-      const projectLandmarks = props.landmarks?.filter((l) => l.projectId === currentProject.id) || [];
-      const projectForces = props.forces?.filter((f) => f.projectId === currentProject.id) || [];
-      const projectRegions = props.regions?.filter((r) => r.projectId === currentProject.id) || [];
-
-      const exportData = {
-        project: currentProject,
-        landmarks: projectLandmarks,
-        forces: projectForces,
-        regions: projectRegions,
-      };
-
-      navigator.clipboard
-        .writeText(JSON.stringify(exportData, null, 2))
-        .then(() => ElMessage.success('项目数据已复制到剪贴板'))
-        .catch(() => ElMessage.error('复制失败'));
-    }
-  } else {
-    // 非整合面板：使用原有逻辑
-    const jsonData = JSON.stringify(props.selectedItem, null, 2);
-    navigator.clipboard
-      .writeText(jsonData)
-      .then(() => ElMessage.success('数据已复制到剪贴板'))
-      .catch(() => ElMessage.error('复制失败'));
-  }
-};
-
-const handleImportFromClipboard = async () => {
-  if (!props.selectedItem) return;
-
-  try {
-    const text = await navigator.clipboard.readText();
-    const importedData = JSON.parse(text);
-
-    if (isIntegration(props.selectedItem)) {
-      // 整合面板：导入项目数据
-      if (importedData.project) {
-        emit('update:selectedItem', importedData.project);
-      }
-      // 这里可以添加导入地标和势力的逻辑
-      ElMessage.success('项目数据导入成功');
-    } else {
-      // 非整合面板：使用原有逻辑
-      updateSelectedItem(importedData);
-    }
-  } catch (error) {
-    ElMessage.error('导入失败：数据格式错误');
-  }
-};
-
-const handleSaveToFile = async () => {
-  if (!props.selectedItem) return;
-
-  if (isIntegration(props.selectedItem)) {
-    // 整合面板：保存项目完整数据
-    const currentProject = getCurrentProject(props.selectedItem);
-    if (currentProject) {
-      const projectLandmarks = props.landmarks?.filter((l) => l.projectId === currentProject.id) || [];
-      const projectForces = props.forces?.filter((f) => f.projectId === currentProject.id) || [];
-      const projectRegions = props.regions?.filter((r) => r.projectId === currentProject.id) || [];
-
-      const exportData = {
-        project: currentProject,
-        landmarks: projectLandmarks,
-        forces: projectForces,
-        regions: projectRegions,
-      };
-
-      await saveFile({
-        data: new TextEncoder().encode(JSON.stringify(exportData, null, 2)),
-        fileName: `${currentProject.name || 'project'}_complete.json`,
-        mimeType: 'application/json',
-      });
-      ElMessage.success('项目数据已保存');
-    }
-  } else {
-    // 非整合面板：保存单个项目数据
-    await saveFile({
-      data: new TextEncoder().encode(JSON.stringify(props.selectedItem, null, 2)),
-      fileName: `${(props.selectedItem as any).name || 'data'}.json`,
-      mimeType: 'application/json',
-    });
-    ElMessage.success('数据已保存');
-  }
-};
-
-const handleLoadFromFile = () => {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.json';
-  input.onchange = (event) => {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const content = e.target?.result as string;
-          const data = JSON.parse(content);
-
-          if (isIntegration(props.selectedItem!)) {
-            // 整合面板：加载项目数据
-            if (data.project) {
-              emit('update:selectedItem', data.project);
-            }
-            ElMessage.success('项目数据加载成功');
-          } else {
-            // 非整合面板：使用原有逻辑
-            updateSelectedItem(data);
-          }
-        } catch (error) {
-          ElMessage.error('文件格式错误');
-        }
-      };
-      reader.readAsText(file);
-    }
-  };
-  input.click();
 };
 
 const isProject = (item: any): item is Project => {
@@ -287,23 +138,6 @@ const getCurrentProject = (integration: ProjectIntegration): Project | null => {
   flex-direction: column;
 }
 
-.world-editor-main-panel > .editor-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--el-border-color);
-}
-
-.world-editor-main-panel > .editor-header > .page-title {
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0;
-  white-space: nowrap;
-  color: var(--el-text-color-primary);
-}
-
 .world-editor-main-panel > .editor-content {
   flex: 1;
   min-height: 0;
@@ -336,20 +170,5 @@ const getCurrentProject = (integration: ProjectIntegration): Project | null => {
 
 .create-project-link:hover {
   color: var(--el-color-primary-light-3);
-}
-
-/* 移动端适配 */
-@media screen and (max-width: 768px) {
-  .world-editor-main-panel > .editor-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    margin-bottom: 12px;
-    padding-bottom: 12px;
-  }
-
-  .world-editor-main-panel > .editor-header > .page-title {
-    font-size: 15px;
-  }
 }
 </style>

@@ -280,10 +280,8 @@ function isStageMatched(stage: Stage): boolean {
   }
 
   const checkCondition = (cond: Condition): boolean => {
-    // 寻找对应的扁平变量来获取正确的readablePath
     const flatVariable = store.flatVariables.find((v) => v.id === cond.variablePath);
     const readablePath = flatVariable ? flatVariable.readablePath : cond.variablePath;
-    // 构建完整的stat_data路径来匹配存储的值
     const fullPath = `stat_data.${readablePath}`;
     const simValue = store.simulationValues[fullPath] || store.simulationValues[readablePath];
     if (simValue === undefined) return false; // Variable not simulated
@@ -291,7 +289,6 @@ function isStageMatched(stage: Stage): boolean {
     const condValue = cond.value;
     const condEndValue = cond.endValue;
 
-    // Attempt numeric comparison first
     const numSimValue = Number(simValue);
     const numCondValue = Number(condValue);
     if (!isNaN(numSimValue) && !isNaN(numCondValue)) {
@@ -317,7 +314,6 @@ function isStageMatched(stage: Stage): boolean {
       }
     }
 
-    // Fallback to string comparison for non-numeric or specific types
     const strSimValue = String(simValue);
     const strCondValue = String(condValue);
     switch (cond.type) {
@@ -337,7 +333,6 @@ function isStageMatched(stage: Stage): boolean {
     return group.conditions.every(checkCondition); // Conditions within a group are ANDed
   };
 
-  // At least one group must be fully matched (groups are ORed)
   return stage.conditionGroups.some(checkGroup);
 }
 </script>
@@ -610,7 +605,6 @@ function isStageMatched(stage: Stage): boolean {
   flex-direction: column;
 }
 
-/* 移动端样式优化 */
 @media (max-width: 768px) {
   .simulation-panel {
     padding: 8px 12px;
@@ -690,7 +684,6 @@ function isStageMatched(stage: Stage): boolean {
   }
 }
 
-/* 平板端优化 */
 @media (min-width: 769px) and (max-width: 1024px) {
   .panel-content {
     padding: 12px;

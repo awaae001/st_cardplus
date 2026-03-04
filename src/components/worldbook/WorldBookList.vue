@@ -1,6 +1,6 @@
 <template>
   <SidebarTreePanel
-    title="我的世界书"
+    title="世界书"
     :tree-data="treeData"
     :tree-props="treeProps"
     :current-node-key="currentNodeKey"

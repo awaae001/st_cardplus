@@ -3,7 +3,7 @@ import type { CharacterBook, CharacterBookEntry } from '../types/character-book'
 import { nowIso } from './datetime';
 
 // 完整的 world_info_position 定义
-export const world_info_position = {
+const world_info_position = {
   before: 0,
   after: 1,
   ANTop: 2,
@@ -99,8 +99,6 @@ export function convertWorldBookToCharacterBook(worldBook: WorldBook): Character
     extensions: worldBook.metadata || {},
   };
 
-  // name 字段会由调用方处理（用于文件名，然后从最终 JSON 中移除）
-
   return characterBook;
 }
 
@@ -113,7 +111,6 @@ function convertPositionToNumber(position?: 'before_char' | 'after_char'): numbe
   if (position === 'before_char') {
     return world_info_position.before;
   }
-  // 'after_char' 是默认值
   return world_info_position.after;
 }
 

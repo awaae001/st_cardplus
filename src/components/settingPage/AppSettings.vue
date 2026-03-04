@@ -1,5 +1,23 @@
 <template>
   <el-alert
+    type="info"
+    show-icon
+    :closable="false"
+    style="margin-bottom: 12px"
+  >
+    <template #title>想要贡献？来贡献文档吧！</template>
+    <template #default>
+      文档贡献地址：
+      <a
+        href="https://github.com/awaae001/doc"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        https://github.com/awaae001/doc
+      </a>
+    </template>
+  </el-alert>
+  <el-alert
     type="warning"
     show-icon
     :closable="false"
@@ -62,11 +80,8 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { computed, onMounted, ref } from 'vue';
 
 const betaFeaturesEnabled = ref(false);
-const umamiEnabled = ref(true);
 const autoSaveInterval = ref(5);
 const autoSaveDebounce = ref(1.5);
-const useOldSidebar = ref(false);
-const useOldWorldEditor = ref(false);
 
 const onBetaFeaturesToggle = (value: boolean) => {
   if (value) {
@@ -109,47 +124,6 @@ const onBetaFeaturesToggle = (value: boolean) => {
   }
 };
 
-const onUmamiToggle = (value: boolean) => {
-  if (!value) {
-    ElMessageBox.confirm(
-      `
-          <div style="text-align: left;">
-            <p>我依靠匿名遥测数据来了解功能的使用情况、发现问题并指导应用的未来发展 </p>
-            <p>关闭遥测将使我更难改进您和其他用户的使用体验</p>
-            <p><strong>您确定要关闭匿名遥测吗？</strong></p>
-            <p>我承诺，所有收集的数据都是完全匿名的，绝不包含任何个人身份信息或您的创作内容</p>
-            <p>你可以通过 <a href="mailto:admin@awaae001.top" style="color: var(--el-color-primary);">📥 电子邮件</a> 发送邮件尝试要求删除你的数据（看我能不能找得到）</p>
-          </div>
-        `,
-      '关闭匿名遥测',
-      {
-        confirmButtonText: '确认关闭',
-        cancelButtonText: '保持开启',
-        type: 'warning',
-        dangerouslyUseHTMLString: true,
-      }
-    )
-      .then(() => {
-        setSetting('umamiEnabled', false);
-        toggleUmamiScript(false);
-        ElMessage({
-          type: 'success',
-          message: '匿名遥测已关闭',
-        });
-      })
-      .catch(() => {
-        umamiEnabled.value = true;
-        ElMessage({
-          type: 'info',
-          message: '已取消关闭匿名遥测',
-        });
-      });
-  } else {
-    setSetting('umamiEnabled', true);
-    toggleUmamiScript(true);
-  }
-};
-
 const onAutoSaveIntervalChange = (value: number | undefined) => {
   if (value === undefined) return;
   setSetting('autoSaveInterval', value);
@@ -162,58 +136,25 @@ const onAutoSaveDebounceChange = (value: number | undefined) => {
   window.dispatchEvent(new CustomEvent('autoSaveDebounceChange', { detail: value }));
 };
 
-const onUseOldWorldEditorToggle = (value: boolean) => {
-  setSetting('useOldWorldEditor', value);
-  ElMessageBox.confirm('此设置将在您下次刷新页面 (Ctrl+R) 后生效 ', '提示', {
-    confirmButtonText: '立即刷新',
-    cancelButtonText: '稍后',
-    type: 'info',
-  }).then(() => {
-    window.location.reload();
-  });
-};
-
 const settings = computed(() =>
   getAppSettings(
     {
       betaFeaturesEnabled,
-      useOldSidebar,
-      useOldWorldEditor,
-      umamiEnabled,
       autoSaveInterval,
       autoSaveDebounce,
     },
     {
       onBetaFeaturesToggle,
-      onUseOldWorldEditorToggle,
-      onUmamiToggle,
       onAutoSaveIntervalChange,
       onAutoSaveDebounceChange,
     }
   )
 );
 
-const toggleUmamiScript = (enabled: boolean) => {
-  const existingScript = document.querySelector('script[data-website-id="6685fde6-dad1-49c1-b952-3a487d6991da"]');
-
-  if (enabled && !existingScript) {
-    const script = document.createElement('script');
-    script.defer = true;
-    script.src = 'https://umami.awaae001.top/script.js';
-    script.setAttribute('data-website-id', '6685fde6-dad1-49c1-b952-3a487d6991da');
-    document.head.appendChild(script);
-  } else if (!enabled && existingScript) {
-    existingScript.remove();
-  }
-};
-
 onMounted(() => {
   betaFeaturesEnabled.value = getSetting('betaFeaturesEnabled');
-  umamiEnabled.value = getSetting('umamiEnabled');
   autoSaveInterval.value = getSetting('autoSaveInterval');
   autoSaveDebounce.value = getSetting('autoSaveDebounce');
-  useOldWorldEditor.value = getSetting('useOldWorldEditor');
-  toggleUmamiScript(umamiEnabled.value);
 });
 </script>
 

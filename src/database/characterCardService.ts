@@ -120,15 +120,15 @@ export const characterCardService = {
 
     return {
       id,
-      name: options.name || cardData.name || cardData.data?.name || '未命名角色',
-      description: options.description || cardData.description || cardData.data?.description || '',
+      name: (options.name ?? cardData.name ?? cardData.data?.name ?? '').trim() || '未命名角色',
+      description: options.description ?? cardData.description ?? cardData.data?.description ?? '',
       avatar: cardData.avatar !== 'none' ? cardData.avatar : undefined,
       cardData,
       createdAt: now,
       updatedAt: now,
       order: options.order ?? 0,
-      tags: options.tags || cardData.tags || cardData.data?.tags || [],
-      metadata: options.metadata || {},
+      tags: options.tags ?? cardData.tags ?? cardData.data?.tags ?? [],
+      metadata: options.metadata ?? {},
     };
   },
 

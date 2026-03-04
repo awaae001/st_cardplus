@@ -122,29 +122,33 @@ export function useCharacterCardCollection() {
     try {
       const now = nowIso();
 
-      // 【关键修复】反转同步方向：从 data 同步到顶层（data 是真实数据源）
-      const synchronizedCardData = { ...cardData };
+      // data 层是真实数据源：同步到顶层时保留空字符串，不使用 || 回退
+      const synchronizedCardData = {
+        ...cardData,
+        data: {
+          ...cardData.data,
+        },
+      };
       if (synchronizedCardData.data) {
-        // 从 data 层同步到顶层（用于兼容性）
-        synchronizedCardData.name = synchronizedCardData.data.name || synchronizedCardData.name;
-        synchronizedCardData.description = synchronizedCardData.data.description || synchronizedCardData.description;
-        synchronizedCardData.personality = synchronizedCardData.data.personality || synchronizedCardData.personality;
-        synchronizedCardData.scenario = synchronizedCardData.data.scenario || synchronizedCardData.scenario;
-        synchronizedCardData.first_mes = synchronizedCardData.data.first_mes || synchronizedCardData.first_mes;
-        synchronizedCardData.mes_example = synchronizedCardData.data.mes_example || synchronizedCardData.mes_example;
-        synchronizedCardData.tags = synchronizedCardData.data.tags || synchronizedCardData.tags;
+        synchronizedCardData.name = synchronizedCardData.data.name ?? '';
+        synchronizedCardData.description = synchronizedCardData.data.description ?? '';
+        synchronizedCardData.personality = synchronizedCardData.data.personality ?? '';
+        synchronizedCardData.scenario = synchronizedCardData.data.scenario ?? '';
+        synchronizedCardData.first_mes = synchronizedCardData.data.first_mes ?? '';
+        synchronizedCardData.mes_example = synchronizedCardData.data.mes_example ?? '';
+        synchronizedCardData.tags = synchronizedCardData.data.tags ?? [];
       }
 
       const storedCard: StoredCharacterCard = {
         id: cardId,
-        name: synchronizedCardData.name || synchronizedCardData.data?.name || '未命名角色',
-        description: synchronizedCardData.description || synchronizedCardData.data?.description || '',
+        name: (synchronizedCardData.name ?? '').trim() || '未命名角色',
+        description: synchronizedCardData.description ?? '',
         avatar: synchronizedCardData.avatar !== 'none' ? synchronizedCardData.avatar : undefined,
         cardData: synchronizedCardData, // 使用同步后的数据
         createdAt: existingCard.createdAt,
         updatedAt: now,
         order: existingCard.order,
-        tags: synchronizedCardData.tags || synchronizedCardData.data?.tags || [],
+        tags: synchronizedCardData.tags ?? [],
         metadata: {},
       };
 

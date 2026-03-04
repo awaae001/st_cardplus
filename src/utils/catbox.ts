@@ -57,7 +57,3 @@ export const uploadImageToHostingViaTauri = async (
 
   return url;
 };
-
-export const uploadImageToCatboxViaTauri = async (file: File): Promise<string> => {
-  return uploadImageToHostingViaTauri(file, 'catbox');
-};

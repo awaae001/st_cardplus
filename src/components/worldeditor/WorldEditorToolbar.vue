@@ -87,44 +87,6 @@
             />
           </div>
         </div>
-
-        <div
-          class="toolbar-marquee"
-          role="status"
-          aria-live="polite"
-        >
-          <div class="toolbar-marquee-track">
-            <div class="toolbar-marquee-content">
-              <span>节点图系统仍在测试开发</span>
-              <span class="toolbar-marquee-divider">•</span>
-              <span>有问题或建议您可以</span>
-              <a
-                class="toolbar-marquee-link"
-                href="https://github.com/awaae001/st_cardplus/issues"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                前往 GitHub 提出
-              </a>
-            </div>
-            <div
-              class="toolbar-marquee-content"
-              aria-hidden="true"
-            >
-              <span>节点图系统仍在测试开发</span>
-              <span class="toolbar-marquee-divider">•</span>
-              <span>有问题或建议您可以</span>
-              <a
-                class="toolbar-marquee-link"
-                href="https://github.com/awaae001/st_cardplus/issues"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                前往 GitHub 提出
-              </a>
-            </div>
-          </div>
-        </div>
       </template>
 
       <template #node="{ node, data }">
@@ -133,13 +95,8 @@
             <Icon
               :icon="data.icon"
               class="node-icon"
+              :color="data.iconColor"
             />
-            <span
-              v-if="data.type === 'region' || data.type === 'landmark'"
-              class="region-color-dot"
-              :class="{ 'is-empty': !data.regionColor && data.type === 'landmark' }"
-              :style="{ backgroundColor: data.type === 'region' ? data.color : data.regionColor }"
-            ></span>
             <span class="node-label">{{ node.label }}</span>
           </div>
           <div
@@ -258,11 +215,24 @@ const treeProps = {
   label: 'label',
 };
 
+const DEFAULT_ICON_COLORS = {
+  region: 'var(--el-color-warning)',
+} as const;
+
+const normalizeColor = (value?: string) => {
+  const normalized = value?.trim();
+  return normalized || undefined;
+};
+
+const resolveIconColor = (preferredColor: string | undefined, fallbackColor: string) =>
+  normalizeColor(preferredColor) || fallbackColor;
+
 const buildLandmarkTree = (projectLandmarks: EnhancedLandmark[], regionColorMap: Map<string, string>) => {
   const nodeMap = new Map<string, any>();
   const parentMap = new Map<string, string | null>();
 
   projectLandmarks.forEach((landmark) => {
+    const regionColor = landmark.regionId ? regionColorMap.get(landmark.regionId) : undefined;
     parentMap.set(landmark.id, getParentLandmarkId(landmark));
     nodeMap.set(landmark.id, {
       id: landmark.id,
@@ -271,7 +241,7 @@ const buildLandmarkTree = (projectLandmarks: EnhancedLandmark[], regionColorMap:
       isEntry: true,
       type: 'landmark',
       raw: landmark,
-      regionColor: landmark.regionId ? regionColorMap.get(landmark.regionId) : '',
+      iconColor: normalizeColor(regionColor),
       children: [] as any[],
     });
   });
@@ -345,7 +315,7 @@ const treeData = computed(() => {
             isEntry: true,
             type: 'region',
             raw: region,
-            color: region.color,
+            iconColor: resolveIconColor(region.color, DEFAULT_ICON_COLORS.region),
           })),
         },
         {
@@ -457,42 +427,6 @@ const handleAddCommand = (command: 'project' | 'landmark' | 'region' | 'force') 
   border-bottom: 1px solid var(--el-border-color-light);
 }
 
-.toolbar-marquee {
-  border-bottom: 1px solid var(--el-border-color-light);
-  background: var(--el-fill-color-extra-light);
-  overflow: hidden;
-}
-
-.toolbar-marquee-track {
-  display: flex;
-  width: max-content;
-  animation: toolbar-marquee-scroll 18s linear infinite;
-}
-
-.toolbar-marquee-content {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  font-size: 12px;
-  color: var(--el-text-color-regular);
-  white-space: nowrap;
-}
-
-.toolbar-marquee-divider {
-  opacity: 0.6;
-}
-
-.toolbar-marquee-link {
-  color: var(--el-color-primary);
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.toolbar-marquee-link:hover {
-  text-decoration: underline;
-}
-
 .toolbar-container :deep(.sidebar-tree .el-tree-node__content) {
   padding: 4px 0;
   height: auto;
@@ -526,10 +460,6 @@ const handleAddCommand = (command: 'project' | 'landmark' | 'region' | 'force') 
   margin-right: 8px;
   flex-shrink: 0;
   color: var(--el-text-color-secondary);
-}
-
-.toolbar-container :deep(.sidebar-tree .el-tree-node.is-current > .el-tree-node__content .node-icon) {
-  color: var(--el-color-primary);
 }
 
 .node-label {
@@ -571,28 +501,5 @@ const handleAddCommand = (command: 'project' | 'landmark' | 'region' | 'force') 
 .list-item-action-button.is-danger:hover {
   background-color: var(--el-color-danger-light-9);
   color: var(--el-color-danger);
-}
-
-.region-color-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  margin-right: 8px;
-  border: 1px solid var(--el-border-color);
-  flex-shrink: 0;
-}
-
-.region-color-dot.is-empty {
-  background-color: transparent;
-}
-
-@keyframes toolbar-marquee-scroll {
-  0% {
-    transform: translateX(0);
-  }
-
-  100% {
-    transform: translateX(-50%);
-  }
 }
 </style>

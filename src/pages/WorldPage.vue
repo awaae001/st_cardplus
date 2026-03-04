@@ -5,18 +5,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, shallowRef } from 'vue';
-import { getSetting } from '@/utils/localStorageUtils';
+import { shallowRef } from 'vue';
 import NewWorldEditor from '../components/WorldEditor.vue';
-import OldWorldEditor from '../components/old/WorldEditor.vue';
 
-const useOldEditor = ref(false);
 const activeEditor = shallowRef(NewWorldEditor);
-
-onMounted(() => {
-  useOldEditor.value = getSetting('useOldWorldEditor');
-  activeEditor.value = useOldEditor.value ? OldWorldEditor : NewWorldEditor;
-});
 </script>
 
 <style scoped>

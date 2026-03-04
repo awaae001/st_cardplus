@@ -71,38 +71,23 @@
       v-if="store.currentProject"
       class="stage-scheme-section"
     >
-      <div
-        class="section-header"
-        @click="showSchemePanel = !showSchemePanel"
-      >
-        <div class="section-title">
-          <el-icon
-            class="expand-icon"
-            :class="{ expanded: showSchemePanel }"
-          >
-            <ArrowRight />
-          </el-icon>
-          <span>阶段方案</span>
+      <div class="scheme-content">
+        <div class="scheme-meta-tags">
           <el-tag
             v-if="store.currentScheme"
             size="small"
             type="success"
           >
-            {{ store.currentScheme.name }}
+            当前方案: {{ store.currentScheme.name }}
+          </el-tag>
+          <el-tag
+            size="small"
+            type="info"
+          >
+            {{ store.currentProjectSchemes.length }} 个方案
           </el-tag>
         </div>
-        <el-tag
-          size="small"
-          type="info"
-        >
-          {{ store.currentProjectSchemes.length }} 个方案
-        </el-tag>
-      </div>
 
-      <div
-        v-show="showSchemePanel"
-        class="scheme-content"
-      >
         <div class="scheme-quick-actions">
           <el-button
             :icon="Plus"
@@ -337,7 +322,6 @@
 import { useEjsEditorStore } from '@/composables/ejs/ejsEditor';
 import { formatDateTime } from '@/utils/datetime';
 import {
-  ArrowRight,
   CopyDocument,
   Delete,
   Download,
@@ -352,7 +336,6 @@ import { computed, ref, watch } from 'vue';
 
 const store = useEjsEditorStore();
 const showProjectDialog = ref(false);
-const showSchemePanel = ref(true);
 
 const totalStagesCount = computed(() => {
   if (!store.logicBlocks) return 0;
@@ -486,18 +469,11 @@ async function handleDeleteProject(projectId: string) {
 }
 
 
-async function handleSchemeChange(schemeId: string) {
+function handleSchemeChange(schemeId: string) {
   if (schemeId === store.currentSchemeId) return;
 
-  try {
-    await ElMessageBox.confirm('切换方案会保存当前方案的更改，确定继续吗？', '确认切换方案', {
-      type: 'info',
-    });
-
-    store.switchStageScheme(schemeId);
-    ElMessage.success('方案切换成功');
-  } catch {
-  }
+  store.switchStageScheme(schemeId);
+  ElMessage.success('方案切换成功');
 }
 
 async function handleSaveCurrentAsScheme() {
@@ -714,45 +690,18 @@ const handleExportWorkspace = () => {
 }
 
 .stage-scheme-section {
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 6px;
-  background: var(--el-bg-color);
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  border-bottom: 1px solid var(--el-border-color-lighter);
-}
-
-.section-header:hover {
-  background-color: var(--el-fill-color-extra-light);
-}
-
-.section-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--el-text-color-primary);
-}
-
-.expand-icon {
-  transition: transform 0.2s;
-  color: var(--el-text-color-secondary);
-}
-
-.expand-icon.expanded {
-  transform: rotate(90deg);
+  margin-top: -2px;
 }
 
 .scheme-content {
-  padding: 12px;
+  padding: 0;
+}
+
+.scheme-meta-tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
 .scheme-quick-actions {

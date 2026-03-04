@@ -1,52 +1,5 @@
 <template>
   <div class="ejs-editor-page">
-    <!-- 顶部工具栏 -->
-    <div class="toolbar">
-      <div class="toolbar-left">
-        <h1 class="page-title">EJS 模板编辑器</h1>
-        <el-text
-          type="info"
-          size="small"
-        >
-          可视化创建动态模板
-        </el-text>
-      </div>
-      <div class="toolbar-right">
-        <el-button
-          v-if="!isMobileOrTablet"
-          @click="toggleCenterPanel"
-          :icon="centerPanelVisible ? Hide : View"
-          size="small"
-        >
-          {{ centerPanelVisible ? '隐藏编辑器' : '显示编辑器' }}
-        </el-button>
-        <el-button-group>
-          <el-button
-            :icon="DocumentAdd"
-            @click="handleImportConfig"
-            size="small"
-          >
-            导入配置
-          </el-button>
-          <el-button
-            :icon="Download"
-            @click="handleExportConfig"
-            size="small"
-          >
-            导出配置
-          </el-button>
-          <el-button
-            :icon="RefreshLeft"
-            @click="handleClearAll"
-            size="small"
-            type="warning"
-          >
-            清空
-          </el-button>
-        </el-button-group>
-      </div>
-    </div>
-
     <!-- 错误提示 -->
     <div
       v-if="store.hasErrors"
@@ -64,96 +17,123 @@
 
     <!-- 主内容区域 -->
     <div class="main-content">
-      <!-- 移动端布局 -->
       <div
         v-if="isMobileOrTablet"
         class="mobile-layout"
       >
-        <!-- 移动端导航 -->
-        <div class="mobile-nav">
-          <el-segmented
-            v-model="mobileActivePanel"
-            :options="[
-              { label: '项目', value: 'projects' },
-              { label: '变量', value: 'variables' },
-              { label: '阶段', value: 'stages' },
-              { label: '编辑', value: 'editor' },
-              { label: '预览', value: 'preview' },
-            ]"
-            size="small"
-          />
+        <div class="mobile-stage-panel">
+          <LogicBlockPanel />
         </div>
-        <!-- 移动端面板内容 -->
-        <div class="mobile-panel-content">
-          <div
-            v-show="mobileActivePanel === 'projects'"
-            class="mobile-panel"
+        <div class="mobile-bookmark-group mobile-bookmark-group--ejs">
+          <button
+            type="button"
+            class="mobile-bookmark-btn"
+            :class="{ active: mobileBookmarkTab === 'preview' && mobileDrawerVisible }"
+            @click="openMobileDrawer('preview')"
           >
-            <ProjectManager />
-          </div>
-          <div
-            v-show="mobileActivePanel === 'variables'"
-            class="mobile-panel"
+            预览
+          </button>
+          <button
+            type="button"
+            class="mobile-bookmark-btn"
+            :class="{ active: mobileBookmarkTab === 'simulation' && mobileDrawerVisible }"
+            @click="openMobileDrawer('simulation')"
           >
-            <VariablePanel />
-          </div>
-          <div
-            v-show="mobileActivePanel === 'stages'"
-            class="mobile-panel"
+            模拟
+          </button>
+          <button
+            type="button"
+            class="mobile-bookmark-btn"
+            :class="{ active: mobileBookmarkTab === 'config' && mobileDrawerVisible }"
+            @click="openMobileDrawer('config')"
           >
-            <LogicBlockPanel />
-          </div>
-          <div
-            v-show="mobileActivePanel === 'editor'"
-            class="mobile-panel"
+            配置
+          </button>
+          <button
+            type="button"
+            class="mobile-bookmark-btn"
+            :class="{ active: mobileBookmarkTab === 'project' && mobileDrawerVisible }"
+            @click="openMobileDrawer('project')"
           >
-            <div class="panel-header">
-              <h3>模板编辑器</h3>
-              <div class="header-actions">
-                <el-button
-                  :icon="CopyDocument"
-                  @click="copyToClipboard"
-                  size="small"
-                  type="primary"
-                >
-                  复制
-                </el-button>
-                <el-button
-                  :icon="RefreshRight"
-                  @click="store.generateEjsTemplate"
-                  size="small"
-                >
-                  生成
-                </el-button>
-              </div>
-            </div>
-            <TemplateEditor />
-          </div>
-          <div
-            v-show="mobileActivePanel === 'preview'"
-            class="mobile-panel"
-          >
+            项目
+          </button>
+        </div>
+
+        <el-drawer
+          v-model="mobileDrawerVisible"
+          direction="rtl"
+          size="88%"
+          :with-header="false"
+          class="mobile-side-drawer"
+        >
+          <div class="mobile-drawer-content">
             <el-tabs
-              v-model="activeRightTab"
-              class="h-full"
+              v-model="mobileBookmarkTab"
+              class="h-full mobile-bookmark-tabs"
             >
               <el-tab-pane
-                label="代码预览"
+                label="预览"
                 name="preview"
                 class="h-full"
               >
                 <PreviewPanel />
               </el-tab-pane>
               <el-tab-pane
-                label="模拟测试"
+                label="模拟"
                 name="simulation"
                 class="h-full"
               >
                 <SimulationPanel />
               </el-tab-pane>
+              <el-tab-pane
+                label="配置"
+                name="config"
+                class="h-full"
+              >
+                <div class="mobile-panel mobile-config-panel">
+                  <div class="sidebar-actions mobile-sidebar-actions">
+                    <el-button-group>
+                      <el-button
+                        :icon="DocumentAdd"
+                        @click="handleImportConfig"
+                        size="small"
+                      >
+                        导入配置
+                      </el-button>
+                      <el-button
+                        :icon="Download"
+                        @click="handleExportConfig"
+                        size="small"
+                      >
+                        导出配置
+                      </el-button>
+                      <el-button
+                        :icon="RefreshLeft"
+                        @click="handleClearAll"
+                        size="small"
+                        type="warning"
+                      >
+                        清空
+                      </el-button>
+                    </el-button-group>
+                  </div>
+                  <div class="mobile-config-content">
+                    <VariablePanel />
+                  </div>
+                </div>
+              </el-tab-pane>
+              <el-tab-pane
+                label="项目"
+                name="project"
+                class="h-full"
+              >
+                <div class="mobile-panel">
+                  <ProjectManager />
+                </div>
+              </el-tab-pane>
             </el-tabs>
           </div>
-        </div>
+        </el-drawer>
       </div>
 
       <!-- 桌面端布局 -->
@@ -168,18 +148,53 @@
           size="20"
         >
           <div class="sidebar-panel">
-            <el-tabs
-              v-model="activeSidebarTab"
-              class="h-full"
-            >
-              <el-tab-pane
-                label="项目管理"
-                name="projects"
+            <div class="sidebar-content">
+              <el-tabs
+                v-model="activeSidebarTab"
                 class="h-full"
               >
-                <ProjectManager />
-              </el-tab-pane>
-            </el-tabs>
+                <el-tab-pane
+                  label="ejs生成器"
+                  name="projects"
+                  class="h-full"
+                >
+                  <ProjectManager />
+                </el-tab-pane>
+              </el-tabs>
+            </div>
+            <div class="sidebar-actions">
+              <el-button
+                @click="toggleCenterPanel"
+                :icon="centerPanelVisible ? Hide : View"
+                size="small"
+              >
+                {{ centerPanelVisible ? '隐藏编辑器' : '显示编辑器' }}
+              </el-button>
+              <el-button-group>
+                <el-button
+                  :icon="DocumentAdd"
+                  @click="handleImportConfig"
+                  size="small"
+                >
+                  导入配置
+                </el-button>
+                <el-button
+                  :icon="Download"
+                  @click="handleExportConfig"
+                  size="small"
+                >
+                  导出配置
+                </el-button>
+                <el-button
+                  :icon="RefreshLeft"
+                  @click="handleClearAll"
+                  size="small"
+                  type="warning"
+                >
+                  清空
+                </el-button>
+              </el-button-group>
+            </div>
           </div>
         </pane>
         <!-- 左侧面板 -->
@@ -293,10 +308,16 @@ const activeSidebarTab = ref('projects');
 const activeLeftTab = ref('variables');
 const activeRightTab = ref('preview');
 const centerPanelVisible = ref(false);
-const mobileActivePanel = ref('projects');
+const mobileBookmarkTab = ref('preview');
+const mobileDrawerVisible = ref(false);
 
 function toggleCenterPanel() {
   centerPanelVisible.value = !centerPanelVisible.value;
+}
+
+function openMobileDrawer(tab: 'preview' | 'simulation' | 'config' | 'project') {
+  mobileBookmarkTab.value = tab;
+  mobileDrawerVisible.value = true;
 }
 
 // 工具栏操作
@@ -446,34 +467,6 @@ watch(
   background: var(--el-bg-color-page);
 }
 
-.toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 24px;
-  border-bottom: 1px solid var(--el-border-color-light);
-  background: var(--el-bg-color);
-}
-
-.toolbar-left {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.page-title {
-  font-size: 20px;
-  font-weight: 600;
-  margin: 0;
-  color: var(--el-text-color-primary);
-}
-
-.toolbar-right {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
 .error-banner {
   padding: 16px 24px;
   background: var(--el-color-error-light-9);
@@ -493,6 +486,31 @@ watch(
   flex-direction: column;
   background: var(--el-bg-color);
   overflow: hidden;
+}
+
+.sidebar-content {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.sidebar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid var(--el-border-color-light);
+  background: var(--el-bg-color);
+}
+
+.sidebar-actions :deep(.el-button-group) {
+  display: flex;
+  width: 100%;
+}
+
+.sidebar-actions :deep(.el-button-group .el-button) {
+  flex: 1;
+  min-width: 0;
 }
 
 .center-panel {
@@ -578,19 +596,40 @@ watch(
   height: 100%;
   display: flex;
   flex-direction: column;
+  padding: 8px 0 8px 8px;
+  position: relative;
 }
 
-.mobile-nav {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--el-border-color-light);
-  background: var(--el-bg-color);
-  flex-shrink: 0;
-}
-
-.mobile-panel-content {
+.mobile-stage-panel {
   flex: 1;
+  min-height: 0;
+  border: 1px solid var(--el-border-color-light);
+  border-radius: 8px;
+  background: var(--el-bg-color);
   overflow: hidden;
-  flex-direction: column;
+}
+
+.mobile-bookmark-group--ejs {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.mobile-drawer-content {
+  height: 100%;
+  overflow: hidden;
+}
+
+.mobile-bookmark-tabs {
+  height: 100%;
+}
+
+.mobile-bookmark-tabs :deep(.el-tabs__header) {
+  padding: 0 12px;
+}
+
+:deep(.mobile-side-drawer .el-drawer__body) {
+  padding: 0;
+  overflow: hidden;
 }
 
 .mobile-panel {
@@ -600,49 +639,40 @@ watch(
   -webkit-overflow-scrolling: touch;
 }
 
-/* 移动端工具栏优化 */
+.mobile-config-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  gap: 8px;
+  padding: 8px;
+}
+
+.mobile-config-content {
+  flex: 1;
+  min-height: 180px;
+  overflow: hidden;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 6px;
+}
+
+.mobile-sidebar-actions {
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 6px;
+  padding: 8px;
+}
+
 @media screen and (max-width: 768px) {
-  .toolbar {
-    flex-direction: column;
-    padding: 12px 16px;
-    gap: 12px;
-    align-items: stretch;
+  .sidebar-actions {
+    padding: 10px 12px;
   }
 
-  .toolbar-left {
-    align-items: center;
-    text-align: center;
-  }
-
-  .toolbar-right {
-    justify-content: center;
-    flex-wrap: wrap;
+  .mobile-sidebar-actions :deep(.el-button-group) {
     gap: 6px;
-  }
-
-  .page-title {
-    font-size: 18px;
-  }
-
-  .el-button-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-
-  .el-button-group .el-button {
-    margin: 0;
-    flex: 1;
-    min-width: auto;
   }
 }
 
 /* 平板端样式调整 */
 @media screen and (min-width: 769px) and (max-width: 1024px) {
-  .mobile-nav {
-    padding: 16px 20px;
-  }
-
   .mobile-panel {
     padding: 0 8px;
   }

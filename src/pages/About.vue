@@ -15,18 +15,18 @@
       <p class="hero-version">
         <code v-if="appCommitCount === '1'">在线版_{{ appVersion }}</code>
         <code v-else>dev_{{ appVersion }} ({{ appCommitCount }})</code>
-        <code class="version-tag">v0.1.15</code>
+        <code class="version-tag">v0.1.16</code>
       </p>
     </div>
 
     <!-- 公告横幅 -->
     <SystemBanner
-      bannerId="newYearSurvey2026"
+      bannerId="docsContributionBanner2026"
       startDate="2026-01-01"
-      endDate="2026-03-01"
-      message="我们有一个新年调查，去填写一下？"
-      link="https://tally.so/r/kdeaLo"
-      linkText="填写调查"
+      endDate="2027-01-01"
+      message="想要贡献？来贡献文档吧！"
+      link="https://github.com/awaae001/doc"
+      linkText="参与文档贡献"
       :dismissible="false"
     />
 
@@ -47,6 +47,21 @@
           <span>
             GitHub
             <small>查看源码与贡献</small>
+          </span>
+        </a>
+        <a
+          href="https://doc.awaae001.top/"
+          target="_blank"
+          class="link-item"
+        >
+          <Icon
+            icon="mdi:book-open-page-variant-outline"
+            width="16"
+            height="16"
+          />
+          <span>
+            文档站
+            <small>查看使用文档</small>
           </span>
         </a>
         <a

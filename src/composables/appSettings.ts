@@ -29,16 +29,11 @@ export type SettingOption = SwitchSetting | NumberInputSetting;
 
 interface AppSettingsModels {
   betaFeaturesEnabled: Ref<boolean>;
-  useOldSidebar: Ref<boolean>;
-  useOldWorldEditor: Ref<boolean>;
-  umamiEnabled: Ref<boolean>;
   autoSaveInterval: Ref<number>;
   autoSaveDebounce: Ref<number>;
 }
 interface AppSettingsHandlers {
   onBetaFeaturesToggle: (value: boolean) => void;
-  onUseOldWorldEditorToggle: (value: boolean) => void;
-  onUmamiToggle: (value: boolean) => void;
   onAutoSaveIntervalChange: (value: number | undefined) => void;
   onAutoSaveDebounceChange: (value: number | undefined) => void;
 }
@@ -54,26 +49,6 @@ export const getAppSettings = (models: AppSettingsModels, handlers: AppSettingsH
       type: 'switch',
       model: models.betaFeaturesEnabled,
       handler: handlers.onBetaFeaturesToggle,
-    },
-    {
-      id: 'useOldWorldEditor',
-      label: '使用旧版本地标编辑器',
-      icon: 'gis:globe-users',
-      iconColor: 'var(--el-color-primary)',
-      description: '开启后将使用旧版本的地标编辑器，它将缺乏维护，并且功能落后 ',
-      type: 'switch',
-      model: models.useOldWorldEditor,
-      handler: handlers.onUseOldWorldEditorToggle,
-    },
-    {
-      id: 'umamiEnabled',
-      label: 'umami匿名遥测',
-      icon: 'material-symbols:analytics-outline',
-      iconColor: 'var(--el-color-info)',
-      description: '开启后将收集匿名使用数据以帮助改进应用，不会收集任何个人信息或角色卡内容 ',
-      type: 'switch',
-      model: models.umamiEnabled,
-      handler: handlers.onUmamiToggle,
     },
     {
       id: 'autoSaveInterval',

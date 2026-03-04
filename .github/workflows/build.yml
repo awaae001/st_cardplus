@@ -4,6 +4,10 @@ on:
   push:
     branches: [ main, dev ]
 
+permissions:
+  contents: read
+  actions: write
+
 concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true
@@ -69,6 +73,7 @@ jobs:
 
   build-windows:
     needs: type-check
+    if: github.repository == 'awaae001/st_cardplus'
     runs-on: windows-latest
 
     steps:
@@ -98,14 +103,22 @@ jobs:
       with:
         workspaces: src-tauri -> target
 
-    - name: Build Windows app
+    - name: Build Windows installers
       run: pnpm build:desktop
 
-    - name: Upload Windows app artifacts
+    - name: Upload Windows NSIS installer artifact
       uses: actions/upload-artifact@v4
       with:
-        name: windows-app
-        path: src-tauri/target/release/bundle/
+        name: windows-nsis-installer
+        path: src-tauri/target/release/bundle/nsis/*.exe
+        if-no-files-found: error
+
+    - name: Upload Windows MSI installer artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-msi-installer
+        path: src-tauri/target/release/bundle/msi/*.msi
+        if-no-files-found: error
 
   build-linux-appimage:
     needs: type-check
@@ -161,3 +174,35 @@ jobs:
         name: linux-appimage
         path: src-tauri/target/release/bundle/appimage/*.AppImage
         if-no-files-found: error
+
+  cleanup-caches:
+    needs: [build-web, build-windows, build-linux-appimage]
+    if: always() && github.repository == 'awaae001/st_cardplus'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Keep only the 6 newest caches
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        set -euo pipefail
+        REPO="${{ github.repository }}"
+        KEEP_COUNT=6
+
+        mapfile -t cache_ids < <(
+          gh api -H "Accept: application/vnd.github+json" \
+            "/repos/${REPO}/actions/caches?per_page=100" \
+            --jq '.actions_caches | sort_by(.last_accessed_at) | reverse | .[].id'
+        )
+
+        total="${#cache_ids[@]}"
+        if (( total <= KEEP_COUNT )); then
+          echo "Total caches: ${total}, nothing to delete."
+          exit 0
+        fi
+
+        for ((i=KEEP_COUNT; i<total; i++)); do
+          id="${cache_ids[$i]}"
+          echo "Deleting cache id=${id}"
+          gh api --method DELETE -H "Accept: application/vnd.github+json" \
+            "/repos/${REPO}/actions/caches/${id}"
+        done

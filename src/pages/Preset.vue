@@ -263,6 +263,7 @@ import PresetList from '@/components/preset/PresetList.vue';
 import PresetPreviewPanel from '@/components/preset/PresetPreviewPanel.vue';
 import { usePresetClipboard } from '@/composables/preset/usePresetClipboard';
 import { usePresetEditorState } from '@/composables/preset/usePresetEditorState';
+import { usePresetPageNavigation } from '@/composables/preset/usePresetPageNavigation';
 import { usePresetStore } from '@/composables/preset/usePresetStore';
 import { usePresetTreeSelectionDnD } from '@/composables/preset/usePresetTreeSelectionDnD';
 import {
@@ -272,7 +273,7 @@ import {
 } from '@/composables/preset/utils/presetPromptOrder';
 import { useDevice } from '@/composables/useDevice';
 import { Icon } from '@iconify/vue';
-import { ElMessage} from 'element-plus';
+import { ElMessage } from 'element-plus';
 import { saveFile } from '@/utils/fileSave';
 import { Pane, Splitpanes } from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
@@ -315,22 +316,8 @@ const {
 } = usePresetClipboard();
 
 const rightPanelTab = ref<'clipboard' | 'preview'>('clipboard');
-const mobileDrawerVisible = ref(false);
-const mobilePanelTab = ref<'list' | 'clipboard' | 'preview'>('list');
 const selectedIsHeader = computed(() => selected.value?.type === 'header');
 const selectedPromptIndex = computed(() => selected.value?.promptIndex ?? null);
-const orderedPresets = computed(() => presets.value.slice().sort((a, b) => (a.order ?? 0) - (b.order ?? 0)));
-const activePresetOrderIndex = computed(() => orderedPresets.value.findIndex((p) => p.id === activePresetId.value));
-const hasPreviousPreset = computed(() => activePresetOrderIndex.value > 0);
-const hasNextPreset = computed(
-  () => activePresetOrderIndex.value >= 0 && activePresetOrderIndex.value < orderedPresets.value.length - 1
-);
-const hasPreviousPrompt = computed(() => selectedPromptIndex.value !== null && selectedPromptIndex.value > 0);
-const hasNextPrompt = computed(() => {
-  if (selectedPromptIndex.value === null || !activePreset.value) return false;
-  const prompts = (activePreset.value.data.prompts as Record<string, any>[]) || [];
-  return selectedPromptIndex.value < prompts.length - 1;
-});
 
 const { activeEditorTab, editorState, presetAutoSave, handleManualSave } = usePresetEditorState({
   activePreset,
@@ -348,81 +335,35 @@ const { multiSelectedNodeKeys, handleToggleNodeSelection, dragDropHandlers } = u
   updatePromptOrder,
 });
 
-const handleRenamePreset = (id: string) => {
-  const preset = presets.value.find((p) => p.id === id);
-  if (preset) renamePreset(preset);
-};
-
-const handleDeletePreset = (id: string) => {
-  const preset = presets.value.find((p) => p.id === id);
-  if (preset) removePreset(preset);
-};
-
-const mobilePanelTitle = computed(() => {
-  if (mobilePanelTab.value === 'list') return '预设树状列表';
-  if (mobilePanelTab.value === 'clipboard') return '剪贴板';
-  return '预设预览';
+const {
+  mobileDrawerVisible,
+  mobilePanelTab,
+  mobilePanelTitle,
+  openMobilePanel,
+  handleRenamePreset,
+  handleDeletePreset,
+  handleSelectPreset,
+  handleSelectHeader,
+  handleSelectPrompt,
+  hasPreviousPreset,
+  hasNextPreset,
+  hasPreviousPrompt,
+  hasNextPrompt,
+  goToPrevious,
+  goToNext,
+} = usePresetPageNavigation({
+  presets,
+  activePresetId,
+  activePreset,
+  selectedPromptIndex,
+  activeEditorTab,
+  isMobileOrTablet,
+  selectPreset,
+  selectHeader,
+  selectPrompt,
+  renamePreset,
+  removePreset,
 });
-
-const openMobilePanel = (tab: 'list' | 'clipboard' | 'preview') => {
-  mobilePanelTab.value = tab;
-  mobileDrawerVisible.value = true;
-};
-
-const handleSelectPreset = (id: string) => {
-  selectPreset(id);
-  if (isMobileOrTablet.value) mobileDrawerVisible.value = false;
-};
-
-const handleSelectHeader = (id: string) => {
-  selectHeader(id);
-  if (isMobileOrTablet.value) mobileDrawerVisible.value = false;
-};
-
-const handleSelectPrompt = (presetId: string, promptIndex: number) => {
-  selectPrompt(presetId, promptIndex);
-  if (isMobileOrTablet.value) mobileDrawerVisible.value = false;
-};
-
-const goToPreviousPrompt = () => {
-  if (!activePresetId.value || selectedPromptIndex.value === null || selectedPromptIndex.value <= 0) return;
-  selectPrompt(activePresetId.value, selectedPromptIndex.value - 1);
-};
-
-const goToNextPrompt = () => {
-  if (!activePresetId.value || selectedPromptIndex.value === null || !hasNextPrompt.value) return;
-  selectPrompt(activePresetId.value, selectedPromptIndex.value + 1);
-};
-
-const goToPreviousPreset = () => {
-  if (!hasPreviousPreset.value) return;
-  const target = orderedPresets.value[activePresetOrderIndex.value - 1];
-  if (!target) return;
-  selectHeader(target.id);
-};
-
-const goToNextPreset = () => {
-  if (!hasNextPreset.value) return;
-  const target = orderedPresets.value[activePresetOrderIndex.value + 1];
-  if (!target) return;
-  selectHeader(target.id);
-};
-
-const goToPrevious = () => {
-  if (activeEditorTab.value === 'header') {
-    goToPreviousPreset();
-    return;
-  }
-  goToPreviousPrompt();
-};
-
-const goToNext = () => {
-  if (activeEditorTab.value === 'header') {
-    goToNextPreset();
-    return;
-  }
-  goToNextPrompt();
-};
 
 const handleExportPreset = async () => {
   if (!activePreset.value) {
@@ -533,41 +474,6 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   position: relative;
-}
-
-.mobile-bookmark-group {
-  position: fixed;
-  right: 0;
-  top: 42%;
-  z-index: 30;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.mobile-bookmark-btn {
-  width: 42px;
-  border: none;
-  border-radius: 12px 0 0 12px;
-  background: linear-gradient(160deg, var(--el-color-primary-light-7), var(--el-color-primary-light-5));
-  color: var(--el-color-primary-dark-2);
-  box-shadow: 0 8px 20px color-mix(in srgb, var(--el-color-primary) 20%, transparent);
-  padding: 10px 6px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.mobile-bookmark-btn.active {
-  background: linear-gradient(160deg, var(--el-color-primary), var(--el-color-primary-dark-2));
-  color: #fff;
-}
-
-.bookmark-icon {
-  font-size: 16px;
 }
 
 .mobile-drawer-inner {

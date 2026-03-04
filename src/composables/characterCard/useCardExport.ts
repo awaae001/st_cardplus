@@ -72,15 +72,20 @@ export function useCardExport(
   const handleSave = async () => {
     try {
       // 导出前从 data 层同步到顶层（确保导出的 JSON 兼容性）
-      const exportData = { ...characterData.value };
+      const exportData = {
+        ...characterData.value,
+        data: {
+          ...characterData.value.data,
+        },
+      };
       if (exportData.data) {
-        exportData.name = exportData.data.name || exportData.name;
-        exportData.description = exportData.data.description || exportData.description;
-        exportData.personality = exportData.data.personality || exportData.personality;
-        exportData.scenario = exportData.data.scenario || exportData.scenario;
-        exportData.first_mes = exportData.data.first_mes || exportData.first_mes;
-        exportData.mes_example = exportData.data.mes_example || exportData.mes_example;
-        exportData.tags = exportData.data.tags || exportData.tags;
+        exportData.name = exportData.data.name ?? '';
+        exportData.description = exportData.data.description ?? '';
+        exportData.personality = exportData.data.personality ?? '';
+        exportData.scenario = exportData.data.scenario ?? '';
+        exportData.first_mes = exportData.data.first_mes ?? '';
+        exportData.mes_example = exportData.data.mes_example ?? '';
+        exportData.tags = exportData.data.tags ?? [];
       }
 
       const imageBuffer = await resolveImageBuffer(imageSourceUrl.value, characterImageFile.value);
