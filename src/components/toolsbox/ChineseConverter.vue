@@ -248,29 +248,15 @@ function getStatusText(status: FileItem['status']): string {
   <div class="converter-container">
     <!-- 头部 -->
     <div class="header">
-      <el-button
-        type="primary"
-        plain
-        @click="$router.push('/toolbox')"
-        class="back-button"
-      >
-        <Icon
-          icon="material-symbols:arrow-back"
-          width="16"
-          height="16"
-        />
+      <el-button type="primary" plain @click="$router.push('/toolbox')" class="back-button">
+        <Icon icon="material-symbols:arrow-back" width="16" height="16" />
         返回工具箱
       </el-button>
       <h1>简繁转换器</h1>
     </div>
 
     <!-- 说明 -->
-    <el-alert
-      title="工具说明"
-      type="info"
-      :closable="false"
-      class="info-alert"
-    >
+    <el-alert title="工具说明" type="info" :closable="false" class="info-alert">
       <p>批量转换角色卡 PNG 文件中的中文文本，支持简体、繁体（台湾）、繁体（香港）等多种方言转换</p>
       <p>1. 上传一个或多个 PNG 角色卡文件</p>
       <p>2. 选择转换方向</p>
@@ -282,18 +268,9 @@ function getStatusText(status: FileItem['status']): string {
     <div class="config-section">
       <div class="config-item">
         <label>转换方向：</label>
-        <el-select
-          v-model="selectedConfig"
-          placeholder="请选择转换方向"
-          class="config-select"
-          :disabled="isConverting"
-        >
-          <el-option
-            v-for="option in CONVERSION_OPTIONS"
-            :key="option.value"
-            :label="option.label"
-            :value="option.value"
-          >
+        <el-select v-model="selectedConfig" placeholder="请选择转换方向" class="config-select" :disabled="isConverting">
+          <el-option v-for="option in CONVERSION_OPTIONS" :key="option.value" :label="option.label"
+            :value="option.value">
             <div class="option-content">
               <span class="option-label">{{ option.label }}</span>
               <span class="option-desc">{{ option.description }}</span>
@@ -304,164 +281,84 @@ function getStatusText(status: FileItem['status']): string {
     </div>
 
     <!-- 上传区 -->
-    <div class="upload-section">
-      <el-button
-        type="primary"
-        @click="($refs.fileInput as HTMLInputElement)?.click()"
-        :disabled="isConverting"
-      >
-        <Icon
-          icon="material-symbols:upload-file"
-          class="icon-left"
-        />
+    <div class="action-section">
+      <el-button type="primary" @click="($refs.fileInput as HTMLInputElement)?.click()" :disabled="isConverting">
+        <Icon icon="material-symbols:upload-file" class="icon-left" />
         选择 PNG 文件（支持多选）
       </el-button>
-      <el-button
-        @click="clearAllFiles"
-        :disabled="!hasFiles || isConverting"
-      >
-        <Icon
-          icon="material-symbols:delete-outline"
-          class="icon-left"
-        />
+      <el-button @click="clearAllFiles" :disabled="!hasFiles || isConverting">
+        <Icon icon="material-symbols:delete-outline" class="icon-left" />
         清空列表
       </el-button>
-      <input
-        ref="fileInput"
-        type="file"
-        accept=".png"
-        multiple
-        @change="handleFileChange"
-        style="display: none"
-      />
+      <input ref="fileInput" type="file" accept=".png" multiple @change="handleFileChange" style="display: none" />
+      <el-button type="success" size="large" @click="startConversion" :disabled="!hasFiles || isConverting"
+        :loading="isConverting">
+        <Icon v-if="!isConverting" icon="material-symbols:sync" class="icon-left" />
+        {{ isConverting ? '转换中...' : '开始转换' }}
+      </el-button>
+
+      <el-button type="primary" size="large" @click="downloadAll" :disabled="!hasConvertedFiles || isConverting">
+        <Icon icon="material-symbols:download" class="icon-left" />
+        批量下载全部
+      </el-button>
     </div>
 
     <!-- 文件列表 -->
-    <div
-      v-if="hasFiles"
-      class="file-list-section"
-    >
+    <div v-if="hasFiles" class="file-list-section">
       <div class="list-header">
         <h3>文件列表（{{ fileList.length }} 个文件）</h3>
-        <div
-          v-if="allFilesProcessed"
-          class="stats"
-        >
-          <el-tag
-            type="success"
-            size="small"
-          >
+        <div v-if="allFilesProcessed" class="stats">
+          <el-tag type="success" size="small">
             成功: {{ successCount }}
           </el-tag>
-          <el-tag
-            v-if="errorCount > 0"
-            type="danger"
-            size="small"
-          >
+          <el-tag v-if="errorCount > 0" type="danger" size="small">
             失败: {{ errorCount }}
           </el-tag>
         </div>
       </div>
 
-      <el-table
-        :data="fileList"
-        border
-        stripe
-        class="file-table"
-      >
-        <el-table-column
-          label="序号"
-          type="index"
-          width="60"
-          align="center"
-        />
+      <el-table :data="fileList" border stripe class="file-table">
+        <el-table-column label="序号" type="index" width="60" align="center" />
 
-        <el-table-column
-          label="文件名"
-          min-width="200"
-        >
+        <el-table-column label="文件名" min-width="200">
           <template #default="{ row }">
             <div class="file-name-cell">
-              <Icon
-                icon="material-symbols:image-outline"
-                width="18"
-                height="18"
-              />
+              <Icon icon="material-symbols:image-outline" width="18" height="18" />
               <span>{{ row.file.name }}</span>
             </div>
           </template>
         </el-table-column>
 
-        <el-table-column
-          label="大小"
-          width="100"
-          align="center"
-        >
+        <el-table-column label="大小" width="100" align="center">
           <template #default="{ row }">
             {{ formatFileSize(row.file.size) }}
           </template>
         </el-table-column>
 
-        <el-table-column
-          label="状态"
-          width="120"
-          align="center"
-        >
+        <el-table-column label="状态" width="120" align="center">
           <template #default="{ row }">
-            <el-tag
-              :type="getStatusTagType(row.status)"
-              size="small"
-            >
+            <el-tag :type="getStatusTagType(row.status)" size="small">
               {{ getStatusText(row.status) }}
             </el-tag>
           </template>
         </el-table-column>
 
-        <el-table-column
-          label="信息"
-          min-width="150"
-        >
+        <el-table-column label="信息" min-width="150">
           <template #default="{ row }">
-            <span
-              v-if="row.message"
-              class="message-text"
-              :class="row.status"
-            >
+            <span v-if="row.message" class="message-text" :class="row.status">
               {{ row.message }}
             </span>
           </template>
         </el-table-column>
 
-        <el-table-column
-          label="操作"
-          width="150"
-          align="center"
-        >
+        <el-table-column label="操作" width="150" align="center">
           <template #default="{ row }">
-            <el-button
-              v-if="row.status === 'success'"
-              type="primary"
-              size="small"
-              @click="downloadSingle(row)"
-            >
-              <Icon
-                icon="material-symbols:download"
-                class="icon-left"
-              />
+            <el-button v-if="row.status === 'success'" type="primary" size="small" @click="downloadSingle(row)">
+              <Icon icon="material-symbols:download" class="icon-left" />
               下载
             </el-button>
-            <el-button
-              v-else
-              type="danger"
-              size="small"
-              plain
-              @click="removeFile(row.id)"
-              :disabled="isConverting"
-            >
-              <Icon
-                icon="material-symbols:delete-outline"
-                class="icon-left"
-              />
+            <el-button v-else type="danger" size="small" plain @click="removeFile(row.id)" :disabled="isConverting">
+              <Icon icon="material-symbols:delete-outline" class="icon-left" />
               移除
             </el-button>
           </template>
@@ -470,57 +367,13 @@ function getStatusText(status: FileItem['status']): string {
     </div>
 
     <!-- 进度条 -->
-    <div
-      v-if="isConverting || convertProgress > 0"
-      class="progress-section"
-    >
-      <el-progress
-        :percentage="convertProgress"
-        :status="convertProgress === 100 ? 'success' : undefined"
-      />
-    </div>
-
-    <!-- 操作按钮 -->
-    <div class="action-section">
-      <el-button
-        type="success"
-        size="large"
-        @click="startConversion"
-        :disabled="!hasFiles || isConverting"
-        :loading="isConverting"
-      >
-        <Icon
-          v-if="!isConverting"
-          icon="material-symbols:sync"
-          class="icon-left"
-        />
-        {{ isConverting ? '转换中...' : '开始转换' }}
-      </el-button>
-
-      <el-button
-        type="primary"
-        size="large"
-        @click="downloadAll"
-        :disabled="!hasConvertedFiles || isConverting"
-      >
-        <Icon
-          icon="material-symbols:download"
-          class="icon-left"
-        />
-        批量下载全部
-      </el-button>
+    <div v-if="isConverting || convertProgress > 0" class="progress-section">
+      <el-progress :percentage="convertProgress" :status="convertProgress === 100 ? 'success' : undefined" />
     </div>
 
     <!-- 占位提示 -->
-    <div
-      v-if="!hasFiles"
-      class="empty-placeholder"
-    >
-      <Icon
-        icon="material-symbols:upload-file-outline"
-        width="80"
-        height="80"
-      />
+    <div v-if="!hasFiles" class="empty-placeholder">
+      <Icon icon="material-symbols:upload-file-outline" width="80" height="80" />
       <p>暂无文件，请点击上方按钮上传 PNG 角色卡</p>
     </div>
   </div>
@@ -529,7 +382,7 @@ function getStatusText(status: FileItem['status']): string {
 <style scoped>
 .converter-container {
   padding: 20px;
-  max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
 }
 
@@ -582,10 +435,12 @@ function getStatusText(status: FileItem['status']): string {
   margin-top: 2px;
 }
 
-.upload-section {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
+.action-section {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-direction: row;
+    align-items: center;
 }
 
 .file-list-section {
@@ -632,13 +487,6 @@ function getStatusText(status: FileItem['status']): string {
 }
 
 .progress-section {
-  margin-bottom: 20px;
-}
-
-.action-section {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
   margin-bottom: 20px;
 }
 
