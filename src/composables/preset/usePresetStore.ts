@@ -4,6 +4,7 @@ import { defaultOpenAIPreset, defaultPromptOrder } from '@/types/openai-preset';
 import { presetService } from '@/database/presetService';
 import type { StoredPresetFile } from '@/database/db';
 import { nowIso } from '@/utils/datetime';
+import { SUBSTITUTE_FIND_REGEX, type SillyTavernRegexScript } from '@/composables/regex/types';
 import {
   buildPromptOrderListFromIdentifiers,
   getPromptOrderIdentifiers,
@@ -24,9 +25,39 @@ export type PresetPrompt = Record<string, any> & {
 };
 
 export interface PresetSelection {
-  type: 'header' | 'prompt';
+  type: 'header' | 'prompt' | 'regex';
   promptIndex?: number;
+  regexIndex?: number;
 }
+
+const normalizeRegexScript = (script: any, index: number): SillyTavernRegexScript => {
+  return {
+    id: typeof script?.id === 'string' && script.id.trim() ? script.id : presetService.createPresetId(),
+    scriptName:
+      typeof script?.scriptName === 'string' && script.scriptName.trim() ? script.scriptName : `正则脚本 ${index + 1}`,
+    findRegex: typeof script?.findRegex === 'string' ? script.findRegex : '',
+    replaceString: typeof script?.replaceString === 'string' ? script.replaceString : '',
+    trimStrings: Array.isArray(script?.trimStrings) ? script.trimStrings.map((item: any) => String(item)) : [],
+    placement: Array.isArray(script?.placement) ? script.placement : [],
+    disabled: Boolean(script?.disabled),
+    markdownOnly: Boolean(script?.markdownOnly),
+    promptOnly: Boolean(script?.promptOnly),
+    runOnEdit: Boolean(script?.runOnEdit),
+    substituteRegex: typeof script?.substituteRegex === 'number' ? script.substituteRegex : SUBSTITUTE_FIND_REGEX.NONE,
+    minDepth: typeof script?.minDepth === 'number' ? script.minDepth : null,
+    maxDepth: typeof script?.maxDepth === 'number' ? script.maxDepth : null,
+  };
+};
+
+const ensurePresetDataShape = (preset: StoredPresetFile) => {
+  const data = preset.data as Record<string, any>;
+  if (!data.extensions || typeof data.extensions !== 'object') {
+    data.extensions = {};
+  }
+  const extensions = data.extensions as Record<string, any>;
+  const scripts = Array.isArray(extensions.regex_scripts) ? extensions.regex_scripts : [];
+  extensions.regex_scripts = scripts.map((script, index) => normalizeRegexScript(script, index));
+};
 
 const getDefaultOrderIdentifiers = () => {
   const withPersona = defaultPromptOrder.find((entry) =>
@@ -71,7 +102,6 @@ export function usePresetStore() {
     const index = selected.value.promptIndex ?? -1;
     return activePrompts.value[index] || null;
   });
-
   const persistPreset = async (preset: StoredPresetFile) => {
     preset.updatedAt = nowIso();
     await presetService.updatePreset(preset);
@@ -85,16 +115,23 @@ export function usePresetStore() {
     preset.data.prompts = prompts as any;
   };
 
+  const getPresetRegexScripts = (preset: StoredPresetFile): SillyTavernRegexScript[] => {
+    ensurePresetDataShape(preset);
+    return (preset.data.extensions as Record<string, any>).regex_scripts as SillyTavernRegexScript[];
+  };
+
   const createStoredPreset = (name: string, data: Record<string, any>): StoredPresetFile => {
     const now = nowIso();
-    return {
+    const preset = {
       id: presetService.createPresetId(),
       name,
       order: presets.value.length,
       createdAt: now,
       updatedAt: now,
       data: data as any,
-    };
+    } as StoredPresetFile;
+    ensurePresetDataShape(preset);
+    return preset;
   };
 
   const activatePreset = (presetId: string, nextSelection: PresetSelection = { type: 'header' }) => {
@@ -121,9 +158,11 @@ export function usePresetStore() {
       presets.value = [preset];
       activatePreset(preset.id, { type: 'header' });
     } else {
+      loaded.forEach((preset) => ensurePresetDataShape(preset));
       presets.value = loaded;
       const remembered = presetService.getActivePresetId();
-      activePresetId.value = remembered && loaded.find((p) => p.id === remembered) ? remembered : (loaded[0]?.id ?? null);
+      activePresetId.value =
+        remembered && loaded.find((p) => p.id === remembered) ? remembered : (loaded[0]?.id ?? null);
       selected.value = { type: 'header' };
     }
     isReady.value = true;
@@ -142,6 +181,10 @@ export function usePresetStore() {
 
   const selectPrompt = (presetId: string, promptIndex: number) => {
     activatePreset(presetId, { type: 'prompt', promptIndex });
+  };
+
+  const selectRegex = (presetId: string, regexIndex?: number) => {
+    activatePreset(presetId, { type: 'regex', regexIndex });
   };
 
   const createPreset = async () => {
@@ -271,6 +314,50 @@ export function usePresetStore() {
     await presetService.addPreset(preset);
     presets.value.push(preset);
     activatePreset(preset.id, { type: 'header' });
+  };
+
+  const addRegexScript = async (presetId: string) => {
+    await withPresetById(presetId, async (preset) => {
+      const scripts = getPresetRegexScripts(preset);
+      const newScript: SillyTavernRegexScript = {
+        id: presetService.createPresetId(),
+        scriptName: `新规则 ${scripts.length + 1}`,
+        findRegex: '',
+        replaceString: '',
+        trimStrings: [],
+        placement: [],
+        disabled: false,
+        markdownOnly: false,
+        promptOnly: false,
+        runOnEdit: false,
+        substituteRegex: SUBSTITUTE_FIND_REGEX.NONE,
+        minDepth: null,
+        maxDepth: null,
+      };
+      const nextScripts = [...scripts, newScript];
+      (preset.data.extensions as Record<string, any>).regex_scripts = nextScripts as any;
+      await persistPreset(preset);
+      selected.value = { type: 'regex', regexIndex: nextScripts.length - 1 };
+      ElMessage.success('正则脚本已创建');
+    });
+  };
+
+  const removeRegexScript = async (presetId: string, regexIndex: number) => {
+    await withPresetById(presetId, async (preset) => {
+      const scripts = getPresetRegexScripts(preset);
+      const target = scripts[regexIndex];
+      if (!target) return;
+      const updated = scripts.filter((_, index) => index !== regexIndex);
+      (preset.data.extensions as Record<string, any>).regex_scripts = updated as any;
+      await persistPreset(preset);
+      if (updated.length === 0) {
+        selected.value = { type: 'regex' };
+      } else if (selected.value?.type === 'regex') {
+        const nextIndex = Math.min(selected.value.regexIndex ?? regexIndex, updated.length - 1);
+        selected.value = { type: 'regex', regexIndex: nextIndex };
+      }
+      ElMessage.success('正则脚本已删除');
+    });
   };
 
   const reorderPresets = async (orderedIds: string[]) => {
@@ -414,11 +501,14 @@ export function usePresetStore() {
     selectPreset,
     selectHeader,
     selectPrompt,
+    selectRegex,
     createPreset,
     createBlankPreset,
     renamePreset,
     removePreset,
     addPrompt,
+    addRegexScript,
+    removeRegexScript,
     importPreset,
     reorderPresets,
     duplicatePrompt,

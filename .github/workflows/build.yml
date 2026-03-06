@@ -180,13 +180,13 @@ jobs:
     if: always() && github.repository == 'awaae001/st_cardplus'
     runs-on: ubuntu-latest
     steps:
-    - name: Keep only the 6 newest caches
+    - name: Keep only the 10 newest caches
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         set -euo pipefail
         REPO="${{ github.repository }}"
-        KEEP_COUNT=6
+        KEEP_COUNT=10
 
         mapfile -t cache_ids < <(
           gh api -H "Accept: application/vnd.github+json" \
