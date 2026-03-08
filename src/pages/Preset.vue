@@ -126,7 +126,6 @@
                 :multi-selected-node-keys="multiSelectedNodeKeys"
                 :drag-drop-handlers="dragDropHandlers"
                 @create-preset="createPreset"
-                @create-blank="createBlankPreset"
                 @rename-preset="handleRenamePreset"
                 @delete-preset="handleDeletePreset"
                 @select-preset="handleSelectPreset"
@@ -191,7 +190,6 @@
           :multi-selected-node-keys="multiSelectedNodeKeys"
           :drag-drop-handlers="dragDropHandlers"
           @create-preset="createPreset"
-          @create-blank="createBlankPreset"
           @rename-preset="handleRenamePreset"
           @delete-preset="handleDeletePreset"
           @select-preset="handleSelectPreset"
@@ -310,7 +308,6 @@ const {
   selectHeader,
   selectPrompt,
   createPreset,
-  createBlankPreset,
   renamePreset,
   removePreset,
   addPrompt,

@@ -27,7 +27,7 @@
           >
             <button
               @click="emit('add', 'landmark')"
-              class="btn-adv btn-primary-adv split-create-main"
+              class="btn-adv btn-primary-adv sidebar-header-button split-create-main"
             >
               <Icon icon="ph:map-pin-duotone" />
             </button>
@@ -37,7 +37,7 @@
             placement="bottom-end"
             @command="handleAddCommand"
           >
-            <button class="btn-adv btn-primary-adv split-create-toggle">
+            <button class="btn-adv btn-primary-adv sidebar-header-button split-create-toggle">
               <Icon icon="ph:caret-down-duotone" />
             </button>
             <template #dropdown>
@@ -401,10 +401,6 @@ const handleAddCommand = (command: 'project' | 'landmark' | 'region' | 'force') 
 
 .toolbar-container {
   height: 100%;
-}
-
-.split-create-actions {
-  gap: 8px;
 }
 
 .controls-section {

@@ -13,36 +13,23 @@
     @node-dblclick="handleNodeDblClick"
   >
     <template #header-actions>
-      <el-tooltip
-        content="创建新预设"
-        placement="top"
-        :show-arrow="false"
-        :offset="8"
-        :hide-after="0"
-      >
-        <button
-          @click="$emit('create-preset')"
-          class="btn-adv btn-primary-adv sidebar-header-button"
-          aria-label="创建新预设"
+      <div class="split-create-actions">
+        <el-tooltip
+          content="创建新预设"
+          placement="top"
+          :show-arrow="false"
+          :offset="8"
+          :hide-after="0"
         >
-          <Icon icon="ph:plus-bold" />
-        </button>
-      </el-tooltip>
-      <el-tooltip
-        content="新建空白模板"
-        placement="top"
-        :show-arrow="false"
-        :offset="8"
-        :hide-after="0"
-      >
-        <button
-          @click="$emit('create-blank')"
-          class="btn-adv btn-secondary-adv sidebar-header-button"
-          aria-label="新建空白模板"
-        >
-          <Icon icon="ph:file-dashed-duotone" />
-        </button>
-      </el-tooltip>
+          <button
+            @click="$emit('create-preset')"
+            class="btn-adv btn-primary-adv sidebar-header-button split-create-main"
+            aria-label="创建新预设"
+          >
+            <Icon icon="ph:plus-bold" />
+          </button>
+        </el-tooltip>
+      </div>
     </template>
 
     <template #node="{ node, data }">
@@ -278,7 +265,6 @@ const emit = defineEmits<{
   (e: 'toggle-prompt-enabled', presetId: string, promptIndex: number): void;
   (e: 'toggle-node-selection', data: any, additive: boolean): void;
   (e: 'create-preset'): void;
-  (e: 'create-blank'): void;
   (e: 'rename-preset', id: string): void;
   (e: 'delete-preset', id: string): void;
   (e: 'add-prompt', presetId: string): void;
@@ -379,6 +365,8 @@ const isFullyLockedPrompt = (prompt: Record<string, any> | undefined) => {
 </script>
 
 <style scoped>
+@import '@/styles/split-create-actions.css';
+
 .preset-footer-actions {
   display: flex;
   gap: 8px;

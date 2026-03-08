@@ -1,6 +1,6 @@
 import { computed, onMounted, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { defaultOpenAIPreset, defaultPromptOrder } from '@/types/openai-preset';
+import { defaultOpenAIPreset } from '@/types/openai-preset';
 import { presetService } from '@/database/presetService';
 import type { StoredPresetFile } from '@/database/db';
 import { nowIso } from '@/utils/datetime';
@@ -57,34 +57,6 @@ const ensurePresetDataShape = (preset: StoredPresetFile) => {
   const extensions = data.extensions as Record<string, any>;
   const scripts = Array.isArray(extensions.regex_scripts) ? extensions.regex_scripts : [];
   extensions.regex_scripts = scripts.map((script, index) => normalizeRegexScript(script, index));
-};
-
-const getDefaultOrderIdentifiers = () => {
-  const withPersona = defaultPromptOrder.find((entry) =>
-    entry.order.some((item) => item.identifier === 'personaDescription')
-  );
-  const target = withPersona ?? defaultPromptOrder[0];
-  return target.order.map((item) => item.identifier);
-};
-
-const orderPromptsByIdentifiers = (prompts: PresetPrompt[], identifiers: string[]) => {
-  const map = new Map<string, PresetPrompt>();
-  prompts.forEach((prompt) => {
-    if (prompt.identifier) {
-      map.set(prompt.identifier, prompt);
-    }
-  });
-  const ordered: PresetPrompt[] = [];
-  identifiers.forEach((id) => {
-    const item = map.get(id);
-    if (item) ordered.push(item);
-  });
-  prompts.forEach((prompt) => {
-    if (!prompt.identifier || !identifiers.includes(prompt.identifier)) {
-      ordered.push(prompt);
-    }
-  });
-  return ordered;
 };
 
 export function usePresetStore() {
@@ -201,38 +173,6 @@ export function usePresetStore() {
       presets.value.push(preset);
       activatePreset(preset.id, { type: 'header' });
       ElMessage.success('预设已创建');
-    } catch (error) {
-      if (error !== 'cancel' && error !== 'close') {
-        ElMessage.info('已取消创建');
-      }
-    }
-  };
-
-  const createBlankPreset = async () => {
-    try {
-      const result = await ElMessageBox.prompt('请输入新预设名称', '新建空白预设', {
-        confirmButtonText: '创建',
-        cancelButtonText: '取消',
-        inputPattern: /.+/,
-        inputErrorMessage: '名称不能为空',
-      });
-      const { value: name } = result as { value: string };
-      const data = presetService.createDefaultPresetData(defaultOpenAIPreset) as any;
-      const identifiers = getDefaultOrderIdentifiers();
-      const reorderedPrompts = orderPromptsByIdentifiers((data.prompts as PresetPrompt[]) || [], identifiers).map(
-        (prompt: PresetPrompt, index: number) => ({
-          ...prompt,
-          content: '',
-          order: index,
-        })
-      );
-      data.prompts = reorderedPrompts;
-      data.prompt_order = JSON.parse(JSON.stringify(defaultPromptOrder));
-      const preset = createStoredPreset(name, data);
-      await presetService.addPreset(preset);
-      presets.value.push(preset);
-      activatePreset(preset.id, { type: 'header' });
-      ElMessage.success('空白预设已创建');
     } catch (error) {
       if (error !== 'cancel' && error !== 'close') {
         ElMessage.info('已取消创建');
@@ -503,7 +443,6 @@ export function usePresetStore() {
     selectPrompt,
     selectRegex,
     createPreset,
-    createBlankPreset,
     renamePreset,
     removePreset,
     addPrompt,
