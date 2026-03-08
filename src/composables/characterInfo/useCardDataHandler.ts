@@ -233,6 +233,7 @@ export function useCardDataHandler(form: Ref<CharacterCard>) {
           convertedData.meta.id = form.value.meta.id;
           convertedData.meta.order = form.value.meta.order;
           convertedData.meta.starred = form.value.meta.starred;
+          convertedData.meta.projectId = form.value.meta.projectId;
 
           form.value = convertedData;
           ElMessage.success('角色卡加载成功！');
@@ -256,7 +257,12 @@ export function useCardDataHandler(form: Ref<CharacterCard>) {
     })
       .then(() => {
         clearLocalStorage();
-        const newForm = createDefaultCharacterCard();
+        const currentMeta = { ...form.value.meta };
+        const newForm = createDefaultCharacterCard(currentMeta.id);
+        newForm.meta = {
+          ...newForm.meta,
+          ...currentMeta,
+        };
         const standardFields = {
           height: '',
           hairColor: '',

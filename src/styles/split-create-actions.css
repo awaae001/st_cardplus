@@ -1,0 +1,21 @@
+.split-create-actions {
+  display: inline-flex;
+  align-items: center;
+}
+
+.split-create-main {
+  min-width: 32px;
+  font-size: 16px;
+}
+
+.split-create-toggle {
+  min-width: 32px;
+  margin-left: 2px;
+  padding: 0 6px;
+  font-size: 16px;
+}
+
+.split-create-item-icon {
+  margin-right: 8px;
+  font-size: 16px;
+}
