@@ -189,3 +189,17 @@ export const removeLandmarkLinksForIds = (landmarks: EnhancedLandmark[], ids: Se
     }
   });
 };
+
+export const getRoadConnectionLengthText = (
+  source: EnhancedLandmark,
+  target?: EnhancedLandmark | null,
+  unit?: string
+): string => {
+  if (!target) return '未计算';
+  const length = getRoadConnectionLength(source, target);
+  if (length === undefined) return '未计算';
+  return unit ? `${length} ${unit}` : String(length);
+};
+
+export const formatRoadLinkLabel = (targetName: string, distanceText: string, label: string): string =>
+  `${targetName} (${label}: ${distanceText})`;

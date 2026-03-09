@@ -37,13 +37,13 @@
                 <div class="header-actions-small">
                   <el-button
                     size="small"
-                    @click="selectAllLandmarks"
+                    @click="selectAll('landmarks')"
                   >
                     全选
                   </el-button>
                   <el-button
                     size="small"
-                    @click="clearLandmarkSelection"
+                    @click="clearSelection('landmarks')"
                   >
                     清空
                   </el-button>
@@ -113,13 +113,13 @@
                 <div class="header-actions-small">
                   <el-button
                     size="small"
-                    @click="selectAllForces"
+                    @click="selectAll('forces')"
                   >
                     全选
                   </el-button>
                   <el-button
                     size="small"
-                    @click="clearForceSelection"
+                    @click="clearSelection('forces')"
                   >
                     清空
                   </el-button>
@@ -177,13 +177,13 @@
                 <div class="header-actions-small">
                   <el-button
                     size="small"
-                    @click="selectAllRegions"
+                    @click="selectAll('regions')"
                   >
                     全选
                   </el-button>
                   <el-button
                     size="small"
-                    @click="clearRegionSelection"
+                    @click="clearSelection('regions')"
                   >
                     清空
                   </el-button>
@@ -258,7 +258,7 @@
               <el-button
                 type="primary"
                 size="small"
-                @click="exportSelectedJSON"
+                @click="copySelectedJSON"
               >
                 <Icon icon="ph:copy-duotone" />
                 复制JSON
@@ -280,10 +280,10 @@ import type {
   EnhancedLandmark,
   EnhancedRegion,
   Project,
-  ProjectIntegration,
 } from '@/types/world-editor';
-import { getRoadConnectionLength } from '@/composables/worldeditor/worldGraphLinks';
+import { formatRoadLinkLabel, getRoadConnectionLengthText } from '@/composables/worldeditor/graph/worldGraphLinks';
 import { cleanObject, removeEmptyFields } from '@/utils/objectUtils';
+import { saveFile } from '@/utils/fileSave';
 import { getParentLandmarkId } from '@/utils/worldeditor/landmarkHierarchy';
 import { getLandmarkTypeLabel } from '@/utils/worldeditor/landmarkMeta';
 import { Icon } from '@iconify/vue';
@@ -291,7 +291,6 @@ import { ElButton, ElCard, ElCheckbox, ElCol, ElInput, ElMessage, ElRow, ElSwitc
 import { computed, ref } from 'vue';
 
 interface Props {
-  integration: ProjectIntegration;
   currentProject: Project | null;
   landmarks: EnhancedLandmark[];
   regions: EnhancedRegion[];
@@ -423,27 +422,29 @@ const toggleRegionSelection = (regionId: string) => {
   }
 };
 
-const selectAllLandmarks = () => {
-  selectedLandmarks.value = projectLandmarks.value.map((l) => l.id);
+type SelectionType = 'landmarks' | 'forces' | 'regions';
+
+const selectAll = (type: SelectionType) => {
+  if (type === 'landmarks') {
+    selectedLandmarks.value = projectLandmarks.value.map((item) => item.id);
+    return;
+  }
+  if (type === 'forces') {
+    selectedForces.value = projectForces.value.map((item) => item.id);
+    return;
+  }
+  selectedRegions.value = projectRegions.value.map((item) => item.id);
 };
 
-const clearLandmarkSelection = () => {
-  selectedLandmarks.value = [];
-};
-
-const selectAllForces = () => {
-  selectedForces.value = projectForces.value.map((f) => f.id);
-};
-
-const clearForceSelection = () => {
-  selectedForces.value = [];
-};
-
-const selectAllRegions = () => {
-  selectedRegions.value = projectRegions.value.map((r) => r.id);
-};
-
-const clearRegionSelection = () => {
+const clearSelection = (type: SelectionType) => {
+  if (type === 'landmarks') {
+    selectedLandmarks.value = [];
+    return;
+  }
+  if (type === 'forces') {
+    selectedForces.value = [];
+    return;
+  }
   selectedRegions.value = [];
 };
 
@@ -466,9 +467,8 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce | EnhancedRegion)
     (landmark.roadConnections || []).map((conn) => {
       const targetName = idToName(conn.targetId, landmarkIdToNameMap);
       const targetLandmark = props.landmarks.find((item) => item.id === conn.targetId);
-      const resolvedLength = targetLandmark ? getRoadConnectionLength(landmark, targetLandmark) : undefined;
-      const lengthText = resolvedLength === undefined ? '未计算' : `${resolvedLength} ${lengthUnit.value}`;
-      return `${targetName} (长度: ${lengthText})`;
+      const lengthText = getRoadConnectionLengthText(landmark, targetLandmark, lengthUnit.value);
+      return formatRoadLinkLabel(targetName, lengthText, '与此地标的距离');
     });
 
   const landmarks = items
@@ -570,6 +570,28 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce | EnhancedRegion)
 
 // 导出方法
 const exportSelectedJSON = async () => {
+  if (selectedItems.value.length === 0) {
+    ElMessage.warning('请先选择要导出的内容');
+    return;
+  }
+
+  const jsonData = generateJSON(selectedItems.value);
+  const projectName = (props.currentProject?.name || '未命名项目').trim() || '未命名项目';
+  const safeProjectName = projectName.replace(/[\\/:*?"<>|]/g, '-');
+
+  try {
+    await saveFile({
+      data: new TextEncoder().encode(jsonData),
+      fileName: `${safeProjectName}-selected.json`,
+      mimeType: 'application/json;charset=utf-8',
+    });
+    ElMessage.success(`已导出 ${selectedItems.value.length} 项内容为 JSON 文件`);
+  } catch (error) {
+    ElMessage.error('导出 JSON 文件失败');
+  }
+};
+
+const copySelectedJSON = async () => {
   if (selectedItems.value.length === 0) {
     ElMessage.warning('请先选择要导出的内容');
     return;

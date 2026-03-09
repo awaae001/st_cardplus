@@ -11,7 +11,7 @@ import {
 } from '@vue-flow/core';
 import type { Project, EnhancedLandmark, EnhancedForce, EnhancedRegion, RoadConnection } from '@/types/world-editor';
 import type { LandmarkNodeData, LandmarkNodeForce } from '@/types/worldeditor/worldGraphNodes';
-import { linkLandmarks, recalculateRoadConnectionLengths, unlinkLandmarks } from '@/composables/worldeditor/worldGraphLinks';
+import { linkLandmarks, recalculateRoadConnectionLengths, unlinkLandmarks } from '@/composables/worldeditor/graph/worldGraphLinks';
 
 export interface WorldGraphProps {
   projects: Project[];

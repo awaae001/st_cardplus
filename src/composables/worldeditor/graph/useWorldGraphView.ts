@@ -4,8 +4,8 @@ import type { EnhancedLandmark, EnhancedRegion } from '@/types/world-editor';
 import type { BridgeNodeData, LandmarkNodeForce } from '@/types/worldeditor/worldGraphNodes';
 import { collectDescendantIds, getParentLandmarkId } from '@/utils/worldeditor/landmarkHierarchy';
 import { readSessionStorageJSON, writeSessionStorageJSON } from '@/utils/localStorageUtils';
-import { linkLandmarks, unlinkLandmarks } from '@/composables/worldeditor/worldGraphLinks';
-import { useWorldGraph, type WorldGraphProps } from '@/composables/worldeditor/useWorldGraph';
+import { linkLandmarks, unlinkLandmarks } from '@/composables/worldeditor/graph/worldGraphLinks';
+import { useWorldGraph, type WorldGraphProps } from '@/composables/worldeditor/graph/useWorldGraph';
 import { ElMessage } from 'element-plus';
 
 interface WorldGraphViewOptions {
