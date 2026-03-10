@@ -23,7 +23,6 @@ const parseHandleSide = (handle?: string): HandleSide | undefined => {
 const isLargeLandmark = (landmark: EnhancedLandmark) => {
   const type = landmark.type || '';
   if (type === 'natural' || type === 'chasm' || type === 'canyon') return true;
-  return type.includes('天堑');
 };
 
 const getNodeSize = (landmark: EnhancedLandmark) => {
@@ -86,6 +85,27 @@ const calculateRoadLength = (
   const targetAnchor = targetSide ? getSideMidpoint(target, targetSide) : getFacingEdgeMidpoint(target, sourceCenter);
   if (!sourceAnchor || !targetAnchor) return undefined;
   return Math.round(euclideanDistance(sourceAnchor, targetAnchor));
+};
+
+export const estimateRoadLengthBetweenLandmarks = (
+  source: EnhancedLandmark,
+  target: EnhancedLandmark,
+  sourceHandle?: string,
+  targetHandle?: string
+): number | undefined => calculateRoadLength(source, target, sourceHandle, targetHandle);
+
+export const estimateRoadLengthFromLandmarkToPoint = (
+  source: EnhancedLandmark,
+  targetPoint: { x: number; y: number },
+  sourceHandle?: string
+): number | undefined => {
+  if (!source.position) return undefined;
+  const sourceCenter = getNodeCenter(source);
+  if (!sourceCenter) return undefined;
+  const sourceSide = parseHandleSide(sourceHandle);
+  const sourceAnchor = sourceSide ? getSideMidpoint(source, sourceSide) : getFacingEdgeMidpoint(source, targetPoint);
+  if (!sourceAnchor) return undefined;
+  return Math.round(euclideanDistance(sourceAnchor, targetPoint));
 };
 
 const upsertRoadConnection = (
