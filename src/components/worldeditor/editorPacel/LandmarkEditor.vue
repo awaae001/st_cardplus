@@ -615,9 +615,7 @@ const selectedParentId = computed({
 
 const childLandmarks = computed(() => {
   if (!props.landmark || !props.allLandmarks) return [];
-  const childIds = props.landmark.childLandmarkIds?.length
-    ? props.landmark.childLandmarkIds
-    : props.allLandmarks.filter((item) => getParentLandmarkId(item) === props.landmark!.id).map((item) => item.id);
+  const childIds = props.landmark.childLandmarkIds;
   const map = new Map(props.allLandmarks.map((item) => [item.id, item]));
   return childIds.map((id) => map.get(id)).filter(Boolean) as EnhancedLandmark[];
 });
@@ -631,7 +629,7 @@ const roadLinkOptions = computed(() => {
     if (!match || match.projectId !== props.landmark!.projectId) {
       return { id, name: `未知地标 (${id})`, missing: true };
     }
-    const distanceText = getRoadConnectionLengthText(props.landmark!, match);
+    const distanceText = getRoadConnectionLengthText(props.landmark!, match, undefined, props.allLandmarks);
     return { id: match.id, name: formatRoadLinkLabel(match.name, distanceText, '与此地标的距离'), missing: false };
   });
 });
@@ -660,7 +658,7 @@ const forcesAtLandmark = computed(() => {
     .filter((force) => force.projectId === landmark.projectId)
     .map((force) => {
       const roles: string[] = [];
-      if (force.headquarters === landmark.id || force.headquarters === landmark.name) {
+      if (force.headquarters === landmark.id) {
         roles.push('总部');
       }
       if (force.branchLocations?.some((branch) => branch.locationId === landmark.id)) {
@@ -680,17 +678,10 @@ const normalizeRelativePosition = (landmark: EnhancedLandmark) => {
     landmark.relativePosition = { north: [], south: [], east: [], west: [] };
     return;
   }
-  const relativePosition = landmark.relativePosition as {
-    north?: string | string[];
-    south?: string | string[];
-    east?: string | string[];
-    west?: string | string[];
-  };
-  const ensureArray = (value?: string | string[]) => (Array.isArray(value) ? value : value ? [value] : []);
-  landmark.relativePosition.north = ensureArray(relativePosition.north);
-  landmark.relativePosition.south = ensureArray(relativePosition.south);
-  landmark.relativePosition.east = ensureArray(relativePosition.east);
-  landmark.relativePosition.west = ensureArray(relativePosition.west);
+  landmark.relativePosition.north = landmark.relativePosition.north || [];
+  landmark.relativePosition.south = landmark.relativePosition.south || [];
+  landmark.relativePosition.east = landmark.relativePosition.east || [];
+  landmark.relativePosition.west = landmark.relativePosition.west || [];
 };
 
 const pruneRelativePosition = (landmark: EnhancedLandmark, allowedIds: Set<string>) => {

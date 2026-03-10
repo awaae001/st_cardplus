@@ -163,7 +163,7 @@ export const useWorldGraph = (props: WorldGraphProps, options?: WorldGraphOption
   };
 
   const forceRoleAtLandmark = (force: EnhancedForce, landmark: EnhancedLandmark) => {
-    if (force.headquarters === landmark.id || force.headquarters === landmark.name) {
+    if (force.headquarters === landmark.id) {
       return '总部';
     }
     if (force.branchLocations?.some((branch) => branch.locationId === landmark.id)) {

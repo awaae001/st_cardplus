@@ -467,7 +467,7 @@ const generateJSON = (items: (EnhancedLandmark | EnhancedForce | EnhancedRegion)
     (landmark.roadConnections || []).map((conn) => {
       const targetName = idToName(conn.targetId, landmarkIdToNameMap);
       const targetLandmark = props.landmarks.find((item) => item.id === conn.targetId);
-      const lengthText = getRoadConnectionLengthText(landmark, targetLandmark, lengthUnit.value);
+      const lengthText = getRoadConnectionLengthText(landmark, targetLandmark, lengthUnit.value, props.landmarks);
       return formatRoadLinkLabel(targetName, lengthText, '与此地标的距离');
     });
 

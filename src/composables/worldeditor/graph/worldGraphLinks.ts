@@ -1,4 +1,5 @@
 import type { EnhancedLandmark } from '@/types/world-editor';
+import { getParentLandmarkId } from '@/utils/worldeditor/landmarkHierarchy';
 
 const ensureRelatedLandmark = (landmark: EnhancedLandmark, targetId: string) => {
   if (!landmark.relatedLandmarks) {
@@ -10,6 +11,9 @@ const ensureRelatedLandmark = (landmark: EnhancedLandmark, targetId: string) => 
 };
 
 type HandleSide = 'left' | 'right' | 'top' | 'bottom';
+
+const BRIDGE_NODE_WIDTH = 120;
+const BRIDGE_NODE_HEIGHT = 24;
 
 const parseHandleSide = (handle?: string): HandleSide | undefined => {
   if (!handle) return undefined;
@@ -66,8 +70,187 @@ const getSideMidpoint = (landmark: EnhancedLandmark, side: HandleSide): { x: num
   return { x: center.x, y: center.y + height / 2 };
 };
 
+const positionToSide = (
+  parent?: { x: number; y: number },
+  external?: { x: number; y: number }
+): HandleSide | null => {
+  if (!parent || !external) return null;
+  const dx = external.x - parent.x;
+  const dy = external.y - parent.y;
+  if (dx === 0 && dy === 0) return null;
+  const angle = (Math.atan2(dx, -dy) * 180) / Math.PI;
+  const normalized = (angle + 360) % 360;
+  if (normalized >= 315 || normalized < 45) return 'top';
+  if (normalized >= 45 && normalized < 135) return 'right';
+  if (normalized >= 135 && normalized < 225) return 'bottom';
+  return 'left';
+};
+
+const invertSide = (side: HandleSide): HandleSide => {
+  switch (side) {
+    case 'left':
+      return 'right';
+    case 'right':
+      return 'left';
+    case 'top':
+      return 'bottom';
+    case 'bottom':
+      return 'top';
+  }
+};
+
+const getBridgeHandlePoint = (
+  position: { x: number; y: number },
+  side: HandleSide
+): { x: number; y: number } => {
+  if (side === 'left') return { x: position.x, y: position.y + BRIDGE_NODE_HEIGHT / 2 };
+  if (side === 'right') return { x: position.x + BRIDGE_NODE_WIDTH, y: position.y + BRIDGE_NODE_HEIGHT / 2 };
+  if (side === 'top') return { x: position.x + BRIDGE_NODE_WIDTH / 2, y: position.y };
+  return { x: position.x + BRIDGE_NODE_WIDTH / 2, y: position.y + BRIDGE_NODE_HEIGHT };
+};
+
 const euclideanDistance = (a: { x: number; y: number }, b: { x: number; y: number }) =>
   Math.hypot(b.x - a.x, b.y - a.y);
+
+const isDescendantOf = (
+  landmark: EnhancedLandmark,
+  ancestorId: string,
+  landmarkMap: Map<string, EnhancedLandmark>
+): boolean => {
+  let current = getParentLandmarkId(landmark);
+  while (current) {
+    if (current === ancestorId) return true;
+    const parent = landmarkMap.get(current);
+    if (!parent) return false;
+    current = getParentLandmarkId(parent);
+  }
+  return false;
+};
+
+const getDefaultBridgePosition = (
+  parent: EnhancedLandmark,
+  externalId: string,
+  landmarks: EnhancedLandmark[],
+  landmarkMap: Map<string, EnhancedLandmark>
+): { x: number; y: number } | null => {
+  const descendants = landmarks.filter(
+    (landmark) => landmark.id !== parent.id && isDescendantOf(landmark, parent.id, landmarkMap)
+  );
+  const sideCounts = { left: 0, right: 0, top: 0, bottom: 0 };
+  const spacing = 70;
+  const columns = 4;
+  const spacingX = 220;
+  const spacingY = 160;
+  const margin = 80;
+
+  let minX = 0;
+  let maxX = 400;
+  let minY = 0;
+  let maxY = 260;
+
+  if (descendants.length > 0) {
+    minX = Number.POSITIVE_INFINITY;
+    minY = Number.POSITIVE_INFINITY;
+    maxX = Number.NEGATIVE_INFINITY;
+    maxY = Number.NEGATIVE_INFINITY;
+    descendants.forEach((landmark, index) => {
+      const fallback = {
+        x: (index % columns) * spacingX,
+        y: Math.floor(index / columns) * spacingY,
+      };
+      const position = landmark.position ?? fallback;
+      minX = Math.min(minX, position.x);
+      maxX = Math.max(maxX, position.x);
+      minY = Math.min(minY, position.y);
+      maxY = Math.max(maxY, position.y);
+    });
+  }
+
+  const externalIds = new Set<string>();
+  (parent.relatedLandmarks || []).forEach((id) => externalIds.add(id));
+  (parent.roadConnections || []).forEach((conn) => externalIds.add(conn.targetId));
+
+  for (const currentExternalId of externalIds) {
+    if (currentExternalId === parent.id) continue;
+    const external = landmarkMap.get(currentExternalId);
+    if (!external || isDescendantOf(external, parent.id, landmarkMap)) continue;
+    const side = positionToSide(parent.position, external.position);
+    if (!side) continue;
+    const count = sideCounts[side]++;
+    let x = minX;
+    let y = minY;
+    if (side === 'left') {
+      x = minX - margin;
+      y = minY + count * spacing;
+    } else if (side === 'right') {
+      x = maxX + margin;
+      y = minY + count * spacing;
+    } else if (side === 'top') {
+      x = minX + count * spacing;
+      y = minY - margin;
+    } else {
+      x = minX + count * spacing;
+      y = maxY + margin;
+    }
+    if (currentExternalId === externalId) {
+      return { x, y };
+    }
+  }
+
+  return null;
+};
+
+const resolveBridgeRouteLength = (
+  source: EnhancedLandmark,
+  target: EnhancedLandmark,
+  landmarks: EnhancedLandmark[]
+): number | undefined => {
+  const landmarkMap = new Map(landmarks.map((item) => [item.id, item]));
+
+  const resolveFor = (descendant: EnhancedLandmark, external: EnhancedLandmark): number | undefined => {
+    let currentParentId = getParentLandmarkId(descendant);
+    while (currentParentId) {
+      const parent = landmarkMap.get(currentParentId);
+      if (!parent) break;
+      if (external.id !== parent.id && !isDescendantOf(external, parent.id, landmarkMap)) {
+        const parentConn = parent.roadConnections?.find((conn) => conn.targetId === external.id);
+        const externalConn = external.roadConnections?.find((conn) => conn.targetId === parent.id);
+        if (parentConn || externalConn) {
+          const bridgePosition =
+            parent.bridgePositions?.[external.id] ?? getDefaultBridgePosition(parent, external.id, landmarks, landmarkMap);
+          const side = positionToSide(parent.position, external.position);
+          if (!bridgePosition || !side) {
+            currentParentId = getParentLandmarkId(parent);
+            continue;
+          }
+          const descendantConn = descendant.roadConnections?.find((conn) => conn.targetId === external.id);
+          const reverseConn = external.roadConnections?.find((conn) => conn.targetId === descendant.id);
+          const descendantToBridge = estimateRoadLengthFromLandmarkToPoint(
+            descendant,
+            getBridgeHandlePoint(bridgePosition, invertSide(side)),
+            descendantConn?.handle ?? reverseConn?.targetHandle
+          );
+          const parentToExternal =
+            parentConn?.length ??
+            externalConn?.length ??
+            calculateRoadLength(
+              parent,
+              external,
+              parentConn?.handle ?? externalConn?.targetHandle,
+              parentConn?.targetHandle ?? externalConn?.handle
+            );
+          if (descendantToBridge !== undefined && parentToExternal !== undefined) {
+            return descendantToBridge + parentToExternal;
+          }
+        }
+      }
+      currentParentId = getParentLandmarkId(parent);
+    }
+    return undefined;
+  };
+
+  return resolveFor(source, target) ?? resolveFor(target, source);
+};
 
 const calculateRoadLength = (
   source: EnhancedLandmark,
@@ -146,7 +329,15 @@ export const linkLandmarks = (
   upsertRoadConnection(targetLandmark, sourceId, targetHandle, sourceHandle, computedLength);
 };
 
-export const getRoadConnectionLength = (source: EnhancedLandmark, target: EnhancedLandmark): number | undefined => {
+export const getRoadConnectionLength = (
+  source: EnhancedLandmark,
+  target: EnhancedLandmark,
+  landmarks?: EnhancedLandmark[]
+): number | undefined => {
+  if (landmarks) {
+    const bridgeLength = resolveBridgeRouteLength(source, target, landmarks);
+    if (bridgeLength !== undefined) return bridgeLength;
+  }
   const direct = source.roadConnections?.find((conn) => conn.targetId === target.id);
   if (direct?.length !== undefined) return direct.length;
   const reverse = target.roadConnections?.find((conn) => conn.targetId === source.id);
@@ -213,10 +404,11 @@ export const removeLandmarkLinksForIds = (landmarks: EnhancedLandmark[], ids: Se
 export const getRoadConnectionLengthText = (
   source: EnhancedLandmark,
   target?: EnhancedLandmark | null,
-  unit?: string
+  unit?: string,
+  landmarks?: EnhancedLandmark[]
 ): string => {
   if (!target) return '未计算';
-  const length = getRoadConnectionLength(source, target);
+  const length = getRoadConnectionLength(source, target, landmarks);
   if (length === undefined) return '未计算';
   return unit ? `${length} ${unit}` : String(length);
 };
