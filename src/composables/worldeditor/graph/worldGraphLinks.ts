@@ -1,5 +1,16 @@
 import type { EnhancedLandmark } from '@/types/world-editor';
 import { getParentLandmarkId } from '@/utils/worldeditor/landmarkHierarchy';
+import {
+  getBridgeHandlePoint,
+  getDefaultBridgePositionForSide,
+  getFacingEdgeMidpoint,
+  getGraphBounds,
+  getLandmarkNodeCenter,
+  getLandmarkSideMidpoint,
+  invertHandleSide,
+  parseHandleSide,
+  positionToSide,
+} from '@/utils/worldeditor/graphGeometry';
 
 const ensureRelatedLandmark = (landmark: EnhancedLandmark, targetId: string) => {
   if (!landmark.relatedLandmarks) {
@@ -8,105 +19,6 @@ const ensureRelatedLandmark = (landmark: EnhancedLandmark, targetId: string) => 
   if (!landmark.relatedLandmarks.includes(targetId)) {
     landmark.relatedLandmarks.push(targetId);
   }
-};
-
-type HandleSide = 'left' | 'right' | 'top' | 'bottom';
-
-const BRIDGE_NODE_WIDTH = 120;
-const BRIDGE_NODE_HEIGHT = 24;
-
-const parseHandleSide = (handle?: string): HandleSide | undefined => {
-  if (!handle) return undefined;
-  if (handle === 'sr' || handle === 'tr' || handle.endsWith('right')) return 'right';
-  if (handle === 'sl' || handle === 'tl' || handle.endsWith('left')) return 'left';
-  if (handle === 'st' || handle === 'tt' || handle.endsWith('top')) return 'top';
-  if (handle === 'sb' || handle === 'tb' || handle.endsWith('bottom')) return 'bottom';
-  return undefined;
-};
-
-const isLargeLandmark = (landmark: EnhancedLandmark) => {
-  const type = landmark.type || '';
-  if (type === 'natural' || type === 'chasm' || type === 'canyon') return true;
-};
-
-const getNodeSize = (landmark: EnhancedLandmark) => {
-  if (isLargeLandmark(landmark)) {
-    return { width: 240, height: 46 };
-  }
-
-  return { width: 180, height: 38 };
-};
-
-const getNodeCenter = (landmark: EnhancedLandmark): { x: number; y: number } | null => {
-  if (!landmark.position) return null;
-  const { width, height } = getNodeSize(landmark);
-  return { x: landmark.position.x + width / 2, y: landmark.position.y + height / 2 };
-};
-
-const getFacingEdgeMidpoint = (
-  landmark: EnhancedLandmark,
-  targetCenter: { x: number; y: number }
-): { x: number; y: number } | null => {
-  const center = getNodeCenter(landmark);
-  if (!center) return null;
-  const { width, height } = getNodeSize(landmark);
-  const dx = targetCenter.x - center.x;
-  const dy = targetCenter.y - center.y;
-  const side: HandleSide = Math.abs(dx) >= Math.abs(dy) ? (dx >= 0 ? 'right' : 'left') : dy >= 0 ? 'bottom' : 'top';
-
-  if (side === 'left') return { x: center.x - width / 2, y: center.y };
-  if (side === 'right') return { x: center.x + width / 2, y: center.y };
-  if (side === 'top') return { x: center.x, y: center.y - height / 2 };
-  return { x: center.x, y: center.y + height / 2 };
-};
-
-const getSideMidpoint = (landmark: EnhancedLandmark, side: HandleSide): { x: number; y: number } | null => {
-  const center = getNodeCenter(landmark);
-  if (!center) return null;
-  const { width, height } = getNodeSize(landmark);
-  if (side === 'left') return { x: center.x - width / 2, y: center.y };
-  if (side === 'right') return { x: center.x + width / 2, y: center.y };
-  if (side === 'top') return { x: center.x, y: center.y - height / 2 };
-  return { x: center.x, y: center.y + height / 2 };
-};
-
-const positionToSide = (
-  parent?: { x: number; y: number },
-  external?: { x: number; y: number }
-): HandleSide | null => {
-  if (!parent || !external) return null;
-  const dx = external.x - parent.x;
-  const dy = external.y - parent.y;
-  if (dx === 0 && dy === 0) return null;
-  const angle = (Math.atan2(dx, -dy) * 180) / Math.PI;
-  const normalized = (angle + 360) % 360;
-  if (normalized >= 315 || normalized < 45) return 'top';
-  if (normalized >= 45 && normalized < 135) return 'right';
-  if (normalized >= 135 && normalized < 225) return 'bottom';
-  return 'left';
-};
-
-const invertSide = (side: HandleSide): HandleSide => {
-  switch (side) {
-    case 'left':
-      return 'right';
-    case 'right':
-      return 'left';
-    case 'top':
-      return 'bottom';
-    case 'bottom':
-      return 'top';
-  }
-};
-
-const getBridgeHandlePoint = (
-  position: { x: number; y: number },
-  side: HandleSide
-): { x: number; y: number } => {
-  if (side === 'left') return { x: position.x, y: position.y + BRIDGE_NODE_HEIGHT / 2 };
-  if (side === 'right') return { x: position.x + BRIDGE_NODE_WIDTH, y: position.y + BRIDGE_NODE_HEIGHT / 2 };
-  if (side === 'top') return { x: position.x + BRIDGE_NODE_WIDTH / 2, y: position.y };
-  return { x: position.x + BRIDGE_NODE_WIDTH / 2, y: position.y + BRIDGE_NODE_HEIGHT };
 };
 
 const euclideanDistance = (a: { x: number; y: number }, b: { x: number; y: number }) =>
@@ -137,34 +49,7 @@ const getDefaultBridgePosition = (
     (landmark) => landmark.id !== parent.id && isDescendantOf(landmark, parent.id, landmarkMap)
   );
   const sideCounts = { left: 0, right: 0, top: 0, bottom: 0 };
-  const spacing = 70;
-  const columns = 4;
-  const spacingX = 220;
-  const spacingY = 160;
-  const margin = 80;
-
-  let minX = 0;
-  let maxX = 400;
-  let minY = 0;
-  let maxY = 260;
-
-  if (descendants.length > 0) {
-    minX = Number.POSITIVE_INFINITY;
-    minY = Number.POSITIVE_INFINITY;
-    maxX = Number.NEGATIVE_INFINITY;
-    maxY = Number.NEGATIVE_INFINITY;
-    descendants.forEach((landmark, index) => {
-      const fallback = {
-        x: (index % columns) * spacingX,
-        y: Math.floor(index / columns) * spacingY,
-      };
-      const position = landmark.position ?? fallback;
-      minX = Math.min(minX, position.x);
-      maxX = Math.max(maxX, position.x);
-      minY = Math.min(minY, position.y);
-      maxY = Math.max(maxY, position.y);
-    });
-  }
+  const bounds = getGraphBounds(descendants);
 
   const externalIds = new Set<string>();
   (parent.relatedLandmarks || []).forEach((id) => externalIds.add(id));
@@ -177,23 +62,8 @@ const getDefaultBridgePosition = (
     const side = positionToSide(parent.position, external.position);
     if (!side) continue;
     const count = sideCounts[side]++;
-    let x = minX;
-    let y = minY;
-    if (side === 'left') {
-      x = minX - margin;
-      y = minY + count * spacing;
-    } else if (side === 'right') {
-      x = maxX + margin;
-      y = minY + count * spacing;
-    } else if (side === 'top') {
-      x = minX + count * spacing;
-      y = minY - margin;
-    } else {
-      x = minX + count * spacing;
-      y = maxY + margin;
-    }
     if (currentExternalId === externalId) {
-      return { x, y };
+      return getDefaultBridgePositionForSide(bounds, side, count);
     }
   }
 
@@ -217,7 +87,8 @@ const resolveBridgeRouteLength = (
         const externalConn = external.roadConnections?.find((conn) => conn.targetId === parent.id);
         if (parentConn || externalConn) {
           const bridgePosition =
-            parent.bridgePositions?.[external.id] ?? getDefaultBridgePosition(parent, external.id, landmarks, landmarkMap);
+            parent.bridgePositions?.[external.id] ??
+            getDefaultBridgePosition(parent, external.id, landmarks, landmarkMap);
           const side = positionToSide(parent.position, external.position);
           if (!bridgePosition || !side) {
             currentParentId = getParentLandmarkId(parent);
@@ -227,7 +98,7 @@ const resolveBridgeRouteLength = (
           const reverseConn = external.roadConnections?.find((conn) => conn.targetId === descendant.id);
           const descendantToBridge = estimateRoadLengthFromLandmarkToPoint(
             descendant,
-            getBridgeHandlePoint(bridgePosition, invertSide(side)),
+            getBridgeHandlePoint(bridgePosition, invertHandleSide(side)),
             descendantConn?.handle ?? reverseConn?.targetHandle
           );
           const parentToExternal =
@@ -259,13 +130,17 @@ const calculateRoadLength = (
   targetHandle?: string
 ): number | undefined => {
   if (!source.position || !target.position) return undefined;
-  const sourceCenter = getNodeCenter(source);
-  const targetCenter = getNodeCenter(target);
+  const sourceCenter = getLandmarkNodeCenter(source);
+  const targetCenter = getLandmarkNodeCenter(target);
   if (!sourceCenter || !targetCenter) return undefined;
   const sourceSide = parseHandleSide(sourceHandle);
   const targetSide = parseHandleSide(targetHandle);
-  const sourceAnchor = sourceSide ? getSideMidpoint(source, sourceSide) : getFacingEdgeMidpoint(source, targetCenter);
-  const targetAnchor = targetSide ? getSideMidpoint(target, targetSide) : getFacingEdgeMidpoint(target, sourceCenter);
+  const sourceAnchor = sourceSide
+    ? getLandmarkSideMidpoint(source, sourceSide)
+    : getFacingEdgeMidpoint(source, targetCenter);
+  const targetAnchor = targetSide
+    ? getLandmarkSideMidpoint(target, targetSide)
+    : getFacingEdgeMidpoint(target, sourceCenter);
   if (!sourceAnchor || !targetAnchor) return undefined;
   return Math.round(euclideanDistance(sourceAnchor, targetAnchor));
 };
@@ -283,10 +158,12 @@ export const estimateRoadLengthFromLandmarkToPoint = (
   sourceHandle?: string
 ): number | undefined => {
   if (!source.position) return undefined;
-  const sourceCenter = getNodeCenter(source);
+  const sourceCenter = getLandmarkNodeCenter(source);
   if (!sourceCenter) return undefined;
   const sourceSide = parseHandleSide(sourceHandle);
-  const sourceAnchor = sourceSide ? getSideMidpoint(source, sourceSide) : getFacingEdgeMidpoint(source, targetPoint);
+  const sourceAnchor = sourceSide
+    ? getLandmarkSideMidpoint(source, sourceSide)
+    : getFacingEdgeMidpoint(source, targetPoint);
   if (!sourceAnchor) return undefined;
   return Math.round(euclideanDistance(sourceAnchor, targetPoint));
 };

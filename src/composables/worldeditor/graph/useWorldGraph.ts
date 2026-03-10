@@ -11,7 +11,12 @@ import {
 } from '@vue-flow/core';
 import type { Project, EnhancedLandmark, EnhancedForce, EnhancedRegion, RoadConnection } from '@/types/world-editor';
 import type { LandmarkNodeData, LandmarkNodeForce } from '@/types/worldeditor/worldGraphNodes';
-import { linkLandmarks, recalculateRoadConnectionLengths, unlinkLandmarks } from '@/composables/worldeditor/graph/worldGraphLinks';
+import {
+  linkLandmarks,
+  recalculateRoadConnectionLengths,
+  unlinkLandmarks,
+} from '@/composables/worldeditor/graph/worldGraphLinks';
+import { createDefaultGraphPosition } from '@/utils/worldeditor/graphGeometry';
 
 export interface WorldGraphProps {
   projects: Project[];
@@ -47,8 +52,6 @@ interface RemovableEdgeData {
 }
 
 export const useWorldGraph = (props: WorldGraphProps, options?: WorldGraphOptions): WorldGraphState => {
-  const nodes = ref<Node[]>([]);
-  const edges = ref<Edge[]>([]);
   const selectedLandmarkId = ref<string | null>(null);
 
   const RemovableEdge = (edgeProps: EdgeProps): ReturnType<typeof h> => {
@@ -147,20 +150,11 @@ export const useWorldGraph = (props: WorldGraphProps, options?: WorldGraphOption
   const projectLandmarkMapAll = computed(
     () => new Map(projectLandmarksAll.value.map((landmark) => [landmark.id, landmark]))
   );
+  const projectLandmarkIdSet = computed(() => new Set(projectLandmarks.value.map((landmark) => landmark.id)));
   const selectedLandmark = computed(() => {
     if (!selectedLandmarkId.value) return null;
     return projectLandmarkMapAll.value.get(selectedLandmarkId.value) || null;
   });
-
-  const createDefaultPosition = (index: number) => {
-    const columns = 4;
-    const spacingX = 220;
-    const spacingY = 160;
-    return {
-      x: (index % columns) * spacingX,
-      y: Math.floor(index / columns) * spacingY,
-    };
-  };
 
   const forceRoleAtLandmark = (force: EnhancedForce, landmark: EnhancedLandmark) => {
     if (force.headquarters === landmark.id) {
@@ -187,20 +181,19 @@ export const useWorldGraph = (props: WorldGraphProps, options?: WorldGraphOption
     return getForcesAtLandmark(selectedLandmark.value);
   });
 
-  const buildNodes = () => {
-    const list = projectLandmarks.value;
-    const nodeList: Node[] = [];
-    list.forEach((landmark, index) => {
+  const ensureLandmarkPositions = (landmarks: EnhancedLandmark[]) => {
+    landmarks.forEach((landmark, index) => {
       if (!landmark.position) {
-        landmark.position = createDefaultPosition(index);
+        landmark.position = createDefaultGraphPosition(index);
       }
-      const resolvedPosition = {
-        x: landmark.position.x,
-        y: landmark.position.y,
-      };
+    });
+  };
+
+  const nodes = computed<Node[]>(() =>
+    projectLandmarks.value.map((landmark, index) => {
+      const position = landmark.position ?? createDefaultGraphPosition(index);
       const forcesAt = getForcesAtLandmark(landmark);
       const regionInfo = landmark.regionId ? regionInfoMap.value.get(landmark.regionId) : null;
-
       const data: LandmarkNodeData = {
         id: landmark.id,
         name: landmark.name,
@@ -213,43 +206,27 @@ export const useWorldGraph = (props: WorldGraphProps, options?: WorldGraphOption
         type: landmark.type,
       };
 
-      nodeList.push({
+      return {
         id: landmark.id,
         type: 'landmark',
-        position: resolvedPosition,
+        position: {
+          x: position.x,
+          y: position.y,
+        },
         data,
-      });
-    });
-    nodes.value = nodeList;
-  };
+      };
+    })
+  );
 
   const getRoadConnection = (landmark: EnhancedLandmark, targetId: string): RoadConnection | null => {
     if (!landmark.roadConnections) return null;
     return landmark.roadConnections.find((conn) => conn.targetId === targetId) || null;
   };
 
-  const findEdgeEndpoints = (edgeId: string): { source: string; target: string } | null => {
-    const currentEdges = edges.value as Array<{ id: string; source: string; target: string }>;
-    for (const item of currentEdges) {
-      if (item.id === edgeId) {
-        return { source: item.source, target: item.target };
-      }
-    }
-    return null;
-  };
-
-  const removeEdgeById = (edgeId: string) => {
-    const endpoints = findEdgeEndpoints(edgeId);
-    if (!endpoints) return;
-    unlinkLandmarks(projectLandmarks.value, endpoints.source, endpoints.target);
-    buildEdges();
-  };
-
-  const buildEdges = () => {
-    const list = projectLandmarks.value;
-    const landmarkMap = projectLandmarkMap.value;
+  const edges = computed<Edge[]>(() => {
     const existing = new Set<string>();
     const edgeList: Edge[] = [];
+    const landmarkMap = projectLandmarkMap.value;
 
     const addEdge = (a: string, b: string) => {
       if (a === b) return;
@@ -282,7 +259,7 @@ export const useWorldGraph = (props: WorldGraphProps, options?: WorldGraphOption
       });
     };
 
-    list.forEach((landmark) => {
+    projectLandmarks.value.forEach((landmark) => {
       (landmark.relatedLandmarks || []).forEach((relatedId) => {
         if (landmarkMap.has(relatedId)) {
           addEdge(landmark.id, relatedId);
@@ -290,43 +267,72 @@ export const useWorldGraph = (props: WorldGraphProps, options?: WorldGraphOption
       });
     });
 
-    edges.value = edgeList;
-  };
+    return edgeList;
+  });
+
+  const edgeEndpointMap = computed(
+    () => new Map(edges.value.map((edge) => [edge.id, { source: edge.source, target: edge.target }]))
+  );
+
+  function removeEdgeById(edgeId: string) {
+    const endpoints = edgeEndpointMap.value.get(edgeId) || null;
+    if (!endpoints) return;
+    unlinkLandmarks(projectLandmarks.value, endpoints.source, endpoints.target);
+  }
+
+  const roadLengthDependencyKey = computed(() =>
+    projectLandmarksAll.value
+      .map((landmark) => {
+        const position = landmark.position ? `${landmark.position.x},${landmark.position.y}` : '';
+        const connections = (landmark.roadConnections || [])
+          .map((conn) => `${conn.targetId}:${conn.handle || ''}:${conn.targetHandle || ''}`)
+          .join('|');
+        return `${landmark.id}@${position}@${connections}`;
+      })
+      .join('||')
+  );
 
   watch(
-    [projectLandmarks, projectForces],
-    () => {
-      buildNodes();
-      recalculateRoadConnectionLengths(projectLandmarksAll.value);
-      buildEdges();
+    projectLandmarks,
+    (landmarks) => {
+      ensureLandmarkPositions(landmarks);
     },
-    { deep: true, immediate: true }
+    { immediate: true }
+  );
+
+  watch(
+    roadLengthDependencyKey,
+    () => {
+      recalculateRoadConnectionLengths(projectLandmarksAll.value);
+    },
+    { immediate: true }
   );
 
   watch(activeProjectId, () => {
     selectedLandmarkId.value = null;
   });
 
-  const addConnections = (landmark: EnhancedLandmark, ids: Set<string>) => {
-    (landmark.relatedLandmarks || []).forEach((id) => ids.add(id));
-    (landmark.roadConnections || []).forEach((conn) => ids.add(conn.targetId));
-  };
-
   const recalcRelativePositions = () => {
     const list = projectLandmarks.value.filter((item) => item.position);
+    const adjacency = new Map<string, Set<string>>();
+    list.forEach((landmark) => adjacency.set(landmark.id, new Set<string>()));
+
+    const connectPair = (sourceId: string, targetId: string) => {
+      if (sourceId === targetId) return;
+      if (!projectLandmarkIdSet.value.has(sourceId) || !projectLandmarkIdSet.value.has(targetId)) return;
+      adjacency.get(sourceId)?.add(targetId);
+      adjacency.get(targetId)?.add(sourceId);
+    };
+
     list.forEach((landmark) => {
-      const connectedIds = new Set<string>();
-      addConnections(landmark, connectedIds);
-      list.forEach((other) => {
-        if (other.id === landmark.id) return;
-        if (
-          other.relatedLandmarks?.includes(landmark.id) ||
-          other.roadConnections?.some((conn) => conn.targetId === landmark.id)
-        ) {
-          connectedIds.add(other.id);
-        }
-      });
-      const connectedCandidates = list.filter((item) => connectedIds.has(item.id));
+      (landmark.relatedLandmarks || []).forEach((targetId) => connectPair(landmark.id, targetId));
+      (landmark.roadConnections || []).forEach((conn) => connectPair(landmark.id, conn.targetId));
+    });
+
+    list.forEach((landmark) => {
+      const connectedCandidates = Array.from(adjacency.get(landmark.id) || [])
+        .map((id) => projectLandmarkMap.value.get(id))
+        .filter((item): item is EnhancedLandmark => Boolean(item?.position));
       const position = landmark.position;
       if (!position) return;
       const closest = {
@@ -364,15 +370,31 @@ export const useWorldGraph = (props: WorldGraphProps, options?: WorldGraphOption
     });
   };
 
+  const relativePositionDependencyKey = computed(() =>
+    projectLandmarks.value
+      .map((landmark) => {
+        const position = landmark.position ? `${landmark.position.x},${landmark.position.y}` : '';
+        const related = (landmark.relatedLandmarks || []).join(',');
+        const roads = (landmark.roadConnections || []).map((conn) => conn.targetId).join(',');
+        return `${landmark.id}@${position}@${related}@${roads}`;
+      })
+      .join('||')
+  );
+
+  watch(
+    relativePositionDependencyKey,
+    () => {
+      recalcRelativePositions();
+    },
+    { immediate: true }
+  );
+
   const handleNodeDragStop = (event: unknown, node?: Node) => {
     const resolvedNode = node ?? (event as { node?: Node })?.node;
     if (!resolvedNode?.id) return;
     const target = projectLandmarks.value.find((item) => item.id === resolvedNode.id);
     if (target) {
       target.position = { x: resolvedNode.position.x, y: resolvedNode.position.y };
-      recalcRelativePositions();
-      recalculateRoadConnectionLengths(projectLandmarksAll.value);
-      buildEdges();
     }
   };
 
@@ -385,8 +407,6 @@ export const useWorldGraph = (props: WorldGraphProps, options?: WorldGraphOption
     const targetHandle = params.targetHandle ?? undefined;
 
     linkLandmarks(projectLandmarks.value, source, target, sourceHandle, targetHandle);
-    recalculateRoadConnectionLengths(projectLandmarksAll.value);
-    buildEdges();
   };
 
   const handleEdgesChange = (changes: EdgeChange[]) => {
@@ -395,11 +415,10 @@ export const useWorldGraph = (props: WorldGraphProps, options?: WorldGraphOption
 
     removed.forEach((change) => {
       if (!('id' in change)) return;
-      const endpoints = findEdgeEndpoints(change.id);
+      const endpoints = edgeEndpointMap.value.get(change.id);
       if (!endpoints) return;
       unlinkLandmarks(projectLandmarks.value, endpoints.source, endpoints.target);
     });
-    buildEdges();
   };
 
   const inspectorPosition = ref({ x: 50, y: 50 });
