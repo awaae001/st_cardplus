@@ -183,13 +183,24 @@ const prepareForExport = (character: CharacterCard): CharacterData => {
   return { ...(cleaned.data || character.data) };
 };
 
+export const serializeCharacterInfo = (
+  character: CharacterCard,
+  options: {
+    includeIdentityAsArray?: boolean;
+  } = {}
+) => {
+  const characterToExport = prepareForExport(character);
+  return removeEmptyFields(
+    toSerializableCharacterData(characterToExport, {
+      includeIdentityAsArray: options.includeIdentityAsArray ?? true,
+    })
+  );
+};
+
 export function useCardDataHandler(form: Ref<CharacterCard>) {
   const saveCharacterCard = async (): Promise<void> => {
     try {
-      const characterToExport = prepareForExport(form.value);
-      const rawData = toSerializableCharacterData(characterToExport, { includeIdentityAsArray: false });
-
-      const dataToSave = removeEmptyFields(rawData);
+      const dataToSave = serializeCharacterInfo(form.value, { includeIdentityAsArray: false });
 
       if (!dataToSave || Object.keys(dataToSave).length === 0) {
         ElMessage.warning('没有可保存的数据，请先填写角色卡信息');
@@ -294,10 +305,7 @@ export function useCardDataHandler(form: Ref<CharacterCard>) {
   };
 
   const copyToClipboard = async (): Promise<void> => {
-    const characterToExport = prepareForExport(form.value);
-    const rawData = toSerializableCharacterData(characterToExport, { includeIdentityAsArray: true });
-
-    const dataToSave = removeEmptyFields(rawData);
+    const dataToSave = serializeCharacterInfo(form.value, { includeIdentityAsArray: true });
     if (!dataToSave || Object.keys(dataToSave).length === 0) {
       ElMessage.warning('没有可复制的数据，请先填写角色卡信息');
       return;
