@@ -1,8 +1,8 @@
 <template>
   <div class="card-manager-container">
     <div class="card-manager-layout">
-      <CharacterCardTabs :tabs="tabs" :active-tab-id="activeTabId" @switch-tab="handleTabSwitch"
-        @close-tab="handleTabClose" @reorder-tabs="handleTabReorder" />
+      <CharacterCardTabs :tabs="tabs" :active-tab-id="activeTabId" @switch-tab="switchToTab"
+        @close-tab="handleTabClose" @reorder-tabs="reorderTabs" />
 
       <div class="tab-content-area">
         <div v-if="currentTab?.type === 'home'" class="tab-content-panel">
@@ -59,26 +59,26 @@
               </div>
               <div class="header-actions" v-else-if="rightEditorTab === 'regex'">
                 <el-tooltip content="创建一个新的空白正则脚本" placement="bottom">
-                  <el-button size="small" @click="handleRegexCreateNew" :disabled="!currentCardInTab">
+                  <el-button size="small" @click="regexPanelRef?.handleCreateNew()" :disabled="!currentCardInTab">
                     <Icon icon="ph:file-plus-duotone" />
                     <span class="button-text">创建新脚本</span>
                   </el-button>
                 </el-tooltip>
                 <el-tooltip content="从正则脚本库中选择并添加脚本" placement="bottom">
-                  <el-button size="small" @click="handleRegexAddFromLibrary" :disabled="!currentCardInTab">
+                  <el-button size="small" @click="regexPanelRef?.handleAddFromLibrary()" :disabled="!currentCardInTab">
                     <Icon icon="ph:books-duotone" />
                     <span class="button-text">从正则库添加</span>
                   </el-button>
                 </el-tooltip>
                 <el-divider direction="vertical" />
                 <el-tooltip content="将角色卡的正则脚本发送到正则编辑器（副本），之后完全独立" placement="bottom">
-                  <el-button size="small" @click="handleRegexSendToEditor" :disabled="!hasRegexScripts">
+                  <el-button size="small" @click="regexPanelRef?.handleSendToRegexEditor()" :disabled="!hasRegexScripts">
                     <Icon icon="ph:upload-duotone" />
                     <span class="button-text">发送到编辑器</span>
                   </el-button>
                 </el-tooltip>
                 <el-tooltip content="用正则编辑器中的脚本替换角色卡的所有正则脚本" placement="bottom">
-                  <el-button size="small" @click="handleRegexReplaceFromEditor" :disabled="!currentCardInTab">
+                  <el-button size="small" @click="regexPanelRef?.handleReplaceFromRegexEditor()" :disabled="!currentCardInTab">
                     <Icon icon="ph:arrow-counter-clockwise-duotone" />
                     <span class="button-text">从编辑器替换</span>
                   </el-button>
@@ -143,7 +143,7 @@
 
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
-import { ElButton, ElDivider, ElMessage, ElMessageBox, ElTabPane, ElTabs } from 'element-plus';
+import { ElButton, ElDivider, ElMessage, ElTabPane, ElTabs } from 'element-plus';
 import { computed, onUnmounted, ref, watch } from 'vue';
 
 import CardEditor from '@/components/cardManager/CardEditor.vue';
@@ -161,8 +161,9 @@ import { useCharacterCardEditorSessions } from '@/composables/characterCard/useC
 import { useTabManager } from '@/composables/characterCard/useTabManager';
 import type { CharacterCardV3 } from '@/types/character-card-v3';
 import type { SillyTavernRegexScript } from '@/composables/regex/types';
-import { isTauriApp, uploadImageToHostingViaTauri, type HostingProvider } from '@/utils/catbox';
+import { isTauriApp, type HostingProvider } from '@/utils/catbox';
 import { getSetting } from '@/utils/localStorageUtils';
+import { useImageHosting } from '@/utils/useImageHosting';
 
 const {
   tabs,
@@ -231,6 +232,8 @@ const {
   collection: characterCardCollection,
   currentCardId,
 });
+
+const { handleUploadToHosting } = useImageHosting(currentImageFile, setCurrentSessionAvatarUrl);
 
 const autoSaveMode = ref<AutoSaveMode>('watch');
 
@@ -326,68 +329,6 @@ const handleImageUrlUpdate = (url: string) => {
 
 const isDesktopApp = isTauriApp();
 const selectedProvider = ref<HostingProvider>('catbox');
-const IMGBB_API_KEY_STORAGE = 'imgbb-api-key';
-
-const ensureImgBBApiKey = async (): Promise<string | null> => {
-  const cached = localStorage.getItem(IMGBB_API_KEY_STORAGE)?.trim();
-  if (cached) return cached;
-  try {
-    const result = await ElMessageBox.prompt('请输入 ImgBB API Key（仅需一次）', 'ImgBB 配置', {
-      confirmButtonText: '保存并继续',
-      cancelButtonText: '取消',
-      inputPlaceholder: 'ImgBB API Key',
-      inputPattern: /^.{6,}$/,
-      inputErrorMessage: '请输入有效的 ImgBB API Key',
-    });
-    const key = String((result as { value?: string }).value || '').trim();
-    if (!key) return null;
-    localStorage.setItem(IMGBB_API_KEY_STORAGE, key);
-    return key;
-  } catch {
-    return null;
-  }
-};
-
-const handleUploadToHosting = async (provider: HostingProvider) => {
-  selectedProvider.value = provider;
-  if (!isDesktopApp) {
-    ElMessage.warning('该功能仅在桌面 APP 版本可用');
-    return;
-  }
-
-  if (!currentImageFile.value) {
-    ElMessage.warning('请先选择一张本地头像图片');
-    return;
-  }
-
-  try {
-    let imgbbApiKey: string | undefined;
-    if (provider === 'imgbb') {
-      const key = await ensureImgBBApiKey();
-      if (!key) {
-        ElMessage.info('已取消 ImgBB 上传');
-        return;
-      }
-      imgbbApiKey = key;
-    }
-
-    const uploadedUrl = await uploadImageToHostingViaTauri(currentImageFile.value, provider, imgbbApiKey);
-    setCurrentSessionAvatarUrl(uploadedUrl);
-    ElMessage.success(`上传到 ${provider === 'catbox' ? 'Catbox' : 'ImgBB'} 成功，已写入角色 image URL`);
-  } catch (error) {
-    const errorInfo =
-      error instanceof Error
-        ? {
-          name: error.name,
-          message: error.message,
-          stack: error.stack,
-        }
-        : { raw: error };
-    console.error('[ImageHosting] 上传失败 - 完整错误对象:', error);
-    console.error('[ImageHosting] 上传失败 - 可读详情:', errorInfo);
-    ElMessage.error(error instanceof Error ? error.message : '上传失败');
-  }
-};
 
 const avatarUrl = computed(() => {
   if (currentDraft.value.avatar && currentDraft.value.avatar !== 'none') {
@@ -495,17 +436,9 @@ const handleOpenCardFromHome = (cardId: string, cardName: string) => {
   openCharacterCardTab(cardId, cardName);
 };
 
-const handleTabSwitch = (tabId: string) => {
-  switchToTab(tabId);
-};
-
 const handleTabClose = (tabId: string) => {
   closeTab(tabId);
   closeSession(tabId);
-};
-
-const handleTabReorder = (newTabs: any[]) => {
-  reorderTabs(newTabs);
 };
 
 const handleRenameCard = async (cardId: string) => {
@@ -566,21 +499,6 @@ const hasRegexScripts = computed(() => {
   return scripts && scripts.length > 0;
 });
 
-const handleRegexCreateNew = () => {
-  regexPanelRef.value?.handleCreateNew();
-};
-
-const handleRegexAddFromLibrary = () => {
-  regexPanelRef.value?.handleAddFromLibrary();
-};
-
-const handleRegexSendToEditor = () => {
-  regexPanelRef.value?.handleSendToRegexEditor();
-};
-
-const handleRegexReplaceFromEditor = () => {
-  regexPanelRef.value?.handleReplaceFromRegexEditor();
-};
 
 onUnmounted(() => {
   if (localPreviewUrl.value) {
