@@ -1,28 +1,13 @@
-
-import { ElMessage, ElMessageBox } from 'element-plus';
-import { isTauriApp, uploadImageToHostingViaTauri, type HostingProvider } from '@/utils/catbox';
+import { ElMessage } from 'element-plus';
+import { isTauriApp, uploadImageToHostingViaTauri, type HostingProvider } from '@/utils/imageHosting';
+import { getSetting } from '@/utils/localStorageUtils';
 import type { Ref } from 'vue';
 
-const IMGBB_API_KEY_STORAGE = 'imgbb-api-key';
-
 const ensureImgBBApiKey = async (): Promise<string | null> => {
-  const cached = localStorage.getItem(IMGBB_API_KEY_STORAGE)?.trim();
+  const cached = getSetting('imgbbApiKey').trim();
   if (cached) return cached;
-  try {
-    const result = await ElMessageBox.prompt('请输入 ImgBB API Key（仅需一次）', 'ImgBB 配置', {
-      confirmButtonText: '保存并继续',
-      cancelButtonText: '取消',
-      inputPlaceholder: 'ImgBB API Key',
-      inputPattern: /^.{6,}$/,
-      inputErrorMessage: '请输入有效的 ImgBB API Key',
-    });
-    const key = String((result as { value?: string }).value || '').trim();
-    if (!key) return null;
-    localStorage.setItem(IMGBB_API_KEY_STORAGE, key);
-    return key;
-  } catch {
-    return null;
-  }
+  ElMessage.warning('请前往 设置，配置 ImgBB keys 后再试');
+  return null;
 };
 
 export function useImageHosting(
@@ -47,7 +32,6 @@ export function useImageHosting(
       if (provider === 'imgbb') {
         const key = await ensureImgBBApiKey();
         if (!key) {
-          ElMessage.info('已取消 ImgBB 上传');
           return;
         }
         imgbbApiKey = key;

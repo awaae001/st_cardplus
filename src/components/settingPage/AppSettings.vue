@@ -56,8 +56,19 @@
               <span class="interval-unit">{{ setting.unit }}</span>
             </div>
           </template>
+          <template v-else-if="setting.type === 'passwordInput'">
+            <el-input
+              v-model="setting.model.value"
+              @input="setting.handler"
+              type="password"
+              show-password
+              clearable
+              :placeholder="setting.placeholder"
+              class="setting-password-input"
+            />
+          </template>
         </div>
-        <p class="setting-description">{{ setting.description }}</p>
+        <p class="setting-description" v-html="setting.description"></p>
       </div>
     </div>
   </div>
@@ -73,6 +84,7 @@ import { computed, onMounted, ref } from 'vue';
 const betaFeaturesEnabled = ref(false);
 const autoSaveInterval = ref(5);
 const autoSaveDebounce = ref(1.5);
+const imgbbApiKey = ref('');
 
 const onBetaFeaturesToggle = (value: boolean) => {
   if (value) {
@@ -127,17 +139,23 @@ const onAutoSaveDebounceChange = (value: number | undefined) => {
   window.dispatchEvent(new CustomEvent('autoSaveDebounceChange', { detail: value }));
 };
 
+const onImgbbApiKeyChange = (value: string) => {
+  setSetting('imgbbApiKey', value);
+};
+
 const settings = computed(() =>
   getAppSettings(
     {
       betaFeaturesEnabled,
       autoSaveInterval,
       autoSaveDebounce,
+      imgbbApiKey,
     },
     {
       onBetaFeaturesToggle,
       onAutoSaveIntervalChange,
       onAutoSaveDebounceChange,
+      onImgbbApiKeyChange,
     }
   )
 );
@@ -146,9 +164,14 @@ onMounted(() => {
   betaFeaturesEnabled.value = getSetting('betaFeaturesEnabled');
   autoSaveInterval.value = getSetting('autoSaveInterval');
   autoSaveDebounce.value = getSetting('autoSaveDebounce');
+  imgbbApiKey.value = getSetting('imgbbApiKey');
 });
 </script>
 
 <style scoped>
 /* 使用全局 settings.css 中定义的通用样式 */
+
+.setting-password-input {
+  width: min(320px, 100%);
+}
 </style>

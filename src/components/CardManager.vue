@@ -161,7 +161,7 @@ import { useCharacterCardEditorSessions } from '@/composables/characterCard/useC
 import { useTabManager } from '@/composables/characterCard/useTabManager';
 import type { CharacterCardV3 } from '@/types/character-card-v3';
 import type { SillyTavernRegexScript } from '@/composables/regex/types';
-import { isTauriApp, type HostingProvider } from '@/utils/catbox';
+import { isTauriApp, type HostingProvider } from '@/utils/imageHosting';
 import { getSetting } from '@/utils/localStorageUtils';
 import { useImageHosting } from '@/utils/useImageHosting';
 
